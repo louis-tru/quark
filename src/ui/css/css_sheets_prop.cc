@@ -160,6 +160,7 @@ namespace qk {
 	//_Define_Enum_transition(int)
 	_Define_Enum_transition(CascadeColor)
 	_Define_Enum_transition(Align)
+	_Define_Enum_transition(LayoutType)
 	_Define_Enum_transition(Direction)
 	_Define_Enum_transition(ItemsAlign)
 	_Define_Enum_transition(CrossAlign)
@@ -260,7 +261,7 @@ namespace qk {
 		void asyncSet(T value) {
 			auto win = getWindowForAsyncSet();
 			if (win) {
-				win->preRender().async_call([](auto self, auto arg) {
+				win->pre_render().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg);
 				}, this, value);
 			} else {
@@ -271,7 +272,7 @@ namespace qk {
 		void asyncSetLarge(T &value) {
 			auto win = getWindowForAsyncSet();
 			if (win) {
-				win->preRender().async_call([](auto self, auto arg) {
+				win->pre_render().async_call([](auto self, auto arg) {
 					Sp<T> h(arg.arg);
 					self->set(key, *arg.arg);
 				}, this, new T(value));
@@ -572,7 +573,7 @@ namespace qk {
 			auto win = getWindowForAsyncSet();
 			if (win) {
 				Retain(value); // retain the object before calling
-				win->preRender().async_call([](auto self, auto arg) {
+				win->pre_render().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg, true);
 					Release(arg.arg);
 				}, this, value);

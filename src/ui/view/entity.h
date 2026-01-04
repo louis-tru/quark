@@ -153,7 +153,7 @@ namespace qk {
 		~Entity();
 
 		/** @override Return view type identifier. */
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 		/** @override Cast to Entity. */
 		Entity* asEntity() override;
 		/** @override Cast to MorphView. */

@@ -47,7 +47,7 @@ class AsyncFileRead: public File, public File::Delegate {
 			if ( evt.error ) {
 				Qk_Log("ERR, %s", evt.error->message().c_str());
 			} else {
-				Qk_Log( evt.data->collapseString() );
+				Qk_Log( evt.data->collapse_string() );
 			}
 			RunLoop::current()->stop();
 		}));

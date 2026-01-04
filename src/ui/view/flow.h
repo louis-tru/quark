@@ -47,7 +47,7 @@ namespace qk {
 		//!< The alignment method of multiple cross axes, if there is only one cross axis, this attribute will not work
 		Qk_DEFINE_VIEW_PROPERTY(WrapAlign, wrap_align, Const);
 		// @overwrite
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;
 	private:

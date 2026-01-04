@@ -102,7 +102,7 @@ namespace qk {
 		void trigger_UIStateChange(UIStateEvent &evt) {
 			bubble_trigger(UIEvent_UIStateChange, evt);
 			if ( evt.is_default() ) {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					do {
 						auto ss = self->_cssclass.load();
 						if (ss)
@@ -254,7 +254,7 @@ namespace qk {
 			Qk_ASSERT(_click_valid_count >= 0);
 		}
 		static OriginTouche* Make(View* view) {
-			return view->tryRetain_rt() ? new OriginTouche(view): nullptr;
+			return view->try_retain_rt() ? new OriginTouche(view): nullptr;
 		}
 	private:
 		OriginTouche(View* origin)
@@ -434,7 +434,7 @@ namespace qk {
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
 						if ( view->overlap_test(i->position) ) {
-							clipIn.pushBack(*i);
+							clipIn.push_back(*i);
 							in.erase(i++);
 						} else {
 							i++;
@@ -646,7 +646,7 @@ namespace qk {
 		if (root) {
 			auto r = find_receive_view_exec(root, pos);
 			r = r ? r : root;
-			return r->tryRetain_rt();
+			return r->try_retain_rt();
 		} else {
 			return nullptr;
 		}
@@ -826,7 +826,7 @@ namespace qk {
 			if ( dir != Direction::None ) {
 				auto view = btn->next_button(dir);
 				if (view)
-					next_focus = view->tryRetain_rt(); // safe retain view
+					next_focus = view->try_retain_rt(); // safe retain view
 			}
 		}
 

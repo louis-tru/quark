@@ -57,7 +57,7 @@ namespace qk {
 
 	static HeapAllocator *objectHeapAllocator = nullptr;
 
-	void Object::setHeapAllocator(HeapAllocator *allocator) {
+	void Object::set_heap_allocator(HeapAllocator *allocator) {
 		delete objectHeapAllocator;
 		objectHeapAllocator = allocator;
 	}
@@ -79,7 +79,7 @@ namespace qk {
 		objectHeapAllocator->weak(this);
 	}
 
-	bool Object::isReference() const {
+	bool Object::is_reference() const {
 		return false;
 	}
 
@@ -117,7 +117,7 @@ namespace qk {
 		}
 	}
 
-	bool Reference::isReference() const {
+	bool Reference::is_reference() const {
 		return true;
 	}
 

@@ -54,7 +54,7 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		#define _this static_cast<Input::Inl*>(this)
-		#define _async_call window()->preRender().async_call
+		#define _async_call window()->pre_render().async_call
 	public:
 
 		#pragma mark Utils
@@ -127,7 +127,7 @@ namespace qk {
 			}
 
 			//_async_call([](auto self, auto arg) {
-			window()->preRender().async_call([](auto self, auto arg) {
+			window()->pre_render().async_call([](auto self, auto arg) {
 				if ( self->_editing ) {
 					self->window()->dispatch()->setImeKeyboardOpen({
 						false, self->_type, self->_return_type, self->spot_rect()
@@ -138,7 +138,7 @@ namespace qk {
 						self->_flag = kFlag_Normal;
 					} else {
 						if (!self->is_focus())
-							self->preRender().post(Cb([self](auto &e) { self->focus(); }), self);
+							self->pre_render().post(Cb([self](auto &e) { self->focus(); }), self);
 						self->handle_Focus_for_render_t();
 						self->find_cursor(arg.arg);
 					}
@@ -194,7 +194,7 @@ namespace qk {
 				_cursor_twinkle_status = 0;
 				_flag = kFlag_Normal;
 				mark(kInput_Status, true);
-				window()->preRender().addtask(this);
+				window()->pre_render().addtask(this);
 			}
 		}
 
@@ -211,7 +211,7 @@ namespace qk {
 				} else {
 					ctx->mark(kInput_Status, true);
 				}
-				ctx->window()->preRender().untask(ctx);
+				ctx->window()->pre_render().untask(ctx);
 			}, this, 0);
 		}
 
@@ -225,7 +225,7 @@ namespace qk {
 						_flag = kFlag_Find_Cursor_Wait;
 						// 多行文本输入并且为在touch事件时为了判断是否为滚动与定位查找操作,
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
-						if ( !tryRetain_rt() )
+						if ( !try_retain_rt() )
 							return;
 						window()->loop()->timer(Cb([this](auto &e) { // delay call
 							_async_call([](auto ctx, auto arg) {
@@ -234,7 +234,7 @@ namespace qk {
 									ctx->find_cursor(ctx->_point);
 								}
 							}, this, 0);
-							release(); // it must be release here @ if ( !tryRetain_rt() )
+							release(); // it must be release here @ if ( !try_retain_rt() )
 						}), 1e3); // 1 second
 					} else { // 立即激活
 						_flag = kFlag_Find_Cursor;
@@ -555,7 +555,7 @@ namespace qk {
 			String s = text;
 			if ( !is_multiline() ) {
 				if ( s.length() > 1 ) {
-					s = s.replaceAll('\n', String());
+					s = s.replace_all('\n', String());
 				} else if ( s.length() == 1 ) {
 					if ( s[0] == '\n' )
 						return String4();
@@ -612,7 +612,7 @@ namespace qk {
 		}
 
 		void trigger_Change() {
-			preRender().post(Cb([this](Cb::Data& e) {
+			pre_render().post(Cb([this](Cb::Data& e) {
 				Sp<UIEvent> evt(new UIEvent(this));
 				trigger(UIEvent_Change, **evt);
 			}),this);
@@ -691,7 +691,7 @@ namespace qk {
 
 	void Input::layout_forward(uint32_t mark) {
 		if (mark & kText_Options) {
-			text_config(getClosestTextOptions()); // config text options first
+			text_config(get_closest_text_options()); // config text options first
 		}
 		Box::layout_forward(mark);
 	}
@@ -1115,7 +1115,7 @@ namespace qk {
 					mark_layout(kLayout_Typesetting, true);
 				}
 			} else {
-				window()->preRender().async_call([](auto self, auto arg) {
+				window()->pre_render().async_call([](auto self, auto arg) {
 					if (self->_value_u4.length() > self->_max_length) {
 						self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
 						self->mark_layout(kLayout_Typesetting, true);
@@ -1170,7 +1170,7 @@ namespace qk {
 		return !_readonly;
 	}
 
-	ViewType Input::viewType() const {
+	ViewType Input::view_type() const {
 		return kInput_ViewType;
 	}
 

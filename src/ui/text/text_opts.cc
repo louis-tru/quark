@@ -375,7 +375,7 @@ namespace qk {
 				view->mark_layout(View::kText_Options, true);
 			} else {
 				struct Data { uint32_t mark, flag; };
-				view->preRender().async_call([](auto self, auto arg) {
+				view->pre_render().async_call([](auto self, auto arg) {
 					auto view = self->getViewForTextOptions();
 					self->_textFlags |= arg.arg.flag;
 					view->mark_layout(View::kText_Options, true);

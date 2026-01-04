@@ -83,7 +83,7 @@ namespace qk {
 				}
 				entry = av_dict_get(stream->metadata, "variant_bitrate", nullptr, 0);
 				if ( entry ) {
-					str.bitrate = String(entry->value).toNumber<int>();
+					str.bitrate = String(entry->value).to_number<int>();
 				}
 
 				str.duration = stream->duration;
@@ -110,7 +110,7 @@ namespace qk {
 					info.height = codecpar->height;
 				}
 
-				info.codecs += String::format(info.codecs.isEmpty() ? "%s (%s)": ", %s (%s)",
+				info.codecs += String::format(info.codecs.is_empty() ? "%s (%s)": ", %s (%s)",
 											avcodec_get_name    (codecpar->codec_id),
 											avcodec_profile_name(codecpar->codec_id, codecpar->profile)
 										);
@@ -131,7 +131,7 @@ namespace qk {
 																*avp->stream_index + avp->nb_stream_indexes);
 				auto entry = av_dict_get(avp->metadata, "variant_bitrate", NULL, 0);
 				if ( entry ) {
-					prog.bitrate = String(entry->value).toNumber<uint32_t>();
+					prog.bitrate = String(entry->value).to_number<uint32_t>();
 				}
 				arr_prog.push(std::move(prog));
 			}
@@ -563,9 +563,9 @@ namespace qk {
 		ex->_after_duration += pkt->duration;
 
 		if (ex->_pkt == ex->_packets.end()) {
-			ex->_pkt = ex->_packets.pushBack(pkt);
+			ex->_pkt = ex->_packets.push_back(pkt);
 		} else {
-			ex->_packets.pushBack(pkt);
+			ex->_packets.push_back(pkt);
 		}
 		return true;
 	}
@@ -582,7 +582,7 @@ namespace qk {
 			if (ex->_pkt != ex->_packets.begin()) {
 				auto pkt = ex->_packets.front();
 				ex->_before_duration -= pkt->duration;
-				ex->_packets.popFront();
+				ex->_packets.pop_front();
 				delete pkt;
 			}
 		}

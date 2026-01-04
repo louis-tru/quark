@@ -417,7 +417,12 @@ namespace qk {
 		/**
 		 * Returns view type
 		*/
-		virtual ViewType viewType() const;
+		virtual ViewType view_type() const;
+
+		/**
+		 * Returns whether the view is a text layout container
+		*/
+		virtual bool is_text_container() const;
 
 		/**
 			* 
@@ -616,22 +621,22 @@ namespace qk {
 		}
 
 		/**
-		 * @method preRender()
+		 * @method pre_render()
 		*/
-		PreRender& preRender();
+		PreRender& pre_render();
 
 		/**
 		 * Safely use and hold view objects in rendering thread,
 		 * Because view objects may be destroyed at any time on the main thread
-		 * @method tryRetain() Returns safe self hold
+		 * @method try_retain_rt() Returns safe self hold
 		*/
-		View* tryRetain_rt();
+		View* try_retain_rt();
 
 		/**
 		 * get closest text options from parent view
-		 * @method getClosestTextOptions
+		 * @method get_closest_text_options
 		*/
-		TextOptions* getClosestTextOptions();
+		TextOptions* get_closest_text_options();
 
 	protected:
 		/**

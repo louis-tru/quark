@@ -44,7 +44,7 @@ namespace qk {
 
 	void Video::set_src(String value, bool isRt) {
 		if (isRt) {
-			preRender().post(Cb([this, value](auto e) {
+			pre_render().post(Cb([this, value](auto e) {
 				Player::set_src(value);
 			}), this);
 		} else {
@@ -66,26 +66,26 @@ namespace qk {
 		}
 	}
 
-	ViewType Video::viewType() const {
+	ViewType Video::view_type() const {
 		return kVideo_ViewType;
 	}
 
 	void Video::onEvent(const UIEventName& name, Object* data) {
 		if (name == UIEvent_Load) {
-			preRender().addtask(this);
+			pre_render().addtask(this);
 		} else if (name == UIEvent_Stop) {
 			auto imgsrc = source();
 			if (imgsrc)
 				imgsrc->unload(); // unload, resource
-			preRender().untask(this);
+			pre_render().untask(this);
 		}
 
 		// trigger event in main thread
-		if (!tryRetain_rt()) {
+		if (!try_retain_rt()) {
 			window()->loop()->post(Cb([this,name,data](auto e) {
 				Sp<UIEvent> evt(new UIEvent(this, data));
 				trigger(name, **evt);
-				release(); // It must be release here @ if (tryRetain_rt()) 
+				release(); // It must be release here @ if (try_retain_rt()) 
 			}), true);
 		} else {
 			Release(data);

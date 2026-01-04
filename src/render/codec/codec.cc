@@ -108,29 +108,29 @@ namespace qk {
 
 	ImageFormat img_format_from(cString& path) {
 
-		String str = path.toLowerCase();
+		String str = path.to_lower_case();
 		int len = str.length();
 		
-		if (str.lastIndexOf(".pvr") != -1) {
+		if (str.last_index_of(".pvr") != -1) {
 			return kPVRTC_ImageFormat;
 		}
-		else if (str.lastIndexOf(".tga") != -1) {
+		else if (str.last_index_of(".tga") != -1) {
 			return kTGA_ImageFormat;
 		}
 		// JPF、JPX、J2C、JP2、J2K、JPC、LWF
-		else if ( str.lastIndexOf(".jpg") != -1 ||
-							str.lastIndexOf(".jpf") != -1 ||
-							str.lastIndexOf(".jpeg") != -1
+		else if ( str.last_index_of(".jpg") != -1 ||
+							str.last_index_of(".jpf") != -1 ||
+							str.last_index_of(".jpeg") != -1
 		) {
 			return kJPEG_ImageFormat;
 		}
-		else if (str.lastIndexOf(".gif") != -1) {
+		else if (str.last_index_of(".gif") != -1) {
 			return kGIF_ImageFormat;
 		}
-		else if (str.lastIndexOf(".png") != -1) {
+		else if (str.last_index_of(".png") != -1) {
 			return kPNG_ImageFormat;
 		}
-		else if (str.lastIndexOf(".webp") != -1) {
+		else if (str.last_index_of(".webp") != -1) {
 			return kWEBP_ImageFormat;
 		}
 		return kUnknown_ImageFormat;

@@ -157,7 +157,6 @@ namespace qk {
 			accessors[kBox_ViewType] = accessors[kView_ViewType]; // copy view props to box
 			accessors[kFlex_ViewType] = accessors[kView_ViewType]; // copy view props to flex
 			accessors[kFlow_ViewType] = accessors[kView_ViewType]; // copy view props to flow
-			accessors[kFree_ViewType] = accessors[kView_ViewType]; // copy view props to free
 			accessors[kImage_ViewType] = accessors[kView_ViewType]; // copy view props to image
 			accessors[kVideo_ViewType] = accessors[kView_ViewType]; // copy view props to video
 			accessors[kInput_ViewType] = accessors[kView_ViewType]; // copy view props to input
@@ -173,7 +172,7 @@ namespace qk {
 			accessors[kRoot_ViewType] = accessors[kView_ViewType]; // copy view props to root
 			// Box
 			Qk_Set_Accessor(Box, CLIP, clip, bool);
-			Qk_Set_Accessor(Box, FREE, free, bool);
+			Qk_Set_Accessor(Box, LAYOUT, layout, LayoutType);
 			Qk_Set_Accessor(Box, ALIGN, align, Align);
 			Qk_Set_Accessor(Box, WIDTH, width, BoxSize);
 			Qk_Set_Accessor(Box, HEIGHT, height, BoxSize);
@@ -217,7 +216,6 @@ namespace qk {
 			Qk_Set_Accessor(Box, WEIGHT, weight, Vec2);
 			Qk_Copy_Accessor(Box, Flex, CLIP, 44); // copy box props to flex
 			Qk_Copy_Accessor(Box, Flow, CLIP, 44); // copy box props to flow
-			Qk_Copy_Accessor(Box, Free, CLIP, 44); // copy box props to free
 			Qk_Copy_Accessor(Box, Image, CLIP, 44); // copy box props to image
 			Qk_Copy_Accessor(Box, Video, CLIP, 44); // copy box props to video
 			Qk_Copy_Accessor(Box, Input, CLIP, 44); // copy box props to input

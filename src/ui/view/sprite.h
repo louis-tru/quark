@@ -66,7 +66,7 @@ namespace qk {
 		void destroy() override;
 		void play(); // Play the sprite frames
 		void stop(); // Stop the sprite frames
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 		Vec2 client_size() override;
 		Region client_region() override;
 		void draw(Painter *render) override;

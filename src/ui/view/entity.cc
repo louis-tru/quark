@@ -38,7 +38,7 @@
 #define Qk_ASSERT_Vec2(val) Qk_ASSERT_Float(val[0]); \ Qk_ASSERT_Float(val[1])
 
 namespace qk {
-	#define _async_call preRender().async_call
+	#define _async_call pre_render().async_call
 	// Geometric epsilon for float comparisons
 	constexpr float GEOM_EPS = 1e-6f;
 	typedef Entity::Bounds Bounds;
@@ -194,7 +194,7 @@ namespace qk {
 
 	void Entity::trigger_listener_change(uint64_t name, int count, int change) {
 		if ( change > 0 ) {
-			auto it = UIEventNames.findFor(name);
+			auto it = UIEventNames.find_for(name);
 			if (it != UIEventNames.end()) {
 				if (it->second.category() >= kClick_UIEventCategory &&
 					it->second.category() <= kUIState_UIEventCategory) {
@@ -237,7 +237,7 @@ namespace qk {
 		return { begin, begin + client_size(), _translate };
 	}
 
-	ViewType Entity::viewType() const {
+	ViewType Entity::view_type() const {
 		return kEntity_ViewType;
 	}
 
@@ -253,7 +253,7 @@ namespace qk {
 		if (!window()->debugMode())
 			return;
 		auto _parent = parent();
-		if (_parent && _parent->viewType() == kWorld_ViewType) {
+		if (_parent && _parent->view_type() == kWorld_ViewType) {
 			auto lastMatrix = painter->matrix();
 			auto canvas = painter->canvas();
 			Mat mat = matrix();
@@ -436,7 +436,7 @@ namespace qk {
 	}
 
 	void Agent::set_discoveryDistances(cArray<float>& val) {
-		preRender().safeReleasep(_discoveryDistances); // safe release previous and set nullptr
+		pre_render().safeReleasep(_discoveryDistances); // safe release previous and set nullptr
 		if (val.length()) {
 			_discoveryDistances.store(new Array<float>(val));
 		}
@@ -527,7 +527,7 @@ namespace qk {
 			return; // same waypoints, ignore
 		}
 		// safe release previous in render thread and set nullptr
-		preRender().safeReleasep(_waypoints);
+		pre_render().safeReleasep(_waypoints);
 		if (waypoints && waypoints->ptsLen() >= 2) {
 			waypoints->normalizedPath(); // normalize path
 			Qk_ASSERT(waypoints->isNormalized(), "waypoints normalize failed");

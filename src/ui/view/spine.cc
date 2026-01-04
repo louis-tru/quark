@@ -59,7 +59,7 @@ namespace qk {
 	{}
 
 	void Spine::SkeletonWrapper::destroy() {
-		_host->preRender().async_call([](auto self, auto arg) {
+		_host->pre_render().async_call([](auto self, auto arg) {
 			self->Object::destroy(); // safe destroy on render thread
 		}, this, 0);
 	}
@@ -112,7 +112,7 @@ namespace qk {
 
 	void Spine::set_skin(String val) {
 		_IfAutoMutex();
-		skel->_skeleton.setSkin(val.isEmpty() ? nullptr: val.c_str());
+		skel->_skeleton.setSkin(val.is_empty() ? nullptr: val.c_str());
 	}
 
 	void Spine::set_speed(float val) {
@@ -132,7 +132,7 @@ namespace qk {
 
 	void Spine::set_attachment(cString &slotName, cString &name) {
 		_IfAutoMutex();
-		skel->_skeleton.setAttachment(slotName.c_str(), name.isEmpty() ? nullptr: name.c_str());
+		skel->_skeleton.setAttachment(slotName.c_str(), name.is_empty() ? nullptr: name.c_str());
 	}
 
 	void Spine::set_default_mix(float val) {
@@ -202,7 +202,7 @@ namespace qk {
 		skel->_state.clearTrack(trackIndex);
 	}
 
-	ViewType Spine::viewType() const {
+	ViewType Spine::view_type() const {
 		return kSpine_ViewType;
 	}
 
@@ -267,9 +267,9 @@ namespace qk {
 
 	void Spine::onActivate() {
 		if (level() == 0) {
-			preRender().untask(this);
+			pre_render().untask(this);
 		} else {
-			preRender().addtask(this);
+			pre_render().addtask(this);
 		}
 	}
 
@@ -293,8 +293,8 @@ namespace qk {
 			UIEventName name;
 		};
 		// Post to main thread if the view is still valid
-		if (!v->is_noticer_none() && v->tryRetain_rt()) {
-			v->preRender().post(Cb(new Core(v, new T(v, std::forward<Args>(args)...), name)), true);
+		if (!v->is_noticer_none() && v->try_retain_rt()) {
+			v->pre_render().post(Cb(new Core(v, new T(v, std::forward<Args>(args)...), name)), true);
 		}
 	}
 

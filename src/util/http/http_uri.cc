@@ -39,13 +39,13 @@ namespace qk {
 
 	URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 		
-		String s = src.substr(0, 9).toLowerCase();
+		String s = src.substr(0, 9).to_lower_case();
 		
-		if ( s.indexOf("file:///") == 0 ) {
+		if ( s.index_of("file:///") == 0 ) {
 			_uritype = URI_FILE;
 			_pathname = src.substr(7);
 			_origin = "file://";
-		} else if ( s.indexOf("zip:///") == 0 ) {
+		} else if ( s.index_of("zip:///") == 0 ) {
 			_uritype = URI_ZIP;
 			_pathname = src.substr(6);
 			_origin = "zip://";
@@ -53,31 +53,31 @@ namespace qk {
 		else {
 			int start = 0;
 			
-			if ( s.indexOf("http://") == 0 ) {
+			if ( s.index_of("http://") == 0 ) {
 				start = 7;
 				_uritype = URI_HTTP;
 				_origin = "http://";
-			} else if ( s.indexOf("https://") == 0 ) {
+			} else if ( s.index_of("https://") == 0 ) {
 				start = 8;
 				_uritype = URI_HTTPS;
 				_origin = "https://";
-			} else if ( s.indexOf("ws://") == 0 ) {
+			} else if ( s.index_of("ws://") == 0 ) {
 				start = 5;
 				_uritype = URI_WS;
 				_origin = "ws://";
-			} else if ( s.indexOf("wss://") == 0 ) {
+			} else if ( s.index_of("wss://") == 0 ) {
 				start = 6;
 				_uritype = URI_WSS;
 				_origin = "wss://";
-			} else if ( s.indexOf("ftp://") == 0 ) {
+			} else if ( s.index_of("ftp://") == 0 ) {
 				start = 6;
 				_uritype = URI_FTP;
 				_origin = "ftp://";
-			} else if ( s.indexOf("ftps://") == 0 ) {
+			} else if ( s.index_of("ftps://") == 0 ) {
 				start = 7;
 				_uritype = URI_FTPS;
 				_origin = "ftps://";
-			} else if ( s.indexOf("sftp://") == 0 ) {
+			} else if ( s.index_of("sftp://") == 0 ) {
 				start = 7;
 				_uritype = URI_SFTP;
 				_origin = "sftp://";
@@ -86,7 +86,7 @@ namespace qk {
 			}
 			
 			bool abort = false;
-			int index = src.indexOf('/', start);
+			int index = src.index_of('/', start);
 			
 			if (index == -1) {
 				abort = true;
@@ -100,9 +100,9 @@ namespace qk {
 			
 			_origin += _host;
 			
-			index = _hostname.lastIndexOf(':');
+			index = _hostname.last_index_of(':');
 			if ( index != -1 ) {
-				_port = _hostname.substr(index + 1).toNumber<uint32_t>();
+				_port = _hostname.substr(index + 1).to_number<uint32_t>();
 				_hostname = _hostname.substr(0, index);
 			}
 			
@@ -111,10 +111,10 @@ namespace qk {
 			in_addr_t s_addr;
 			
 			if (uv_inet_pton(AF_INET, *_hostname, &s_addr) != 0) { // not ip address
-				index = _domain.lastIndexOf('.');
+				index = _domain.last_index_of('.');
 				
 				if (index != -1) {
-					index = _domain.lastIndexOf('.', index - 1);
+					index = _domain.last_index_of('.', index - 1);
 					if (index != -1) {
 						_domain = _domain.substr(index + 1);
 					}
@@ -124,19 +124,19 @@ namespace qk {
 			if (abort) return;
 		}
 		
-		int index = _pathname.indexOf('?');
+		int index = _pathname.index_of('?');
 		if (index != -1) {
 			_search = _pathname.substr(index);
 			_pathname = _pathname.substr(0, index);
 		}
 		
-		index = _pathname.lastIndexOf('/');
+		index = _pathname.last_index_of('/');
 		_dir = _pathname.substr(0, index);
 		_basename = _pathname.substr(index + 1);
 		
-		index = _basename.lastIndexOf('.');
+		index = _basename.last_index_of('.');
 		if (index != -1) {
-			_extname = _basename.substr(index).lowerCase();
+			_extname = _basename.substr(index).lower_case();
 		}
 	}
 

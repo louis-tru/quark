@@ -1647,7 +1647,7 @@ namespace qk {
 			}
 			
 			// export default
-			if (_has_export_default && !_export_default.isEmpty()) {
+			if (_has_export_default && !_export_default.is_empty()) {
 				append(S.NEWLINE);
 				append(S.EXPORT_DEFAULT);  // exports.default=xxx;
 				append(S.ASSIGN);          // =
@@ -2107,7 +2107,7 @@ namespace qk {
 		}
 
 		void parse_command_string() {
-			if ( _scanner->string_value().isEmpty()) {
+			if ( _scanner->string_value().is_empty()) {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 			while(true) {
@@ -2526,13 +2526,13 @@ namespace qk {
 				} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 					// find identifier
 					String2 path = str.substr(1, str.length() - 2).trim();
-					String basename = fs_basename(path.toString());
-					int i = basename.lastIndexOf('.');
+					String basename = fs_basename(path.to_string());
+					int i = basename.last_index_of('.');
 					if (i != -1) {
 						basename = basename.substr(0, i);
 					}
-					basename = basename.replaceAll('.', '_').replaceAll('-', '_');
-					
+					basename = basename.replace_all('.', '_').replace_all('-', '_');
+
 					if (is_identifier_start(basename[0])) {
 						i = basename.length();
 						while (--i) {
@@ -2545,7 +2545,7 @@ namespace qk {
 						basename = String();
 					}
 					
-					if (!basename.isEmpty()) {
+					if (!basename.is_empty()) {
 						append(S.CONST); // const
 						append(S.SPACE); //
 						append(codec_decode_to_ucs2(kUTF8_Encoding, basename.array().buffer())); // identifier
@@ -2716,7 +2716,7 @@ namespace qk {
 			// 转换xml为json对像: _VV(Tag,[attrs],[children])
 			
 			String2 tag_name = _scanner->string_value();
-			int index = tag_name.indexOf(String2().assign(':'));
+			int index = tag_name.index_of(String2().assign(':'));
 
 			if (index != -1) {
 				error(
@@ -2769,7 +2769,7 @@ namespace qk {
 				append(S.COMMA);  // ,
 				
 				if (attrs.find(attribute_name) != attrs.end()) {
-					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.toString());
+					error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
 				}
 				attrs.set(attribute_name, 1);
 				
@@ -2818,7 +2818,7 @@ namespace qk {
 		{
 			if (str.length()) {
 				String2 s(std::move(str));
-				if ( !ignore_space || !s.trim().isEmpty() ) {
+				if ( !ignore_space || !s.trim().is_empty() ) {
 					add_xml_children_cut_comma(is_once_comma);
 					// _VVT("str")
 					append(S._VVT);   // _VVT
@@ -2907,7 +2907,7 @@ namespace qk {
 						break;
 						
 					case STRIFX_LITERAL:   // xml context text
-						if (!_scanner->next_string_space().isEmpty())
+						if (!_scanner->next_string_space().is_empty())
 							scape.append(_scanner->next_string_space());
 						str.append(_scanner->next_string_value());
 						break;
@@ -2953,7 +2953,7 @@ namespace qk {
 		}
 
 		void _collapse_scape_() {
-			if (!_scanner->string_space().isEmpty()) {
+			if (!_scanner->string_space().is_empty()) {
 				if ( _is_class_member_data_expression ) {
 					_out_class_member_data_expression.append(_scanner->string_space());
 				}

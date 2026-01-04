@@ -60,7 +60,7 @@ namespace qk {
 			start -= 2;
 		}
 		
-		int index = s.lastIndexOf("/", start);
+		int index = s.last_index_of("/", start);
 		if (index != -1) {
 			if (basename) {
 				return s.substring(index + 1);
@@ -86,7 +86,7 @@ namespace qk {
 
 	String fs_extname(cString& path) {
 		String s = fs_split_path(path, true);
-		int index = s.lastIndexOf(".");
+		int index = s.last_index_of(".");
 		if (index != -1) {
 			return s.substr(index);
 		}
@@ -197,7 +197,7 @@ namespace qk {
 		int up = 0;
 		for (int i = Qk_Minus(ls.length(), 1); i > -1; i--) {
 			cString& v = ls[i];
-			if (!v.isEmpty() && v != ".") {
+			if (!v.is_empty() && v != ".") {
 				if (v[0] == '.' && v[1] == '.') { // set up ../
 					up++;
 				}

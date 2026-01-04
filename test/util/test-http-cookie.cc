@@ -326,9 +326,9 @@ void test_cookie_delete() {
 
 	String all = http_get_all_cookie_string("quarks.cc");
 	// test, test9, test8 exist — but we don't enforce order here
-	Qk_TEST_EXPECT(all.indexOf("test=") != -1);
-	Qk_TEST_EXPECT(all.indexOf("test8=") != -1);
-	Qk_TEST_EXPECT(all.indexOf("test9=") != -1);
+	Qk_TEST_EXPECT(all.index_of("test=") != -1);
+	Qk_TEST_EXPECT(all.index_of("test8=") != -1);
+	Qk_TEST_EXPECT(all.index_of("test9=") != -1);
 }
 
 void test_cookie_delete_all() {

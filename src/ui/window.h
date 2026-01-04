@@ -168,9 +168,9 @@ namespace qk {
 		void pending();
 
 		/**
-		 * @func preRender()
+		 * @func pre_render()
 		*/
-		inline PreRender& preRender() {
+		inline PreRender& pre_render() {
 			return _preRender;
 		}
 

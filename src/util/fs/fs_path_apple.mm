@@ -62,12 +62,12 @@ namespace qk {
 			fs_format([NSSearchPathForDirectoriesInDomains(
 				NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0].UTF8String)
 		);
-		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
 	String fs_temp(cString& child) {
 		static cString path(fs_format("%s", NSTemporaryDirectory().UTF8String));
-		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
+		return child.is_empty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
 	}
 
 	/**
@@ -75,7 +75,7 @@ namespace qk {
 	 */
 	String fs_resources(cString& child) {
 		static cString path( fs_format("%s", NSBundle.mainBundle.resourcePath.UTF8String) );
-		return child.isEmpty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
+		return child.is_empty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
 }

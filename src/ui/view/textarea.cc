@@ -95,7 +95,7 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Textarea::viewType() const {
+	ViewType Textarea::view_type() const {
 		return kTextarea_ViewType;
 	}
 }

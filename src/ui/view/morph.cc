@@ -249,7 +249,7 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Morph::viewType() const {
+	ViewType Morph::view_type() const {
 		return kMorph_ViewType;
 	}
 

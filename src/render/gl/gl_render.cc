@@ -501,7 +501,7 @@ namespace qk {
 			delete[] texStat;
 			glDeleteBuffers(4, ubo);
 		}));
-		Qk_ASSERT_EQ(_glcanvas->refCount(), 1);
+		Qk_ASSERT_EQ(_glcanvas->ref_count(), 1);
 		_glcanvas->release(); _glcanvas = nullptr;
 		_canvas = nullptr;
 	}

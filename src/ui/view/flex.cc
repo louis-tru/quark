@@ -290,6 +290,15 @@ namespace qk {
 	void Flex::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 
+			if (_layout == LayoutType::Free) {
+				set_content_size(layout_typesetting_free());
+				delete_lock_state();
+				return;
+			} else if (_layout == LayoutType::Float) {
+				layout_typesetting_float();
+				return;
+			}
+
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
 				/*
 					|-------------....------------|
@@ -369,7 +378,7 @@ namespace qk {
 		}
 	}
 
-	ViewType Flex::viewType() const {
+	ViewType Flex::view_type() const {
 		return kFlex_ViewType;
 	}
 }

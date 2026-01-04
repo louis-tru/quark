@@ -311,7 +311,7 @@ namespace qk {
 		void destroy() override;
 
 		/// @brief Returns the type of this view (Spine).
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 
 		/// @brief Returns the logical client rect of the view (depends on skeleton bounds).
 		Vec2 client_size() override;

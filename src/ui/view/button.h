@@ -41,7 +41,7 @@ namespace qk {
 	class Qk_EXPORT Button: public Text {
 	public:
 		virtual Button* next_button(Direction dir);
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual bool    can_become_focus() override;
 		virtual Button* asButton() override;
 	};

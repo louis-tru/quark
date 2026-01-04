@@ -35,7 +35,7 @@
 #include "../../util/numbers.h"
 #include <math.h>
 
-#define _async_call preRender().async_call
+#define _async_call pre_render().async_call
 
 namespace qk {
 
@@ -212,8 +212,8 @@ namespace qk {
 
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
-				task->m_id2 = _tasks.pushBack(task);
-				preRender().addtask(task);
+				task->m_id2 = _tasks.push_back(task);
+				pre_render().addtask(task);
 				task->run_task(0, 0);
 			}
 		}
@@ -242,8 +242,8 @@ namespace qk {
 			return _tasks.length();
 		}
 
-		inline PreRender& preRender() {
-			return _host->window()->preRender();
+		inline PreRender& pre_render() {
+			return _host->window()->pre_render();
 		}
 
 		// scroll
@@ -390,7 +390,7 @@ namespace qk {
 				set_v_scrollbar_pos();
 				_host->mark(kScrollMark, true); // mark
 
-				_host->preRender().post(Cb([this, scroll](auto& e) {
+				_host->pre_render().post(Cb([this, scroll](auto& e) {
 					Sp<UIEvent> evt = new UIEvent(_host);
 					_host->trigger(UIEvent_Scroll, **evt);
 				}), _host);
@@ -926,7 +926,7 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Scroll::viewType() const {
+	ViewType Scroll::view_type() const {
 		return kScroll_ViewType;
 	}
 

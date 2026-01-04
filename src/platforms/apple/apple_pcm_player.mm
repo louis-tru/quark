@@ -96,7 +96,7 @@ namespace qk {
 
 		void callback_proc(AudioQueueBufferRef in) {
 			ScopeLock scope(_mutex);
-			_queue.pushBack(in);
+			_queue.push_back(in);
 			Qk_ASSERT(_queue.length() <= _buffers.length()); // <=
 			//Qk_DLog("callback_proc, idle:%d %p", len, in);
 			if (_queue.length() == _buffers.length()) {
@@ -119,7 +119,7 @@ namespace qk {
 					Qk_ASSERT_EQ(noErr,
 					AudioQueueAllocateBuffer(_audio, size, &buf));
 					_buffers.push(buf);
-					_queue.pushBack(buf);
+					_queue.push_back(buf);
 				}
 			}
 
@@ -134,7 +134,7 @@ namespace qk {
 				memcpy(buf->mAudioData, frame->data[0], frame->linesize[0]);
 
 				if (AudioQueueEnqueueBuffer(_audio, buf, 0, nullptr) == noErr) {
-					_queue.popFront();
+					_queue.pop_front();
 					//Qk_DLog("PCM_write,  ok idle:%d %p", _queue.length(), buf);
 					if (!_play) {
 						_play = AudioQueueStart(_audio, nullptr) == noErr;

@@ -182,7 +182,7 @@ namespace qk {
 			}
 			if ( _unzp ) {
 				int code;
-				if ( _passwd.isEmpty() ) {
+				if ( _passwd.is_empty() ) {
 					code = unzOpenCurrentFile((unzFile)_unzp);
 				} else {
 					code = unzOpenCurrentFilePassword((unzFile)_unzp, _passwd.c_str());
@@ -220,7 +220,7 @@ namespace qk {
 			String dirname = fs_dirname(pathname);
 			String compatible_path = _compatible_path + "/" + pathname;
 			
-			if ( dirname.isEmpty() ) {
+			if ( dirname.is_empty() ) {
 				Dirent dir{pathname, compatible_path, type};
 				auto l = _dir_info[dirname];
 				l.push(dir);
@@ -488,7 +488,7 @@ namespace qk {
 	}
 
 	bool ZipWriter::close_current_file() {
-		if ( ! _new_name.isEmpty() ) { // 当前有打开的新文件
+		if ( ! _new_name.is_empty() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
 				Qk_ELog("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());

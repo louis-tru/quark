@@ -146,6 +146,7 @@ namespace qk {
 		RightBottom,
 	};
 
+	// Box size kind
 	enum class BoxSizeKind: uint8_t {
 		None,    /* Do not use value */
 		Auto,    /* wrap content or auto value */
@@ -158,6 +159,20 @@ namespace qk {
 		Minus,   /* (parent-value) value ! */
 	};
 	typedef FillSizeKind BoxOriginKind;
+
+	/**
+	 * @enum LayoutType
+	 * 
+	 * The layout type of the View
+	 */
+	enum class LayoutType: uint8_t {
+		Normal, /* Use Normal layout */
+		Float, /* Float layout */
+		Free, /* Free layout */
+		Text, /* Text layout only Text-view */
+		Flex, /* Flex layout only Flex-view and Flow-view */
+		Flow, /* Flow layout only Flow-view */
+	};
 
 	// ---------------- T e x t . F o n t ----------------
 

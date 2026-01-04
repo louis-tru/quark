@@ -32,7 +32,6 @@
 #include "../../ui/view/box.h"
 #include "../../ui/view/flex.h"
 #include "../../ui/view/flow.h"
-#include "../../ui/view/free.h"
 #include "../../ui/view/image.h"
 
 namespace qk { namespace js {
@@ -43,7 +42,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Box, View, { Js_NewView(Box); });
 			Js_MixObject_Accessor(Box, bool, clip, clip);
-			Js_MixObject_Accessor(Box, bool, free, free);
+			Js_MixObject_Accessor(Box, LayoutType, layout, layout);
 			Js_MixObject_Accessor(Box, Align, align, align);
 			Js_MixObject_Accessor(Box, BoxSize, width, width);
 			Js_MixObject_Accessor(Box, BoxSize, height, height);

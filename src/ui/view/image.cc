@@ -37,7 +37,7 @@
 namespace qk {
 	typedef Box::Container::Pre Pre;
 
-	ViewType Image::viewType() const {
+	ViewType Image::view_type() const {
 		return kImage_ViewType;
 	}
 

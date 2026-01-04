@@ -37,7 +37,6 @@
 #include <src/ui/view/root.h>
 #include <src/ui/view/image.h>
 #include <src/ui/view/video.h>
-#include <src/ui/view/free.h>
 #include <src/render/render.h>
 #include <src/render/canvas.h>
 #include "./test.h"
@@ -200,7 +199,7 @@ public:
 			_audio = nullptr;
 			src->remove_extractor(kAudio_MediaType);
 		}
-		preRender().addtask(this);
+		pre_render().addtask(this);
 	}
 	void media_source_eof(MediaSource* src) override {
 		Qk_DLog("media_source_eof");
@@ -342,7 +341,7 @@ public:
 		auto imgsrc = source();
 		if (imgsrc)
 			imgsrc->unload(); // unload, resource
-		preRender().untask(this);
+		pre_render().untask(this);
 	}
 	void seek(uint64_t timeUs) {
 		_seek = Qk_Max(timeUs, 1);

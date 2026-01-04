@@ -156,7 +156,7 @@ namespace qk {
 				if (e.data() & (ImageSource::kSTATE_LOAD_COMPLETE | ImageSource::kSTATE_LOAD_ERROR)) {
 					if (e.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 						if (win->root())
-							win->preRender().mark_render(); // mark rerender
+							win->pre_render().mark_render(); // mark rerender
 					}
 					e.off(); // off current listeners
 				}

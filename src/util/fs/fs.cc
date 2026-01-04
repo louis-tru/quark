@@ -296,7 +296,7 @@ namespace qk {
 		}
 
 		void write(Buffer& buffer, int64_t offset, int flag) {
-			_writeing.pushBack(new FileStreamReq(this, 0, { buffer, offset, flag }));
+			_writeing.push_back(new FileStreamReq(this, 0, { buffer, offset, flag }));
 			if (_writeing.length() == 1) {
 				continue_write();
 			}
@@ -399,7 +399,7 @@ namespace qk {
 			uv_fs_req_cleanup(uv_req);
 			
 			Qk_ASSERT(self->_writeing.front() == req);
-			self->_writeing.popFront();
+			self->_writeing.pop_front();
 			self->continue_write();
 
 			if ( uv_req->result < 0 ) {

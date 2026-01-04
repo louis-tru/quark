@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./root.h"
-#include "./free.h"
 #include "../filter.h"
 #include "../app.h"
 #include "../window.h"
@@ -42,7 +41,7 @@ namespace qk {
 		init(win);
 		_level = 1;
 		set_receive(true);
-		set_free(true); // free layout
+		_layout = LayoutType::Free; // free layout
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
 		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
@@ -81,7 +80,7 @@ namespace qk {
 		}
 	}
 
-	ViewType Root::viewType() const {
+	ViewType Root::view_type() const {
 		return kRoot_ViewType;
 	}
 
@@ -90,7 +89,7 @@ namespace qk {
 	}
 
 	void Root::apply_class_all() {
-		preRender().async_call([](auto self, auto arg) {
+		pre_render().async_call([](auto self, auto arg) {
 			self->apply_class_all_rt(nullptr, true);
 		}, this, 0);
 	}

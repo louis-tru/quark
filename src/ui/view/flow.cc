@@ -238,12 +238,16 @@ namespace qk {
 
 	// --------------- o v e r w r i t e ---------------
 
-	ViewType Flow::viewType() const {
+	ViewType Flow::view_type() const {
 		return kFlow_ViewType;
 	}
 
 	void Flow::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
+			if (_layout != LayoutType::Normal || _layout != LayoutType::Flow) {
+				Flex::layout_reverse(mark); // use flex typesetting
+				return;
+			}
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
 				if (_wrap == Wrap::NoWrap) { // no wrap, single-line

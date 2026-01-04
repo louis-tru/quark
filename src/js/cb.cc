@@ -77,12 +77,12 @@ namespace qk { namespace js {
 			case kHex_Encoding: // encode to hex or base64 string
 			case kBase64_Encoding: {
 				Buffer buff = codec_encode(encoding, buffer);
-				result = worker->newStringOneByte(buff.collapseString());
+				result = worker->newStringOneByte(buff.collapse_string());
 				break;
 			}
 			default: { // encode to js uft16 string
 				auto unicode = codec_decode_to_unicode( encoding, buffer); // decode to unicode
-				result = worker->newValue(unicode.collapseString());
+				result = worker->newValue(unicode.collapse_string());
 				break;
 			}
 		}

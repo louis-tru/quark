@@ -79,8 +79,6 @@
 			'ui/view/box.h', # ui view
 			'ui/view/box.cc',
 			'ui/view/box_part.cc',
-			'ui/view/free.h',
-			'ui/view/free.cc',
 			'ui/view/flex.h',
 			'ui/view/flex.cc',
 			'ui/view/flow.h',

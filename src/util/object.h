@@ -76,10 +76,9 @@ namespace qk {
 		virtual void destroy(); // Heap allocation destructor function call and memory free
 		virtual void retain(); // Heap allocation strong
 		virtual void release(); // Heap allocation weak
-		virtual bool isReference() const;
-		virtual String toString() const;
-		static bool isDefaultHeapAllocator(); // check is default heap allocator
-		static void setHeapAllocator(HeapAllocator *allocator); // set global heap allocator
+		virtual bool is_reference() const;
+		virtual String to_string() const;
+		static void set_heap_allocator(HeapAllocator *allocator); // set global heap allocator
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void *p);
 		static void  operator delete(void *p);
@@ -100,8 +99,8 @@ namespace qk {
 		// that it has not been released by another thread at the same time
 		virtual void retain(); // ref++
 		virtual void release(); // --ref
-		virtual bool isReference() const;
-		inline  int  refCount() const { return _refCount.load(); }
+		virtual bool is_reference() const;
+		inline  int  ref_count() const { return _refCount.load(); }
 		typedef int __HaveReference__;
 	private:
 		typedef int __HaveObject__;
@@ -183,8 +182,8 @@ namespace qk {
 	class SafeFlag {
 	public:
 		inline ~SafeFlag() { _safeFlagValue = 0; }
-		inline bool isValid() { return _safeFlagValue == 0xff73ffab; }
-		inline void markAsInvalid() { _safeFlagValue = 0; }
+		inline bool is_valid() { return _safeFlagValue == 0xff73ffab; }
+		inline void mark_as_invalid() { _safeFlagValue = 0; }
 	private:
 		uint32_t _safeFlagValue = 0xff73ffab;
 	};

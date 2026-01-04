@@ -64,7 +64,7 @@ namespace qk {
 		virtual bool is_multiline();
 		// @override
 		virtual bool can_become_focus() override;
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void text_config(TextOptions* inherit) override;

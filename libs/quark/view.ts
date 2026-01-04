@@ -500,14 +500,10 @@ export declare class Box extends View {
 	clip: boolean;
 
 	/**
-	 * Whether to use **free layout mode** for child positioning.  
-	 * 
-	 * - If `true`, children are positioned freely (absolute mode).  
-	 * - If `false`, the container uses **float layout** for its children (default).  
-	 * 
-	 * Default: `false`
+	 * Layout type for child positioning and sizing.
+	 * Default: LayoutType::Normal
 	 */
-	free: boolean;
+	layout: types.LayoutType;
 
 	/** Alignment of this box inside its parent. */
 	align: types.Align;
@@ -1694,7 +1690,7 @@ declare global {
 
 		interface BoxJSX extends ViewJSX {
 			clip?: boolean;
-			free?: boolean;
+			layout?: types.LayoutTypeIn;
 			align?: types.AlignIn;
 			width?: types.BoxSizeIn;
 			height?: types.BoxSizeIn;

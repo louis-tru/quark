@@ -82,9 +82,9 @@ namespace qk {
 		uint32_t size() const { return _ptr.extra * sizeof(T); }
 
 		/**
-		 * @method isNull() Is null data available?
+		 * @method is_null() Is null data available?
 		*/
-		bool isNull() const { return _ptr.extra == 0; }
+		bool is_null() const { return _ptr.extra == 0; }
 
 		uint32_t length() const { return _ptr.extra; }
 		uint32_t capacity() const { return _ptr.capacity; }
@@ -105,8 +105,8 @@ namespace qk {
 		}
 		T& at(uint32_t index) { return operator[](index); }
 		cT& at(uint32_t index) const { return operator[](index); }
-		T& lastAt(uint32_t index) { return operator[](_ptr.extra - index - 1); }
-		cT& lastAt(uint32_t index) const { return operator[](_ptr.extra - index - 1); }
+		T& last_at(uint32_t index) { return operator[](_ptr.extra - index - 1); }
+		cT& last_at(uint32_t index) const { return operator[](_ptr.extra - index - 1); }
 		T* operator*() { return _ptr.val; }
 		cT* operator*() const { return _ptr.val; }
 		T* val() { return _ptr.val; }
@@ -163,7 +163,7 @@ namespace qk {
 		/**
 		 * @method collapse string, discard data ownership
 		*/
-		StringImpl<T, A> collapseString();
+		StringImpl<T, A> collapse_string();
 
 		/**
 		 * @method to vector
@@ -182,9 +182,9 @@ namespace qk {
 		Array<S, A> map(const std::function<S(const T& t, uint32_t i)>&) const;
 
 		/**
-		 * @func toString() to_string
+		 * @func to_string() to_string
 		 */
-		String toString() const;
+		String to_string() const;
 
 		/**
 		 * @method clear() clear data

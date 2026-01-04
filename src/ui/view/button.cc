@@ -44,7 +44,7 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Button::viewType() const {
+	ViewType Button::view_type() const {
 		return kButton_ViewType;
 	}
 }

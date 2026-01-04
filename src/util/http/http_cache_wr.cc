@@ -64,7 +64,7 @@ namespace qk {
 				if ( headers.get("cache-control", expires) ) {
 					expires = to_expires_from_cache_content(expires);
 				}
-				if ((!expires.isEmpty() && parse_time(expires) > time_millisecond()) ||
+				if ((!expires.is_empty() && parse_time(expires) > time_millisecond()) ||
 							headers.has("last-modified") || headers.has("etag")
 				) { // valid cache
 					_file = new File(path, loop);
@@ -97,7 +97,7 @@ namespace qk {
 				}
 
 				for ( auto& i : header ) {
-					if (!i.second.isEmpty() && i.first != "cache-control") { // ignore cache-control
+					if (!i.second.is_empty() && i.first != "cache-control") { // ignore cache-control
 						header_str += i.first;
 						header_str += string_colon;
 						if (i.first == "expires") {
@@ -157,7 +157,7 @@ namespace qk {
 					_offset += buffer.length();
 					_file->write(buffer, off); // write body data to file
 				} else {
-					_buffer.pushBack(std::move(buffer));
+					_buffer.push_back(std::move(buffer));
 					_host->read_pause(); // file not open, pause read http data
 				}
 			} else { // no body write task
@@ -211,10 +211,10 @@ namespace qk {
 	String get_expires_from_header(const DictSS& header) {
 		String expires;
 		// priority: cache-control > expires
-		if ( header.get("cache-control", expires) && !expires.isEmpty() )
+		if ( header.get("cache-control", expires) && !expires.is_empty() )
 			expires = to_expires_from_cache_content(expires);
 		// get expires header if cache-control not exist
-		if ( expires.isEmpty() )
+		if ( expires.is_empty() )
 			header.get("expires", expires);
 		return expires;
 	}
@@ -222,15 +222,15 @@ namespace qk {
 	// cache-control: max-age=100000
 	// return: expires str, Sat Aug 10 2024 13:26:02 GMT+0800
 	String to_expires_from_cache_content(cString& cache_control) {
-		if ( !cache_control.isEmpty() ) {
-			int i = cache_control.indexOf(string_max_age);
+		if ( !cache_control.is_empty() ) {
+			int i = cache_control.index_of(string_max_age);
 			if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
-				int j = cache_control.indexOf(',', i);
+				int j = cache_control.index_of(',', i);
 				String max_age = j != -1
 				? cache_control.substring(i + string_max_age.length(), j)
 				: cache_control.substring(i + string_max_age.length());
 				
-				int64_t num = max_age.trim().toNumber<int64_t>();
+				int64_t num = max_age.trim().to_number<int64_t>();
 				if ( num > 0 ) {
 					return gmt_time_string( time_second() + num ); // Thu, 30 Mar 2017 06:16:55 GMT
 				}

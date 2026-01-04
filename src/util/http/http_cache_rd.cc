@@ -93,7 +93,7 @@ namespace qk {
 						*/
 
 					for ( int i = 0; ; ) {
-						int j = str.indexOf(s, i);
+						int j = str.index_of(s, i);
 						if ( j != -1 && j != 0 ) {
 							if ( j == i ) { // parse header end
 								_parse_header = false;
@@ -109,7 +109,7 @@ namespace qk {
 								}
 								else {
 									// validate cache by server
-									if ( parse_time(_header["last-modified"]) > 0 || !_header["etag"].isEmpty() ) {
+									if ( parse_time(_header["last-modified"]) > 0 || !_header["etag"].is_empty() ) {
 										_host->send_http();
 									} else {
 										continue_send_and_release(); // invalid cache
@@ -118,10 +118,10 @@ namespace qk {
 								// parse header end
 								break;
 							} else {
-								int k = str.indexOf(s2, i);
+								int k = str.index_of(s2, i);
 								if ( k != -1 && k - i > 1 && j - k > 2 ) {
 									// Qk_DLog("%s: %s", *str.substring(i, k), *str.substring(k + 2, j));
-									_header[str.substring(i, k).lowerCase()] = str.substring(k + 2, j);
+									_header[str.substring(i, k).lower_case()] = str.substring(k + 2, j);
 								}
 							}
 						} else {

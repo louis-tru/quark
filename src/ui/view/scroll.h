@@ -95,7 +95,7 @@ namespace qk {
 	public:
 		Scroll();
 		virtual View* init(Window *win) override;
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual ScrollView* asScrollView() override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void layout_reverse(uint32_t mark) override;

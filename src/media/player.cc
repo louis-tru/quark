@@ -317,7 +317,7 @@ namespace qk {
 
 	void AudioPlayer::onEvent(const UIEventName& name, Object* data) {
 		Sp<Object> sp(data);
-		if (!_loop && refCount() <= 0)
+		if (!_loop && ref_count() <= 0)
 			return;
 		auto evt = new Event<>(sp.collapse());
 		_loop->post(Cb([this, evt, name](auto e) {

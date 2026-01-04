@@ -39,7 +39,7 @@ Qk_TEST_Func(fs) {
 
 	String test_str = "ABCDEFG";
 
-	Qk_Log("%d", test_str.lastIndexOf("G", 1));
+	Qk_Log("%d", test_str.last_index_of("G", 1));
 
 	Qk_Log("%s", *fs_executable());
 
@@ -53,7 +53,7 @@ Qk_TEST_Func(fs) {
 	
 	String str = "/tmp/kkl/";
 	
-	Qk_Log(str.length() - str.lastIndexOf('/') == 1);
+	Qk_Log(str.length() - str.last_index_of('/') == 1);
 	
 	Qk_Log(fs_documents());
 	
@@ -109,11 +109,11 @@ Qk_TEST_Func(fs) {
 	Buffer s = search->read("bin/_nmxOB.js_v274443");
 	Qk_Log("Copy data");
 	Buffer d = s;
-	Qk_Log("%i", s.isNull());
+	Qk_Log("%i", s.is_null());
 	Qk_Log("bin/_nmxOB.js_v274443,data,%s", d.val());
 	Qk_Log("Copy string");
 	String ss = std::move(d);
-	Qk_Log("%i", d.isNull());
+	Qk_Log("%i", d.is_null());
 	Qk_Log("bin/_nmxOB.js_v274443,data,%s", ss.c_str());
 	Qk_Log("\n");
 	

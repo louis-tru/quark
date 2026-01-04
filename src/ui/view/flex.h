@@ -48,7 +48,7 @@ namespace qk {
 		// @overwrite
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
 		friend class Flow;

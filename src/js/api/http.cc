@@ -57,26 +57,26 @@ namespace qk { namespace js {
 		Worker* worker() { return _host->worker(); }
 
 		virtual void trigger_http_error(qk::HttpClientRequest* req, cError& error) override {
-			if ( !_error.isEmpty() ) {
+			if ( !_error.is_empty() ) {
 				HandleScope scope(worker());
 				JSValue* arg = worker()->newValue( error );
 				_host->call( worker()->newStringOneByte(_error), 1, &arg );
 			}
 		}
 		virtual void trigger_http_write(qk::HttpClientRequest* req) override {
-			if ( !_write.isEmpty() ) {
+			if ( !_write.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_write) );
 			}
 		}
 		virtual void trigger_http_header(qk::HttpClientRequest* req) override {
-			if ( !_header.isEmpty() ) {
+			if ( !_header.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_header) );
 			}
 		}
 		virtual void trigger_http_data(qk::HttpClientRequest* req, Buffer &buffer) override {
-			if ( !_data.isEmpty() ) {
+			if ( !_data.is_empty() ) {
 				HandleScope scope(_host->worker());
 				JSValue* arg = worker()->newValue( std::move(buffer) );
 				_host->call( worker()->newStringOneByte(_data), 1, &arg );
@@ -86,19 +86,19 @@ namespace qk { namespace js {
 			if (req->ready_state() == HTTP_READY_STATE_READY) {
 				req->retain(); // TODO: js handle keep active
 			}
-			if ( !_readystate_change.isEmpty() ) {
+			if ( !_readystate_change.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_readystate_change) );
 			}
 		}
 		virtual void trigger_http_timeout(qk::HttpClientRequest* req) override {
-			if ( !_timeout.isEmpty() ) {
+			if ( !_timeout.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_timeout) );
 			}
 		}
 		virtual void trigger_http_end(qk::HttpClientRequest* req) override {
-			if ( !_end.isEmpty() ) {
+			if ( !_end.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_end) );
 			}
@@ -107,7 +107,7 @@ namespace qk { namespace js {
 			}
 		}
 		virtual void trigger_http_abort(qk::HttpClientRequest* req) override {
-			if ( !_abort.isEmpty() ) {
+			if ( !_abort.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_abort) );
 			}

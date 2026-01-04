@@ -508,7 +508,7 @@ namespace qk {
 
 	X509_STORE* NewRootCertStore() {
 		static Array<X509*> root_certs_vector;
-		if (root_certs_vector.isNull()) {
+		if (root_certs_vector.is_null()) {
 			for (size_t i = 0; i < arraysize(root_certs); i++) {
 				BIO* bp = BIOData::NewFixed(root_certs[i], strlen(root_certs[i]));
 				X509 *x509 = PEM_read_bio_X509(bp, nullptr, NoPasswordCallback, nullptr);
@@ -535,7 +535,7 @@ namespace qk {
 	}
 
 	X509_STORE* NewRootCertStoreFromFile(cString& ca_content) {
-		if (ca_content.isEmpty()) {
+		if (ca_content.is_empty()) {
 			Qk_ELog("%s", "set_ssl_cacert() fail, ca_content is empty string"); return nullptr;
 		}
 

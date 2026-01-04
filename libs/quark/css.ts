@@ -56,7 +56,7 @@ export declare abstract class StyleSheets {
 	receive?: boolean; //!< view receive events
 	aa?: boolean; //!< view anti-aliasing
 	clip?: boolean; //!< view clip children
-	free?: boolean; //!< view free layout
+	layout?: types.LayoutTypeIn; //!< view layout type
 	align?: types.AlignIn; //!<
 	width?: types.BoxSizeIn; //!<
 	height?: types.BoxSizeIn; //!<

@@ -474,7 +474,7 @@ namespace qk { namespace js {
 		if ( str->IsOneByte() ) {
 			Buffer buffer(str->Length());
 			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.capacity());
-			return buffer.collapseString();
+			return buffer.collapse_string();
 		} else {
 			uint16_t source[128];
 			int start = 0, count;
@@ -483,7 +483,7 @@ namespace qk { namespace js {
 
 			while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
 				auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(source, count).buffer());
-				rev.push(buf.collapseString());
+				rev.push(buf.collapse_string());
 				start += count;
 			}
 
@@ -502,7 +502,7 @@ namespace qk { namespace js {
 		}
 		ArrayBuffer<uint16_t> source(str->Length());
 		str->Write(ISOLATE(worker), *source, 0, str->Length());
-		return source.collapseString();
+		return source.collapse_string();
 	}
 
 	String4 JSString::value4(Worker* worker) const {
@@ -524,7 +524,7 @@ namespace qk { namespace js {
 			start += count;
 		}
 		rev.reset(revOffset);
-		return rev.collapseString();
+		return rev.collapse_string();
 	}
 
 	int JSArray::length() const {

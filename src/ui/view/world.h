@@ -97,7 +97,7 @@ namespace qk {
 		World();
 
 		/** @override Return the view type identifier. */
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 
 		/**
 		 * @override
@@ -142,9 +142,6 @@ namespace qk {
 		void destroy() override;
 
 	private:
-		/** @override Initialize the World within a given Window. */
-		View* init(Window *win) override;
-
 		/**
 		 * Handle discovery and visibility events between two agents.
 		 * @param agent The source agent performing discovery.

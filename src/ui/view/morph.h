@@ -90,7 +90,7 @@ namespace qk {
 	class Morph: public Box, public MorphView {
 	public:
 		Morph();
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 		MorphView* asMorphView() override;
 		Region client_region() override;
 		void layout_reverse(uint32_t mark) override;

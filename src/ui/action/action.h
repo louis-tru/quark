@@ -131,9 +131,9 @@ namespace qk {
 		/**
 		 * Safely use and hold action objects in rendering thread,
 		 * Because action objects may be destroyed at any time on the main thread
-		 * @method tryRetain() Returns safe self hold
+		 * @method try_retain_rt() Returns safe self hold
 		*/
-		Action* tryRetain_rt();
+		Action* try_retain_rt();
 
 	private:
 		void set_target(View* t);

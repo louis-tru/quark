@@ -281,6 +281,20 @@ export enum BoxSizeKind {
 };
 
 /**
+ * @enum LayoutType
+ * 
+ * The layout type of the View
+ */
+export enum LayoutType {
+	Normal, /* Use Normal layout */
+	Float, /* Float layout */
+	Free, /* Free layout */
+	Text, /* Text layout only Text-view */
+	Flex, /* Flex layout only Flex-view and Flow-view */
+	Flow, /* Flow layout only Flow-view */
+};
+
+/**
  * @enum TextValueKind
  * 
  * Basic type for the Text attributes
@@ -508,6 +522,10 @@ export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign;
 "rightTop"|"leftMiddle"|"centerMiddle"|"rightMiddle"|"leftBottom"|"centerBottom"|"rightBottom"|Align
  */
 export type AlignIn = Uncapitalize<keyof typeof Align> | Align;
+/**
+ * @type LayoutTypeIn:"normal"|"float"|"free"|"text"|"flex"|"flow"|LayoutType
+*/
+export type LayoutTypeIn = Uncapitalize<keyof typeof LayoutType> | LayoutType;
 /**
  * @type TextAlignIn:"center"|"inherit"|"left"|"right"|"default"|TextAlign
 */
@@ -1797,6 +1815,11 @@ export function parseWrapAlign(val: WrapAlignIn, msg?: string): WrapAlign { //!<
 export function parseAlign(val: AlignIn, msg?: string): Align { //!<
 	return typeof val === 'string' ?
 		Align[toCapitalize(val)] || 0 : val in Align ? val: 0;
+}
+
+export function parseLayoutType(val: LayoutTypeIn, msg?: string): LayoutType { //!<
+	return typeof val === 'string' ?
+		LayoutType[toCapitalize(val)] || 0 : val in LayoutType ? val: 0;
 }
 
 export function parseTextAlign(val: TextAlignIn, msg?: string): TextAlign { //!<

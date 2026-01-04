@@ -101,7 +101,7 @@ namespace qk {
 	memory_info_t device_get_memory_info() {
 		memory_info_t r = {0,0,0};
 
-		String s = fs_read_file_sync("/proc/meminfo", 127).collapseString();
+		String s = fs_read_file_sync("/proc/meminfo", 127).collapse_string();
 		Qk_DLog("/proc/meminfo, %s", *s);
 
 		if (!s.isEmpty()) {

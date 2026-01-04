@@ -58,7 +58,7 @@ public:
 		return _ptr0;
 	}
 	inline Ptr* getPtr1() {
-		return _ptr1->isValid() ? _ptr1: nullptr;
+		return _ptr1->is_valid() ? _ptr1: nullptr;
 	}
 	inline Ptr* getPtr2() {
 		return _ptr2.load();

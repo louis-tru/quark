@@ -91,7 +91,7 @@ namespace qk {
 
 	void PreRender::addtask(Task* task) {
 		if ( task->task_id() == Task::ID() ) {
-			Task::ID id = _tasks.pushBack(task);
+			Task::ID id = _tasks.push_back(task);
 			task->_task_id = id;
 			task->_pre = this;
 		}
@@ -111,7 +111,7 @@ namespace qk {
 	}
 
 	bool PreRender::post(Cb cb, View *v, bool toQueue) {
-		if (v->tryRetain_rt()) {
+		if (v->try_retain_rt()) {
 			struct Core: CallbackCore<Object> {
 				Cb       cb;
 				Sp<View> view;

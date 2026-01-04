@@ -329,7 +329,7 @@ namespace qk {
 	String _Str::printfv(cChar* f, va_list arg) {
 		auto base = _Str::sPrintfv(1, f, arg);
 		if (base.ptr.val) {
-			return Buffer::from((char*)base.ptr.val, base.ptr.extra, base.ptr.capacity).collapseString();
+			return Buffer::from((char*)base.ptr.val, base.ptr.extra, base.ptr.capacity).collapse_string();
 		}
 		return String();
 	}
@@ -342,11 +342,11 @@ namespace qk {
 		if (len == 1)
 			return it(data, &tmp), tmp;
 
-		auto spLen = sp.isEmpty() ? 0: Int32::max(len - 1, 0);
+		auto spLen = sp.is_empty() ? 0: Int32::max(len - 1, 0);
 		Array<String> strs(len + spLen);
 		int total = spLen * sp.length(), i = 0;
 
-		if (sp.isEmpty()) {
+		if (sp.is_empty()) {
 			while (it(data, &tmp)) {
 				total += tmp.length();
 				strs[i++] = tmp;
@@ -374,7 +374,7 @@ namespace qk {
 		return String(std::move(buff));
 	}
 
-	String Object::toString() const {
+	String Object::to_string() const {
 		static String str("[object]");
 		return str;
 	}
@@ -393,7 +393,7 @@ namespace qk {
 	}
 
 	template <>
-	String StringImpl<>::toString() const {
+	String StringImpl<>::to_string() const {
 		return *this;
 	}
 

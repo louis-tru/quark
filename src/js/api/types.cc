@@ -409,6 +409,10 @@ namespace qk { namespace js {
 		return jsValue((uint32_t)value);
 	}
 
+	JSValue* TypesParser::jsvalue(const LayoutType& value) {
+		return jsValue((uint32_t)value);
+	}
+
 	JSValue* TypesParser::jsvalue(const BoxSize& value) {
 		JSValue* args[] = {
 			jsValue((uint32_t)value.kind),
@@ -1018,6 +1022,13 @@ namespace qk { namespace js {
 		js_parse(Align, {
 			// TODO: need to check type
 			out = (Align)obj->toUint32(worker)->value();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, LayoutType& out, cChar* msg) {
+		js_parse(LayoutType, {
+			// TODO: need to check type
+			out = (LayoutType)obj->toUint32(worker)->value();
 		});
 	}
 

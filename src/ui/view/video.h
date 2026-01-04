@@ -45,7 +45,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
 		Video();
 		void onActivate() override;
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 	private:
 		void lock() override;
 		void unlock() override;

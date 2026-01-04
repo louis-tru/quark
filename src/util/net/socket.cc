@@ -207,14 +207,14 @@ namespace qk {
 			report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connecting opening or already opened"), true);
 			return;
 		}
-		if ( _hostname.isEmpty() ) {
+		if ( _hostname.is_empty() ) {
 			report_err(Error(ERR_CONNECTING_HOSTNAME_INVALID, "Connecting hostname invalid"), true);
 			return;
 		}
 
 		Qk_ASSERT(_retain == nullptr);
 
-		if ( _remote_ip.isEmpty() ) {
+		if ( _remote_ip.is_empty() ) {
 			sockaddr_in sockaddr;
 			sockaddr_in6 sockaddr6;
 			Char dst[64];
@@ -258,7 +258,7 @@ namespace qk {
 				}
 			}
 		}
-		Qk_ASSERT(!_remote_ip.isEmpty());
+		Qk_ASSERT(!_remote_ip.is_empty());
 
 		_retain = new RetainRef(this, uv_loop());
 		Qk_ASSERT(_uv_tcp == nullptr);
@@ -354,7 +354,7 @@ namespace qk {
 			(uv_stream_t*)_uv_tcp,
 			[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 				Impl* self = *static_cast<RetainRef*>(handle->data)->hold;
-				if ( self->_read_buffer.isNull() ) {
+				if ( self->_read_buffer.is_null() ) {
 					self->_read_buffer = Buffer( Qk_Min(65535, uint32_t(suggested_size)) );
 				}
 				buf->base = *self->_read_buffer;

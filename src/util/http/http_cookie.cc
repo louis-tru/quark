@@ -72,7 +72,7 @@ namespace qk {
 		// Reverse domain: com/example/www
 		auto arr = domain.trim().split('.'); // Split by "."
 		for (int i = Qk_Minus(arr.length(), 1); i > -1; i--) {
-			if (!arr[i].isEmpty()) {
+			if (!arr[i].is_empty()) {
 				r.append('/').append(arr[i]);
 			}
 		}
@@ -83,7 +83,7 @@ namespace qk {
 		}
 
 		// Path: Remove trailing "/"
-		if (!trimed.isEmpty()) {
+		if (!trimed.is_empty()) {
 			if (trimed[0] != '/') {
 				r.append('/'); // Ensure leading "/"
 			}
@@ -108,11 +108,11 @@ namespace qk {
 		auto arr = domain.trim().split('.'); // Split by "."
 		int i = Qk_Minus(arr.length(), 1);
 		for (int j = Qk_Max(i - 2, -1); i > j; i--) {
-			if (!arr[i].isEmpty())
+			if (!arr[i].is_empty())
 				levels[0].append('/').append(arr[i]);
 		}
 		for (; i > -1; i--) {
-			if (!arr[i].isEmpty())
+			if (!arr[i].is_empty())
 				levels.push(arr[i]);
 		}
 		levels[0].append('/'); // add trailing "/"
@@ -124,7 +124,7 @@ namespace qk {
 		Array<String> levels; // a/b/ -> [a, b]
 		// Path: split by "/"
 		for (auto& segment : path.trim().split('/')) {
-			if (!segment.isEmpty())
+			if (!segment.is_empty())
 				levels.push(segment);
 		}
 		Qk_ReturnLocal(levels);
@@ -135,15 +135,15 @@ namespace qk {
 	// expires: microseconds, -1 means session cookie
 	static bool http_cookie_check_expires(const String& raw, String* valueOut) {
 		// Find first "; "
-		auto idx = raw.indexOf("; ");
+		auto idx = raw.index_of("; ");
 		if (idx == -1) return false;
 
 		// Second "; "
-		auto idx2 = raw.indexOf("; ", idx + 2);
+		auto idx2 = raw.index_of("; ", idx + 2);
 		if (idx2 == -1) return false;
 
-		int64_t expires = raw.substring(0, idx).toNumber<int64_t>();
-		int64_t sid = raw.substring(idx + 2, idx2).toNumber<int64_t>();
+		int64_t expires = raw.substring(0, idx).to_number<int64_t>();
+		int64_t sid = raw.substring(idx + 2, idx2).to_number<int64_t>();
 
 		// Session cookie: expires == -1 and sid == current session
 		// or not expired
@@ -212,23 +212,23 @@ namespace qk {
 		DictSS opts;
 
 		for (auto& i : expression.split("; ")) {
-			int j = i.indexOf('=');
+			int j = i.index_of('=');
 			if (j != -1) {
-				if (name.isEmpty()) {
+				if (name.is_empty()) {
 					name = i.substr(0, j);
 					value = i.substr(j + 1);
 				} else {
-					opts.set(i.substr(0, j).lowerCase(), i.substr(j + 1));
+					opts.set(i.substr(0, j).lower_case(), i.substr(j + 1));
 				}
 			} else {
-				opts.set(i.lowerCase(), String());
+				opts.set(i.lower_case(), String());
 			}
 		}
-		if (name.isEmpty()) return;
+		if (name.is_empty()) return;
 
 		auto domain = _domain;
 		if (opts.get(DOMAIN_STR, domain)) {
-			if (domain.indexOf(_domain) == -1) return; // Illegal operation
+			if (domain.index_of(_domain) == -1) return; // Illegal operation
 		}
 
 		int64_t expires = -1;
@@ -239,7 +239,7 @@ namespace qk {
 		opts.get(PATH, path);
 
 		if (opts.get(MAX_AGE, outStr)) {
-			expires = outStr.toNumber<int64_t>() * 1e3 + time_millisecond();
+			expires = outStr.to_number<int64_t>() * 1e3 + time_millisecond();
 		} else if (opts.get(EXPIRES, outStr)) {
 			expires = Int64::max(parse_time(outStr), expires);
 		}

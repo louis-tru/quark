@@ -31,7 +31,7 @@
 #include "./action.h"
 #include "../window.h"
 
-#define _async_call _window->preRender().async_call
+#define _async_call _window->pre_render().async_call
 
 namespace qk {
 
@@ -102,7 +102,7 @@ namespace qk {
 	void SpawnAction::removeChild(Id id) {
 		Qk_ASSERT(id != _actions_rt.end());
 		// _async_call([](auto self, auto arg) {
-		_window->preRender().async_call([](auto self, auto arg) {
+		_window->pre_render().async_call([](auto self, auto arg) {
 			self->_actions_rt.erase( arg.arg );
 			(*arg.arg)->_id_rt = nullId;
 		}, this, id);

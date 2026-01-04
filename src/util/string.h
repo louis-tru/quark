@@ -125,8 +125,8 @@ namespace qk {
 		ArrayBuffer<T, A> collapse();
 		ArrayWeak<T> array() const;
 		// upper, lower
-		StringImpl& upperCase(); // change current this string
-		StringImpl& lowerCase(); // change current this string
+		StringImpl& upper_case(); // change current this string
+		StringImpl& lower_case(); // change current this string
 
 		// =========================================
 		// const method
@@ -152,7 +152,7 @@ namespace qk {
 		bool operator<=(const T* s) const;
 		inline bool operator<=(const StringImpl& s) const { return operator<=(s.c_str()); }
 
-		inline bool  isEmpty() const;
+		inline bool  is_empty() const;
 		inline const T* c_str() const;
 		inline const T* operator*() const;
 
@@ -160,34 +160,34 @@ namespace qk {
 		inline uint32_t length() const;
 		inline uint32_t capacity() const;
 
-		String toString() const; // to string
+		String to_string() const; // to string
 		// get string hash code
 		uint64_t hashCode() const;
 		StringImpl<T, A> copy() const;
 		// trim
 		StringImpl trim() const;
-		StringImpl trimLeft() const;
-		StringImpl trimRight() const;
+		StringImpl trim_left() const;
+		StringImpl trim_right() const;
 		// substr
 		StringImpl substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
 		StringImpl substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
 		// upper, lower
-		StringImpl toUpperCase() const; // create new string
-		StringImpl toLowerCase() const; // create new string
+		StringImpl to_upper_case() const; // create new string
+		StringImpl to_lower_case() const; // create new string
 		// index_of
-		int indexOf(const StringImpl& s, uint32_t start = 0) const;
-		int lastIndexOf(const StringImpl& s, uint32_t start = 0x7FFFFFFF) const;
-		// startsWith
-		bool startsWith(const StringImpl& s) const;
-		bool endsWith(const StringImpl& s) const;
+		int index_of(const StringImpl& s, uint32_t start = 0) const;
+		int last_index_of(const StringImpl& s, uint32_t start = 0x7FFFFFFF) const;
+		// starts_with
+		bool starts_with(const StringImpl& s) const;
+		bool ends_with(const StringImpl& s) const;
 		// replace
 		StringImpl replace(const StringImpl& s, const StringImpl& rep) const;
-		StringImpl replaceAll(const StringImpl& s, const StringImpl& rep) const;
+		StringImpl replace_all(const StringImpl& s, const StringImpl& rep) const;
 		// split
 		Array<StringImpl> split(const StringImpl& sp) const;
 		// to number
-		template<typename T2> T2   toNumber()        const;
-		template<typename T2> bool toNumber(T2* out) const;
+		template<typename T2> T2   to_number()        const;
+		template<typename T2> bool to_number(T2* out) const;
 	private:
 		template<typename T2> void number_(T2 i);
 		T* val();
@@ -237,10 +237,10 @@ namespace qk {
 			static String call(const T& t) { return String("[unknown]"); }
 		};
 		template<typename T, typename A> struct _To<StringImpl<T, A>, false> {
-			static String call(const StringImpl<T, A>& t) { return t.toString(); }
+			static String call(const StringImpl<T, A>& t) { return t.to_string(); }
 		};
 		template<typename T> struct _To<T, true> {
-			static String call(const T& t) { return t.toString(); }
+			static String call(const T& t) { return t.to_string(); }
 		};
 		template<typename T> struct _To<T*, false> {
 			typedef T* Type;
@@ -396,7 +396,7 @@ namespace qk {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	bool StringImpl<T, A>::isEmpty() const { return size() == 0; }
+	bool StringImpl<T, A>::is_empty() const { return size() == 0; }
 	
 	template <typename T, typename A>
 	T StringImpl<T, A>::operator[](uint32_t index) const { return c_str()[index]; }
@@ -518,15 +518,15 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	String StringImpl<T, A>::toString() const {
+	String StringImpl<T, A>::to_string() const {
 		return _Str::toString(c_str(), length(), sizeof(T));
 	}
 
 	template <> Qk_EXPORT
-	String StringImpl<>::toString() const;
+	String StringImpl<>::to_string() const;
 
 	template <typename T, typename A, typename B>
-	StringImpl<T, A> Array<T, A, B>::collapseString() {
+	StringImpl<T, A> Array<T, A, B>::collapse_string() {
 		return StringImpl<T, A>(std::move(*this));
 	}
 
@@ -551,12 +551,12 @@ namespace qk {
 	}
 
 	template<typename T, typename A, typename B>
-	String Array<T, A, B>::toString() const {
+	String Array<T, A, B>::to_string() const {
 		return join(String());
 	}
 
 	template<typename T, typename A>
-	String List<T, A>::toString() const {
+	String List<T, A>::to_string() const {
 		return join(String());
 	}
 
@@ -621,7 +621,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A> StringImpl<T, A>::trimLeft() const {
+	StringImpl<T, A> StringImpl<T, A>::trim_left() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t start = 0; start < len; start++) {
@@ -637,7 +637,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A> StringImpl<T, A>::trimRight() const {
+	StringImpl<T, A> StringImpl<T, A>::trim_right() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t end = len; end > 0; end--) {
@@ -667,7 +667,7 @@ namespace qk {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	StringImpl<T, A>&  StringImpl<T, A>::upperCase() {
+	StringImpl<T, A>&  StringImpl<T, A>::upper_case() {
 		T* s = (T*)resize(length(), sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++) {
 			*s = _Str::toupper(*s);
@@ -676,7 +676,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A>&  StringImpl<T, A>::lowerCase() {
+	StringImpl<T, A>&  StringImpl<T, A>::lower_case() {
 		T* s = (T*)resize(length(), sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++)
 			*s = _Str::tolower(*s);
@@ -684,34 +684,34 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A> StringImpl<T, A>::toUpperCase() const {
-		return StringImpl(*this).upperCase();
+	StringImpl<T, A> StringImpl<T, A>::to_upper_case() const {
+		return StringImpl(*this).upper_case();
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A> StringImpl<T, A>::toLowerCase() const {
-		return StringImpl(*this).lowerCase();
+	StringImpl<T, A> StringImpl<T, A>::to_lower_case() const {
+		return StringImpl(*this).lower_case();
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	int StringImpl<T, A>::indexOf(const StringImpl& s, uint32_t start) const {
+	int StringImpl<T, A>::index_of(const StringImpl& s, uint32_t start) const {
 		return _Str::index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
 	template <typename T, typename A>
-	int StringImpl<T, A>::lastIndexOf(const StringImpl& s, uint32_t start) const {
+	int StringImpl<T, A>::last_index_of(const StringImpl& s, uint32_t start) const {
 		return _Str::last_index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
 	template <typename T, typename A>
-	bool StringImpl<T, A>::startsWith(const StringImpl& s) const {
+	bool StringImpl<T, A>::starts_with(const StringImpl& s) const {
 		return _Str::starts_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
 	}
 
 	template <typename T, typename A>
-	bool StringImpl<T, A>::endsWith(const StringImpl& s) const {
+	bool StringImpl<T, A>::ends_with(const StringImpl& s) const {
 		return _Str::ends_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
 	}
 
@@ -729,7 +729,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A> StringImpl<T, A>::replaceAll(const StringImpl& s, const StringImpl& rep) const {
+	StringImpl<T, A> StringImpl<T, A>::replace_all(const StringImpl& s, const StringImpl& rep) const {
 		StringImpl r;
 		auto base = _Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
@@ -747,7 +747,7 @@ namespace qk {
 		Array<StringImpl<T, A>> r;
 		int splen = sp.length();
 		int prev = 0, index = 0;
-		while ((index = indexOf(sp, prev)) != -1) {
+		while ((index = index_of(sp, prev)) != -1) {
 			// printf("A,index=%d,prev=%d\n", index, prev);
 			r.push(substring(prev, index));
 			prev = index + splen;
@@ -760,7 +760,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	template<typename T2>
-	T2 StringImpl<T, A>::toNumber() const {
+	T2 StringImpl<T, A>::to_number() const {
 		T2 o;
 		_Str::toNumber(c_str(), length(), sizeof(T), &o);
 		return o;
@@ -768,7 +768,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	template<typename T2>
-	bool StringImpl<T, A>::toNumber(T2* o) const {
+	bool StringImpl<T, A>::to_number(T2* o) const {
 		return _Str::toNumber(c_str(), length(), sizeof(T), o);
 	}
 }

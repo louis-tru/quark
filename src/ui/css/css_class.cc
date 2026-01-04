@@ -35,7 +35,7 @@
 #include "../view/view.h"
 
 namespace qk {
-	#define _async_call _host->window()->preRender().async_call
+	#define _async_call _host->window()->pre_render().async_call
 
 	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
 
@@ -58,7 +58,7 @@ namespace qk {
 			ctx->_nameHash_rt.clear();
 			for ( auto &j: **valp ) {
 				auto s = j.trim();
-				if (!s.isEmpty()) {
+				if (!s.is_empty()) {
 					auto hash = CSSCName(s).hashCode();
 					if (hash != UndefinedHashCode) // // exclude undefined
 						ctx->_nameHash_rt.add(hash);
@@ -70,7 +70,7 @@ namespace qk {
 
 	void CStyleSheetsClass::add(cString &name) {
 		auto name_trimmed = name.trim();
-		if (name_trimmed.isEmpty()) return;
+		if (name_trimmed.is_empty()) return;
 		_async_call([](auto ctx, auto hash) {
 			if (!ctx->_nameHash_rt.has(hash.arg)) {
 				ctx->_nameHash_rt.add(hash.arg);
@@ -81,7 +81,7 @@ namespace qk {
 
 	void CStyleSheetsClass::remove(cString &name) {
 		auto name_trimmed = name.trim();
-		if (name_trimmed.isEmpty()) return;
+		if (name_trimmed.is_empty()) return;
 		_async_call([](auto ctx, auto hash) {
 			auto it = ctx->_nameHash_rt.find(hash.arg);
 			if (it != ctx->_nameHash_rt.end()) {
@@ -93,7 +93,7 @@ namespace qk {
 
 	void CStyleSheetsClass::toggle(cString &name) {
 		auto name_trimmed = name.trim();
-		if (name_trimmed.isEmpty()) return;
+		if (name_trimmed.is_empty()) return;
 		_async_call([](auto ctx, auto hash) {
 			auto it = ctx->_nameHash_rt.find(hash.arg);
 			if (it == ctx->_nameHash_rt.end()) {

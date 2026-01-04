@@ -110,10 +110,10 @@ namespace qk {
 
 		Iterator      find(const Key& key);
 		IteratorConst find(const Key& key) const;
-		Iterator      findFor(uint64_t hashCode);
-		IteratorConst findFor(uint64_t hashCode) const;
+		Iterator      find_for(uint64_t hashCode);
+		IteratorConst find_for(uint64_t hashCode) const;
 
-		bool          hasFor(uint64_t hashCode) const;
+		bool          has_for(uint64_t hashCode) const;
 		bool          has(const Key& key) const;
 		uint32_t      count(const Key& key) const;
 
@@ -249,7 +249,7 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::hasFor(uint64_t hashCode) const {
+	bool Dict<K, V, C, A>::has_for(uint64_t hashCode) const {
 		return _length ? findFor_(hashCode, nullptr) != nullptr : false;
 	}
 
@@ -264,12 +264,12 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::findFor(uint64_t hash) {
+	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find_for(uint64_t hash) {
 		return Iterator(const_cast<Node*>(findFor_(hash, &_end)));
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::findFor(uint64_t hash) const {
+	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find_for(uint64_t hash) const {
 		return IteratorConst(findFor_(hash, &_end));
 	}
 

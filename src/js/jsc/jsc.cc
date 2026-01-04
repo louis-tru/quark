@@ -113,7 +113,7 @@ namespace qk { namespace js {
 		int bufferSize = (int)JSStringGetMaximumUTF8CStringSize(value);
 		char* str = (char*)malloc(bufferSize);
 		int size = (int)JSStringGetUTF8CString(value, str, bufferSize);
-		return Buffer(str, size, bufferSize).collapseString();
+		return Buffer(str, size, bufferSize).collapse_string();
 	}
 
 	String jsToString(JSContextRef ctx, JSValueRef value) {
@@ -817,7 +817,7 @@ namespace qk { namespace js {
 			size_t len = JSStringGetLength(*s);
 			const JSChar* ch = JSStringGetCharactersPtr(*s);
 			auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(ch, len).buffer());
-			ret.push(buf.collapseString());
+			ret.push(buf.collapse_string());
 		}
 		Qk_ReturnLocal(ret);
 	}
@@ -873,7 +873,7 @@ namespace qk { namespace js {
 		size_t len = JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);
 		auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(ch, len).buffer());
-		return buf.collapseString();
+		return buf.collapse_string();
 	}
 
 	String2 JSString::value2(Worker* w) const {
@@ -892,7 +892,7 @@ namespace qk { namespace js {
 		size_t len = JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);
 		auto str4 = codec_utf16_to_unicode(ArrayWeak<uint16_t>(ch, len).buffer());
-		return str4.collapseString();
+		return str4.collapse_string();
 	}
 
 	int JSArray::length() const {
@@ -1288,7 +1288,7 @@ namespace qk { namespace js {
 				sandboxRet += k + ',';
 			}
 			auto body = String::format("(function(__sandbox){%s; (function(){%s})(); return {%s}})",
-				*sandboxExpand, source.isEmpty() ? *jsSource->value(this): *source, *sandboxRet
+				*sandboxExpand, source.is_empty() ? *jsSource->value(this): *source, *sandboxRet
 			);
 			auto script = JsStringWithUTF8(*body);
 			auto func = JSEvaluateScript(ctx, *script, nullptr, *url, 1, OK(nullptr));
@@ -1299,7 +1299,7 @@ namespace qk { namespace js {
 			if (jsSource) {
 				script = JsValueToStringCopy(ctx, Back(jsSource), OK(nullptr));
 			} else {
-				DCHECK(!source.isEmpty());
+				DCHECK(!source.is_empty());
 				script = JsStringWithUTF8(*source);
 			}
 			DCHECK(script);

@@ -36,7 +36,7 @@
 #include "../app.h"
 #include "../event.h"
 
-#define _async_call _window->preRender().async_call
+#define _async_call _window->pre_render().async_call
 
 namespace qk {
 
@@ -61,7 +61,7 @@ namespace qk {
 		Qk_ASSERT( _id_rt == Id() || _id_rt == playingFlag );
 	}
 
-	Action* Action::tryRetain_rt() {
+	Action* Action::try_retain_rt() {
 		if (_refCount > 0) {
 			if (_refCount++ > 0) {
 				return this;
@@ -167,7 +167,7 @@ namespace qk {
 	void Action::play_rt() {
 		if (_parent == nullptr && _target) {
 			if (_id_rt == Id() || _id_rt == playingFlag) {
-				auto id = _window->actionCenter()->_actions_rt.pushBack({this,false});
+				auto id = _window->actionCenter()->_actions_rt.push_back({this,false});
 				_id_rt = *reinterpret_cast<Id*>(&id);
 			}
 		}
@@ -289,8 +289,8 @@ namespace qk {
 
 	struct CbCore: CallbackCore<Object> {
 		CbCore(Action *a, View *v, uint32_t delay, uint32_t looped, uint32_t frame, cUIEventName &name)
-			: action(Sp<Action>::lazy(a->tryRetain_rt()))
-			, view(Sp<View>::lazy(v->tryRetain_rt()))
+			: action(Sp<Action>::lazy(a->try_retain_rt()))
+			, view(Sp<View>::lazy(v->try_retain_rt()))
 			, delay(delay), frame(frame), looped(looped)
 			, name(name)
 		{}
@@ -307,13 +307,13 @@ namespace qk {
 	};
 
 	void Action::trigger_ActionLoop_rt(uint32_t delay, Action* root) {
-		_window->preRender().post(Cb(new CbCore(
+		_window->pre_render().post(Cb(new CbCore(
 			this, root->_target, delay, _looped_rt, 0, UIEvent_ActionLoop
 		)), true);
 	}
 
 	void Action::trigger_ActionKeyframe_rt(uint32_t delay, uint32_t frameIndex, Action* root) {
-		_window->preRender().post(Cb(new CbCore(
+		_window->pre_render().post(Cb(new CbCore(
 			this, root->_target, delay, _looped_rt, frameIndex, UIEvent_ActionKeyframe
 		)), true);
 	}

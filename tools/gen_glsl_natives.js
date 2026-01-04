@@ -225,7 +225,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 	if (isFrag || isVert) {
 		write(cpp, `static cString& ${call} {`,
 			`	static String c;`,
-			`	if (c.isEmpty()) {`,
+			`	if (c.is_empty()) {`,
 				import_all.map(e=>(`		c.append(${e.call});`)),
 				`		c.append("${source.replace(/\n/gm, '\\n\\\n')}",${source_len});`,
 			`	}`,

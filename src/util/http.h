@@ -112,7 +112,7 @@ namespace qk {
 		URI(cString& src);
 		inline bool operator==(const URI& uri) const { return _href == uri.href(); }
 		inline bool operator!=(const URI& uri) const { return _href != uri.href(); }
-		inline bool is_null() const { return _href.isEmpty(); }
+		inline bool is_null() const { return _href.is_empty(); }
 		inline URIType type() const { return _uritype; }
 		inline String href() const { return _href; }
 		inline String host() const { return _host; }

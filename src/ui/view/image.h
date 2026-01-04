@@ -42,7 +42,7 @@ namespace qk {
 	class Qk_EXPORT Image: public Box, public ImageSourceHold {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual void draw(Painter *render) override;
 	protected:
 		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) override;

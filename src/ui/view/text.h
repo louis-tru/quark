@@ -41,7 +41,7 @@ namespace qk {
 	class Qk_EXPORT Text: public Box, public TextOptions {
 	public:
 		Qk_DEFINE_VIEW_PROPERTY(String, value);
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
@@ -50,6 +50,7 @@ namespace qk {
 		virtual void onActivate() override;
 		virtual void draw(Painter *render) override;
 		virtual View* getViewForTextOptions() override;
+		virtual bool is_text_container() const override;
 	private:
 		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;

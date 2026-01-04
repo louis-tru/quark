@@ -40,7 +40,7 @@ namespace qk {
 	 */
 	class Root: public Morph {
 	public:
-		ViewType viewType() const override;
+		ViewType view_type() const override;
 		bool can_become_focus() override;
 		void layout_forward(uint32_t mark) override;
 		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;

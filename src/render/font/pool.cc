@@ -89,7 +89,7 @@ namespace qk {
 	}
 
 	FFID FontPool::getFontFamilies(cString& families) {
-		return families.isEmpty() ? _defaultFontFamilies: getFontFamilies(families.split(","));
+		return families.is_empty() ? _defaultFontFamilies: getFontFamilies(families.split(","));
 	}
 
 	FFID FontPool::getFontFamilies(cArray<String>& families) {
@@ -114,7 +114,7 @@ namespace qk {
 				break;
 			familyName = tf->getFamilyName();
 			_ext.get(familyName).set(tf->fontStyle(), tf);
-			if (!alias.isEmpty()) {
+			if (!alias.is_empty()) {
 				_ext.get(alias).set(tf->fontStyle(), tf);
 			}
 		}
@@ -134,7 +134,7 @@ namespace qk {
 	}
 
 	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
-		if (familyName.isEmpty()) {
+		if (familyName.is_empty()) {
 			return onMatchFamilyStyle(nullptr, style);
 		}
 		// find extend font families
@@ -153,7 +153,7 @@ namespace qk {
 
 	Sp<Typeface> FontPool::matchCharacter(cString& familyName, FontStyle style,
 																		 Unichar character) const {
-		cChar* c_familyName = familyName.isEmpty() ? nullptr: familyName.c_str();
+		cChar* c_familyName = familyName.is_empty() ? nullptr: familyName.c_str();
 		return onMatchFamilyStyleCharacter(c_familyName, style, nullptr, 0, character);
 	}
 

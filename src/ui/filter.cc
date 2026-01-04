@@ -37,7 +37,7 @@
 #include "./ui.h"
 #include <math.h>
 
-#define _async_call _window->preRender().async_call
+#define _async_call _window->pre_render().async_call
 
 namespace qk {
 
@@ -214,7 +214,7 @@ namespace qk {
 		, _y(init.y)
 		, _repeat(init.repeat)
 	{
-		if (!src.isEmpty()) {
+		if (!src.is_empty()) {
 			set_src(src);
 		}
 	}
@@ -327,7 +327,7 @@ namespace qk {
 			} else if (shared_app()) {
 				// notice all windows render
 				for (auto w: shared_app()->windows()) {
-					w->preRender().mark_render();
+					w->pre_render().mark_render();
 				}
 			}
 		}

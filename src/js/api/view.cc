@@ -196,7 +196,7 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(View, Vec2, layout_weight, layoutWeight);
 			Js_MixObject_Acce_Get(View, Agent, layout_align, layoutAlign);
 			Js_MixObject_Acce_Get(View, bool, is_clip, isClip);
-			Js_MixObject_Acce_Get(View, int, viewType, viewType);
+			Js_MixObject_Acce_Get(View, int, view_type, viewType);
 			// -----------------------------------------------------------------------------
 			// @thread Rt
 			Js_Class_Method(overlapTest, {

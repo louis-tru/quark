@@ -67,7 +67,7 @@ Qk_TEST_Func(jsx) {
 		error("Bad argument. cannot find %s", *src);
 	}
 
-	String extname = fs_extname(src).lowerCase();
+	String extname = fs_extname(src).lower_case();
 		
 	String2 in;
 	Buffer out;

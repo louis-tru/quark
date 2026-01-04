@@ -46,7 +46,43 @@ namespace qk {
 
 	constexpr float Max_Float = std::numeric_limits<float>::max();
 
-	Vec2 free_typesetting(View* view, const View::Container &container);
+	Vec2 free_typesetting(View* view, const View::Container &container) {
+		auto cur = container.content;
+		auto v = view->first();
+		if (v) {
+			if (container.float_x() || container.float_y()) { // float width
+				Vec2 maxSize;
+				do {
+					if (v->visible()) {
+						auto size = v->layout_size();
+						if (size[0] > maxSize[0])
+							maxSize[0] = size[0];
+						if (size[1] > maxSize[1])
+							maxSize[1] = size[1];
+					}
+					v = v->next();
+				} while(v);
+				if (container.float_x())
+					cur[0] = container.clamp_width(maxSize[0]);
+				if (container.float_y())
+					cur[1] = container.clamp_height(maxSize[1]);
+			}
+
+			auto v = view->first();
+			do { // lazy free layout
+				if (v->visible())
+					v->set_layout_offset_free(cur); // free layout
+				v = v->next();
+			} while(v);
+		} else {
+			if (container.float_x())
+				cur[0] = container.clamp_width(0);
+			if (container.float_y())
+				cur[1] = container.clamp_height(0);
+		}
+		view->unmark(View::kLayout_Typesetting);
+		return cur;
+	}
 
 	Pre Box::solve_layout_content_pre_width(const Container &pContainer) {
 		float size = pContainer.content[0];
@@ -335,8 +371,8 @@ namespace qk {
 
 	void Box::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (_free) {
-				set_content_size(free_typesetting(this, _container));
+			if (_layout == LayoutType::Free) {
+				set_content_size(layout_typesetting_free());
 				delete_lock_state();
 			} else {
 				layout_typesetting_float();
@@ -400,6 +436,10 @@ namespace qk {
 		// unmark(kLayout_Inner_Height);
 
 		return _layout_size[1];
+	}
+
+	Vec2 Box::layout_typesetting_free() {
+		return free_typesetting(this, _container);
 	}
 
 	Vec2 Box::layout_typesetting_float() {

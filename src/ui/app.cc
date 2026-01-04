@@ -84,7 +84,7 @@ namespace qk {
 				// lastTime = time;
 				// Qk_DLog("Tick delay: %lld ms", diff / 1000);
 				for (auto w: self->_windows)
-					w->preRender().asyncCommit();
+					w->pre_render().asyncCommit();
 				// execute delayed tasks every 5 ticks
 				if (++ticks % 5 == 0) {
 					ticks = 0;
@@ -253,7 +253,7 @@ namespace qk {
 
 	void AppInl::add_delay_task(Cb cb) {
 		_delayTasksMutex.lock();
-		_delayTasks.pushBack({cb,2});
+		_delayTasks.push_back({cb,2});
 		_delayTasksMutex.unlock();
 	}
 

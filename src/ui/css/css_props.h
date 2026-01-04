@@ -48,7 +48,7 @@ namespace qk {
 	F(RECEIVE, bool, receive, View) \
 	F(AA, bool, aa, View) \
 	F(CLIP, bool, clip, Box) /* box */ \
-	F(FREE, bool, free, Box) \
+	F(LAYOUT, LayoutType, layout, Box) \
 	F(ALIGN, Align, align, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \

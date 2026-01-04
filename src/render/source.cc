@@ -86,7 +86,7 @@ namespace qk {
 	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
 	{
 		auto img = new ImageSource(nullptr, loop);
-		if (!uri.isEmpty())
+		if (!uri.is_empty())
 			img->_uri = fs_reader()->format(uri);
 		return img;
 	}
@@ -147,7 +147,7 @@ namespace qk {
 		if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
 			return false;
 
-		if (!_loop || _uri.isEmpty()) // empty uri or loop null
+		if (!_loop || _uri.is_empty()) // empty uri or loop null
 			return false;
 
 		_loop->post(Cb([this](auto e) { // to call from mt

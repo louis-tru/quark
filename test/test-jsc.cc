@@ -117,7 +117,7 @@ String to_string_utf8(JSContextRef ctx, JSValueRef val) {
 	Buffer buff((uint32_t)JSStringGetMaximumUTF8CStringSize(*str));
 	size_t size = JSStringGetUTF8CString(*str, *buff, buff.length());
 	buff.reset(int(size) - 1);
-	return buff.collapseString();
+	return buff.collapse_string();
 }
 
 static JSValueRef toStringCallback(JSContextRef ctx,

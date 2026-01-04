@@ -37,7 +37,7 @@
 #include "../geometry.h"
 
 #define _IfAct(...)  auto act = _keyAction; if (!act) return __VA_ARGS__
-#define _async_call preRender().async_call
+#define _async_call pre_render().async_call
 
 namespace qk {
 
@@ -180,7 +180,7 @@ namespace qk {
 		getKeyAction()->stop();
 	}
 
-	ViewType Sprite::viewType() const {
+	ViewType Sprite::view_type() const {
 		return kSprite_ViewType;
 	}
 

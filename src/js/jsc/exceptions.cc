@@ -268,7 +268,7 @@ namespace qk { namespace js {
 			stream << *jsToString(ctx, _sourceURL) << ":" << _lineNumber << ": " << *jsToString(ctx, _message);
 
 			auto sourceline = jsToString(ctx, _sourceLine).trim();
-			if (!sourceline.isEmpty()) {
+			if (!sourceline.is_empty()) {
 				stream << "\n";
 				// Print line of source code.
 				stream << *sourceline << "\n";

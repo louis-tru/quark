@@ -37,9 +37,17 @@
 
 namespace qk {
 
+	static Sp<TextLinesCore> default_textLinesCore([]() {
+		auto rv = new TextLinesCore();
+		rv->push({0,0,0,0,0,0,0,false}); // avoid null pointer
+		return rv;
+	}());
+
 	Vec2 set_layout_offset_free(Align align, Vec2 hostSize, Vec2 layout_size);
 
-	Label::Label(): _align(Align::Normal) {
+	Label::Label(): _align(Align::Normal)
+		, _lines(default_textLinesCore) // avoid null pointer
+	{
 	}
 
 	void Label::set_value(String val, bool isRt) {
@@ -58,14 +66,14 @@ namespace qk {
 
 	void Label::layout_forward(uint32_t mark) {
 		if (mark & kText_Options) {
-			Label::text_config(getClosestTextOptions());
+			Label::text_config(get_closest_text_options());
 		}
 	}
 
 	void Label::layout_reverse(uint32_t _mark) {
 		if (_mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
 			_Parent();
-			if (_parent->asTextOptions()) { // layout text in text container
+			if (_parent->is_text_container()) { // layout text in text container
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
 			} else {
 				// layout text in non text container
@@ -117,7 +125,7 @@ namespace qk {
 				if (_parent)
 					_parent->onChildLayoutChange(this, kChild_Layout_Align);
 			} else {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					auto _parent = self->parent();
 					if (_parent)
 						_parent->onChildLayoutChange(self, kChild_Layout_Align);
@@ -142,7 +150,7 @@ namespace qk {
 
 	void Label::solve_visible_area(const Mat &mat) {
 		if (_lines) {
-			if (!parent()->asTextOptions()) // At Label::set_layout_offset_free(), new TextLines()
+			if (!parent()->is_text_container()) // At Label::set_layout_offset_free(), new TextLines()
 				_lines->solve_visible_area(this, mat);
 			_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
 			_visible_area = _blob_visible.length();
@@ -160,7 +168,11 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Label::viewType() const {
+	bool Label::is_text_container() const {
+		return true;
+	}
+
+	ViewType Label::view_type() const {
 		return kLabel_ViewType;
 	}
 }

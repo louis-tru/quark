@@ -47,18 +47,28 @@ namespace qk {
 
 	void Text::layout_forward(uint32_t mark) {
 		if (mark & kText_Options) {
-			text_config(getClosestTextOptions()); // config text options first
+			text_config(get_closest_text_options()); // config text options first
 		}
 		Box::layout_forward(mark);
 	}
 
 	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
-			TextLines lines(text_align_value(), _container.to_range(), _container.float_x());
-			_lines = lines.core();
-
+			_lines = nullptr;
 			_blob_visible.clear();
 			_blob.clear();
+
+			if (_layout == LayoutType::Free) {
+				set_content_size(layout_typesetting_free());
+				delete_lock_state();
+				return;
+			} else if (_layout == LayoutType::Float) {
+				layout_typesetting_float();
+				return;
+			}
+			// normal typesetting
+			TextLines lines(text_align_value(), _container.to_range(), _container.float_x());
+			_lines = lines.core();
 
 			String value(_value); // safe hold
 			TextBlobBuilder(&lines, this, &_blob).make(value);
@@ -86,6 +96,10 @@ namespace qk {
 		return this;
 	}
 
+	bool Text::is_text_container() const {
+		return _layout != LayoutType::Free && _layout != LayoutType::Float;
+	}
+
 	void Text::solve_visible_area(const Mat &mat) {
 		Box::solve_visible_area(mat);
 		if (_visible_area && _lines) {
@@ -103,7 +117,7 @@ namespace qk {
 		return this;
 	}
 
-	ViewType Text::viewType() const {
+	ViewType Text::view_type() const {
 		return kText_ViewType;
 	}
 

@@ -99,7 +99,7 @@ namespace qk {
 		_actionCenter = new ActionCenter(this);
 		_backgroundColor = opts.backgroundColor;
 		_clipRange.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
-		_id = _host->_windows.pushBack(this);
+		_id = _host->_windows.push_back(this);
 		retain(); // strong ref count retain from application
 		_root = new Root(this); // new root
 		_root->set_background_color(_backgroundColor);
@@ -189,7 +189,7 @@ namespace qk {
 
 	void Window::nextFrame(cCb& cb) {
 		UILock lock(this);
-		_nextFrame.pushBack(cb);
+		_nextFrame.push_back(cb);
 	}
 
 	void Window::solveNextFrame() {

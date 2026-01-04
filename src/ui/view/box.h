@@ -43,7 +43,7 @@ namespace qk {
 	public:
 		// define props
 		Qk_DEFINE_VIEW_PROPERTY(bool,       clip, Const); //!< is clip box display range
-		Qk_DEFINE_VIEW_PROPERTY(bool,       free, Const); //!< is free layout, default false
+		Qk_DEFINE_VIEW_PROPERTY(LayoutType, layout, ProtectedConst); //!< layout type
 		Qk_DEFINE_VIEW_PROPERTY(Align,      align, Const); //!< view align
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    height, Const); //!< min height alias
@@ -106,7 +106,7 @@ namespace qk {
 		virtual Vec2 layout_weight() override;
 		virtual Align layout_align() override;
 		virtual bool is_clip() override;
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual float layout_lock_width(float size) override;
 		virtual float layout_lock_height(float size) override;
@@ -158,6 +158,12 @@ namespace qk {
 		Vec2 layout_typesetting_float();
 
 		/**
+		 * @method layout_typesetting_free
+		 * @thread Rt
+		*/
+		Vec2 layout_typesetting_free();
+
+		/**
 		 * @method delete_lock_state()
 		*/
 		void delete_lock_state();
@@ -175,6 +181,14 @@ namespace qk {
 		Vec2  _boxBounds[4]; // The bounds of the box for world coords, maybe not a rectangle
 
 		friend class Painter;
+	};
+
+	/**
+	 * A free layout view that allows its child views to be positioned freely.
+	*/
+	class Qk_EXPORT Free: public Box {
+	public:
+		Free();
 	};
 
 }

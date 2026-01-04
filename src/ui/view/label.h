@@ -46,7 +46,7 @@ namespace qk {
 		Label();
 		Qk_DEFINE_VIEW_PROPERTY(String, value);
 		Qk_DEFINE_VIEW_PROPERTY(Align, align, Const); //!< view align in parent box
-		virtual ViewType viewType() const override;
+		virtual ViewType view_type() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
@@ -62,6 +62,7 @@ namespace qk {
 		virtual float layout_lock_width(float size) override;
 		virtual float layout_lock_height(float size) override;
 		virtual Align layout_align() override;
+		virtual bool is_text_container() const override;
 	private:
 		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;

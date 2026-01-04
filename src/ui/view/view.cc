@@ -134,7 +134,7 @@ Range Container::to_range() const {
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 
-		preRender().async_call([](auto self, auto arg) {
+		pre_render().async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency,
 			// it should be Completely destroyed in RT (render thread)
 			auto center = self->_window->actionCenter();
@@ -146,7 +146,7 @@ Range Container::to_range() const {
 		}, this, 0);
 	}
 
-	View* View::tryRetain_rt() {
+	View* View::try_retain_rt() {
 		if (_refCount.load(std::memory_order_acquire) > 0) {
 			if (_refCount.fetch_add(1, std::memory_order_acq_rel) > 0) { // _refCount++ > 0
 				return this;
@@ -182,7 +182,7 @@ Range Container::to_range() const {
 			if (isRt) {
 				set_visible_rt(val);
 			} else {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					self->set_visible_rt(arg.arg);
 				}, this, val);
 			}
@@ -312,10 +312,10 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	TextOptions* View::getClosestTextOptions() {
+	TextOptions* View::get_closest_text_options() {
 		_CheckParent(shared_app()->defaultTextOptions());
 		auto opts = _parent->asTextOptions();
-		return opts ? opts : _parent->getClosestTextOptions();
+		return opts ? opts : _parent->get_closest_text_options();
 	}
 
 	ScrollView* View::asScrollView() {
@@ -402,7 +402,7 @@ Range Container::to_range() const {
 			_mark_value |= kLayout_Typesetting;
 			if (_mark_index == 0 && _level) {
 				if (_level) {
-					preRender().mark_layout(this, _level); // push to pre render
+					pre_render().mark_layout(this, _level); // push to pre render
 				}
 			}
 		}
@@ -411,8 +411,8 @@ Range Container::to_range() const {
 	void View::onActivate() {
 	}
 
-	PreRender& View::preRender() {
-		return _window->preRender();
+	PreRender& View::pre_render() {
+		return _window->pre_render();
 	}
 
 	void View::mark_layout(uint32_t mark, bool isRt) {
@@ -421,15 +421,15 @@ Range Container::to_range() const {
 			_mark_value |= mark;
 			if (_mark_index == 0) {
 				if (_level) {
-					preRender().mark_layout(this, _level); // push to pre render
+					pre_render().mark_layout(this, _level); // push to pre render
 				}
 			}
 		} else {
-			preRender().async_call([](auto self, auto arg) {
+			pre_render().async_call([](auto self, auto arg) {
 				self->_mark_value |= arg.arg;
 				if (self->_mark_index == 0) {
 					if (self->_level) {
-						self->preRender().mark_layout(self, self->_level); // push to pre render
+						self->pre_render().mark_layout(self, self->_level); // push to pre render
 					}
 				}
 			}, this, mark);
@@ -442,18 +442,18 @@ Range Container::to_range() const {
 			if (isRt) {
 				_mark_value |= mark;
 				if (_level) {
-					preRender()._is_render = true;
+					pre_render()._is_render = true;
 				}
 			} else {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					self->_mark_value |= arg.arg;
 					if (self->_level) {
-						self->preRender()._is_render = true;
+						self->pre_render()._is_render = true;
 					}
 				}, this, mark);
 			}
 		} else {
-			preRender()._is_render = true;
+			pre_render()._is_render = true;
 		}
 	}
 
@@ -461,8 +461,12 @@ Range Container::to_range() const {
 		return false;
 	}
 
-	ViewType View::viewType() const {
+	ViewType View::view_type() const {
 		return kView_ViewType;
+	}
+
+	bool View::is_text_container() const {
+		return false;
 	}
 
 	void View::set_is_focus(bool value) {
@@ -622,7 +626,7 @@ Range Container::to_range() const {
 			blur();
 			clear_link(false);
 			set_action(nullptr); // Delete action
-			preRender().async_call([](auto self, auto arg) {
+			pre_render().async_call([](auto self, auto arg) {
 				if (self->_level) {
 					if (arg.arg) { // notice parent view
 						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
@@ -661,7 +665,7 @@ Range Container::to_range() const {
 				_next->_prev = _prev;
 			}
 			if (notice) {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					if (self->_level)
 						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
 				}, this, _parent);
@@ -690,7 +694,7 @@ Range Container::to_range() const {
 				retain(); // link to parent and retain ref
 			}
 			// to Rt, set level
-			preRender().async_call([](auto self, auto arg) {
+			pre_render().async_call([](auto self, auto arg) {
 				if ( arg.arg ) { // notice old parent
 					arg.arg->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
 				}
@@ -748,9 +752,9 @@ Range Container::to_range() const {
 		if (_visible) {
 			// if level > 0 then
 			if (_mark_index) {
-				preRender().unmark_layout(this, _level);
+				pre_render().unmark_layout(this, _level);
 			}
-			preRender().mark_layout(this, level);
+			pre_render().mark_layout(this, level);
 			_level = level++;
 			onActivate();
 
@@ -768,13 +772,13 @@ Range Container::to_range() const {
 	void View::clear_level_rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focusView() == this) {
-			preRender().post(Cb([this,win](auto e) {
+			pre_render().post(Cb([this,win](auto e) {
 				if (win->dispatch()->focusView() == this)
 					blur();
 			}),this);
 		}
 		if (_mark_index) {
-			preRender().unmark_layout(this, _level);
+			pre_render().unmark_layout(this, _level);
 		}
 		_level = 0;
 		onActivate();
@@ -847,7 +851,7 @@ Range Container::to_range() const {
 	View* View::init(Window* win) {
 		Qk_ASSERT(win);
 		_window = win;
-		_accessor = get_props_accessor(viewType(), kCOLOR_CssProp);
+		_accessor = get_props_accessor(view_type(), kCOLOR_CssProp);
 		return this;
 	}
 

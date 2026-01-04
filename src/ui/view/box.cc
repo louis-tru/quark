@@ -43,7 +43,7 @@ namespace qk {
 
 	Box::Box()
 		: _clip(false)
-		, _free(false)
+		, _layout(LayoutType::Normal) // default normal layout
 		, _align(Align::Normal)
 		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
@@ -77,9 +77,9 @@ namespace qk {
 		View::destroy();
 	}
 
-	void Box::set_free(bool val, bool isRt) {
-		if (_free != val) {
-			_free = val;
+	void Box::set_layout(LayoutType val, bool isRt) {
+		if (_layout != val) {
+			_layout = val;
 			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
@@ -731,7 +731,7 @@ namespace qk {
 				if (_parent)
 					_parent->onChildLayoutChange(this, kChild_Layout_Align);
 			} else {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					auto _parent = self->parent();
 					if (_parent)
 						_parent->onChildLayoutChange(self, kChild_Layout_Align);
@@ -748,7 +748,7 @@ namespace qk {
 				if (_parent)
 					_parent->onChildLayoutChange(this, kChild_Layout_Weight);
 			} else {
-				preRender().async_call([](auto self, auto arg) {
+				pre_render().async_call([](auto self, auto arg) {
 					auto _parent = self->parent();
 					if (_parent)
 						_parent->onChildLayoutChange(self, kChild_Layout_Weight);
@@ -778,8 +778,12 @@ namespace qk {
 		return _clip;
 	}
 
-	ViewType Box::viewType() const {
+	ViewType Box::view_type() const {
 		return kBox_ViewType;
+	}
+
+	Free::Free() {
+		_layout = LayoutType::Free; // default free layout
 	}
 
 }

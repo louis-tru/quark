@@ -80,7 +80,6 @@ namespace qk {
 		kBox_ViewType,  // box
 		kFlex_ViewType, // box flex
 		kFlow_ViewType, // box flow
-		kFree_ViewType, // box
 		kImage_ViewType, // box
 		kVideo_ViewType, // box
 		kInput_ViewType, // box textOpts input

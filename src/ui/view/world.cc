@@ -50,7 +50,7 @@ namespace qk {
 			cUIEventName& name;
 		};
 		auto core = new CbCore(name, evt);
-		agent->preRender().post(Cb(core), agent);
+		agent->pre_render().post(Cb(core), agent);
 	}
 
 	template<class T, typename... Args>
@@ -59,7 +59,7 @@ namespace qk {
 	}
 
 	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, uint32_t level, bool entering) {
-		Agent* otherPtr = static_cast<Agent*>(other->tryRetain_rt());
+		Agent* otherPtr = static_cast<Agent*>(other->try_retain_rt());
 		Qk_ASSERT_NE(otherPtr, nullptr); // other should not be null here
 		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t level; bool entering; };
 		struct CbCore: CallbackCore<Object> {
@@ -73,7 +73,7 @@ namespace qk {
 		};
 		auto core = new CbCore;
 		core->w = { Sp<Agent>::lazy(otherPtr), mtv, level, entering };
-		agent->preRender().post(Cb(core), agent); // post to main thread
+		agent->pre_render().post(Cb(core), agent); // post to main thread
 	}
 
 	World::World()
@@ -82,12 +82,7 @@ namespace qk {
 		, _predictionTime(0.5f)
 		, _discoveryThresholdBuffer(5.0f)
 		, _waypointRadius(0.0f) {
-	}
-
-	View* World::init(Window *win) {
-		View::init(win);
-		set_free(true);
-		return this;
+		_layout = LayoutType::Free;
 	}
 
 	void World::destroy() {
@@ -97,11 +92,11 @@ namespace qk {
 	void World::set_playing(bool value) {
 		if (_playing != value) {
 			_playing = value;
-			preRender().async_call([](auto self, auto arg) {
+			pre_render().async_call([](auto self, auto arg) {
 				if (arg.arg) {
-					self->preRender().addtask(self); // add task
+					self->pre_render().addtask(self); // add task
 				} else {
-					self->preRender().untask(self); // remove task
+					self->pre_render().untask(self); // remove task
 				}
 			}, this, value);
 		}
@@ -127,15 +122,15 @@ namespace qk {
 		_waypointRadius = Float32::max(value, 0.0f);
 	}
 
-	ViewType World::viewType() const {
+	ViewType World::view_type() const {
 		return kWorld_ViewType;
 	}
 
 	void World::onActivate() {
 		if (level() == 0 || !_playing) {
-			preRender().untask(this); // remove task
+			pre_render().untask(this); // remove task
 		} else {
-			preRender().addtask(this); // add task
+			pre_render().addtask(this); // add task
 		}
 	}
 
@@ -239,7 +234,7 @@ namespace qk {
 			}
 		}
 
-		if (agents.isNull() && follows.isNull()) {
+		if (agents.is_null() && follows.is_null()) {
 			return false; // no active agents
 		}
 

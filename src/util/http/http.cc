@@ -151,7 +151,7 @@ namespace qk {
 	void Host::on_http_data(Buffer& buffer, bool fromCache) {
 		if ( _canSave ) { // Save file content to path, ignore cache
 			if ( !_file_writer ) { // download file
-				Qk_ASSERT(!_save_path.isEmpty(), "Save path is empty");
+				Qk_ASSERT(!_save_path.is_empty(), "Save path is empty");
 				FileWriter_new(this, _save_path, kBody_WriteFlag, loop()); // only write body to file
 			}
 			FileWriter_write(_file_writer, buffer); // pipeline write file
@@ -179,7 +179,7 @@ namespace qk {
 					// use cache header if 304 status, only update expires header
 					_response_header = std::move(FileCacheReader_header(_cache_reader));
 					// Convert from 304 to cache 200
-					if (!expires.isEmpty() && expires != _response_header["expires"]) {
+					if (!expires.is_empty() && expires != _response_header["expires"]) {
 						// update expires header if different
 						_write_flag = kHeader_WriteFlag; // need write header
 						_response_header["expires"] = expires;
@@ -280,11 +280,11 @@ namespace qk {
 		_retain = new RetainRef(this); // Force to maintain reference until end
 		_pause = false;
 		_url_no_cache_arg = false;
-		_canSave = !_save_path.isEmpty();
+		_canSave = !_save_path.is_empty();
 		_cache_path = http_cache_path() + '/' + hash_str(_uri.href());
 		_write_flag = kNone_WriteFlag; // reset write cache flag
 
-		int i = _uri.search().indexOf("__no_cache");
+		int i = _uri.search().index_of("__no_cache");
 		if ( i != -1 && _uri.search()[i+9] != '=' ) {
 			_url_no_cache_arg = true;
 		}

@@ -33,7 +33,7 @@
 #include "../view/view.h"
 #include "../../errno.h"
 
-#define _async_call _window->preRender().async_call
+#define _async_call _window->pre_render().async_call
 
 namespace qk {
 
@@ -109,7 +109,7 @@ namespace qk {
 		if (isRt) {
 			SetFrames_rt::call(action, to);
 		} else {
-			view->preRender().async_call([](auto self, auto arg) {
+			view->pre_render().async_call([](auto self, auto arg) {
 				SetFrames_rt::call(self, arg.arg);
 			}, action, to);
 		}

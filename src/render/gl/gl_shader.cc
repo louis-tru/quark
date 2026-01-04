@@ -113,7 +113,7 @@ namespace qk {
 
 		// Get Uniform Location index value
 		for (auto &i: String(uniforms).split(",")) {
-			if (!i.isEmpty()) {
+			if (!i.is_empty()) {
 				*store++ = glGetUniformLocation(program, i.c_str());
 			}
 		}

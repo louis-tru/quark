@@ -98,7 +98,7 @@ namespace qk {
 		static int on_status(http_parser* parser, cChar *at, size_t length) {
 			//Qk_DLog("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
 			auto self = static_cast<HttpHandler*>(parser->data);
-			int status_code = String(at - 4, 3).toNumber<uint32_t>();
+			int status_code = String(at - 4, 3).to_number<uint32_t>();
 			Qk_ASSERT_EQ(parser->status_code, status_code); // check status code correct
 			// Qk_Log("http %d,%d", int(parser->http_major), int(parser->http_minor));
 			self->_host->_http_response_version = String::format("%d.%d", parser->http_major, parser->http_minor);
@@ -125,7 +125,7 @@ namespace qk {
 			auto host = self->_host;
 			self->header_field_complete();
 			if ( self->_header.has("content-length") ) {
-				host->_download_total = self->_header["content-length"].toNumber<int64_t>();
+				host->_download_total = self->_header["content-length"].to_number<int64_t>();
 			}
 			self->gzip_inflate_init();
 			host->on_http_header(parser->status_code, std::move(self->_header), 0);
@@ -134,7 +134,7 @@ namespace qk {
 
 		void header_field_complete() {
 			if (_header_value.length()) {
-				_header_field.lowerCase();
+				_header_field.lower_case();
 				if ( !_host->_disable_cookie ) {
 					if ( _header_field == "set-cookie" ) {
 						http_set_cookie_with_expression(_host->_uri.domain(), _header_value);
@@ -148,9 +148,9 @@ namespace qk {
 		void gzip_inflate_init() {
 			if ( _header.has("content-encoding") ) {
 				String encoding = _header["content-encoding"];
-				if ( encoding.indexOf("gzip") != -1 ) {
+				if ( encoding.index_of("gzip") != -1 ) {
 					Qk_ASSERT_EQ(0, inflateInit2(&_z_strm, 47));
-				} else if ( encoding.indexOf("deflate") != -1 ) {
+				} else if ( encoding.index_of("deflate") != -1 ) {
 					Qk_ASSERT_EQ(0, inflateInit(&_z_strm));
 				}
 			}
@@ -227,7 +227,7 @@ namespace qk {
 			if ( !header.has("DNT") )             header["DNT"] = "1";
 			// if ( !header.has("Accept-Language") ) header["Accept-Language"] = languages();
 
-			if ( !_host->_username.isEmpty() && !_host->_password.isEmpty() ) {
+			if ( !_host->_username.is_empty() && !_host->_password.is_empty() ) {
 				String s = _host->_username + ':' + _host->_password;
 				header["Authorization"] = codec_encode(kBase64_Encoding, s);
 			}
@@ -237,7 +237,7 @@ namespace qk {
 				String cookies = http_get_all_cookie_string(_host->_uri.domain(),
 																										_host->_uri.pathname(),
 																										_host->_uri.type() == URI_HTTPS);
-				if ( !cookies.isEmpty() ) {
+				if ( !cookies.is_empty() ) {
 					header["Cookie"] = cookies;
 				}
 			}
@@ -245,10 +245,10 @@ namespace qk {
 			if ( _host->_cache_reader ) {
 				auto last_modified = FileCacheReader_header(_host->_cache_reader)["last-modified"];
 				auto etag = FileCacheReader_header(_host->_cache_reader)["etag"];
-				if ( !last_modified.isEmpty() )  {
+				if ( !last_modified.is_empty() )  {
 					header["If-Modified-Since"] = std::move(last_modified); // use cache
 				}
-				if ( !etag.isEmpty() ) {
+				if ( !etag.is_empty() ) {
 					header["If-None-Match"] = std::move(etag); // use cache
 				}
 			}
@@ -303,7 +303,7 @@ namespace qk {
 							content_length += multipart_boundary_start.length();
 							content_length += _form.headers.length();
 							content_length += 2; // end \r\n
-							_multipart_form_data.pushBack(_form);
+							_multipart_form_data.push_back(_form);
 						}
 
 						header["Content-Length"] = content_length;
@@ -449,7 +449,7 @@ namespace qk {
 				_socket->write(string_header_end.copy().collapse()); // \r\n
 				_upload_file->release(); // release file
 				_upload_file = nullptr;
-				_multipart_form_data.popFront();
+				_multipart_form_data.pop_front();
 				buffer.reset(BUFFER_SIZE);
 				_multipart_form_tmp_buffer = buffer;
 				send_multipart_form_data();
@@ -479,7 +479,7 @@ namespace qk {
 					_multipart_form_tmp_buffer.reset(form.data.length());
 					_socket->write(_multipart_form_tmp_buffer, 1);
 					_socket->write(string_header_end.copy().collapse());
-					_multipart_form_data.popFront();
+					_multipart_form_data.pop_front();
 				}
 			} else {
 				_socket->write(multipart_boundary_end.copy().collapse()); // end send data, wait http response
@@ -541,7 +541,7 @@ namespace qk {
 	void HttpHandlerPool::request(Host* host, Cb cb) {
 		Qk_ASSERT(host);
 		Qk_ASSERT(!host->_uri.is_null());
-		Qk_ASSERT(!host->_uri.hostname().isEmpty());
+		Qk_ASSERT(!host->_uri.hostname().is_empty());
 		Qk_ASSERT(host->_uri.type() == URI_HTTP || host->_uri.type() == URI_HTTPS);
 
 		uint16_t port = host->_uri.port();
@@ -561,7 +561,7 @@ namespace qk {
 				Lock lock(ctx->_mutex);
 				ctx->call_req_tasks(&lock);
 			}, this), 1e2, -1); // after 100ms retry
-			_reqs.pushBack({ host, cb, host->_wait_connect_id, port }); // wait
+			_reqs.push_back({ host, cb, host->_wait_connect_id, port }); // wait
 		}
 	}
 
@@ -657,7 +657,7 @@ namespace qk {
 			if (poolSize < max_pool_size) {
 				auto ssl = host->_uri.type() == URI_HTTPS;
 				conn = NewRetain<HttpHandler>(host->_uri.hostname(), port, ssl, host->loop());
-				conn->_id = _handlers.pushBack(conn);
+				conn->_id = _handlers.push_back(conn);
 			}
 		}
 

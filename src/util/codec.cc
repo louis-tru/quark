@@ -47,7 +47,7 @@ namespace qk {
 			{ "utf-16", kUTF16_Encoding },
 			{ "ucs4", kUCS4_Encoding },
 		});
-		auto i = encodings_dict.find(encoding.toLowerCase());
+		auto i = encodings_dict.find(encoding.to_lower_case());
 		return i == encodings_dict.end() ? Encoding::kInvalid_Encoding : i->second;
 	}
 

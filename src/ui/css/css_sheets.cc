@@ -64,7 +64,7 @@ namespace qk {
 		} else {
 			auto win = getWindowForAsyncSet();
 			if (win) {
-				win->preRender().async_call([](auto self, auto arg) {
+				win->pre_render().async_call([](auto self, auto arg) {
 					for ( auto i: self->_props ) {
 						i.second->fetch(arg.arg);
 					}
@@ -195,11 +195,11 @@ namespace qk {
 		for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
 			bool isExt = false;
 			auto e = j.trim();
-			if ( e.isEmpty() ) continue;
+			if ( e.is_empty() ) continue;
 			if ( e[0] != '.' ) Qk_InvalidCss(exp);
 
 			for ( auto &n: e.split('.') ) { // .div_cls.div_cls2
-				if ( n.isEmpty() ) continue;
+				if ( n.is_empty() ) continue;
 				auto state = kNone_UIState;
 				auto k = n.split(':'); // .div_cls:hover
 				if (k.length() > 1) {
@@ -207,7 +207,7 @@ namespace qk {
 					if (!Pseudo_type_keys.get(k[1], state))
 						Qk_InvalidCss(exp);
 					n = k[0];
-					if (n.isEmpty()) continue;
+					if (n.is_empty()) continue;
 				}
 				ss = ss->findAndMake(CSSCName(n), state, isExt, make);
 				if ( !ss ) {
