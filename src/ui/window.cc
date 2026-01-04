@@ -322,8 +322,8 @@ namespace qk {
 			if (_debugMode && _fsp != _fspTick) {
 				// text blob build fps
 				Array<TextBlob> blob;
-				TextLines lines(_root, TextAlign::Default, {0,0}, false);
-				lines.set_ignore_single_white_space(true);
+				TextLines lines(TextAlign::Default, {0,0}, false);
+				lines.set_ignore_single_space_line(true);
 				TextBlobBuilder builder(&lines, _host->defaultTextOptions(), &blob);
 				builder.set_text_size(32.0f);
 				builder.make(String::format("%d FPS", _fspTick));

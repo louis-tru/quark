@@ -29,14 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 const JscRejectionListener = (globalThis as any)._rejectionListener; // unhandledrejection for jsc
+const JscHookUnhandledrejection = (globalThis as any)._hookUnhandledrejection; // hook function for jsc
+delete (globalThis as any)._hookUnhandledrejection; // clean up global namespace
 
 // redefine class decorator to hook unhandledrejection
 export const __jscAsync = JscRejectionListener ? function(target: any, key: string, desc: PropertyDescriptor) {
 	const oriFn = target[key] as (...args: any[]) => Promise<any>;
 	desc.value = function(this: any, ...args: any[]) {
-		const result = oriFn.apply(this, args);
-		(result as any)._hookUnhandledrejection();
-		return result;
+		const p = oriFn.apply(this, args);
+		JscHookUnhandledrejection(p);
+		return p;
 	};
 	return desc;
 }: function(target: any, key: string, desc: PropertyDescriptor) {
@@ -48,9 +50,9 @@ function <F extends (...args: Args) => Promise<R>, Args extends any[], R>(fn: F)
 		: (...args: Args) => Promise<R>
 {
 	return function(this: any, ...args: Args): Promise<R> {
-		const result = fn.apply(this, args);
-		(result as any)._hookUnhandledrejection();
-		return result;
+		const p = fn.apply(this, args);
+		JscHookUnhandledrejection(p);
+		return p;
 	};
 }: function <F extends (...args: Args) => Promise<R>, Args extends any[], R>(fn: F)
 		: (...args: Args) => Promise<R>

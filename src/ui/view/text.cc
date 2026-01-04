@@ -54,8 +54,7 @@ namespace qk {
 
 	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
-			TextLines lines(this, text_align_value(), _container.to_range(), _container.float_x());
-			lines.set_init_line_height(text_size().value, text_line_height().value, false);
+			TextLines lines(text_align_value(), _container.to_range(), _container.float_x());
 			_lines = lines.core();
 
 			_blob_visible.clear();

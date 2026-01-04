@@ -118,10 +118,21 @@ namespace qk {
 		}
 	}
 
-	TextLines::TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x)
-		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
+	void TextLinesCore::set_layout_offset(Vec2 offset) {
+		Vec2 off{offset.x() - _min_origin, offset.y() - front().start_y}; // use offset diff
+		for (auto &line: *this) {
+			line.origin += off.x();
+			line.start_y += off.y();
+			line.end_y   += off.y();
+			line.baseline += off.y();
+		}
+		_min_origin = offset.x();
+	}
+
+	TextLines::TextLines(TextAlign text_align, Range limit_range, bool host_float_x)
+		: _pre_width(0), _ignore_single_space_line(false), _have_init_line_height(false)
 		, _limit_range(limit_range)
-		, _host(host), _host_float_x(host_float_x)
+		, _host_float_x(host_float_x)
 		, _text_align(text_align), _visible_area(false)
 		, _core(new TextLinesCore())
 	{
@@ -143,14 +154,16 @@ namespace qk {
 		// sizeof(Line);
 		// sizeof(TextLinesCore::Line);
 		clear();
+		// _line_height = line_height;
+		// shared_fontPool()->getUnitMetrics(&_UnitMetrics, fontSize);
 	}
 
 	void TextLines::clear() {
 		_core->clear();
 		_core->push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_core->front();
-		_preView.clear();
-		_preView.push(Array<View*>());
+		_finished.clear();
+		_finished.push({});
 		_core->_max_width = 0;
 		_core->_min_origin = Float32::limit_max;
 		_visible_area = false;
@@ -168,32 +181,25 @@ namespace qk {
 		_core->push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0 });
 		_last = &_core->back();
 		_pre_width = 0;
-		_preView.push(Array<View*>());
+		_finished.push({});
 
 		for (auto &blob: _preBlob) {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
-		
+
 		if (_have_init_line_height) {
-			if (opts) {
-				auto tf = opts->text_family().value->match(opts->font_style());
-				FontMetricsBase metrics;
-				tf->getMetrics(&metrics, opts->text_size().value);
-				set_line_height(&metrics, opts->text_line_height().value);
-			}
-			else {
-				set_line_height(&_UnitMetrics, _line_height);
-			}
+			auto tf = opts->text_family().value->match(opts->font_style());
+			FontMetricsBase metrics;
+			tf->getMetrics(&metrics, opts->text_size().value);
+			set_line_height(&metrics, opts->text_line_height().value, opts->text_size().value);
 		}
 	}
 
-	void TextLines::set_init_line_height(float fontSize, float line_height, bool have_init_line_height) {
-		_have_init_line_height = have_init_line_height;
-		_line_height = line_height;
-		_host->window()->host()->fontPool()->getUnitMetrics(&_UnitMetrics, fontSize);
-		if (have_init_line_height) {
-			set_line_height(&_UnitMetrics, line_height);
-		}
+	void TextLines::set_have_init_line_height(float textSize, float line_height) {
+		_have_init_line_height = true;
+		FontMetricsBase metrics;
+		shared_fontPool()->getUnitMetrics(&metrics, textSize);
+		set_line_height(&metrics, line_height, textSize);
 	}
 
 	void TextLines::set_line_height(float top, float bottom) {
@@ -208,12 +214,17 @@ namespace qk {
 		_last->line_height = _last->end_y - _last->start_y;
 	}
 
-	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height) {
+	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height, float text_size) {
+		if (line_height == 0 && _last->line_height != 0) {
+			return; // use previous line height
+		}
 		auto top = -metrics->fAscent;
 		auto bottom = metrics->fDescent + metrics->fLeading;
-		if (_last->line_height == 0) { // first time use max metrics
-			top = Float32::max(-_UnitMetrics.fAscent, top);
-			bottom = Float32::max(bottom, _UnitMetrics.fDescent + _UnitMetrics.fLeading);
+		if (_last->line_height == 0) { // first time init use max metrics
+			FontMetricsBase metrics;
+			shared_fontPool()->getUnitMetrics(&metrics, text_size);
+			top = Float32::max(-metrics.fAscent, top);
+			bottom = Float32::max(bottom, metrics.fDescent + metrics.fLeading);
 		}
 		if (line_height != 0) { // value, not auto
 			auto height = top + bottom;
@@ -245,7 +256,7 @@ namespace qk {
 		auto top = _last->top;
 		auto bottom = _last->bottom;
 
-		for (auto view: _preView.back()) {
+		for (auto view: _finished.back()) {
 			auto size = view->layout_size();
 			auto height = size.height();
 			switch (view->layout_align()) {
@@ -286,34 +297,27 @@ namespace qk {
 
 			float top = line.top;
 			float bottom = line.bottom;
-
-			for (auto view: _preView[lineNum]) {
+			for (auto view: _finished[lineNum]) {
 				float size_y = view->layout_size().y();
-				//auto x = _last->origin + view->layout_offset().x();
 				float x = line.origin + view->layout_offset().x();
 				float y;
 
 				switch (view->layout_align()) {
 					case Align::Top:
-						//y = _last->baseline - top; break;
 						y = line.start_y; break;
 					case Align::Middle:
-						//y = _last->baseline - (size_y + top - bottom) / 2; break;
 						y = line.start_y + (line.line_height - size_y) * 0.5; break;
 						break;
 					case Align::Bottom:
-						//y = _last->baseline - size_y + bottom; break;
 						y = line.end_y - size_y; break;
 					default: // bottom and baseline align
-						//y = _last->baseline - size_y; break;
 						y = line.baseline - size_y; break;
 				}
-				view->set_layout_offset(Vec2(x, y));
+				view->set_layout_offset({x, y});
 			}
+
 			lineNum++;
 		}
-
-		_preView.clear();
 	}
 
 	void TextLines::finish_text_blob_pre() {
@@ -326,14 +330,14 @@ namespace qk {
 
 	void TextLines::add_view(View* view, float lineWidth) {
 		_last->width = _pre_width = lineWidth;
-		_preView.back().push(view);
+		_finished.back().push(view);
 	}
 
 	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre) {
 		if (isPre) {
 			if (glyphs.length()) {
-				pre.glyphs = glyphs.copy();
-				pre.offset = offset.copy();
+				pre.glyphs = glyphs;
+				pre.offset = offset;
 				_preBlob.push(std::move(pre));
 			}
 		} else {
@@ -370,9 +374,10 @@ namespace qk {
 
 		auto &blob = pre.blobOut->push({
 			ascent, height, origin, line, pre.index_of_unichar,
-			{pre.typeface, glyphs.copy(), offset},
+			{pre.typeface, glyphs, offset},
 		});
 
+		// adjust offset
 		if (frontOffset < 0) {
 			for (auto &i: blob.blob.offset) {
 				i[0] += frontOffset;
@@ -381,7 +386,7 @@ namespace qk {
 		_last->width = origin + blob.blob.offset.back().x();
 
 		// if (!_have_init_line_height)
-		set_line_height(&metrics, pre.line_height);
+		set_line_height(&metrics, pre.line_height, pre.text_size);
 	}
 
 	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {
@@ -405,8 +410,8 @@ namespace qk {
 		_pre_width = value;
 	}
 
-	void TextLines::set_ignore_single_white_space(bool val) {
-		_ignore_single_white_space = val;
+	void TextLines::set_ignore_single_space_line(bool val) {
+		_ignore_single_space_line = val;
 	}
 
 }

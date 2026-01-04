@@ -214,68 +214,70 @@ namespace qk { namespace js {
 		_global->defineOwnProperty(this, newStringOneByte("_jscRunning"),
 			newBool(true), JSObject::DontEnum | JSObject::ReadOnly | JSObject::DontDelete);
 		// override Promise class, make unhandled rejection can be catched
-		auto script = JsStringWithUTF8(
-			"(function() {"
+		auto script = JsStringWithUTF8("(function() {"
 			"const _rejectionListener = globalThis._rejectionListener;"
 			"const NativePromise = globalThis.Promise;"
+			"const NativeThen = NativePromise.prototype.then;"
 			"const NativeCatch = NativePromise.prototype.catch;"
-			"NativePromise.prototype._catch = NativeCatch;"
-			// override NativePromise
-			"NativePromise.prototype._hookUnhandledrejection = function() {"
+			// override catch to hook unhandled rejection
+			"function _hookUnhandledrejection(p) {"
 				// Note: multiple calls are safe in JSC or v8.
 				// Native Promise will only register the first rejection handler.
-				"console.log('ABCDEFG---', this._catch);"
-				//"NativeCatch.call(this, err=>{"
-				"this._catch(err=>{"
-					"if (this._catchHandler) {"
-						"(0, this._catchHandler)();" // call catch handler
+				"p._hooked = NativeThen.call(p, function(e){"
+					"return p._hookedOnFulfilled ? p._hookedOnFulfilled(e): e;"
+				"}, function(e){"
+					"if (p._hookedOnRejected) {"
+						"return (0, p._hookedOnRejected)(e);" // call user onRejected
 					"} else {"
-						"_rejectionListener(this, err);" // call rejection listener
+						"queueMicrotask(()=>_rejectionListener(p, e));" // call rejection listener
 					"}"
 				"});"
-				"this._hooked = true;" // mark as hooked
+			"};"
+			"NativePromise.prototype.then = function(onFulfilled, onRejected) {"
+				"if (this._hooked && onRejected instanceof Function) {"
+					"if (onFulfilled instanceof Function) this._hookedOnFulfilled = onFulfilled;"
+					"this._hookedOnRejected = onRejected;"
+					"const hooked = this._hooked;"
+					"this._hooked = null;" // clear to avoid multiple catch
+					"return hooked;" // return hooked promise
+				"}"
+				"const p = NativeThen.call(this, onFulfilled, onRejected);" // call original then
+				"_hookUnhandledrejection(p);"
+				"return p;"
 			"};"
 			"NativePromise.prototype.catch = function(onRejected) {"
-				"if (this._hooked) {"
-					// only set _catchHandler when not set
-					"if (!this._catchHandler && onRejected instanceof Function) {"
-						"this._catchHandler = onRejected;"
-					"}"
-				"} else {"
-					"NativeCatch.call(this, onRejected);" // call original catch
+				"if (this._hooked && onRejected instanceof Function) {"
+					"this._hookedOnRejected = onRejected;"
+					"const hooked = this._hooked;"
+					"this._hooked = null;" // clear to avoid multiple catch
+					"return hooked;" // return hooked promise
 				"}"
-				"return this;"
+				"const p = NativeCatch.call(this, onRejected);" // call original catch
+				"_hookUnhandledrejection(p);"
+				"return p;"
 			"};"
-			// define new simple Promise class, defaultly hook unhandled rejection
+			// override Promise class
 			"class Promise extends NativePromise {"
 				"constructor(executor) {"
-					"super(executor);"
-					"this._hookUnhandledrejection();"
-					//"queueMicrotask(()=>this._hookUnhandledrejection());" // hook unhandled rejection
+					"super((resolve, reject)=>{"
+						"executor(resolve, (reason)=>{"
+							"queueMicrotask(()=>{ if (!this._handled) _rejectionListener(this,reason) });"
+							"reject(reason);"
+						"});"
+					"});"
+				"}"
+				"then(onFulfilled, onRejected) {"
+					"this._handled = !!this._handled || onRejected instanceof Function;"
+					"return NativeThen.call(this, onFulfilled, onRejected);"
+				"}"
+				"catch(onRejected) {"
+					"this._handled = !!this._handled || onRejected instanceof Function;"
+					"return NativeCatch.call(this, onRejected);"
 				"}"
 			"}"
-			// override Promise class 2, use _handled to mark is handled
-			// "class Promise extends NativePromise {"
-			// 	"constructor(executor) {"
-			// 		"super((resolve, reject)=>{"
-			// 			"executor(resolve, (reason)=>{"
-			// 				"queueMicrotask(()=>{ if (!this._handled) _rejectionListener(this,reason) });"
-			// 				"reject(reason);"
-			// 			"});"
-			// 		"});"
-			// 	"}"
-			// 	"then(onfulfilled, onrejected) {"
-			// 		"this._handled = this._handled || onrejected instanceof Function;"
-			// 		"return super.then(onfulfilled, onrejected);"
-			// 	"}"
-			// 	"catch(onrejected) {"
-			// 		"this._handled = this._handled || onrejected instanceof Function;"
-			// 		"return NativeCatch.call(this, onrejected);"
-			// 	"}"
-			// "}"
+			"globalThis._hookUnhandledrejection = _hookUnhandledrejection;" // export hook function
 			"globalThis.Promise = Promise;" // replace global Promise
-			"})();"
-		);
+		"})();");
 		JSEvaluateScript(_ctx, *script, nullptr, nullptr, 0, JsFatal());
 		JSValueProtect(_ctx, _rejectionListener);
 	}

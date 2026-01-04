@@ -735,7 +735,6 @@ namespace qk {
 			c_str(), length(), s.c_str(), s.length(),
 			rep.c_str(), rep.length(), sizeof(T), true, allocator()
 		);
-		// TODO ...
 		r.StringBase::assign(base, sizeof(T));
 		return r;
 	}

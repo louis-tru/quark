@@ -705,9 +705,9 @@ namespace qk {
 	Vec2 Input::layout_typesetting_input_text() {
 		FontMetricsBase metrics;
 
-		TextLines lines(this, text_align_value(), _container.to_range(), _container.float_x());
+		TextLines lines(text_align_value(), _container.to_range(), _container.float_x());
 
-		lines.set_init_line_height(text_size().value, text_line_height().value, true);
+		lines.set_have_init_line_height(text_size().value, text_line_height().value);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
 		_lines = lines.core();
 		_cursor_ascent = -metrics.fAscent;

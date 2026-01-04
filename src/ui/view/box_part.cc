@@ -559,7 +559,7 @@ namespace qk {
 
 		if (is_auto_wrap) {
 			if (origin + _layout_size.x() > limitX) {
-				lines->push();
+				lines->push(opts);
 				origin = 0;
 			}
 		}
@@ -567,46 +567,51 @@ namespace qk {
 		lines->add_view(this, origin + _layout_size.x());
 	}
 
-	void Box::set_layout_offset_free(Vec2 size) {
+	Vec2 set_layout_offset_free(Align align, Vec2 hostSize, Vec2 layout_size) {
 		Vec2 offset;
-		switch(_align) {
+		switch(align) {
 			case Align::Normal:
 			case Align::LeftTop: // left top
 				break;
 			case Align::CenterTop: // center top
-				offset = Vec2((size.x() - _layout_size.x()) * .5, 0);
+				offset = Vec2((hostSize.x() - layout_size.x()) * .5, 0);
 				break;
 			case Align::RightTop: // right top
-				offset = Vec2(size.x() - _layout_size.x(), 0);
+				offset = Vec2(hostSize.x() - layout_size.x(), 0);
 				break;
 			case Align::LeftMiddle: // left Middle
-				offset = Vec2(0, (size.y() - _layout_size.y()) * .5);
+				offset = Vec2(0, (hostSize.y() - layout_size.y()) * .5);
 				break;
 			case Align::CenterMiddle: // center Middle
 				offset = Vec2(
-					(size.x() - _layout_size.x()) * .5,
-					(size.y() - _layout_size.y()) * .5);
+					(hostSize.x() - layout_size.x()) * .5,
+					(hostSize.y() - layout_size.y()) * .5);
 				break;
 			case Align::RightMiddle: // right Middle
 				offset = Vec2(
-					(size.x() - _layout_size.x()),
-					(size.y() - _layout_size.y()) * .5);
+					(hostSize.x() - layout_size.x()),
+					(hostSize.y() - layout_size.y()) * .5);
 				break;
 			case Align::LeftBottom: // left bottom
-				offset = Vec2(0, (size.y() - _layout_size.y()));
+				offset = Vec2(0, (hostSize.y() - layout_size.y()));
 				break;
 			case Align::CenterBottom: // center bottom
 				offset = Vec2(
-					(size.x() - _layout_size.x()) * .5,
-					(size.y() - _layout_size.y()));
+					(hostSize.x() - layout_size.x()) * .5,
+					(hostSize.y() - layout_size.y()));
 				break;
 			case Align::RightBottom: // right bottom
 				offset = Vec2(
-					(size.x() - _layout_size.x()),
-					(size.y() - _layout_size.y()));
+					(hostSize.x() - layout_size.x()),
+					(hostSize.y() - layout_size.y()));
 				break;
 		}
-		set_layout_offset(offset);
+		return offset;
+	}
+
+	void Box::set_layout_offset_free(Vec2 size) {
+		auto off = qk::set_layout_offset_free(_align, size, _layout_size);
+		set_layout_offset(off);
 	}
 
 }

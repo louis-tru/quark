@@ -101,6 +101,7 @@ namespace qk { namespace js {
 			Js_Define_Class(Label, View, { Js_NewView(Label); });
 			inheritTextOptions(cls, worker);
 			Js_MixObject_Accessor(Label, String, value, value);
+			Js_MixObject_Accessor(Label, Align, align, align);
 			cls->exports("Label", exports);
 		}
 	};

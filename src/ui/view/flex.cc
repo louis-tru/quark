@@ -185,6 +185,7 @@ namespace qk {
 			float overflow = main_size - main_total; // flex size - child total main size
 			int wIdx = overflow > 0 ? 0: 1; // is grow or shrink
 			float cur_weight_total = weight_total[wIdx];
+			int maxIterations = 3; // max 3 iterations
 
 			do {
 				float min_weight_total = Qk_Min(cur_weight_total, 1);
@@ -203,7 +204,7 @@ namespace qk {
 						if (it.size[mainIdx] == size) {
 							cur_weight_total += it.weight[wIdx];
 						} else {
-							it.weight[wIdx] = 0; // mark invalid
+							it.weight[wIdx] = 0; // mark invalid because hit min/max size
 						}
 					}
 					if (it.alignBoth) {
@@ -217,7 +218,7 @@ namespace qk {
 				}
 				overflow = main_size - main_total;
 				// repeat until overflow is 0 or no weight left
-			} while(fabsf(overflow) > EPSILON && cur_weight_total);
+			} while(fabsf(overflow) > EPSILON && cur_weight_total && --maxIterations);
 
 			float offset = 0, space = 0;
 

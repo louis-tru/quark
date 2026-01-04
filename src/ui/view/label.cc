@@ -37,9 +37,15 @@
 
 namespace qk {
 
+	Vec2 set_layout_offset_free(Align align, Vec2 hostSize, Vec2 layout_size);
+
+	Label::Label(): _align(Align::Normal) {
+	}
+
 	void Label::set_value(String val, bool isRt) {
 		_value = val;
 		mark_layout(kLayout_Typesetting, isRt);
+		// constexpr size_t size = sizeof(Label) + sizeof(TextLinesCore);
 	}
 
 	View* Label::getViewForTextOptions() {
@@ -56,9 +62,19 @@ namespace qk {
 		}
 	}
 
-	void Label::layout_reverse(uint32_t mark) {
-		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
-			parent()->onChildLayoutChange(this, kChild_Layout_Text);
+	void Label::layout_reverse(uint32_t _mark) {
+		if (_mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
+			_Parent();
+			if (_parent->asTextOptions()) { // layout text in text container
+				_parent->onChildLayoutChange(this, kChild_Layout_Text);
+			} else {
+				// layout text in non text container
+				auto &container = _parent->layout_container(); // use parent container
+				TextLines lines(text_align_value(), container.to_range(), container.float_x());
+				lines.set_ignore_single_space_line(true);
+				layout_text(&lines, nullptr); // no text container, use nullptr
+				lines.finish();
+			}
 			unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
 		}
 	}
@@ -78,26 +94,50 @@ namespace qk {
 			}
 			v = v->next();
 		}
-		//mark(kTransform, true); // mark recursive transform
 		mark(kVisible_Region, true);
 	}
 
+	Vec2 Label::layout_size() {
+		return {_lines->max_width(), _lines->max_height() - _lines->front().start_y};
+	}
+
+	float Label::layout_lock_width(float size) {
+		return _lines->max_width(); // Temporarily refuse to resize
+	}
+
+	float Label::layout_lock_height(float size) {
+		return _lines->max_height(); // Temporarily refuse to resize
+	}
+
+	void Label::set_align(Align val, bool isRt) {
+		if (_align != val) {
+			_align = val;
+			if (isRt) {
+				auto _parent = parent();
+				if (_parent)
+					_parent->onChildLayoutChange(this, kChild_Layout_Align);
+			} else {
+				preRender().async_call([](auto self, auto arg) {
+					auto _parent = self->parent();
+					if (_parent)
+						_parent->onChildLayoutChange(self, kChild_Layout_Align);
+				}, this, 0);
+			}
+		}
+	}
+
+	Align Label::layout_align() {
+		return _align;
+	}
+
 	void Label::set_layout_offset(Vec2 val) {
-		// no text container and text lines, use simple layout
-		TextLines lines(this, text_align_value(), {0,0}, false); // no limit
-		lines.set_ignore_single_white_space(true);
-		layout_text(&lines, nullptr); // no text container, use simple layout
-		lines.finish();
-		mark(kTransform, true);
+		_lines->set_layout_offset(val);
+		mark(/*kTransform*/kVisible_Region, true);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
-		// no text container and text lines, use simple layout
-		TextLines lines(this, text_align_value(), {{}, size}, false);
-		lines.set_ignore_single_white_space(true);
-		layout_text(&lines, nullptr);
-		lines.finish();
-		mark(kTransform, true);
+		auto off = qk::set_layout_offset_free(_align, size, Label::layout_size());
+		set_layout_offset(off);
 	}
 
 	void Label::solve_visible_area(const Mat &mat) {
@@ -110,10 +150,10 @@ namespace qk {
 	}
 
 	void Label::onActivate() {
-		if (level()) {
+		if (level())
 			mark(kTransform, true); // mark recursive transform
-		}
 		_textFlags = 0xffffffff;
+		mark_layout(kText_Options, true);
 	}
 
 	TextOptions* Label::asTextOptions() {

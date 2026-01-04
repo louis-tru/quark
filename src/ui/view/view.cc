@@ -853,6 +853,6 @@ Range Container::to_range() const {
 
 	void Br::layout_text(TextLines *lines, TextOptions* opts) {
 		lines->finish_text_blob_pre(); // finish previous blob
-		lines->push(); // push new line
+		lines->push(opts); // push new line
 	}
 }

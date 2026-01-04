@@ -43,7 +43,9 @@ namespace qk {
 	*/
 	class Qk_EXPORT Label: public View, public TextOptions {
 	public:
+		Label();
 		Qk_DEFINE_VIEW_PROPERTY(String, value);
+		Qk_DEFINE_VIEW_PROPERTY(Align, align, Const); //!< view align in parent box
 		virtual ViewType viewType() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;
@@ -55,8 +57,11 @@ namespace qk {
 		virtual void solve_visible_area(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(Painter *render) override;
-	protected:
 		virtual View* getViewForTextOptions() override;
+		virtual Vec2 layout_size() override;
+		virtual float layout_lock_width(float size) override;
+		virtual float layout_lock_height(float size) override;
+		virtual Align layout_align() override;
 	private:
 		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;

@@ -579,7 +579,7 @@ namespace qk {
 	}
 
 	void Painter::drawTextBlob(TextOptions *v, Vec2 inOffset,
-		TextLinesCore *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
+		TextLinesCore *lines, Array<TextBlob> &blobs, Array<uint32_t> &blob_visible) 
 	{
 		if (!_color.a())
 			return;
@@ -590,7 +590,7 @@ namespace qk {
 		if (v->text_background_color().value.a()) {
 			auto color = v->text_background_color().value.premul_alpha().mul(_color);
 			for (auto i: blob_visible) {
-				auto &blob = _blob[i];
+				auto &blob = blobs[i];
 				auto &line = lines->line(blob.line);
 				auto offset_x = blob.blob.offset.front().x() + inOffset.x();
 				auto &rect = _cache->getRectPath({
@@ -623,7 +623,7 @@ namespace qk {
 			shadow.x += inOffset.x();
 			shadow.y += inOffset.y();
 			for (auto i: blob_visible) {
-				auto &blob = _blob[i];
+				auto &blob = blobs[i];
 				auto &line = lines->line(blob.line);
 				_canvas->drawTextBlob(&blob.blob, {
 					line.origin + blob.origin + shadow.x, line.baseline + shadow.y
@@ -642,7 +642,7 @@ namespace qk {
 				paint.strokeWidth = stroke.value.width;
 			}
 			for (auto i: blob_visible) {
-				auto &blob = _blob[i];
+				auto &blob = blobs[i];
 				auto &line = lines->line(blob.line);
 				_canvas->drawTextBlob(&blob.blob, {
 					line.origin + blob.origin + inOffset.x(),

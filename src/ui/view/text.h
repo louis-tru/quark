@@ -49,7 +49,6 @@ namespace qk {
 		virtual void solve_visible_area(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(Painter *render) override;
-	protected:
 		virtual View* getViewForTextOptions() override;
 	private:
 		Sp<TextLinesCore> _lines;

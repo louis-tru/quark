@@ -83,7 +83,7 @@ namespace qk {
 
 	Array<Array<Unichar>> to_unichar_lines(
 		bool is_merge_space, bool is_merge_line_feed,
-		bool disable_line_feed, bool ignore_single_white_space,
+		bool disable_line_feed, bool ignore_single_space_line,
 		bool (*each)(Unichar& out, void* ctx), void* ctx
 	) {
 		Array<Array<Unichar>> lines;
@@ -93,7 +93,7 @@ namespace qk {
 		bool is_push_row = false;
 		
 		auto push_row = [&]() {
-			if (ignore_single_white_space) {
+			if (ignore_single_space_line) { // ignore single space line
 				if (row.length() == 1 && row[0] == 0x20)
 					return;
 			}
@@ -162,7 +162,7 @@ namespace qk {
 		return string4_to_unichar(*str, str.length(), is_merge_space, is_merge_line_feed, disable_line_feed);
 	}
 
-	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space, bool ignore_single_white_space) {
+	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space, bool ignore_single_space_line) {
 		Unichar data;
 		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
@@ -196,7 +196,7 @@ namespace qk {
 			return false;
 		};
 
-		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, ignore_single_white_space, each, &ctx);
+		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, ignore_single_space_line, each, &ctx);
 	}
 
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
@@ -220,7 +220,7 @@ namespace qk {
 
 	void TextBlobBuilder::make(cString& text) {
 		auto lines = string_to_unichar(
-			text, _opts->text_white_space_value(), _lines->ignore_single_white_space()
+			text, _opts->text_white_space_value(), _lines->ignore_single_space_line()
 		);
 		make(lines);
 	}

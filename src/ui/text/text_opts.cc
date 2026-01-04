@@ -302,7 +302,7 @@ namespace qk {
 	Vec2 TextOptions::compute_layout_size(cString& value) {
 		TextOptions opts(*this); // copy current avoid modify self
 		opts.inherit_text_config(shared_app()->defaultTextOptions()); // inherit default
-		TextLines lines(getViewForTextOptions(), opts.text_align_value(), {/*no limit*/}, false);
+		TextLines lines(opts.text_align_value(), {/*no limit*/}, false);
 		Array<TextBlob> blob;
 		TextBlobBuilder(&lines, &opts, &blob).make(value);
 		lines.finish();

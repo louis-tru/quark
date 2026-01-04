@@ -1328,6 +1328,9 @@ export declare class Label extends View implements TextOptions {
 	/** Text content for display. */
 	value: string;
 
+	/** Alignment of this label inside its parent Box. */
+	align: types.Align;
+
 	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string): Vec2;
 }
@@ -1869,6 +1872,7 @@ declare global {
 
 		interface LabelJSX extends ViewJSX, TextOptionsJSX {
 			value?: string;
+			align?: types.AlignIn;
 		}
 
 		interface InputJSX extends BoxJSX, TextOptionsJSX {
