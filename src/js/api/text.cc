@@ -55,12 +55,12 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
 		Js_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
 		Js_Class_Method(computeLayoutSize, {
-			if (!args.length()) {
-				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
-			}
+			if (!args.length())
+				Js_Throw("@method TextOptions.compute_layout_size(cString& value, Vec2 limit)\n");
 			auto str = args[0]->toString(worker)->value(worker);
+			Js_Parse_Args(Vec2, 1, "limit = %s", (Vec2(std::numeric_limits<float>::max())));
 			Js_Self(Text);
-			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str)) );
+			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str, arg1)) );
 		});
 	}
 

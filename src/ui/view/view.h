@@ -258,6 +258,11 @@ namespace qk {
 		Qk_DEFINE_ACCESSOR(bool, is_focus, Const);
 
 		/**
+		 * Get class names array
+		*/
+		Qk_DEFINE_ACCE_GET(Array<String>, classNames, Const);
+
+		/**
 		 * @method Make(Window*, ...)
 		*/
 		template<class T = View, typename... Args>

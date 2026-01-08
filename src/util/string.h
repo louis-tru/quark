@@ -541,8 +541,8 @@ namespace qk {
 		});
 	}
 
-	template<typename T, typename A>
-	String List<T, A>::join(cString& sp) const {
+	template<typename T, typename A, typename B>
+	String List<T, A, B>::join(cString& sp) const {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join(sp, it, length(), [](void* data, String* out) -> bool {
 			auto it = static_cast<IteratorConst*>(data);
@@ -555,8 +555,8 @@ namespace qk {
 		return join(String());
 	}
 
-	template<typename T, typename A>
-	String List<T, A>::to_string() const {
+	template<typename T, typename A, typename B>
+	String List<T, A, B>::to_string() const {
 		return join(String());
 	}
 

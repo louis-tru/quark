@@ -227,7 +227,7 @@ namespace qk {
 		if ((lastSkel ? lastSkel->_wrapData.get(): nullptr) != data) {
 			SkeletonWrapper *skel = nullptr; // new skeleton
 			if (data) {
-				Vector<float> bounds;
+				spine::Vector<float> bounds;
 				skel = New<SkeletonWrapper>(this, data);
 				skel->_stateData.setDefaultMix(_default_mix);
 				skel->_skeleton.setToSetupPose();

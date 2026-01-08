@@ -32,11 +32,11 @@
 #ifndef __quark__view__spine_inl__
 #define __quark__view__spine_inl__
 
+#include <spine/spine.h>
 #include "./spine.h"
 #include "../painter.h"
 #include "../app.h"
 #include "../window.h"
-#include <spine/spine.h>
 
 using namespace spine;
 

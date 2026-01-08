@@ -164,6 +164,21 @@ export declare class CStyleSheetsClass {
 	 * Toggle between Add and Delete
 	*/
 	toggle(name: string): void;
+
+	/**
+	 * Clear all stylesheet class selector names
+	*/
+	clear(): void;
+
+	/**
+	 * Check if a stylesheet class selector name exists
+	*/
+	has(name: string): boolean;
+
+	/**
+	 * get all stylesheet class selector names
+	*/
+	readonly names: Set<string>;
 }
 /** @end */
 

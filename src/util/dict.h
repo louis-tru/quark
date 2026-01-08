@@ -75,10 +75,12 @@ namespace qk {
 	 * @class Dict hash table
 	 */
 	template<
-		typename Key, typename Value, 
-		typename Compare = Compare<Key>, typename A = Allocator
+		typename Key,
+		typename Value,
+		typename Compare = Compare<Key>,
+		typename A = Allocator, typename B = NonObject
 	>
-	class Dict: public Object {
+	class Dict: public B {
 	public:
 		typedef qk::Pair<Key, Value> Pair;
 
@@ -129,8 +131,8 @@ namespace qk {
 		Value&        set(const Key& key, Value&& value);
 		Value&        set(Key&& key, const Value& value);
 		Value&        set(Key&& key, Value&& value);
-		void          add(const Key& key) { get(key); }
-		void          add(Key&& key) { get(std::move(key)); }
+		bool          add(const Key& key);
+		bool          add(Key&& key);
 
 		Iterator      erase(IteratorConst it);
 		void          erase(IteratorConst first, IteratorConst end);
@@ -160,36 +162,36 @@ namespace qk {
 		uint32_t  _length, _capacity;
 	};
 
-	template<typename K, typename V, typename C = Compare<K>, typename A = Allocator>
-	using cDict = const Dict<K, V, C, A>;
+	template<typename K, typename V, typename C = Compare<K>, typename A = Allocator, typename B = NonObject>
+	using cDict = const Dict<K, V, C, A, B>;
 
-	template<typename K, typename C = Compare<K>, typename A = Allocator>
-	using Set = Dict<K, bool, C, A>;
+	template<typename K, typename C = Compare<K>, typename A = Allocator, typename B = NonObject>
+	using Set = Dict<K, bool, C, A, B>;
 
-	template<typename K, typename C = Compare<K>, typename A = Allocator>
-	using cSet = const Set<K, C, A>;
+	template<typename K, typename C = Compare<K>, typename A = Allocator, typename B = NonObject>
+	using cSet = const Set<K, C, A, B>;
 
 	// -----------------------------------------------------------------
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>::Dict() {
 		init_();
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict(Dict&& dict) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>::Dict(Dict&& dict) {
 		init_();
 		operator=(std::move(dict));
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict(const Dict& dict) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>::Dict(const Dict& dict) {
 		init_();
 		operator=(dict);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict(std::initializer_list<Pair>&& list) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>::Dict(std::initializer_list<Pair>&& list) {
 		init_();
 		if (list.size()) {
 			for (auto& i: list)
@@ -197,13 +199,13 @@ namespace qk {
 		}
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::~Dict() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>::~Dict() {
 		clear();
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>& Dict<K, V, C, A>::operator=(const Dict& dict) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>& Dict<K, V, C, A, B>::operator=(const Dict& dict) {
 		clear();
 		if (dict._length) {
 			for (auto& i: dict)
@@ -212,8 +214,8 @@ namespace qk {
 		return *this;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>& Dict<K, V, C, A>::operator=(Dict&& dict) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Dict<K, V, C, A, B>& Dict<K, V, C, A, B>::operator=(Dict&& dict) {
 		clear();
 		if (dict._length) {
 			fill_(dict._indexed, dict._end._next, dict._end._prev, dict._length, dict._capacity);
@@ -222,18 +224,18 @@ namespace qk {
 		return *this;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::operator[](const K& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::operator[](const K& key) {
 		return get(key);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::operator[](K&& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::operator[](K&& key) {
 		return get(key);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::findFor_(uint64_t hash, const Node* end) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	const typename Dict<K, V, C, A, B>::Node* Dict<K, V, C, A, B>::findFor_(uint64_t hash, const Node* end) const {
 		auto node = _indexed[hash % _capacity];
 		while (node) {
 			if (node->hashCode == hash)
@@ -243,82 +245,82 @@ namespace qk {
 		return end;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::find_(const K& key, const Node* end) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	const typename Dict<K, V, C, A, B>::Node* Dict<K, V, C, A, B>::find_(const K& key, const Node* end) const {
 		return _length ? findFor_(C::hashCode(key), end) : end;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::has_for(uint64_t hashCode) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::has_for(uint64_t hashCode) const {
 		return _length ? findFor_(hashCode, nullptr) != nullptr : false;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find(const K& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::find(const K& key) {
 		return Iterator(const_cast<Node*>(find_(key, &_end)));
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find(const K& key) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::find(const K& key) const {
 		return IteratorConst(find_(key, &_end));
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find_for(uint64_t hash) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::find_for(uint64_t hash) {
 		return Iterator(const_cast<Node*>(findFor_(hash, &_end)));
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::find_for(uint64_t hash) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::find_for(uint64_t hash) const {
 		return IteratorConst(findFor_(hash, &_end));
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::has(const K& key) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::has(const K& key) const {
 		return find_(key);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	uint32_t Dict<K, V, C, A>::count(const K& key) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	uint32_t Dict<K, V, C, A, B>::count(const K& key) const {
 		return _length && _indexed[C::hashCode(key) % _capacity] ? 1/*TODO use 1*/: 0;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Array<K> Dict<K, V, C, A>::keys() const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Array<K> Dict<K, V, C, A, B>::keys() const {
 		Array<K> ls;
 		for (auto& i: *this)
 			ls.push(i.first);
 		Qk_ReturnLocal(ls);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	Array<V> Dict<K, V, C, A>::values() const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	Array<V> Dict<K, V, C, A, B>::values() const {
 		Array<V> ls;
 		for (auto& i: *this)
 			ls.push(i.second);
 		Qk_ReturnLocal(ls);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::get(const K& k, const V* &out) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::get(const K& k, const V* &out) const {
 		auto node = find_(k);
 		return node ? (out = &node->data().second, true): false;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::get(const K& k, V &out) const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::get(const K& k, V &out) const {
 		auto node = find_(k);
 		return node ? (out = node->data().second, true): false;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::get(const K& k, V* &out) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::get(const K& k, V* &out) {
 		auto node = const_cast<Node*>(find_(k));
 		return node ? (out = &node->data().second, true): false;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::get(const K& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::get(const K& key) {
 		Pair* pair;
 		if (make_(key, &pair)) {
 			new(&pair->first) K(key);
@@ -327,8 +329,8 @@ namespace qk {
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::get(K&& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::get(K&& key) {
 		Pair* pair;
 		if (make_(key, &pair)) {
 			new(&pair->first) K(std::move(key));
@@ -337,19 +339,42 @@ namespace qk {
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::set(const K& key, const V& value) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::add(const K& key) {
+		Pair* pair;
+		auto isMake = make_(key, &pair);
+		if (isMake) {
+			new(&pair->first) K(key);
+			new(&pair->second) V();
+		}
+		return isMake;
+	}
+
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::add(K&& key) {
+		Pair* pair;
+		auto isMake = make_(key, &pair);
+		if (isMake) {
+			new(&pair->first) K(std::move(key));
+			new(&pair->second) V();
+		}
+		return isMake;
+	}
+
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::set(const K& key, const V& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->first) K(key); new(&pair->second) V(value);
+			new(&pair->first) K(key);
+			new(&pair->second) V(value);
 		} else {
 			pair->second = value;
 		}
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::set(const K& key, V&& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
 			new(&pair->first) K(key);
@@ -360,36 +385,38 @@ namespace qk {
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::set(K&& key, const V& value) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::set(K&& key, const V& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->first) K(std::move(key)); new(&pair->second) V(value);
+			new(&pair->first) K(std::move(key));
+			new(&pair->second) V(value);
 		} else {
 			pair->second = value;
 		}
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	V& Dict<K, V, C, A>::set(K&& key, V&& value) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	V& Dict<K, V, C, A, B>::set(K&& key, V&& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->first) K(std::move(key)); new(&pair->second) V(std::move(value));
+			new(&pair->first) K(std::move(key));
+			new(&pair->second) V(std::move(value));
 		} else {
 			pair->second = std::move(value);
 		}
 		return pair->second;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::erase(const K& key) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::erase(const K& key) {
 		auto node = find_(key);
 		return node ? (erase(IteratorConst(node)), true): false;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::erase(IteratorConst it) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::erase(IteratorConst it) {
 		Qk_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
@@ -403,8 +430,8 @@ namespace qk {
 		}
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::erase(IteratorConst f, IteratorConst e) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::erase(IteratorConst f, IteratorConst e) {
 		auto node = node_(f);
 		auto end = node_(e);
 		auto prev = node->_prev;
@@ -418,8 +445,8 @@ namespace qk {
 		// optimize_();
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::clear() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
 		A::shared()->free(_indexed);
 		_indexed = nullptr;
@@ -427,40 +454,40 @@ namespace qk {
 		_capacity = 0;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::begin() const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::begin() const {
 		return IteratorConst(_end._next);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::end() const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::end() const {
 		return IteratorConst(&_end);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::begin() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::begin() {
 		return Iterator(_end._next);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::end() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::end() {
 		return Iterator(&_end);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	uint32_t Dict<K, V, C, A>::length() const {
+	template<typename K, typename V, typename C, typename A, typename B>
+	uint32_t Dict<K, V, C, A, B>::length() const {
 		return _length;
 	}
 	
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::init_() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::init_() {
 		_end.hashCode = 0;
 		_end._conflict = nullptr;
 		fill_(nullptr, &_end, &_end, 0, 0);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::fill_(Node** indexed, Node* first, Node* last, uint32_t len, uint32_t capacity) {
 		_indexed = indexed;
 		_end._prev = last;
 		_end._next = first;
@@ -470,8 +497,8 @@ namespace qk {
 		_capacity = capacity;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	bool Dict<K, V, C, A>::make_(const K& key, Pair** data) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	bool Dict<K, V, C, A, B>::make_(const K& key, Pair** data) {
 		if (!_capacity) {
 			_capacity = 4; // init 4 length capacity
 			_indexed = A::shared()->template alloc<Node*>(4);
@@ -501,8 +528,8 @@ namespace qk {
 		return true;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::erase_(Node* node) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::erase_(Node* node) {
 		auto index = node->hashCode % _capacity;
 		auto begin = _indexed[index];
 		if (begin == node) {
@@ -516,8 +543,8 @@ namespace qk {
 		A::shared()->free(node);
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	void Dict<K, V, C, A>::optimize_() {
+	template<typename K, typename V, typename C, typename A, typename B>
+	void Dict<K, V, C, A, B>::optimize_() {
 		if (_length > (_capacity >> 1)) {
 			A::shared()->free(_indexed);
 			_capacity <<= 1;
@@ -533,15 +560,15 @@ namespace qk {
 		}
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::link_(Node* prev, Node* next) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Node* Dict<K, V, C, A, B>::link_(Node* prev, Node* next) {
 		prev->_next = next;
 		next->_prev = prev;
 		return next;
 	}
 
-	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::node_(IteratorConst it) {
+	template<typename K, typename V, typename C, typename A, typename B>
+	typename Dict<K, V, C, A, B>::Node* Dict<K, V, C, A, B>::node_(IteratorConst it) {
 		return const_cast<Node*>(it.ptr());
 	}
 	

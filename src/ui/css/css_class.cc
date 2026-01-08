@@ -52,57 +52,68 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
-		// Qk_DLog("set class: %s", name.join(" ").c_str());
-		_async_call([](auto ctx, auto val) {
-			Sp<Array<String>> valp(val.arg);
-			ctx->_nameHash_rt.clear();
-			for ( auto &j: **valp ) {
-				auto s = j.trim();
-				if (!s.is_empty()) {
-					auto hash = CSSCName(s).hashCode();
-					if (hash != UndefinedHashCode) // // exclude undefined
-						ctx->_nameHash_rt.add(hash);
+		auto names = new Set<uint64_t>();
+		_names.clear();
+		for ( auto &j: name ) {
+			auto s = j.trim();
+			if (!s.is_empty()) {
+				auto hash = CSSCName(s).hashCode();
+				if (hash != UndefinedHashCode && names->add(hash)) {
+					_names.add(s);
 				}
 			}
+		}
+		_async_call([](auto ctx, auto val) {
+			Sp<Set<uint64_t>> valp(val.arg);
+			ctx->_nameHash_rt = std::move(**valp);
 			ctx->updateClass_rt();
-		}, this, new Array<String>(name));
+		}, this, names);
 	}
 
 	void CStyleSheetsClass::add(cString &name) {
-		auto name_trimmed = name.trim();
-		if (name_trimmed.is_empty()) return;
+		auto name_ = name.trim();
+		if (name_.is_empty()) return;
+		if (!_names.add(name_)) return;
 		_async_call([](auto ctx, auto hash) {
-			if (!ctx->_nameHash_rt.has(hash.arg)) {
-				ctx->_nameHash_rt.add(hash.arg);
-				ctx->updateClass_rt();
-			}
-		}, this, CSSCName(name_trimmed).hashCode());
+			ctx->_nameHash_rt.add(hash.arg);
+			ctx->updateClass_rt();
+		}, this, CSSCName(name_).hashCode());
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
-		auto name_trimmed = name.trim();
-		if (name_trimmed.is_empty()) return;
+		auto name_ = name.trim();
+		if (name_.is_empty()) return;
+		if (!_names.erase(name_)) return;
 		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash_rt.find(hash.arg);
-			if (it != ctx->_nameHash_rt.end()) {
-				ctx->_nameHash_rt.erase(it);
-				ctx->updateClass_rt();
-			}
-		}, this, CSSCName(name_trimmed).hashCode());
+			ctx->_nameHash_rt.erase(hash.arg);
+			ctx->updateClass_rt();
+		}, this, CSSCName(name_).hashCode());
 	}
 
 	void CStyleSheetsClass::toggle(cString &name) {
-		auto name_trimmed = name.trim();
-		if (name_trimmed.is_empty()) return;
-		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash_rt.find(hash.arg);
-			if (it == ctx->_nameHash_rt.end()) {
+		auto name_ = name.trim();
+		if (name_.is_empty()) return;
+		if (_names.erase(name_)) { // removed
+			_async_call([](auto ctx, auto hash) {
+				ctx->_nameHash_rt.erase(hash.arg);
+				ctx->updateClass_rt();
+			}, this, CSSCName(name_).hashCode());
+		} else {
+			_names.add(name_); // add name
+			_async_call([](auto ctx, auto hash) {
 				ctx->_nameHash_rt.add(hash.arg);
-			} else {
-				ctx->_nameHash_rt.erase(it);
-			}
+				ctx->updateClass_rt();
+			}, this, CSSCName(name_).hashCode());
+		}
+	}
+
+	void CStyleSheetsClass::clear() {
+		if (_names.length() == 0) return;
+		_names.clear();
+		_async_call([](auto ctx, auto arg) {
+			ctx->_nameHash_rt.clear();
 			ctx->updateClass_rt();
-		}, this, CSSCName(name_trimmed).hashCode());
+		}, this, 0);
 	}
 
 	void CStyleSheetsClass::updateClass_rt() {

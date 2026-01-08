@@ -1006,6 +1006,39 @@ export class Mat extends Base<Mat> {
 		let _ = this;
 		return `mat(${_.m0},${_.m1},${_.m2},${_.m3},${_.m4},${_.m5})`;
 	}
+	mul(v: Vec2): Vec2 {
+		const { m0:a, m1:c, m2:e, m3:b, m4:d, m5:f } = this;
+		return newBase(Vec2, {
+			x: a * v.x + c * v.y + e,
+			y: b * v.x + d * v.y + f
+		});
+	}
+	mulmat(b: Mat): Mat {
+		const { m0:a1, m1:c1, m2:e1, m3:b1, m4:d1, m5:f1 } = this;
+		const { m0:a2, m1:c2, m2:e2, m3:b2, m4:d2, m5:f2 } = b;
+		return newBase(Mat, {
+			m0: a1 * a2 + c1 * b2,
+			m1: a1 * c2 + c1 * d2,
+			m2: a1 * e2 + c1 * f2 + e1,
+			m3: b1 * a2 + d1 * b2,
+			m4: b1 * c2 + d1 * d2,
+			m5: b1 * e2 + d1 * f2 + f1
+		});
+	}
+	inverse() {
+		const { m0:a, m1:c, m2:e, m3:b, m4:d, m5:f } = this;
+		const det = a * d - b * c;
+		if (!det) throw new Error("non-invertible matrix");
+		const invDet = 1 / det;
+		return newBase(Mat, {
+			m0:  d * invDet,
+			m1: -c * invDet,
+			m2: (c * f - d * e) * invDet,
+			m3: -b * invDet,
+			m4:  a * invDet,
+			m5: (b * e - a * f) * invDet
+		});
+	}
 }
 initDefaults(Mat, { m0: 1, m1: 0, m2: 0, m3: 0, m4: 1, m5: 0 });
 export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>; //!< {N|Mat|'mat(0,0,0,0,0,0)'}

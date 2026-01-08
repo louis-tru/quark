@@ -299,14 +299,53 @@ namespace qk {
 		}
 	}
 
-	Vec2 TextOptions::compute_layout_size(cString& value) {
-		TextOptions opts(*this); // copy current avoid modify self
-		opts.inherit_text_config(shared_app()->defaultTextOptions()); // inherit default
-		TextLines lines(opts.text_align_value(), {/*no limit*/}, false);
+	Vec2 TextOptions::compute_layout_size(cString& value, Vec2 limit) {
+		TextOptions opts; // copy current avoid modify self
+		opts.initSecondOpts(); // ensure second opts exist
+		int completed = 0; // number of completed inherited properties
+		auto inherit = this; // start from self
+		do {
+			if (opts._text_align == TextAlign::Inherit && inherit->_text_align != TextAlign::Inherit) {
+				completed++;
+				opts._text_align = opts._text_align_value = inherit->_text_align;
+			}
+			if (opts._text_weight == TextWeight::Inherit && inherit->_text_weight != TextWeight::Inherit) {
+				completed++;
+				opts._text_weight = opts._text_weight_value = inherit->_text_weight;
+			}
+			if (opts._text_white_space == TextWhiteSpace::Inherit && inherit->_text_white_space != TextWhiteSpace::Inherit) {
+				completed++;
+				opts._text_white_space = opts._text_white_space_value = inherit->_text_white_space;
+			}
+			if (opts._text_size.kind == TextValueKind::Inherit && inherit->_text_size.kind != TextValueKind::Inherit) {
+				completed++;
+				opts._text_size = inherit->_text_size;
+			}
+			if (opts._text_line_height.kind == TextValueKind::Inherit && inherit->_text_line_height.kind != TextValueKind::Inherit) {
+				completed++;
+				opts._text_line_height = inherit->_text_line_height;
+			}
+			if (opts._second->text_family.kind == TextValueKind::Inherit && inherit->_second->text_family.kind != TextValueKind::Inherit) {
+				completed++;
+				opts._second->text_family = inherit->_second->text_family;
+			}
+			if (opts._second->text_overflow == TextOverflow::Inherit && inherit->_second->text_overflow != TextOverflow::Inherit) {
+				completed++;
+				opts._second->text_overflow = opts._second->text_overflow_value = inherit->_second->text_overflow;
+			}
+			if (opts._second->text_slant == TextSlant::Inherit && inherit->_second->text_slant != TextSlant::Inherit) {
+				completed++;
+				opts._second->text_slant = opts._second->text_slant_value = inherit->_second->text_slant_value;
+			}
+			auto view = inherit->getViewForTextOptions();
+			if (!view)
+				break;
+			inherit = view->get_closest_text_options();
+		} while (completed < 8);
+		TextLines lines(opts.text_align_value(), {limit, limit}, false);
 		Array<TextBlob> blob;
 		TextBlobBuilder(&lines, &opts, &blob).make(value);
 		lines.finish();
-		opts._isHoldSecondOpts = false; // prevent double free
 		return Vec2(lines.core()->max_width(), lines.core()->max_height());
 	}
 

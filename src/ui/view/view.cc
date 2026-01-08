@@ -481,6 +481,12 @@ Range Container::to_range() const {
 		return _window->dispatch()->focusView() == this;
 	}
 
+	Array<String> View::classNames() const {
+		if (auto cssclass = _cssclass.load())
+			return cssclass->names().keys();
+		return {};
+	}
+
 	void View::set_action(Action* action) throw(Error) {
 		if (action) {
 			Qk_IfThrow(action->window() != _window,

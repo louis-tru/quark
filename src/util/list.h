@@ -39,8 +39,8 @@ namespace qk {
 	/**
 	* @class List Double linked list
 	*/
-	template<typename T, typename A = Allocator> 
-	class List: public Object {
+	template<typename T, typename A = Allocator, typename B = NonObject>
+	class List: public B {
 	public:
 		struct Node {
 			typedef T Data;
@@ -111,17 +111,17 @@ namespace qk {
 		uint32_t _length;
 	};
 
-	template<typename T, typename A = Allocator> using cList = const List<T, A>;
+	template<typename T, typename A = Allocator, typename B = NonObject> using cList = const List<T, A, B>;
 
 	// -----------------------------------------------------------------
 
-	template<typename T, typename A>
-	List<T, A>::List() {
+	template<typename T, typename A, typename B>
+	List<T, A, B>::List() {
 		init_();
 	}
 
-	template<typename T, typename A>
-	List<T, A>::List(const List& list)
+	template<typename T, typename A, typename B>
+	List<T, A, B>::List(const List& list)
 	{
 		init_();
 		for (auto& i: list) {
@@ -129,8 +129,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	List<T, A>::List(List&& list)
+	template<typename T, typename A, typename B>
+	List<T, A, B>::List(List&& list)
 	{
 		if (list._length) {
 			fill_(list._end._next, list._end._prev, list._length);
@@ -140,8 +140,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	List<T, A>::List(std::initializer_list<T>&& list)
+	template<typename T, typename A, typename B>
+	List<T, A, B>::List(std::initializer_list<T>&& list)
 	{
 		init_();
 		for ( auto i : list ) {
@@ -149,13 +149,13 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	List<T, A>::~List() {
+	template<typename T, typename A, typename B>
+	List<T, A, B>::~List() {
 		clear();
 	}
 
-	template<typename T, typename A>
-	List<T, A>& List<T, A>::operator=(const List& ls) { // copy
+	template<typename T, typename A, typename B>
+	List<T, A, B>& List<T, A, B>::operator=(const List& ls) { // copy
 		clear();
 		for (auto& i: ls) {
 			pushBack(i);
@@ -163,42 +163,42 @@ namespace qk {
 		return *this;
 	}
 
-	template<typename T, typename A>
-	List<T, A>& List<T, A>::operator=(List&& ls) {
+	template<typename T, typename A, typename B>
+	List<T, A, B>& List<T, A, B>::operator=(List&& ls) {
 		clear();
 		splice(IteratorConst(_end._prev), ls,
 			IteratorConst(ls._end._next), IteratorConst(&ls._end));
 		return *this;
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_back(const T& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::push_back(const T& item) {
 		return insert(IteratorConst(&_end), item);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_back(T&& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::push_back(T&& item) {
 		return insert(IteratorConst(&_end), std::move(item));
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_front(const T& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::push_front(const T& item) {
 		return insert(IteratorConst(_end._next), item);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::push_front(T&& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::push_front(T&& item) {
 		return insert(IteratorConst(_end._next), std::move(item));
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::splice(IteratorConst it, List& ls) {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::splice(IteratorConst it, List& ls) {
 		splice(it, ls,
 			IteratorConst(ls._end._next), IteratorConst(&ls._end));
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::splice(IteratorConst it, List& ls, IteratorConst new_f, IteratorConst new_e) {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::splice(IteratorConst it, List& ls, IteratorConst new_f, IteratorConst new_e) {
 		if (new_f != new_e) {
 			auto start = node_(new_f);
 			auto end = node_(new_e);
@@ -216,21 +216,21 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::pop_back() {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::pop_back() {
 		if (_length)
 			erase(IteratorConst(_end._prev));
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::pop_front() {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::pop_front() {
 		if (_length)
 			erase(IteratorConst(_end._next));
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator
-	List<T, A>::insert(IteratorConst after, const T& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator
+	List<T, A, B>::insert(IteratorConst after, const T& item) {
 		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(item);
 		auto next = node_(after);
@@ -240,9 +240,9 @@ namespace qk {
 		return Iterator(node);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator
-	List<T, A>::insert(IteratorConst after, T&& item) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator
+	List<T, A, B>::insert(IteratorConst after, T&& item) {
 		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(std::move(item));
 		auto next = node_(after);
@@ -252,9 +252,9 @@ namespace qk {
 		return Iterator(node);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator
-	List<T, A>::erase(IteratorConst it) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator
+	List<T, A, B>::erase(IteratorConst it) {
 		Qk_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
@@ -267,8 +267,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::erase(IteratorConst f, IteratorConst e) {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::erase(IteratorConst f, IteratorConst e) {
 		auto node = node_(f);
 		auto end = node_(e);
 		auto prev = node->_prev;
@@ -281,34 +281,34 @@ namespace qk {
 		link_(prev, end);
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::clear() {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
 	}
 
-	template<typename T, typename A>
-	const T& List<T, A>::front() const {
+	template<typename T, typename A, typename B>
+	const T& List<T, A, B>::front() const {
 		return *IteratorConst(_end._next);
 	}
 
-	template<typename T, typename A>
-	const T& List<T, A>::back() const {
+	template<typename T, typename A, typename B>
+	const T& List<T, A, B>::back() const {
 		return *IteratorConst(_end._prev);
 	}
 
-	template<typename T, typename A>
-	T& List<T, A>::front() {
+	template<typename T, typename A, typename B>
+	T& List<T, A, B>::front() {
 		return *Iterator(_end._next);
 	}
 
-	template<typename T, typename A>
-	T& List<T, A>::back() {
+	template<typename T, typename A, typename B>
+	T& List<T, A, B>::back() {
 		return *Iterator(_end._prev);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator
-	List<T, A>::offset(IteratorConst it, int offset) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator
+	List<T, A, B>::offset(IteratorConst it, int offset) {
 		auto node = node_(it);
 		if (offset > 0) {
 			while (offset--) node = node->_next;
@@ -318,45 +318,45 @@ namespace qk {
 		return Iterator(node);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::IteratorConst
-	List<T, A>::offset(IteratorConst it, int offset) const {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::IteratorConst
+	List<T, A, B>::offset(IteratorConst it, int offset) const {
 		return const_cast<List*>(*this)->offset(it, offset);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::IteratorConst List<T, A>::begin() const {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::IteratorConst List<T, A, B>::begin() const {
 		return IteratorConst(_end._next);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::IteratorConst List<T, A>::end() const {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::IteratorConst List<T, A, B>::end() const {
 		return IteratorConst(&_end);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::begin() {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::begin() {
 		return Iterator(_end._next);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Iterator List<T, A>::end() {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Iterator List<T, A, B>::end() {
 		return Iterator(&_end);
 	}
 
-	template<typename T, typename A>
-	uint32_t List<T, A>::length() const {
+	template<typename T, typename A, typename B>
+	uint32_t List<T, A, B>::length() const {
 		return _length;
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::init_() {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::init_() {
 		fill_(&_end, &_end, 0);
 		_nullptr = nullptr;
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::fill_(Node* first, Node* last, uint32_t len) {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::fill_(Node* first, Node* last, uint32_t len) {
 		_end._prev = last;
 		_end._next = first;
 		first->_prev = &_end;
@@ -364,21 +364,21 @@ namespace qk {
 		_length = len;
 	}
 
-	template<typename T, typename A>
-	void List<T, A>::erase_(Node* node) {
+	template<typename T, typename A, typename B>
+	void List<T, A, B>::erase_(Node* node) {
 		reinterpret_cast<Sham*>(node + 1)->~Sham(); // destructor
 		A::shared()->free(node);
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Node* List<T, A>::link_(Node* prev, Node* next) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Node* List<T, A, B>::link_(Node* prev, Node* next) {
 		prev->_next = next;
 		next->_prev = prev;
 		return next;
 	}
 
-	template<typename T, typename A>
-	typename List<T, A>::Node* List<T, A>::node_(IteratorConst it) {
+	template<typename T, typename A, typename B>
+	typename List<T, A, B>::Node* List<T, A, B>::node_(IteratorConst it) {
 		return const_cast<Node*>(it.ptr());
 	}
 

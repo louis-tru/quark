@@ -285,10 +285,10 @@ namespace qk {
 				render->deleteVertexData(i.second->id+3);
 				delete i.second;
 			}
-			Release(a0);
-			Release(a1);
-			Release(b);
-			Release(c);
+			Releasep(a0);
+			Releasep(a1);
+			Releasep(b);
+			Releasep(c);
 		});
 
 		if (immediately) {

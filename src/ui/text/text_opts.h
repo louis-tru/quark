@@ -114,7 +114,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCE_GET(TextWordBreak,  text_word_break_value, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(FontStyle,      font_style, Const);
 
-		Vec2 compute_layout_size(cString& value);
+		Vec2 compute_layout_size(cString& value, Vec2 limit);
 
 		TextOptions();
 		~TextOptions();

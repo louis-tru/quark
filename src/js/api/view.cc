@@ -77,6 +77,10 @@ namespace qk { namespace js {
 				Js_Return(self->cssclass());
 			});
 
+			Js_Class_Accessor_Get(classNames, {
+				Js_Return(self->classNames());
+			});
+
 			Js_Class_Accessor_Get(parent, {
 				Js_Return(self->parent());
 			});

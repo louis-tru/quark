@@ -205,17 +205,28 @@ namespace qk {
 		Qk_DISABLE_COPY(CStyleSheetsClass);
 		UIState _state, _setState; //!< @thread Rt Current pseudo type application status
 	public:
+		CStyleSheetsClass(View *host);
+
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
 		Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
 		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
 
-		CStyleSheetsClass(View *host);
-
 		void set(cArray<String> &name); //!< Calling in the work loop
 		void add(cString &name); //!< Calling in the work loop
 		void remove(cString &name); //!< Calling in the work loop
 		void toggle(cString &name); //!< Calling in the work loop
+		void clear(); //!< Calling in the work loop
+
+		/**
+		 * has class name
+		*/
+		bool has(cString &name) const { return _names.has(name); }
+
+		/**
+		 * class name set for work loop
+		*/
+		inline cSet<String>& names() const { return _names; }
 
 		/**
 		 * @method haveSubstyles()
@@ -232,9 +243,10 @@ namespace qk {
 		void findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out);
 		void findStyle_rt(CStyleSheets *ss, Array<CStyleSheets*> *out);
 
+		Set<String> _names; //!< class name set for work loop
 		Set<uint64_t> _nameHash_rt; //!< class name hash, For .a .b .c
 		// The stylesheet is applied, but only the stylesheet containing the sub-stylesheets is cached.
-		Array<CStyleSheets*> _stylesForHaveSubstyles_rt; //!< applied styles for have substyles
+		Vector<CStyleSheets*> _stylesForHaveSubstyles_rt; //!< applied styles for have substyles
 		Hash5381 _stylesForHaveSubstylesHash_rt; //!< applied styles for have substyles hash
 		Hash5381 _stylesHash_rt; //!< applied styles hash
 

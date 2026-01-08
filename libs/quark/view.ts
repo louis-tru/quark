@@ -1240,9 +1240,10 @@ export interface TextOptions {
 	 * Measure the rendered layout size of a text string,
 	 * using this object's current font / style settings.
 	 * @param text Text to measure.
+	 * @param limit Optional size limit for wrapping/truncation.
 	 * @returns Size in px/world units (w,h).
 	 */
-	computeLayoutSize(text: string): Vec2;
+	computeLayoutSize(text: string, limit?: Vec2): Vec2;
 }
 
 /**
@@ -1274,7 +1275,7 @@ export declare class Text extends Box implements TextOptions {
 	value: string;
 
 	/** Measure size for the given text using current style. */
-	computeLayoutSize(text: string): Vec2;
+	computeLayoutSize(text: string, limit?: Vec2): Vec2;
 }
 
 /**
@@ -1328,7 +1329,7 @@ export declare class Label extends View implements TextOptions {
 	align: types.Align;
 
 	/** Measure size for the given text using current style. */
-	computeLayoutSize(text: string): Vec2;
+	computeLayoutSize(text: string, limit?: Vec2): Vec2;
 }
 
 /**
@@ -1394,7 +1395,7 @@ export declare class Input extends Box implements TextOptions {
 	readonly textLength: number;
 
 	/** Measure size for the given text using current style. */
-	computeLayoutSize(text: string): Vec2;
+	computeLayoutSize(text: string, limit?: Vec2): Vec2;
 }
 
 /**
@@ -2254,13 +2255,11 @@ class _View extends NativeNotification<UIEvent> {
 	get metaView() { return this }
 	get style() { return this as StyleSheets }
 	set style(value) { Object.assign(this, value) }
-	private _class: string[];
-	get class() { return this._class }
+	get class() { return (this as any).classNames }
 	set class(value: string[]) {
 		if (typeof value == 'string')
 			value = (value as string).split(' ').filter(s => s); // split and filter empty
 		(this as unknown as View).cssclass.set(value);
-		this._class = value;
 	}
 
 	get action() { // get action object
@@ -2401,7 +2400,6 @@ _ui.View.isViewController = false;
 _ui.View.prototype.ref = '';
 _ui.View.prototype.owner = null;
 _ui.View.prototype.childDoms = [];
-_ui.View.prototype._class = []; // class default empty array
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);

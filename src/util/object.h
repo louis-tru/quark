@@ -42,6 +42,8 @@ namespace qk {
 	typedef const String cString;
 	typedef const void cVoid;
 
+	class NonObject {};
+
 	/**
 	* @class Object
 	*/

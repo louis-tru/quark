@@ -216,6 +216,24 @@ namespace qk { namespace js {
 				self->toggle(cls);
 			});
 
+			Js_Class_Method(clear, {
+				self->clear();
+			});
+
+			Js_Class_Method(has, {
+				String cls;
+				if (!args.length() || !args[0]->asString(worker).to(cls))
+					Js_Throw("@method CStyleSheetsClass.has(cString& name)");
+				Js_ReturnBool(self->has(cls));
+			});
+
+			Js_Class_Accessor_Get(names, {
+				auto set = worker->newSet();
+				for (auto &pair : self->names())
+					set->add(worker, worker->newValue(pair.first));
+				Js_Return(set);
+			});
+
 			// inline bool haveSubstyles() const;
 
 			cls->exports("CStyleSheetsClass", exports);

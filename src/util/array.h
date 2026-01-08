@@ -49,6 +49,9 @@ namespace qk {
 	typedef const ArrayBuffer<char>   cBuffer;
 	typedef       ArrayWeak<char>     WeakBuffer;
 
+	// Vector type alias with default allocator and no base class
+	template<typename T = char, typename A = Allocator> using Vector = Array<T, A, NonObject>;
+
 	/**
 	 * @class Array
 	 */
