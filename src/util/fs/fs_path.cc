@@ -343,7 +343,7 @@ namespace qk {
 	static String path_home_dir, path_executable, path_documents, path_temp, path_resources;
 
 	String fs_home_dir(cChar *child, ...) {
-		if (path_home_dir.isEmpty()) {
+		if (path_home_dir.is_empty()) {
 			path_home_dir = fs_format("%s", getenv("HOME"));
 		}
 		if (child) {
@@ -358,7 +358,7 @@ namespace qk {
 	}
 
 	String fs_executable() {
-		if (path_executable.isEmpty()) {
+		if (path_executable.is_empty()) {
 			char dir[PATH_MAX] = { 0 };
 			int n = readlink("/proc/self/exe", dir, PATH_MAX);
 			path_executable = fs_format("%s", dir);
@@ -367,26 +367,26 @@ namespace qk {
 	}
 
 	String fs_documents(cString& child) {
-		if (path_documents.isEmpty()) {
+		if (path_documents.is_empty()) {
 			path_documents = fs_home_dir("Documents");
 			fs_mkdirs_sync(path_documents);
 		}
-		return child.isEmpty() ? path_documents: fs_format("%s/%s", *path_documents, *child);
+		return child.is_empty() ? path_documents: fs_format("%s/%s", *path_documents, *child);
 	}
 
 	String fs_temp(cString& child) {
-		if (path_temp.isEmpty()) {
+		if (path_temp.is_empty()) {
 			path_temp = fs_home_dir(".cache");
 			fs_mkdirs_sync(path_temp);
 		}
-		return child.isEmpty() ? path_temp: fs_format("%s/%s", *path_temp, *child);
+		return child.is_empty() ? path_temp: fs_format("%s/%s", *path_temp, *child);
 	}
 
 	String fs_resources(cString& child) {
-		if (path_resources.isEmpty()) {
+		if (path_resources.is_empty()) {
 			path_resources = fs_dirname(fs_executable());
 		}
-		return child.isEmpty() ? path_resources: fs_format("%s/%s", *path_resources, *child);
+		return child.is_empty() ? path_resources: fs_format("%s/%s", *path_resources, *child);
 	}
 #endif
 

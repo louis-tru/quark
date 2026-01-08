@@ -343,7 +343,7 @@ namespace qk {
 			limit = 0xffffffff; // no limit if 0
 		// seek to start
 
-		if (start.isEmpty()) {
+		if (start.is_empty()) {
 			// if start is empty, seek to first
 			rc = mdb_cursor_get(cur, &k, &v, MDB_FIRST);
 		} else {

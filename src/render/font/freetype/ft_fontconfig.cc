@@ -452,7 +452,7 @@ public:
 		const char* filename = get_string(fPattern, FC_FILE);
 		// See FontAccessible for note on searching sysroot then non-sysroot path.
 		String resolvedFilename;
-		if (!fSysroot.isEmpty()) {
+		if (!fSysroot.is_empty()) {
 			resolvedFilename = fSysroot;
 			resolvedFilename += filename;
 			if (fs_readable_sync(resolvedFilename)) {
@@ -636,7 +636,7 @@ protected:
 		// as any added file path not lexically starting with the sysroot will be unchanged.
 		// To allow users to add local app files outside the sysroot,
 		// prefer the sysroot but also look without the sysroot.
-		if (!fSysroot.isEmpty()) {
+		if (!fSysroot.is_empty()) {
 			String resolvedFilename;
 			resolvedFilename = fSysroot;
 			resolvedFilename += filename;

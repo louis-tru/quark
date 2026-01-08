@@ -239,7 +239,7 @@ namespace lmpParser {
 					fallbackFor = value;
 				}
 			}
-			if (!fallbackFor.isEmpty()) {
+			if (!fallbackFor.is_empty()) {
 				Sp<FontFamily> *fallbackFamily;
 				if (!self->fCurrentFamily->fallbackFamilies.get(fallbackFor, fallbackFamily)) {
 					fallbackFamily =
@@ -817,7 +817,7 @@ void GetCustomFontFamilies(Array<FontFamily*>& fontFamilies,
 }
 
 QkLanguage QkLanguage::getParent() const {
-	Qk_ASSERT(!fTag.isEmpty());
+	Qk_ASSERT(!fTag.is_empty());
 	cChar* tag = fTag.c_str();
 
 	// strip off the rightmost "-.*"

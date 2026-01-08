@@ -104,7 +104,7 @@ namespace qk {
 		String s = fs_read_file_sync("/proc/meminfo", 127).collapse_string();
 		Qk_DLog("/proc/meminfo, %s", *s);
 
-		if (!s.isEmpty()) {
+		if (!s.is_empty()) {
 			int i, j;
 
 			i = s.indexOf("MemTotal:");

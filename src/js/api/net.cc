@@ -45,20 +45,20 @@ namespace qk { namespace js {
 		Worker* worker() { return _host->worker(); }
 
 		virtual void trigger_socket_open(qk::Socket* socket) override {
-			if ( !_open.isEmpty() ) {
+			if ( !_open.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_open) );
 			}
 		}
 		virtual void trigger_socket_close(qk::Socket* socket) override {
-			if ( !_close.isEmpty() ) {
+			if ( !_close.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_close) );
 			}
 			socket->release(); // TODO: js handle set weak object
 		}
 		virtual void trigger_socket_error(qk::Socket* socket, cError& error) override {
-			if ( !_error.isEmpty() ) {
+			if ( !_error.is_empty() ) {
 				HandleScope scope(worker());
 				JSValue* arg = worker()->newValue( error );
 				_host->call( worker()->newStringOneByte(_error), 1, &arg );
@@ -68,21 +68,21 @@ namespace qk { namespace js {
 			}
 		}
 		virtual void trigger_socket_data(qk::Socket* socket, cBuffer &buffer) override {
-			if ( !_data.isEmpty() ) {
+			if ( !_data.is_empty() ) {
 				HandleScope scope(_host->worker());
 				JSValue* arg = worker()->newValue( buffer.copy() );
 				_host->call( worker()->newStringOneByte(_data), 1, &arg ); 
 			}
 		}
 		virtual void trigger_socket_write(qk::Socket* socket, Buffer& data, int flag) override {
-			if ( !_write.isEmpty() ) {
+			if ( !_write.is_empty() ) {
 				HandleScope scope(worker());
 				JSValue* arg = worker()->newValue( flag );
 				_host->call( worker()->newStringOneByte(_write), 1, &arg);
 			}
 		}
 		virtual void trigger_socket_timeout(qk::Socket* socket) override {
-			if ( !_timeout.isEmpty() ) {
+			if ( !_timeout.is_empty() ) {
 				HandleScope scope(worker());
 				_host->call( worker()->newStringOneByte(_timeout) );
 			}

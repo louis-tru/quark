@@ -58,7 +58,7 @@ namespace qk { namespace js {
 			if (!args.length())
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value, Vec2 limit)\n");
 			auto str = args[0]->toString(worker)->value(worker);
-			Js_Parse_Args(Vec2, 1, "limit = %s", (Vec2(std::numeric_limits<float>::max())));
+			Js_Parse_Args(Vec2, 1, "limit = %s", (std::numeric_limits<float>::max()));
 			Js_Self(Text);
 			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str, arg1)) );
 		});

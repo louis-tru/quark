@@ -725,7 +725,7 @@ namespace js {
 
 #if Qk_ANDROID
 			start = JNI::jvm() ? Android_startup_argv(): String();
-			if (start.isEmpty())
+			if (start.is_empty())
 #endif
 			{
 				auto index = fs_resources("index");
