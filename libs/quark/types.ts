@@ -458,6 +458,7 @@ export enum CursorStyle {
 	NoneUntilMouseMoves, //!<
 	Arrow, //!<
 	Ibeam, //!<
+	Text = Ibeam, //!<
 	PointingHand, //!<
 	Pointer = PointingHand, //!<
 	ClosedHand, //!<
@@ -613,6 +614,9 @@ export class Vec2 extends Base<Vec2> {
 	 * y component
 	*/
 	readonly y: N;
+
+	get width(): N { return this.x; } //!< alias of x
+	get height(): N { return this.y; } //!< alias of y
 
 	/**
 	 * Get string value

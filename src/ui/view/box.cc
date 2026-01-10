@@ -51,8 +51,8 @@ namespace qk {
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
 		, _padding_bottom(0), _padding_left(0)
-		, _border_radius_left_top(0), _border_radius_right_top(0)
-		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
+		, _border_top_left_radius(0), _border_top_right_radius(0)
+		, _border_bottom_right_radius(0), _border_bottom_left_radius(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
 		, _container({{},{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
@@ -264,65 +264,65 @@ namespace qk {
 
 	ArrayFloat Box::border_radius() const {
 		return ArrayFloat{
-			_border_radius_left_top,     _border_radius_right_top,
-			_border_radius_right_bottom, _border_radius_left_bottom
+			_border_top_left_radius,     _border_top_right_radius,
+			_border_bottom_right_radius, _border_bottom_left_radius
 		};
 	}
 
 	void Box::set_border_radius(ArrayFloat val, bool isRt) {
 		switch (val.length()) {
 			case 1:
-				set_border_radius_left_top(val[0], isRt);
-				set_border_radius_right_top(val[0], isRt);
-				set_border_radius_right_bottom(val[0], isRt);
-				set_border_radius_left_bottom(val[0], isRt);
+				set_border_top_left_radius(val[0], isRt);
+				set_border_top_right_radius(val[0], isRt);
+				set_border_bottom_right_radius(val[0], isRt);
+				set_border_bottom_left_radius(val[0], isRt);
 				break;
 			case 2:
-				set_border_radius_left_top(val[0], isRt);
-				set_border_radius_right_top(val[0], isRt);
-				set_border_radius_right_bottom(val[1], isRt);
-				set_border_radius_left_bottom(val[1], isRt);
+				set_border_top_left_radius(val[0], isRt);
+				set_border_top_right_radius(val[0], isRt);
+				set_border_bottom_right_radius(val[1], isRt);
+				set_border_bottom_left_radius(val[1], isRt);
 				break;
 			case 3:
-				set_border_radius_left_top(val[0], isRt);
-				set_border_radius_right_top(val[1], isRt);
-				set_border_radius_right_bottom(val[2], isRt);
-				set_border_radius_left_bottom(val[2], isRt);
+				set_border_top_left_radius(val[0], isRt);
+				set_border_top_right_radius(val[1], isRt);
+				set_border_bottom_right_radius(val[2], isRt);
+				set_border_bottom_left_radius(val[2], isRt);
 				break;
 			case 4: // 4
-				set_border_radius_left_top(val[0], isRt);
-				set_border_radius_right_top(val[1], isRt);
-				set_border_radius_right_bottom(val[2], isRt);
-				set_border_radius_left_bottom(val[3], isRt);
+				set_border_top_left_radius(val[0], isRt);
+				set_border_top_right_radius(val[1], isRt);
+				set_border_bottom_right_radius(val[2], isRt);
+				set_border_bottom_left_radius(val[3], isRt);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_border_radius_left_top(float val, bool isRt) {
-		if (val >= 0.0 && _border_radius_left_top != val) {
-			_border_radius_left_top = val;
+	void Box::set_border_top_left_radius(float val, bool isRt) {
+		if (val >= 0.0 && _border_top_left_radius != val) {
+			_border_top_left_radius = val;
 			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Box::set_border_radius_right_top(float val, bool isRt) {
-		if (val >= 0.0 && _border_radius_right_top != val) {
-			_border_radius_right_top = val;
+	void Box::set_border_top_right_radius(float val, bool isRt) {
+		if (val >= 0.0 && _border_top_right_radius != val) {
+			_border_top_right_radius = val;
 			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Box::set_border_radius_right_bottom(float val, bool isRt) {
-		if (val >= 0.0 && _border_radius_right_bottom != val) {
-			_border_radius_right_bottom = val;
+	void Box::set_border_bottom_right_radius(float val, bool isRt) {
+		if (val >= 0.0 && _border_bottom_right_radius != val) {
+			_border_bottom_right_radius = val;
 			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Box::set_border_radius_left_bottom(float val, bool isRt) {
-		if (val >= 0.0 && _border_radius_left_bottom != val) {
-			_border_radius_left_bottom = val;
+	void Box::set_border_bottom_left_radius(float val, bool isRt) {
+		if (val >= 0.0 && _border_bottom_left_radius != val) {
+			_border_bottom_left_radius = val;
 			mark(kLayout_None, isRt);
 		}
 	}
@@ -390,23 +390,23 @@ namespace qk {
 	}
 
 	void Box::set_border_top(Border border, bool isRt) {
-		set_border_width_top(border.width, isRt);
-		set_border_color_top(border.color, isRt);
+		set_border_top_width(border.width, isRt);
+		set_border_top_color(border.color, isRt);
 	}
 
 	void Box::set_border_right(Border border, bool isRt) {
-		set_border_width_right(border.width, isRt);
-		set_border_color_right(border.color, isRt);
+		set_border_right_width(border.width, isRt);
+		set_border_right_color(border.color, isRt);
 	}
 
 	void Box::set_border_bottom(Border border, bool isRt) {
-		set_border_width_bottom(border.width, isRt);
-		set_border_color_bottom(border.color, isRt);
+		set_border_bottom_width(border.width, isRt);
+		set_border_bottom_color(border.color, isRt);
 	}
 
 	void Box::set_border_left(Border border, bool isRt) {
-		set_border_width_left(border.width, isRt);
-		set_border_color_left(border.color, isRt);
+		set_border_left_width(border.width, isRt);
+		set_border_left_color(border.color, isRt);
 	}
 
 	ArrayFloat Box::border_width() const {
@@ -419,28 +419,28 @@ namespace qk {
 	void Box::set_border_width(ArrayFloat val, bool isRt) {
 		switch (val.length()) {
 			case 1:
-				set_border_width_top(val[0], isRt);
-				set_border_width_right(val[0], isRt);
-				set_border_width_bottom(val[0], isRt);
-				set_border_width_left(val[0], isRt);
+				set_border_top_width(val[0], isRt);
+				set_border_right_width(val[0], isRt);
+				set_border_bottom_width(val[0], isRt);
+				set_border_left_width(val[0], isRt);
 				break;
 			case 2:
-				set_border_width_top(val[0], isRt);
-				set_border_width_bottom(val[0], isRt);
-				set_border_width_left(val[1], isRt);
-				set_border_width_right(val[1], isRt);
+				set_border_top_width(val[0], isRt);
+				set_border_bottom_width(val[0], isRt);
+				set_border_left_width(val[1], isRt);
+				set_border_right_width(val[1], isRt);
 				break;
 			case 3:
-				set_border_width_top(val[0], isRt);
-				set_border_width_left(val[1], isRt);
-				set_border_width_right(val[1], isRt);
-				set_border_width_bottom(val[2], isRt);
+				set_border_top_width(val[0], isRt);
+				set_border_left_width(val[1], isRt);
+				set_border_right_width(val[1], isRt);
+				set_border_bottom_width(val[2], isRt);
 				break;
 			case 4: // 4
-				set_border_width_top(val[0], isRt);
-				set_border_width_right(val[1], isRt);
-				set_border_width_bottom(val[2], isRt);
-				set_border_width_left(val[3], isRt);
+				set_border_top_width(val[0], isRt);
+				set_border_right_width(val[1], isRt);
+				set_border_bottom_width(val[2], isRt);
+				set_border_left_width(val[3], isRt);
 				break;
 			default: break;
 		}
@@ -456,69 +456,69 @@ namespace qk {
 	void Box::set_border_color(ArrayColor val, bool isRt) {
 		switch (val.length()) {
 			case 1:
-				set_border_color_top(val[0], isRt);
-				set_border_color_right(val[0], isRt);
-				set_border_color_bottom(val[0], isRt);
-				set_border_color_left(val[0], isRt);
+				set_border_top_color(val[0], isRt);
+				set_border_right_color(val[0], isRt);
+				set_border_bottom_color(val[0], isRt);
+				set_border_left_color(val[0], isRt);
 				break;
 			case 2:
-				set_border_color_top(val[0], isRt);
-				set_border_color_bottom(val[0], isRt);
-				set_border_color_left(val[1], isRt);
-				set_border_color_right(val[1], isRt);
+				set_border_top_color(val[0], isRt);
+				set_border_bottom_color(val[0], isRt);
+				set_border_left_color(val[1], isRt);
+				set_border_right_color(val[1], isRt);
 				break;
 			case 3:
-				set_border_color_top(val[0], isRt);
-				set_border_color_left(val[1], isRt);
-				set_border_color_right(val[1], isRt);
-				set_border_color_bottom(val[2], isRt);
+				set_border_top_color(val[0], isRt);
+				set_border_left_color(val[1], isRt);
+				set_border_right_color(val[1], isRt);
+				set_border_bottom_color(val[2], isRt);
 				break;
 			case 4: // 4
-				set_border_color_top(val[0], isRt);
-				set_border_color_right(val[1], isRt);
-				set_border_color_bottom(val[2], isRt);
-				set_border_color_left(val[3], isRt);
+				set_border_top_color(val[0], isRt);
+				set_border_right_color(val[1], isRt);
+				set_border_bottom_color(val[2], isRt);
+				set_border_left_color(val[3], isRt);
 				break;
 			default: break;
 		}
 	}
 
-	Color Box::border_color_top() const {
+	Color Box::border_top_color() const {
 		_Border();
 		return _border ? _border->color[0]: Color::from(0);
 	}
 
-	Color Box::border_color_right() const {
+	Color Box::border_right_color() const {
 		_Border();
 		return _border ? _border->color[1]: Color::from(0);
 	}
 
-	Color Box::border_color_bottom() const {
+	Color Box::border_bottom_color() const {
 		_Border();
 		return _border ? _border->color[2]: Color::from(0);
 	}
 
-	Color Box::border_color_left() const {
+	Color Box::border_left_color() const {
 		_Border();
 		return _border ? _border->color[3]: Color::from(0);
 	}
 
-	float Box::border_width_top() const {
+	float Box::border_top_width() const {
 		_Border();
 		return _border ? _border->width[0]: 0;
 	}
 
-	float Box::border_width_right() const {
+	float Box::border_right_width() const {
 		_Border();
 		return _border ? _border->width[1]: 0;
 	}
 
-	float Box::border_width_bottom() const {
+	float Box::border_bottom_width() const {
 		_Border();
 		return _border ? _border->width[2]: 0;
 	}
 
-	float Box::border_width_left() const {
+	float Box::border_left_width() const {
 		_Border();
 		return _border ? _border->width[3]: 0;
 	}
@@ -540,7 +540,7 @@ namespace qk {
 		}
 	};
 
-	void Box::set_border_color_top(Color val, bool isRt) {
+	void Box::set_border_top_color(Color val, bool isRt) {
 		_BorderAlloc();
 		if (_border->color[0] != val) {
 			_border->color[0] = val;
@@ -548,7 +548,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_right(Color val, bool isRt) {
+	void Box::set_border_right_color(Color val, bool isRt) {
 		_BorderAlloc();
 		if (_border->color[1] != val) {
 			_border->color[1] = val;
@@ -556,7 +556,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_bottom(Color val, bool isRt) {
+	void Box::set_border_bottom_color(Color val, bool isRt) {
 		_BorderAlloc();
 		if (_border->color[2] != val) {
 			_border->color[2] = val;
@@ -564,7 +564,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_color_left(Color val, bool isRt) {
+	void Box::set_border_left_color(Color val, bool isRt) {
 		_BorderAlloc();
 		if (_border->color[3] != val) {
 			_border->color[3] = val;
@@ -572,7 +572,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_top(float val, bool isRt) {
+	void Box::set_border_top_width(float val, bool isRt) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
@@ -581,7 +581,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_right(float val, bool isRt) {
+	void Box::set_border_right_width(float val, bool isRt) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[1] != val) {
@@ -590,7 +590,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_bottom(float val, bool isRt) {
+	void Box::set_border_bottom_width(float val, bool isRt) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[2] != val) {
@@ -599,7 +599,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_width_left(float val, bool isRt) {
+	void Box::set_border_left_width(float val, bool isRt) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {

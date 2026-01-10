@@ -84,7 +84,7 @@ namespace qk {
 	}
 
 	Vec2 Textarea::input_text_offset() {
-		return Vec2(_input_text_offset_x - scroll_x(), -scroll_y());
+		return Vec2(_input_text_offset_x - scroll_left(), -scroll_top());
 	}
 
 	void Textarea::set_input_text_offset(Vec2 value) {

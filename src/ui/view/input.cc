@@ -292,7 +292,7 @@ namespace qk {
 				if ( _flag == kFlag_Click_Focus_Check ) { // 已经开始检测
 					if ( is_multiline() ) { // 多行移动后禁用点击聚焦
 						auto textarea = static_cast<Textarea*>(static_cast<Input*>(this));
-						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
+						if ( textarea->scroll_left() != 0 || textarea->scroll_top() != 0 ) {
 							// 计算移动距离
 							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
 							if ( d > 5 ) { // 移动超过5禁用点击聚焦

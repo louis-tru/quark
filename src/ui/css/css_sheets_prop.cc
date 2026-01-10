@@ -363,28 +363,28 @@ namespace qk {
 	void SetProp<ArrayFloat>::asyncSet<kBORDER_RADIUS_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_border_radius_left_top(val[0]);
-				set_border_radius_right_top(val[0]);
-				set_border_radius_right_bottom(val[0]);
-				set_border_radius_left_bottom(val[0]);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[0]);
+				set_border_bottom_right_radius(val[0]);
+				set_border_bottom_left_radius(val[0]);
 				break;
 			case 2:
-				set_border_radius_left_top(val[0]);
-				set_border_radius_right_top(val[0]);
-				set_border_radius_right_bottom(val[1]);
-				set_border_radius_left_bottom(val[1]);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[0]);
+				set_border_bottom_right_radius(val[1]);
+				set_border_bottom_left_radius(val[1]);
 				break;
 			case 3:
-				set_border_radius_left_top(val[0]);
-				set_border_radius_right_top(val[1]);
-				set_border_radius_right_bottom(val[2]);
-				set_border_radius_left_bottom(val[2]);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[1]);
+				set_border_bottom_right_radius(val[2]);
+				set_border_bottom_left_radius(val[2]);
 				break;
 			case 4: // 4
-				set_border_radius_left_top(val[0]);
-				set_border_radius_right_top(val[1]);
-				set_border_radius_right_bottom(val[2]);
-				set_border_radius_left_bottom(val[3]);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[1]);
+				set_border_bottom_right_radius(val[2]);
+				set_border_bottom_left_radius(val[3]);
 				break;
 			default: break;
 		}
@@ -425,29 +425,29 @@ namespace qk {
 	template<>
 	template<>
 	void SetProp<Border>::asyncSet<kBORDER_TOP_CssProp>(Border val) {
-		set_border_width_top(val.width);
-		set_border_color_top(val.color);
+		set_border_top_width(val.width);
+		set_border_top_color(val.color);
 	}
 
 	template<>
 	template<>
 	void SetProp<Border>::asyncSet<kBORDER_RIGHT_CssProp>(Border val) {
-		set_border_width_right(val.width);
-		set_border_color_right(val.color);
+		set_border_right_width(val.width);
+		set_border_right_color(val.color);
 	}
 
 	template<>
 	template<>
 	void SetProp<Border>::asyncSet<kBORDER_BOTTOM_CssProp>(Border val) {
-		set_border_width_bottom(val.width);
-		set_border_color_bottom(val.color);
+		set_border_bottom_width(val.width);
+		set_border_bottom_color(val.color);
 	}
 
 	template<>
 	template<>
 	void SetProp<Border>::asyncSet<kBORDER_LEFT_CssProp>(Border val) {
-		set_border_width_left(val.width);
-		set_border_color_left(val.color);
+		set_border_left_width(val.width);
+		set_border_left_color(val.color);
 	}
 
 	template<>
@@ -455,28 +455,28 @@ namespace qk {
 	void SetProp<ArrayFloat>::asyncSet<kBORDER_WIDTH_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_border_width_top(val[0]);
-				set_border_width_right(val[0]);
-				set_border_width_bottom(val[0]);
-				set_border_width_left(val[0]);
+				set_border_top_width(val[0]);
+				set_border_right_width(val[0]);
+				set_border_bottom_width(val[0]);
+				set_border_left_width(val[0]);
 				break;
 			case 2:
-				set_border_width_top(val[0]);
-				set_border_width_bottom(val[0]);
-				set_border_width_left(val[1]);
-				set_border_width_right(val[1]);
+				set_border_top_width(val[0]);
+				set_border_bottom_width(val[0]);
+				set_border_left_width(val[1]);
+				set_border_right_width(val[1]);
 				break;
 			case 3:
-				set_border_width_top(val[0]);
-				set_border_width_left(val[1]);
-				set_border_width_right(val[1]);
-				set_border_width_bottom(val[2]);
+				set_border_top_width(val[0]);
+				set_border_left_width(val[1]);
+				set_border_right_width(val[1]);
+				set_border_bottom_width(val[2]);
 				break;
 			case 4: // 4
-				set_border_width_top(val[0]);
-				set_border_width_right(val[1]);
-				set_border_width_bottom(val[2]);
-				set_border_width_left(val[3]);
+				set_border_top_width(val[0]);
+				set_border_right_width(val[1]);
+				set_border_bottom_width(val[2]);
+				set_border_left_width(val[3]);
 				break;
 			default: break;
 		}
@@ -487,28 +487,28 @@ namespace qk {
 	void SetProp<ArrayColor>::asyncSet<kBORDER_COLOR_CssProp>(ArrayColor val) {
 		switch (val.length()) {
 			case 1:
-				set_border_color_top(val[0]);
-				set_border_color_right(val[0]);
-				set_border_color_bottom(val[0]);
-				set_border_color_left(val[0]);
+				set_border_top_color(val[0]);
+				set_border_right_color(val[0]);
+				set_border_bottom_color(val[0]);
+				set_border_left_color(val[0]);
 				break;
 			case 2:
-				set_border_color_top(val[0]);
-				set_border_color_bottom(val[0]);
-				set_border_color_left(val[1]);
-				set_border_color_right(val[1]);
+				set_border_top_color(val[0]);
+				set_border_bottom_color(val[0]);
+				set_border_left_color(val[1]);
+				set_border_right_color(val[1]);
 				break;
 			case 3:
-				set_border_color_top(val[0]);
-				set_border_color_left(val[1]);
-				set_border_color_right(val[1]);
-				set_border_color_bottom(val[2]);
+				set_border_top_color(val[0]);
+				set_border_left_color(val[1]);
+				set_border_right_color(val[1]);
+				set_border_bottom_color(val[2]);
 				break;
 			case 4: // 4
-				set_border_color_top(val[0]);
-				set_border_color_right(val[1]);
-				set_border_color_bottom(val[2]);
-				set_border_color_left(val[3]);
+				set_border_top_color(val[0]);
+				set_border_right_color(val[1]);
+				set_border_bottom_color(val[2]);
+				set_border_left_color(val[3]);
 				break;
 			default: break;
 		}

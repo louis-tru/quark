@@ -813,8 +813,8 @@ export class NavPage<P={},S={}> extends Navigation<{
 			if ( time && dom.parent!.level ) {
 				let x = (dom.parent! as Box).clientSize.x;
 				dom.style = {
-					borderColorLeft: backgroundColorReverse(this),
-					borderWidthLeft: px,
+					borderLeftColor: backgroundColorReverse(this),
+					borderLeftWidth: px,
 				};
 				dom.transition({ x: x, visible: false, time }).then(()=>{
 					this.destroy();
@@ -855,14 +855,14 @@ export class NavPage<P={},S={}> extends Navigation<{
 				let x = (dom.parent! as Box).clientSize.x;
 				dom.style = {
 					visible: true,
-					borderColorLeft: backgroundColorReverse(this),
-					borderWidthLeft: px,
+					borderLeftColor: backgroundColorReverse(this),
+					borderLeftWidth: px,
 				};
 				dom.transition({ x: 0, time }, {x}).then(()=>{
-					dom.style.borderWidthLeft = 0;
+					dom.style.borderLeftWidth = 0;
 				});
 			} else {
-				dom.style = { x: 0, borderWidthLeft: 0, visible: true };
+				dom.style = { x: 0, borderLeftWidth: 0, visible: true };
 			}
 		}
 		else if ( this.navStatus == NavStatus.Background ) {

@@ -52,13 +52,13 @@ createCss({
 		textAlign: "center",
 	},
 	'.qk_stepper .qk_minus': {
-		borderRadiusLeftTop: 6,
-		borderRadiusLeftBottom: 6,
+		borderTopLeftRadius: 6,
+		borderBottomLeftRadius: 6,
 	},
 	'.qk_stepper .qk_plus': {
-		borderWidthLeft: 0,
-		borderRadiusRightTop: 6,
-		borderRadiusRightBottom: 6,
+		borderLeftWidth: 0,
+		borderTopRightRadius: 6,
+		borderBottomRightRadius: 6,
 	},
 	'.qk_stepper .qk_minus:active,\
 	.qk_stepper .qk_plus:active': {

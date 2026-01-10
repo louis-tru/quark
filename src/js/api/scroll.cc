@@ -40,8 +40,8 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(ScrollView, bool, bounce_lock, bounceLock);
 		Js_UIObject_Accessor(ScrollView, bool, momentum, momentum);
 		Js_UIObject_Accessor(ScrollView, bool, lock_direction, lockDirection);
-		Js_UIObject_Accessor(ScrollView, float, scroll_x, scrollX);
-		Js_UIObject_Accessor(ScrollView, float, scroll_y, scrollY);
+		Js_UIObject_Accessor(ScrollView, float, scroll_left, scrollLeft);
+		Js_UIObject_Accessor(ScrollView, float, scroll_top, scrollTop);
 		Js_UIObject_Accessor(ScrollView, Vec2, scroll, scroll);
 		Js_UIObject_Accessor(ScrollView, float, resistance, resistance);
 		Js_UIObject_Accessor(ScrollView, float, catch_position_x, catchPositionX);

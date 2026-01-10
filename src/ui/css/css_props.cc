@@ -191,10 +191,10 @@ namespace qk {
 			Qk_Set_Accessor(Box, PADDING_BOTTOM, padding_bottom, float);
 			Qk_Set_Accessor(Box, PADDING_LEFT, padding_left, float);
 			Qk_Set_Accessor(Box, BORDER_RADIUS, border_radius, ArrayFloat); // border radius
-			Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_TOP, border_radius_left_top, float);
-			Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_TOP, border_radius_right_top, float);
-			Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom, float);
-			Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom, float);
+			Qk_Set_Accessor(Box, BORDER_TOP_LEFT_RADIUS, border_top_left_radius, float);
+			Qk_Set_Accessor(Box, BORDER_TOP_RIGHT_RADIUS, border_top_right_radius, float);
+			Qk_Set_Accessor(Box, BORDER_BOTTOM_RIGHT_RADIUS, border_bottom_right_radius, float);
+			Qk_Set_Accessor(Box, BORDER_BOTTOM_LEFT_RADIUS, border_bottom_left_radius, float);
 			Qk_Set_Accessor(Box, BORDER, border, ArrayBorder); // border
 			Qk_Set_Accessor(Box, BORDER_WIDTH, border_width, ArrayFloat);
 			Qk_Set_Accessor(Box, BORDER_COLOR, border_color, ArrayColor);
@@ -202,14 +202,14 @@ namespace qk {
 			Qk_Set_Accessor(Box, BORDER_RIGHT, border_right, Border);
 			Qk_Set_Accessor(Box, BORDER_BOTTOM, border_bottom, Border);
 			Qk_Set_Accessor(Box, BORDER_LEFT, border_left, Border);
-			Qk_Set_Accessor(Box, BORDER_WIDTH_TOP, border_width_top, float); // border width
-			Qk_Set_Accessor(Box, BORDER_WIDTH_RIGHT, border_width_right, float);
-			Qk_Set_Accessor(Box, BORDER_WIDTH_BOTTOM, border_width_bottom, float);
-			Qk_Set_Accessor(Box, BORDER_WIDTH_LEFT, border_width_left, float);
-			Qk_Set_Accessor(Box, BORDER_COLOR_TOP, border_color_top, Color); // border color
-			Qk_Set_Accessor(Box, BORDER_COLOR_RIGHT, border_color_right, Color);
-			Qk_Set_Accessor(Box, BORDER_COLOR_BOTTOM, border_color_bottom, Color);
-			Qk_Set_Accessor(Box, BORDER_COLOR_LEFT, border_color_left, Color); // border end
+			Qk_Set_Accessor(Box, BORDER_TOP_WIDTH, border_top_width, float); // border width
+			Qk_Set_Accessor(Box, BORDER_RIGHT_WIDTH, border_right_width, float);
+			Qk_Set_Accessor(Box, BORDER_BOTTOM_WIDTH, border_bottom_width, float);
+			Qk_Set_Accessor(Box, BORDER_LEFT_WIDTH, border_left_width, float);
+			Qk_Set_Accessor(Box, BORDER_TOP_COLOR, border_top_color, Color); // border color
+			Qk_Set_Accessor(Box, BORDER_RIGHT_COLOR, border_right_color, Color);
+			Qk_Set_Accessor(Box, BORDER_BOTTOM_COLOR, border_bottom_color, Color);
+			Qk_Set_Accessor(Box, BORDER_LEFT_COLOR, border_left_color, Color); // border end
 			Qk_Set_Accessor(Box, BACKGROUND_COLOR, background_color, Color);
 			Qk_Set_Accessor(Box, BACKGROUND, background, BoxFilterPtr, NoConst);
 			Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow, BoxShadowPtr, NoConst);

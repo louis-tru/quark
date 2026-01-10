@@ -48,7 +48,7 @@ namespace qk {
 			add(i.trim());
 		}
 		for (auto &s: pool->defaultFamilyNames()) {
-			add(s);
+			add(s); // add default families
 		}
 	}
 
@@ -131,8 +131,7 @@ namespace qk {
 		}
 	};
 
-	Array<FontGlyphs> FontFamilies::makeFontGlyphs(
-			cArray<Unichar>& unichars, FontStyle style, float fontSize) {
+	Array<FontGlyphs> FontFamilies::makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize) {
 		if (unichars.length()) {
 			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);

@@ -61,10 +61,10 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, float, padding_bottom, paddingBottom);
 			Js_MixObject_Accessor(Box, float, padding_left, paddingLeft);
 			Js_MixObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
-			Js_MixObject_Accessor(Box, float, border_radius_left_top, borderRadiusLeftTop);
-			Js_MixObject_Accessor(Box, float, border_radius_right_top, borderRadiusRightTop);
-			Js_MixObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
-			Js_MixObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
+			Js_MixObject_Accessor(Box, float, border_top_left_radius, borderTopLeftRadius);
+			Js_MixObject_Accessor(Box, float, border_top_right_radius, borderTopRightRadius);
+			Js_MixObject_Accessor(Box, float, border_bottom_right_radius, borderBottomRightRadius);
+			Js_MixObject_Accessor(Box, float, border_bottom_left_radius, borderBottomLeftRadius);
 			Js_MixObject_Accessor(Box, ArrayBorder, border, border); // border width
 			Js_MixObject_Accessor(Box, Border, border_top, borderTop);
 			Js_MixObject_Accessor(Box, Border, border_right, borderRight);
@@ -72,14 +72,14 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, Border, border_left, borderLeft);
 			Js_MixObject_Accessor(Box, ArrayFloat, border_width, borderWidth);
 			Js_MixObject_Accessor(Box, ArrayColor, border_color, borderColor);
-			Js_MixObject_Accessor(Box, float, border_width_top, borderWidthTop); // border width
-			Js_MixObject_Accessor(Box, float, border_width_right, borderWidthRight);
-			Js_MixObject_Accessor(Box, float, border_width_bottom, borderWidthBottom);
-			Js_MixObject_Accessor(Box, float, border_width_left, borderWidthLeft);
-			Js_MixObject_Accessor(Box, Color, border_color_top, borderColorTop); // border color
-			Js_MixObject_Accessor(Box, Color, border_color_right, borderColorRight);
-			Js_MixObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);
-			Js_MixObject_Accessor(Box, Color, border_color_left, borderColorLeft);
+			Js_MixObject_Accessor(Box, float, border_top_width, borderTopWidth); // border width
+			Js_MixObject_Accessor(Box, float, border_right_width, borderRightWidth);
+			Js_MixObject_Accessor(Box, float, border_bottom_width, borderBottomWidth);
+			Js_MixObject_Accessor(Box, float, border_left_width, borderLeftWidth);
+			Js_MixObject_Accessor(Box, Color, border_top_color, borderTopColor); // border color
+			Js_MixObject_Accessor(Box, Color, border_right_color, borderRightColor);
+			Js_MixObject_Accessor(Box, Color, border_bottom_color, borderBottomColor);
+			Js_MixObject_Accessor(Box, Color, border_left_color, borderLeftColor);
 			Js_MixObject_Accessor(Box, Color, background_color, backgroundColor);
 			Js_MixObject_Accessor(Box, BoxFilterPtr, background, background);
 			Js_MixObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);

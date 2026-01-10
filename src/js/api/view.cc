@@ -113,10 +113,6 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Class_Accessor_Get(morphView, {
-				auto view = self->morph_view();
-				Js_Return( view ? view->host() : nullptr );
-			});
 			Js_MixObject_Acce_Get(View, uint32_t, level, level);
 			Js_MixObject_Accessor(View, Color, color, color);
 			Js_MixObject_Accessor(View, CascadeColor, cascade_color, cascadeColor);
@@ -129,14 +125,16 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(View, bool, aa, aa);
 			Js_MixObject_Acce_Get(View, bool, is_focus, isFocus);
 
-			Js_Class_Method(asMorphView, {
-				auto view = self->asMorphView();
-				Js_Return( view ? view->host() : nullptr );
-			});
-			Js_Class_Method(asEntity, { Js_Return( self->asEntity() ); });
-			Js_Class_Method(asAgent, { Js_Return( self->asAgent() ); });
-			Js_Class_Method(focus, { Js_ReturnBool( self->focus() ); });
-			Js_Class_Method(blur, { Js_ReturnBool( self->blur() ); });
+			Js_Class_Accessor_Get(isTextInput, { Js_ReturnBool(self->asTextInput()); });
+			Js_Class_Accessor_Get(morphView, { Js_Return(self->morph_view() ? self : nullptr); });
+			Js_Class_Method(asMorphView, { Js_Return(self->asMorphView() ? self: nullptr); });
+			Js_Class_Method(asTextOptions, { Js_Return(self->asTextOptions() ? self: nullptr); });
+			Js_Class_Method(asScrollView, { Js_Return(self->asScrollView() ? self: nullptr); });
+			Js_Class_Method(asButton, { Js_Return(self->asButton()); });
+			Js_Class_Method(asEntity, { Js_Return(self->asEntity()); });
+			Js_Class_Method(asAgent, { Js_Return(self->asAgent()); });
+			Js_Class_Method(focus, { Js_ReturnBool(self->focus()); });
+			Js_Class_Method(blur, { Js_ReturnBool(self->blur()); });
 
 			Js_Class_Method(isChild, {
 				if (!args.length() || !Js_IsView(args[0])) {

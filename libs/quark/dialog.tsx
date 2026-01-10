@@ -90,7 +90,7 @@ createCss({
 	},
 	'.qk_dialog.qk_sheet .qk_buttons': {
 		marginTop: 10,
-		borderWidthTop: 0,
+		borderTopWidth: 0,
 	},
 	'.qk_dialog .qk_button': {
 		height: 43,
@@ -208,9 +208,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 								<button
 									key={i}
 									class="qk_button"
-									borderWidthLeft={i ? px: 0}
-									borderRadiusLeftBottom={i == 0 ? 12: 0}
-									borderRadiusRightBottom={i == arr.length-1 ? 12: 0}
+									borderLeftWidth={i ? px: 0}
+									borderBottomLeftRadius={i == 0 ? 12: 0}
+									borderBottomRightRadius={i == arr.length-1 ? 12: 0}
 									onClick={this.handleClick}
 								>{e}</button>
 							))
@@ -297,7 +297,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 								class="qk_button"
 								width="100%"
 								onClick={this.handleClick}
-								borderWidthTop={i?px:0}
+								borderTopWidth={i?px:0}
 								borderRadius={[i?0:12,i==arr.length-1?12:0]}
 							>{e}</button>
 						)):

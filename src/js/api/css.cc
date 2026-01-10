@@ -74,10 +74,10 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(float, padding_bottom, paddingBottom);
 			Js_StyleSheets_Accessor(float, padding_left, paddingLeft);
 			Js_StyleSheets_Accessor(ArrayFloat, border_radius, borderRadius);
-			Js_StyleSheets_Accessor(float, border_radius_left_top, borderRadiusLeftTop);
-			Js_StyleSheets_Accessor(float, border_radius_right_top, borderRadiusRightTop);
-			Js_StyleSheets_Accessor(float, border_radius_right_bottom, borderRadiusRightBottom);
-			Js_StyleSheets_Accessor(float, border_radius_left_bottom, borderRadiusLeftBottom);
+			Js_StyleSheets_Accessor(float, border_top_left_radius, borderTopLeftRadius);
+			Js_StyleSheets_Accessor(float, border_top_right_radius, borderTopRightRadius);
+			Js_StyleSheets_Accessor(float, border_bottom_right_radius, borderBottomRightRadius);
+			Js_StyleSheets_Accessor(float, border_bottom_left_radius, borderBottomLeftRadius);
 			Js_StyleSheets_Accessor(ArrayBorder, border, border); // border width
 			Js_StyleSheets_Accessor(Border, border_top, borderTop);
 			Js_StyleSheets_Accessor(Border, border_right, borderRight);
@@ -85,14 +85,14 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(Border, border_left, borderLeft);
 			Js_StyleSheets_Accessor(ArrayFloat, border_width, borderWidth);
 			Js_StyleSheets_Accessor(ArrayColor, border_color, borderColor);
-			Js_StyleSheets_Accessor(float, border_width_top, borderWidthTop); // border width
-			Js_StyleSheets_Accessor(float, border_width_right, borderWidthRight);
-			Js_StyleSheets_Accessor(float, border_width_bottom, borderWidthBottom);
-			Js_StyleSheets_Accessor(float, border_width_left, borderWidthLeft);
-			Js_StyleSheets_Accessor(Color, border_color_top, borderColorTop); // border color
-			Js_StyleSheets_Accessor(Color, border_color_right, borderColorRight);
-			Js_StyleSheets_Accessor(Color, border_color_bottom, borderColorBottom);
-			Js_StyleSheets_Accessor(Color, border_color_left, borderColorLeft);
+			Js_StyleSheets_Accessor(float, border_top_width, borderTopWidth); // border width
+			Js_StyleSheets_Accessor(float, border_right_width, borderRightWidth);
+			Js_StyleSheets_Accessor(float, border_bottom_width, borderBottomWidth);
+			Js_StyleSheets_Accessor(float, border_left_width, borderLeftWidth);
+			Js_StyleSheets_Accessor(Color, border_top_color, borderTopColor); // border color
+			Js_StyleSheets_Accessor(Color, border_right_color, borderRightColor);
+			Js_StyleSheets_Accessor(Color, border_bottom_color, borderBottomColor);
+			Js_StyleSheets_Accessor(Color, border_left_color, borderLeftColor);
 			Js_StyleSheets_Accessor(Color, background_color, backgroundColor);
 			Js_StyleSheets_Accessor(BoxFilterPtr, background, background);
 			Js_StyleSheets_Accessor(BoxShadowPtr, box_shadow, boxShadow);

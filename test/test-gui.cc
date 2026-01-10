@@ -88,10 +88,10 @@ Qk_TEST_Func(gui) {
 	div->set_width({256});
 	div->set_height({280});
 	div->set_border_width({5});
-	div->set_border_color_left(Color(255, 0, 0));
-	div->set_border_color_top(Color(0, 255, 0));
-	div->set_border_color_right(Color(0, 0, 255));
-	div->set_border_color_bottom(Color(255, 0, 255));
+	div->set_border_left_color(Color(255, 0, 0));
+	div->set_border_top_color(Color(0, 255, 0));
+	div->set_border_right_color(Color(0, 0, 255));
+	div->set_border_bottom_color(Color(255, 0, 255));
 	div->set_align(Align::Start);
 
 	auto sp1 = div->append_new<Image>();
@@ -106,14 +106,14 @@ Qk_TEST_Func(gui) {
   // img->set_height({250});
 	img->set_color({255,255,255,uint8_t(255*0.9)});
 	// img->set_border_radius({60});
-	img->set_border_radius_right_top(40);
-	img->set_border_radius_left_bottom(40);
+	img->set_border_top_right_radius(40);
+	img->set_border_bottom_left_radius(40);
 	img->set_margin({ 5 });
 	img->set_margin_top(20);
 	img->set_margin_bottom(0);
 	img->set_border_width({5});
-	img->set_border_width_top(15);
-	img->set_border_width_right(15);
+	img->set_border_top_width(15);
+	img->set_border_right_width(15);
 	img->set_border_color({Color(255, 0, 255)});
 	// img->border_top_color(Color(0, 255, 255));
 	// img->border_bottom_color(Color(0, 0, 255));

@@ -102,7 +102,7 @@ namespace qk {
 		if (_boxData.inside)
 			return;
 		auto rect = getRect(box);
-		auto radius = &box->_border_radius_left_top;
+		auto radius = &box->_border_top_left_radius;
 		_IfBorder(box) {
 			auto border = _border->width;
 			Hash5381 hash;
@@ -154,7 +154,7 @@ namespace qk {
 	void Painter::getOutsideRectPath(Box *v) {
 		if (!_boxData.outside) {
 			auto rect = getRect(v);
-			auto radius = &v->_border_radius_left_top;
+			auto radius = &v->_border_top_left_radius;
 			if (is_not_Zero(radius)) {
 				_boxData.outside = &_cache->getRRectPath(rect, radius);
 			} else {
@@ -170,7 +170,7 @@ namespace qk {
 			if (is_not_Zero(_border->width)) {
 				auto rect = getRect(v);
 				auto border = _border->width;
-				auto radius = &v->_border_radius_left_top;
+				auto radius = &v->_border_top_left_radius;
 
 				Hash5381 hash;
 				hash.updatefv4(rect.begin.val);
@@ -521,7 +521,7 @@ namespace qk {
 			auto &o = _boxData.outside->rect.begin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.x, o.y()+s.y}, _boxData.outside->rect.size,
-			},&v->_border_radius_left_top, s.size, s.color.premul_alpha().mul(_color), kSrcOverPre_BlendMode);
+			},&v->_border_top_left_radius, s.size, s.color.premul_alpha().mul(_color), kSrcOverPre_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();

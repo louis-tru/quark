@@ -48,8 +48,8 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(bool, lock_direction, Const); // 锁定方向
 		Qk_DEFINE_PROP_GET(bool, scrollbar_h, Const); // 是否显示水平滚动条
 		Qk_DEFINE_PROP_GET(bool, scrollbar_v, Const); // 是否显示垂直滚动条
-		Qk_DEFINE_ACCESSOR(float, scroll_x, Const);
-		Qk_DEFINE_ACCESSOR(float, scroll_y, Const);
+		Qk_DEFINE_ACCESSOR(float, scroll_left, Const);
+		Qk_DEFINE_ACCESSOR(float, scroll_top, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(Vec2, scroll, Const);
 		Qk_DEFINE_PROP_GET(Vec2, scroll_size, Const);
 		Qk_DEFINE_PROPERTY(float, resistance, Const); // resistance default=1

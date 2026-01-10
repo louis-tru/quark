@@ -62,10 +62,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(float,      padding_bottom, Const);
 		Qk_DEFINE_VIEW_PROPERTY(float,      padding_left, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayFloat, border_radius, Const); //!< border_radius
-		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_left_top, Const);
-		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_right_top, Const);
-		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_right_bottom, Const);
-		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_left_bottom, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float,      border_top_left_radius, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float,      border_top_right_radius, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float,      border_bottom_right_radius, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float,      border_bottom_left_radius, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayBorder,border, Const); // border
 		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_top, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_right, Const);
@@ -73,14 +73,14 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_left, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayFloat, border_width, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayColor, border_color, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(float,      border_width_top, Const); // border_width
-		Qk_DEFINE_VIEW_ACCESSOR(float,      border_width_right, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(float,      border_width_bottom, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(float,      border_width_left, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_top, Const); // border_color
-		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_right, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_bottom, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_left, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(float,      border_top_width, Const); // border_width
+		Qk_DEFINE_VIEW_ACCESSOR(float,      border_right_width, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(float,      border_bottom_width, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(float,      border_left_width, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_top_color, Const); // border_color
+		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_right_color, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_bottom_color, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_left_color, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Color,      background_color, Const); // fill background color
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
 		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);

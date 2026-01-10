@@ -169,20 +169,20 @@ void layout(Window* win) {
 	flex->set_padding_right(20);
 	flex->set_padding_bottom(20);
 
-	flex->set_border_radius_left_top(80);
-	flex->set_border_radius_right_top(10);
-	flex->set_border_radius_right_bottom(80);
-	flex->set_border_radius_left_bottom(40);
+	flex->set_border_top_left_radius(80);
+	flex->set_border_top_right_radius(10);
+	flex->set_border_bottom_right_radius(80);
+	flex->set_border_bottom_left_radius(40);
 
-	flex->set_border_width_top(40);
-	flex->set_border_width_right(10);
-	flex->set_border_width_bottom(0);
-	flex->set_border_width_left(40);
+	flex->set_border_top_width(40);
+	flex->set_border_right_width(10);
+	flex->set_border_bottom_width(0);
+	flex->set_border_left_width(40);
 
-	flex->set_border_color_top({0,0,255,255});
-	flex->set_border_color_right({255,0,100,255});
-	flex->set_border_color_bottom({0,255,100,255});
-	flex->set_border_color_left({255,0,255,255});
+	flex->set_border_top_color({0,0,255,255});
+	flex->set_border_right_color({255,0,100,255});
+	flex->set_border_bottom_color({0,255,100,255});
+	flex->set_border_left_color({255,0,255,255});
 
 	//flex->set_opacity(0.8);
 	//flex->set_rotate(10);
@@ -224,10 +224,10 @@ void layout(Window* win) {
 	//img2->set_border_width_left(10);
 	//img2->set_border_width_top(10);
 	//img2->set_border_width_bottom(10);
-	img2->set_border_color_right({255,0,100,255});
-	img2->set_border_color_left({255,0,255,255});
-	img2->set_border_color_top({255,0,100,255});
-	img2->set_border_color_bottom({255,0,255,255});
+	img2->set_border_right_color({255,0,100,255});
+	img2->set_border_left_color({255,0,255,255});
+	img2->set_border_top_color({255,0,100,255});
+	img2->set_border_bottom_color({255,0,255,255});
 	// img2->set_radius_right_bottom(5);
 
 	Qk_DLog("%s, %p\n", "ok test layout", win);

@@ -67,10 +67,10 @@ namespace qk {
 	F(PADDING_BOTTOM, float, padding_bottom, Box) \
 	F(PADDING_LEFT, float, padding_left, Box) \
 	F(BORDER_RADIUS, ArrayFloat, border_radius, Box) /*border radius*/\
-	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top, Box) \
-	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top, Box) \
-	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom, Box) \
-	F(BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom, Box) \
+	F(BORDER_TOP_LEFT_RADIUS, float, border_top_left_radius, Box) \
+	F(BORDER_TOP_RIGHT_RADIUS, float, border_top_right_radius, Box) \
+	F(BORDER_BOTTOM_RIGHT_RADIUS, float, border_bottom_right_radius, Box) \
+	F(BORDER_BOTTOM_LEFT_RADIUS, float, border_bottom_left_radius, Box) \
 	F(BORDER, ArrayBorder, border, Box) /*border*/\
 	F(BORDER_WIDTH, ArrayFloat, border_width, Box) \
 	F(BORDER_COLOR, ArrayColor, border_color, Box) \
@@ -78,14 +78,14 @@ namespace qk {
 	F(BORDER_RIGHT, Border, border_right, Box) \
 	F(BORDER_BOTTOM, Border, border_bottom, Box) \
 	F(BORDER_LEFT, Border, border_left, Box) \
-	F(BORDER_COLOR_TOP, Color, border_color_top, Box) \
-	F(BORDER_COLOR_RIGHT, Color, border_color_right, Box) \
-	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom, Box) \
-	F(BORDER_COLOR_LEFT, Color, border_color_left, Box) \
-	F(BORDER_WIDTH_TOP, float, border_width_top, Box) \
-	F(BORDER_WIDTH_RIGHT, float, border_width_right, Box) \
-	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom, Box) \
-	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) /*border end*/\
+	F(BORDER_TOP_COLOR, Color, border_top_color, Box) \
+	F(BORDER_RIGHT_COLOR, Color, border_right_color, Box) \
+	F(BORDER_BOTTOM_COLOR, Color, border_bottom_color, Box) \
+	F(BORDER_LEFT_COLOR, Color, border_left_color, Box) \
+	F(BORDER_TOP_WIDTH, float, border_top_width, Box) \
+	F(BORDER_RIGHT_WIDTH, float, border_right_width, Box) \
+	F(BORDER_BOTTOM_WIDTH, float, border_bottom_width, Box) \
+	F(BORDER_LEFT_WIDTH, float, border_left_width, Box) /*border end*/\
 	F(BACKGROUND_COLOR, Color, background_color, Box) \
 	F(BACKGROUND, BoxFilterPtr, background, Box) \
 	F(BOX_SHADOW, BoxShadowPtr, box_shadow, Box) \

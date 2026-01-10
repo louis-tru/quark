@@ -44,7 +44,7 @@ export type CSSNameExp = `.${string}`;
  * @class StyleSheets
 */
 export declare abstract class StyleSheets {
-	time?: number; //!< keyframe time or css transition time
+	time?: Uint; //!< keyframe time or css transition time in milliseconds
 	curve?: types.CurveIn; //!< keyframe curve or css transition curve
 	// Meta attribute
 	color?: types.ColorIn; //!< view color
@@ -75,10 +75,10 @@ export declare abstract class StyleSheets {
 	paddingBottom?: number; //!<
 	paddingLeft?: number; //!<
 	borderRadius?: number[] | number; //!<
-	borderRadiusLeftTop?: number; //!<
-	borderRadiusRightTop?: number; //!<
-	borderRadiusRightBottom?: number; //!<
-	borderRadiusLeftBottom?: number; //!<
+	borderTopLeftRadius?: number; //!<
+	borderTopRightRadius?: number; //!<
+	borderBottomRightRadius?: number; //!<
+	borderBottomLeftRadius?: number; //!<
 	border?: types.BorderIn[] | types.BorderIn; //!< border
 	borderTop?: types.BorderIn; //!<
 	borderRight?: types.BorderIn; //!<
@@ -86,14 +86,14 @@ export declare abstract class StyleSheets {
 	borderLeft?: types.BorderIn; //!<
 	borderWidth?: number[] | number; //!<
 	borderColor?: types.ColorIn[] | types.ColorIn; //!<
-	borderWidthTop?: number; //!< border width
-	borderWidthRight?: number; //!<
-	borderWidthBottom?: number; //!<
-	borderWidthLeft?: number; //!<
-	borderColorTop?: types.ColorIn; //!< border color
-	borderColorRight?: types.ColorIn; //!<
-	borderColorBottom?: types.ColorIn; //!<
-	borderColorLeft?: types.ColorIn; //!<
+	borderTopWidth?: number; //!< border width
+	borderRightWidth?: number; //!<
+	borderBottomWidth?: number; //!<
+	borderLeftWidth?: number; //!<
+	borderTopColor?: types.ColorIn; //!< border color
+	borderRightColor?: types.ColorIn; //!<
+	borderBottomColor?: types.ColorIn; //!<
+	borderLeftColor?: types.ColorIn; //!<
 	backgroundColor?: types.ColorIn; //!<
 	background?: types.BoxFilterIn; //!<
 	boxShadow?: types.BoxShadowIn; //!<

@@ -270,6 +270,7 @@ namespace qk {
 		NoneUntilMouseMoves,
 		Arrow,
 		Ibeam,
+		Text = Ibeam,
 		PointingHand,
 		ClosedHand,
 		OpenHand,

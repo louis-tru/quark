@@ -252,6 +252,9 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** View runtime type (for optimized branching and RTTI). */
 	readonly viewType: ViewType;
 
+	/** Whether this view is a text input (Input or Textarea). */
+	readonly isTextInput: boolean;
+
 	/**
 	 * Final resolved position in layout coordinates.  
 	 * 
@@ -454,6 +457,15 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 */
 	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult;
 
+	/** Cast helper: return this view as a TextOptions if it is one, otherwise null. */
+	asTextOptions(): TextOptions | null;
+
+	/** Cast helper: return this view as a ScrollView if it is one, otherwise null. */
+	asScrollView(): ScrollView | null;
+
+	/** Cast helper: return this view as a Button if it is one, otherwise null. */
+	asButton(): Button | null;
+
 	/**
 	 * Cast helper: return this view as a MorphView if it is one, otherwise null.
 	 */
@@ -547,13 +559,13 @@ export declare class Box extends View {
 	/** Corner radii (tl,tr,br,bl). */
 	borderRadius: number[];
 	/** Corner radius top-left. */
-	borderRadiusLeftTop: number;
+	borderTopLeftRadius: number;
 	/** Corner radius top-right. */
-	borderRadiusRightTop: number;
+	borderTopRightRadius: number;
 	/** Corner radius bottom-right. */
-	borderRadiusRightBottom: number;
+	borderBottomRightRadius: number;
 	/** Corner radius bottom-left. */
-	borderRadiusLeftBottom: number;
+	borderBottomLeftRadius: number;
 
 	/** Border descriptors for each edge. */
 	border: types.Border[];
@@ -569,24 +581,24 @@ export declare class Box extends View {
 	/** Border widths per edge (top,right,bottom,left). */
 	borderWidth: number[];
 	/** Border width top. */
-	borderWidthTop: number;
+	borderTopWidth: number;
 	/** Border width right. */
-	borderWidthRight: number;
+	borderRightWidth: number;
 	/** Border width bottom. */
-	borderWidthBottom: number;
+	borderBottomWidth: number;
 	/** Border width left. */
-	borderWidthLeft: number;
+	borderLeftWidth: number;
 
 	/** Border colors per edge (top,right,bottom,left). */
 	borderColor: types.Color[];
 	/** Border color top. */
-	borderColorTop: types.Color;
+	borderTopColor: types.Color;
 	/** Border color right. */
-	borderColorRight: types.Color;
+	borderRightColor: types.Color;
 	/** Border color bottom. */
-	borderColorBottom: types.Color;
+	borderBottomColor: types.Color;
 	/** Border color left. */
-	borderColorLeft: types.Color;
+	borderLeftColor: types.Color;
 
 	/** Solid background color. */
 	backgroundColor: types.Color;
@@ -1425,10 +1437,10 @@ export interface ScrollView extends Box {
 	lockDirection: boolean;
 
 	/** Current scroll X offset. */
-	scrollX: number;
+	scrollLeft: number;
 
 	/** Current scroll Y offset. */
-	scrollY: number;
+	scrollTop: number;
 
 	/** Current scroll offset as Vec2. */
 	scroll: Vec2;
@@ -1497,8 +1509,8 @@ export declare class Textarea extends Input implements ScrollView {
 	bounceLock: boolean;
 	momentum: boolean;
 	lockDirection: boolean;
-	scrollX: number;
-	scrollY: number;
+	scrollLeft: number;
+	scrollTop: number;
 	scroll: Vec2;
 	resistance: number;
 	catchPositionX: number;
@@ -1533,8 +1545,8 @@ export declare class Scroll extends Box implements ScrollView {
 	bounceLock: boolean;
 	momentum: boolean;
 	lockDirection: boolean;
-	scrollX: number;
-	scrollY: number;
+	scrollLeft: number;
+	scrollTop: number;
 	scroll: Vec2;
 	resistance: number;
 	catchPositionX: number;
@@ -1710,10 +1722,10 @@ declare global {
 			paddingBottom?: number;
 			paddingLeft?: number;
 			borderRadius?: number[] | number;
-			borderRadiusLeftTop?: number;
-			borderRadiusRightTop?: number;
-			borderRadiusRightBottom?: number;
-			borderRadiusLeftBottom?: number;
+			borderTopLeftRadius?: number;
+			borderTopRightRadius?: number;
+			borderBottomRightRadius?: number;
+			borderBottomLeftRadius?: number;
 			border?: types.BorderIn[] | types.BorderIn; // border
 			borderTop?: types.BorderIn;
 			borderRight?: types.BorderIn;
@@ -1721,14 +1733,14 @@ declare global {
 			borderLeft?: types.BorderIn;
 			borderWidth?: number[] | number;
 			borderColor?: types.ColorIn[] | types.ColorIn;
-			borderWidthTop?: number; // border width
-			borderWidthRight?: number;
-			borderWidthBottom?: number;
-			borderWidthLeft?: number;
-			borderColorTop?: types.ColorIn; // border color
-			borderColorRight?: types.ColorIn;
-			borderColorBottom?: types.ColorIn;
-			borderColorLeft?: types.ColorIn;
+			borderTopWidth?: number; // border width
+			borderRightWidth?: number;
+			borderBottomWidth?: number;
+			borderLeftWidth?: number;
+			borderTopColor?: types.ColorIn; // border color
+			borderRightColor?: types.ColorIn;
+			borderBottomColor?: types.ColorIn;
+			borderLeftColor?: types.ColorIn;
 			backgroundColor?: types.ColorIn;
 			background?: types.BoxFilterIn;
 			boxShadow?: types.BoxShadowIn;
@@ -1891,8 +1903,8 @@ declare global {
 			bounceLock?: boolean;
 			momentum?: boolean;
 			lockDirection?: boolean;
-			scrollX?: number;
-			scrollY?: number;
+			scrollLeft?: number;
+			scrollTop?: number;
 			scroll?: Vec2In;
 			resistance?: number;
 			catchPositionX?: number;

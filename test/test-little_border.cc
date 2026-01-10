@@ -78,7 +78,7 @@ Qk_TEST_Func(little_border) {
 		b0->set_background_color({255,0,0,128});
 		b0->set_width({150});
 		b0->set_height({150});
-		b0->set_border_radius_right_top(80);
+		b0->set_border_top_right_radius(80);
 		//b0->set_margin_top(0.3);
 		b0 = m0->append_new<Box>();
 		b0->set_background_color({255,0,0,128});

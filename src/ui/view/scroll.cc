@@ -807,20 +807,20 @@ namespace qk {
 		}, _this, 0);
 	}
 
-	float ScrollView::scroll_x() const {
+	float ScrollView::scroll_left() const {
 		return -_scroll.load().x();
 	}
 
-	float ScrollView::scroll_y() const {
+	float ScrollView::scroll_top() const {
 		return -_scroll.load().y();
 	}
 
-	void ScrollView::set_scroll_x(float value) {
-		set_scroll({value, -_scroll.load()[1]}, false);
+	void ScrollView::set_scroll_left(float value) {
+		set_scroll({value, -_scroll.load().y()}, false);
 	}
 
-	void ScrollView::set_scroll_y(float value) {
-		set_scroll({-_scroll.load()[0], value}, false);
+	void ScrollView::set_scroll_top(float value) {
+		set_scroll({-_scroll.load().x(), value}, false);
 	}
 
 	Vec2 ScrollView::scroll() const {
@@ -899,8 +899,8 @@ namespace qk {
 
 	Vec2 Scroll::layout_offset_inside() {
 		Vec2 offset(
-			padding_left() - scroll_x(),
-			padding_top() - scroll_y()
+			padding_left() - scroll_left(),
+			padding_top() - scroll_top()
 		);
 		auto _border = this->_border.load();
 		if (_border) {

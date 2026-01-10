@@ -105,4 +105,7 @@ declare global {
 		// [K in keyof T as T[K] extends (...args: any[]) => any ? never : K]: T[K]
 		[K in keyof T as NonNullable<T[K]> extends Function ? never : K]: T[K]
 	}
+
+	// type NonNullableValue<T> = T extends null | undefined ? never : T;
+	// type NonNullableValue<T> = NonNullable<T>;
 }
