@@ -329,7 +329,7 @@ export class EventNoticer<E extends Event = Event> {
 	 *	}, ctx, id)
 	 *	```
 	 */
-	on<Ctx extends object>(listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
+	on<Ctx extends object, E2 extends E>(listen: Listen<E2, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
 		return this._add(listen, listen, ctxOrId, id);
 	}
@@ -353,7 +353,7 @@ export class EventNoticer<E extends Event = Event> {
 	 * }, ctx)
 	 * ```
 	 */
-	on2<Ctx extends object>(listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
+	on2<Ctx extends object, E2 extends E>(listen: Listen2<E2, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
 		return this._add(listen, { call: listen }, ctxOrId, id);
 	}
@@ -533,7 +533,7 @@ export class Notification<E extends Event = Event> {
 	/**
 	 * @method addDefaultListener(name,listen)
 	 */
-	addDefaultListener(name: string, listen: Listen<E> | null) {
+	addDefaultListener<E2 extends E>(name: string, listen: Listen<E2> | null) {
 		if (listen) {
 			this.addEventListener(name, listen, '0'); // default id 0
 		} else { // delete default listener
@@ -544,7 +544,7 @@ export class Notification<E extends Event = Event> {
 	/**
 	 * call: [`EventNoticer.on(listen,ctxOrId?,id?)`]
 	 */
-	addEventListener<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
+	addEventListener<Ctx extends object, E2 extends E>(name: string, listen: Listen<E2, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.on(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
@@ -554,7 +554,7 @@ export class Notification<E extends Event = Event> {
 	/**
 	 * call: [`EventNoticer.on2(listen,ctxOrId?,id?)`]
 	 */
-	addEventListener2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
+	addEventListener2<Ctx extends object, E2 extends E>(name: string, listen: Listen2<E2, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.on2(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
@@ -564,7 +564,7 @@ export class Notification<E extends Event = Event> {
 	/** 
 	 * call: [`EventNoticer.forward(noticer,id?)`]
 	*/
-	addEventForward(name: string, noticer: EventNoticer<E>, id?: string): string {
+	addEventForward<E2 extends E>(name: string, noticer: EventNoticer<E2>, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.forward(noticer, id);
 		this.triggerListenerChange(name, del.length, 1);

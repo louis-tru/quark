@@ -429,15 +429,15 @@ namespace qk {
 	}
 
 	void Window::setCursorStyle(CursorStyle cursor, bool isBase) {
-		static CursorStyle current_cursor_base = CursorStyle::Arrow;
-		static CursorStyle current_cursor_user = CursorStyle::Normal;
+		static CursorStyle current_cursor_base = CursorStyle::Arrow; // base cursor style
+		static CursorStyle current_cursor = CursorStyle::Normal; // current cursor style
 
 		if (isBase) {
 			current_cursor_base = cursor;
 		} else {
-			current_cursor_user = cursor;
+			current_cursor = cursor;
 		}
-		cursor = current_cursor_user == CursorStyle::Normal ? current_cursor_base: current_cursor_user;
+		cursor = current_cursor == CursorStyle::Normal ? current_cursor_base: current_cursor;
 
 		post_messate_main(Cb([this, cursor](auto e) {
 			if (!_impl) return;

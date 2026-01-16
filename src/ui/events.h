@@ -36,6 +36,7 @@
 /* can bubble event */ \
 F(Click, Click, kBubble_UIEventFlags) \
 F(Back, Click, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(MultiClick, Click, kBubble_UIEventFlags) \
 F(KeyDown, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(KeyPress, Keyboard, kBubble_UIEventFlags) \
 F(KeyUp, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \

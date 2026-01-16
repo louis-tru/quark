@@ -46,11 +46,11 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ENTER] = KEYCODE_ENTER;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SHIFT_LEFT] = KEYCODE_SHIFT;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_SHIFT_RIGHT] = KEYCODE_SHIFT;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_SHIFT_RIGHT] = KEYCODE_SHIFT_RIGHT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CTRL_LEFT] = KEYCODE_CTRL;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_CTRL_RIGHT] = KEYCODE_CTRL;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_CTRL_RIGHT] = KEYCODE_CTRL_RIGHT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ALT_LEFT] = KEYCODE_ALT;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_ALT_RIGHT] = KEYCODE_ALT;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_ALT_RIGHT] = KEYCODE_ALT_RIGHT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_BREAK] = KEYCODE_BREAK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CAPS_LOCK] = KEYCODE_CAPS_LOCK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ESCAPE] = KEYCODE_ESC;
@@ -103,9 +103,9 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_X] = KEYCODE_X;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_Y] = KEYCODE_Y;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_Z] = KEYCODE_Z;
-		// _PlatformKeyCodeToKeyCode[AKEYCODE_COMMAND] = KEYCODE_COMMAND; // Pending query
+		_PlatformKeyCodeToKeyCode[AKEYCODE_META_LEFT] = KEYCODE_COMMAND;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_MENU] = KEYCODE_MENU;
-		// _PlatformKeyCodeToKeyCode[AKEYCODE_COMMAND] = KEYCODE_COMMAND_RIGHT; // Pending query
+		_PlatformKeyCodeToKeyCode[AKEYCODE_META_RIGHT] = KEYCODE_COMMAND_RIGHT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_EQUALS] = KEYCODE_NUMPAD_EQUALS;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_0] = KEYCODE_NUMPAD_0;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_1] = KEYCODE_NUMPAD_1;

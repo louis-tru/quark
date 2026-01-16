@@ -115,8 +115,8 @@ namespace qk { namespace js {
 			// Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 			// Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host main loop
 
-			Js_Class_Accessor_Get(focusView, {
-				Js_Return( self->focusView() );
+			Js_Class_Accessor_Get(activeView, {
+				Js_Return( self->activeView() );
 			});
 
 			Js_Class_Accessor_Get(surfaceSize, {

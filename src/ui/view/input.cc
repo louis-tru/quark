@@ -138,6 +138,7 @@ namespace qk {
 						self->_flag = kFlag_Normal;
 					} else {
 						if (!self->is_focus())
+							// request focus again in render thread
 							self->pre_render().post(Cb([self](auto &e) { self->focus(); }), self);
 						self->handle_Focus_for_render_t();
 						self->find_cursor(arg.arg);

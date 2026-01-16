@@ -86,6 +86,14 @@ export declare class ActionEvent extends UIEvent {
 	readonly looped: number;
 }
 
+/** Keyboard location on the device */
+export enum KeyboardLocation {
+	Standard = 0,
+	Left = 1,
+	Right = 2,
+	Numpad = 3,
+}
+
 /**
  * @class KeyEvent
  * @extends UIEvent
@@ -95,8 +103,12 @@ export declare class KeyEvent extends UIEvent {
 	nextFocus: View | null;
 	/** Keyboard Code */
 	readonly keycode: KeyboardKeyCode;
+	/** Keyboard code for physical key */
+	readonly code: KeyboardKeyCode;
 	/** Ascii code converted from keyboard code */
 	readonly keypress: number;
+	/** The location of the key on the keyboard or device */
+	readonly location: KeyboardLocation;
 	/** The number of times the event is triggered repeatedly after the key is pressed
 	 * until the key is released */
 	readonly repeat: number;
@@ -106,7 +118,7 @@ export declare class KeyEvent extends UIEvent {
 	readonly ctrl: boolean;
 	/** Is the alt key pressed */
 	readonly alt: boolean;
-	/** Is the command key pressed */
+	/** Is the command/meta/windows key pressed */
 	readonly command: boolean;
 	/** Is capsLock enabled */
 	readonly capsLock: boolean;
@@ -136,9 +148,11 @@ export declare class ClickEvent extends KeyEvent {
 	/** The cursor position in the window */
 	readonly position: Vec2;
 	/** Number of consecutive clicks, possibly double clicks */
-	readonly count: number;
+	readonly multiCount: number;
 	/** Click trigger type */
 	readonly type: ClickType;
+	/** Whether it is a multi-click event */
+	readonly isMultiClick: boolean;
 }
 
 /**
@@ -148,6 +162,8 @@ export declare class ClickEvent extends KeyEvent {
 export declare class MouseEvent extends KeyEvent {
 	/** The cursor position in the window */
 	readonly position: Vec2;
+	/** The Wheel delta only */
+	readonly delta: Vec2;
 	/** The current view level under the mouse cursor */ 
 	readonly level: Uint;
 }
@@ -204,6 +220,8 @@ export interface TouchPoint {
 export declare class TouchEvent extends UIEvent {
 	/** Touch point collection */
 	readonly changedTouches: TouchPoint[];
+	/** first touch point position */
+	readonly position: Vec2;
 }
 
 /**

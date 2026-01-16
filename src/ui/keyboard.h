@@ -44,9 +44,9 @@ namespace qk {
 		KEYCODE_TAB =              9,   /* tab */
 		KEYCODE_CLEAR =            12,  /* clear */
 		KEYCODE_ENTER =            13,  /* enter */
-		KEYCODE_SHIFT =            16,  /* shift */
-		KEYCODE_CTRL =             17,  /* ctrl */
-		KEYCODE_ALT =              18,  /* alt */
+		KEYCODE_SHIFT =            16,  /* shift or left shift */
+		KEYCODE_CTRL =             17,  /* ctrl or left ctrl */
+		KEYCODE_ALT =              18,  /* alt or left alt */
 		KEYCODE_BREAK =            19,  /* break / pause */
 		KEYCODE_CAPS_LOCK =        20,  /* caps lock */
 		KEYCODE_ESC =              27,  /* esc */
@@ -63,16 +63,16 @@ namespace qk {
 		KEYCODE_INSERT =           45,  /* insert */
 		KEYCODE_DELETE =           46,  /* delete */
 		KEYCODE_HELP =             47,  /* help */
-		KEYCODE_0 =                48,  /* 0 ) */
-		KEYCODE_1 =                49,  /* 1 ! */
-		KEYCODE_2 =                50,  /* 2 @ */
-		KEYCODE_3 =                51,  /* 3 # */
-		KEYCODE_4 =                52,  /* 4 $ */
-		KEYCODE_5 =                53,  /* 5 % */
-		KEYCODE_6 =                54,  /* 6 ^ */
-		KEYCODE_7 =                55,  /* 7 & */
-		KEYCODE_8 =                56,  /* 8 * */
-		KEYCODE_9 =                57,  /* 9 ( */
+		KEYCODE_NUM_0 =            48,  /* 0 ) */
+		KEYCODE_NUM_1 =            49,  /* 1 ! */
+		KEYCODE_NUM_2 =            50,  /* 2 @ */
+		KEYCODE_NUM_3 =            51,  /* 3 # */
+		KEYCODE_NUM_4 =            52,  /* 4 $ */
+		KEYCODE_NUM_5 =            53,  /* 5 % */
+		KEYCODE_NUM_6 =            54,  /* 6 ^ */
+		KEYCODE_NUM_7 =            55,  /* 7 & */
+		KEYCODE_NUM_8 =            56,  /* 8 * */
+		KEYCODE_NUM_9 =            57,  /* 9 ( */
 		KEYCODE_A =                65,  /* a-z */
 		KEYCODE_B =                66,
 		KEYCODE_C =                67,
@@ -145,6 +145,9 @@ namespace qk {
 		KEYCODE_F24 =              135,
 		KEYCODE_NUM_LOCK =         144, /* num lock */
 		KEYCODE_SCROLL_LOCK =      145, /* SCROLL_LOCK */
+		KEYCODE_SHIFT_RIGHT =      160, /* right shift */
+		KEYCODE_CTRL_RIGHT =       161, /* right ctrl */
+		KEYCODE_ALT_RIGHT =        162, /* right alt */
 		KEYCODE_SEMICOLON =        186,  /* ; : */
 		KEYCODE_EQUALS =           187,  /* = + */
 		KEYCODE_MINUS =            189,  /* - _ */
@@ -201,6 +204,14 @@ namespace qk {
 		KEYCODE_ZOOM_OUT =         334,  /* 缩小键 */
 	};
 
+	// Location values for keys that can appear in more than one location
+	enum KeyboardLocation {
+		kSTANDARD_LOCATION = 0,
+		kLEFT_LOCATION     = 1,
+		kRIGHT_LOCATION    = 2,
+		kNUMPAD_LOCATION   = 3
+	};
+
 	/**
 	* @class KeyboardAdapter
 	*/
@@ -209,7 +220,9 @@ namespace qk {
 		typedef int Ascii;
 		Qk_DEFINE_PROP_GET(EventDispatch*, host);
 		Qk_DEFINE_PROP_GET(KeyboardKeyCode, keycode, Const);
+		Qk_DEFINE_PROP_GET(KeyboardKeyCode, code, Const);
 		Qk_DEFINE_PROP_GET(Ascii, keypress, Const);
+		Qk_DEFINE_PROP_GET(KeyboardLocation, location, Const);
 		Qk_DEFINE_PROP_GET(bool, shift, Const);
 		Qk_DEFINE_PROP_GET(bool, alt, Const);
 		Qk_DEFINE_PROP_GET(bool, ctrl, Const);

@@ -153,6 +153,8 @@ export declare class View extends Notification<UIEvent> implements DOM {
 
 	/** @event Fired on pointer/touch "click"-like activation. */
 	readonly onClick: EventNoticer<ClickEvent>;
+	/** @event Fired on pointer/touch multi-click (double-click, etc.). */
+	readonly onMultiClick: EventNoticer<ClickEvent>;
 	/** @event Fired on back navigation intent (e.g. hardware back). */
 	readonly onBack: EventNoticer<ClickEvent>;
 
@@ -480,6 +482,15 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 * Cast helper: return this view as an Agent if it is one, otherwise null.
 	 */
 	asAgent(): Agent | null;
+
+	/** Check if this view has a given CSS class name. */
+	hasClass(name: string): boolean;
+
+	/** Add a CSS class name to this view. */
+	addClass(name: string): void;
+
+	/** Add a CSS class name to this view. */
+	removeClass(name: string): void;
 
 	/**
 	 * Create a new View instance bound to a given Window.
@@ -1661,6 +1672,7 @@ declare global {
 	namespace JSX {
 		interface ViewJSX {
 			onClick?: Listen<ClickEvent, View> | null;
+			onMultiClick?: Listen<ClickEvent, View> | null;
 			onBack?: Listen<ClickEvent, View> | null;
 			onKeyDown?: Listen<KeyEvent, View> | null;
 			onKeyPress?: Listen<KeyEvent, View> | null;
@@ -2214,6 +2226,7 @@ class GestureManager {
 
 class _View extends NativeNotification<UIEvent> {
 	@event readonly onClick: EventNoticer<ClickEvent>;
+	@event readonly onMultiClick: EventNoticer<ClickEvent>;
 	@event readonly onBack: EventNoticer<ClickEvent>;
 	@event readonly onKeyDown: EventNoticer<KeyEvent>;
 	@event readonly onKeyPress: EventNoticer<KeyEvent>;

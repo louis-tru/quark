@@ -198,22 +198,25 @@ namespace qk { namespace js {
 			Js_Class_Method(add, {
 				String cls;
 				if (!args.length() || !args[0]->asString(worker).to(cls))
-					Js_Throw("@method CStyleSheetsClass.add(cString& name)");
+					// Js_Throw("@method CStyleSheetsClass.add(cString& name)");
+					return; // ignore
 				self->add(cls);
 			});
 
 			Js_Class_Method(remove, {
 				String cls;
 				if (!args.length() || !args[0]->asString(worker).to(cls))
-					Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
+					// Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
+					return; // ignore
 				self->remove(cls);
 			});
 
 			Js_Class_Method(toggle, {
 				String cls;
 				if (!args.length() || !args[0]->asString(worker).to(cls))
-					Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
-				self->toggle(cls);
+					// Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
+					Js_ReturnBool(false); // ignore
+				Js_ReturnBool(self->toggle(cls));
 			});
 
 			Js_Class_Method(clear, {
@@ -223,7 +226,8 @@ namespace qk { namespace js {
 			Js_Class_Method(has, {
 				String cls;
 				if (!args.length() || !args[0]->asString(worker).to(cls))
-					Js_Throw("@method CStyleSheetsClass.has(cString& name)");
+					// Js_Throw("@method CStyleSheetsClass.has(cString& name)");
+					Js_ReturnBool(false); // ignore
 				Js_ReturnBool(self->has(cls));
 			});
 

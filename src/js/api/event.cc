@@ -94,6 +94,9 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(KeyEvent, UIEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(KeyEvent, int, keycode, keycode);
+			Js_MixObject_Acce_Get(KeyEvent, int, code, code);
+			Js_MixObject_Acce_Get(KeyEvent, int, keypress, keypress);
+			Js_MixObject_Acce_Get(KeyEvent, int, location, location);
 			Js_MixObject_Acce_Get(KeyEvent, uint32_t, repeat, repeat);
 			Js_MixObject_Acce_Get(KeyEvent, bool, shift, shift);
 			Js_MixObject_Acce_Get(KeyEvent, bool, ctrl, ctrl);
@@ -123,8 +126,9 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ClickEvent, KeyEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(ClickEvent, Vec2, position, position);
-			Js_MixObject_Acce_Get(ClickEvent, uint32_t, count, count);
+			Js_MixObject_Acce_Get(ClickEvent, uint32_t, multi_count, multiCount);
 			Js_MixObject_Acce_Get(ClickEvent, int, type, type);
+			Js_MixObject_Acce_Get(ClickEvent, bool, is_multi_click, isMultiClick);
 			cls->exports("ClickEvent", exports);
 		}
 	};
@@ -143,6 +147,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(MouseEvent, KeyEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(MouseEvent, Vec2, position, position);
+			Js_MixObject_Acce_Get(MouseEvent, Vec2, delta, delta);
 			Js_MixObject_Acce_Get(MouseEvent, uint32_t, level, level);
 			cls->exports("MouseEvent", exports);
 		}
@@ -162,6 +167,8 @@ namespace qk { namespace js {
 				}
 				Js_Return(r);
 			});
+
+			Js_MixObject_Acce_Get(TouchEvent, Vec2, position, position);
 
 			cls->exports("TouchEvent", exports);
 		}

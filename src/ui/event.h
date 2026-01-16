@@ -136,12 +136,14 @@ namespace qk {
 	*/
 	class Qk_EXPORT KeyEvent: public UIEvent {
 	public:
-		KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
-						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+		KeyEvent(View* origin, KeyboardKeyCode keycode, KeyboardKeyCode code, int keypress,
+						KeyboardLocation location, bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
 		Qk_DEFINE_PROPERTY(View*, next_focus);
 		Qk_DEFINE_PROPERTY(KeyboardKeyCode, keycode, Const);
+		Qk_DEFINE_PROPERTY(KeyboardKeyCode, code, Const);
 		Qk_DEFINE_PROPERTY(int, keypress, Const);
+		Qk_DEFINE_PROPERTY(KeyboardLocation, location, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, device, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, source, Const);
@@ -163,8 +165,9 @@ namespace qk {
 		};
 		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count, KeyboardKeyCode keycode,
 			bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
+		bool is_multi_click() const { return _multi_count > 1; }
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, multi_count, Const);
 		Qk_DEFINE_PROP_GET(Type, type, Const);
 	};
 
@@ -173,9 +176,10 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode,
+		MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode,
 				bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
+		Qk_DEFINE_PROP_GET(Vec2, delta, Const); // mouse wheel delta only
 		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 	};
 
@@ -205,6 +209,7 @@ namespace qk {
 		cArray<TouchPoint>& changed_touches() const {
 			return _change_touches;
 		}
+		Vec2 position() const; // first touch point position
 		void release() override;
 	private:
 		Array<TouchPoint> _change_touches;
@@ -223,7 +228,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_PROP_GET(View*, focusView);
+		Qk_DEFINE_PROP_GET(View*, activeView);
 
 		EventDispatch(Window* win);
 		~EventDispatch();
@@ -250,7 +255,7 @@ namespace qk {
 		void setImeKeyboardCanBackspace(bool can_back_space, bool can_delete);
 		void setImeKeyboardClose();
 		void setImeKeyboardSpotRect(Rect rect);
-		bool setFocusView(View *view); // set focus from main thread
+		bool setActiveView(View *view); // set focus from main thread
 	private:
 		void touchstart_consume(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);
@@ -260,14 +265,14 @@ namespace qk {
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view_and_retain(Vec2 pos);
-		Sp<View> safe_focus_view();
+		Sp<View> safe_active_view();
 
 		class OriginTouche;
 		class MouseHandler;
 		Dict<View*, OriginTouche*> _origin_touches;
 		MouseHandler *_mouse;
 		std::atomic<TextInput*> _text_input;
-		Mutex _focus_view_mutex; // get set focus view mutex for main and render thread
+		Mutex _activeViewMutex; // get set focus view mutex for main and render thread
 		friend class View;
 		friend class View;
 	};

@@ -421,16 +421,17 @@ void Window::setFullscreen(bool fullscreen) {
 }
 
 void Window::setCursorStyle(CursorStyle cursor, bool isBase) {
-	static CursorStyle current_cursor_base = CursorStyle::Arrow;
-	static CursorStyle current_cursor_user = CursorStyle::Normal;
+	static CursorStyle current_cursor_base = CursorStyle::Arrow; // base cursor style
+	static CursorStyle current_cursor = CursorStyle::Normal; // current cursor style
 
 	if (isBase) {
 		current_cursor_base = cursor;
 	} else {
-		current_cursor_user = cursor;
+		current_cursor = cursor;
 	}
-	cursor = current_cursor_user == CursorStyle::Normal ? current_cursor_base: current_cursor_user;
-
+	// Event system is only allowed to modify base cursor style.
+	// Non-base cursor overrides all event-driven changes.
+	cursor = current_cursor == CursorStyle::Normal ? current_cursor_base: current_cursor;
 	if (cursor == CursorStyle::None) {
 		[NSCursor hide];
 	} else if (cursor == CursorStyle::NoneUntilMouseMoves) {

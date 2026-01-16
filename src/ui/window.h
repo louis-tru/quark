@@ -128,7 +128,7 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(bool, debugMode, Const); //! debug mode
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
-		Qk_DEFINE_ACCE_GET(View*, focusView); //! focus view
+		Qk_DEFINE_ACCE_GET(View*, activeView); //! focus active view
 
 		/**
 		 * @prop surfaceSize

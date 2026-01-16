@@ -37,7 +37,9 @@ namespace qk {
 
 	KeyboardAdapter::KeyboardAdapter()
 		: _keycode(KEYCODE_UNKNOWN)
+		, _code(KEYCODE_UNKNOWN)
 		, _keypress(0)
+		, _location(kSTANDARD_LOCATION)
 		, _shift(false)
 		, _alt(false)
 		, _ctrl(false)
@@ -196,6 +198,7 @@ namespace qk {
 		_device = device;
 		_source = source;
 		_caps_lock = isCapsLock;
+		_location = kSTANDARD_LOCATION;
 		onDispatch(code, isAscii, isDown);
 	}
 
@@ -220,26 +223,71 @@ namespace qk {
 			AsciiToKeyCode keycode;
 			if (_AsciiToKeyCode.get(code, keycode)) {
 				_shift = keycode.shift;
-				_keycode = keycode.code;
+				_keycode = _code = keycode.code;
 				_keypress = toKeypress(_keycode);
+				_location = kSTANDARD_LOCATION;
 			} else {
-				_keycode = KEYCODE_UNKNOWN;
+				_keycode = _code = KEYCODE_UNKNOWN;
 				_keypress = code;
+				_location = kSTANDARD_LOCATION;
 			}
 		} else {
-			if (_PlatformKeyCodeToKeyCode.get(code, _keycode)) {
-				switch ( _keycode ) {
-					case KEYCODE_SHIFT: _shift = isDown; break;
-					case KEYCODE_CTRL: _ctrl = isDown; break;
-					case KEYCODE_ALT: _alt = isDown; break;
+			if (_PlatformKeyCodeToKeyCode.get(code, _code)) {
+				switch ( _code ) {
+					case KEYCODE_SHIFT:
+						_location = kLEFT_LOCATION;
+						_keycode = KEYCODE_SHIFT;
+						_shift = isDown;
+						break;
+					case KEYCODE_SHIFT_RIGHT:
+						_location = kRIGHT_LOCATION;
+						_keycode = KEYCODE_SHIFT;
+						_shift = isDown;
+						break;
+					case KEYCODE_CTRL:
+						_location = kLEFT_LOCATION;
+						_keycode = KEYCODE_CTRL;
+						_ctrl = isDown;
+						break;
+					case KEYCODE_CTRL_RIGHT:
+						_location = kRIGHT_LOCATION;
+						_keycode = KEYCODE_CTRL;
+						_ctrl = isDown;
+						break;
+					case KEYCODE_ALT:
+						_location = kLEFT_LOCATION;
+						_keycode = KEYCODE_ALT;
+						_alt = isDown;
+						break;
+					case KEYCODE_ALT_RIGHT:
+						_location = kRIGHT_LOCATION;
+						_keycode = KEYCODE_ALT;
+						_alt = isDown;
+						break;
+					case KEYCODE_COMMAND:
+						_location = kLEFT_LOCATION;
+						_keycode = KEYCODE_COMMAND;
+						_command = isDown;
+						break;
 					case KEYCODE_COMMAND_RIGHT:
-					case KEYCODE_COMMAND: _command = isDown; break;
-					default: break;
+						_location = kRIGHT_LOCATION;
+						_keycode = KEYCODE_COMMAND;
+						_command = isDown;
+						break;
+					default:
+						_keycode = _code;
+						if ( _code >= KEYCODE_NUMPAD_EQUALS && _code <= KEYCODE_NUMPAD_DIVIDE ) {
+							_location = kNUMPAD_LOCATION;
+						} else {
+							_location = kSTANDARD_LOCATION;
+						}
+					break;
 				}
 				_keypress = toKeypress(_keycode);
 			} else { // Unknown keycode
-				_keycode = KEYCODE_UNKNOWN;
+				_keycode = _code = KEYCODE_UNKNOWN;
 				_keypress = 0;
+				_location = kSTANDARD_LOCATION;
 			}
 		}
 		//Qk_DLog("keycode: %d, %d, isDown: %i", code, _keycode, isDown);

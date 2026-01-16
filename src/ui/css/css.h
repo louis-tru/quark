@@ -215,7 +215,7 @@ namespace qk {
 		void set(cArray<String> &name); //!< Calling in the work loop
 		void add(cString &name); //!< Calling in the work loop
 		void remove(cString &name); //!< Calling in the work loop
-		void toggle(cString &name); //!< Calling in the work loop
+		bool toggle(cString &name); //!< Calling in the work loop
 		void clear(); //!< Calling in the work loop
 
 		/**

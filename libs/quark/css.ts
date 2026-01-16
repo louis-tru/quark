@@ -163,7 +163,7 @@ export declare class CStyleSheetsClass {
 	/**
 	 * Toggle between Add and Delete
 	*/
-	toggle(name: string): void;
+	toggle(name: string): boolean;
 
 	/**
 	 * Clear all stylesheet class selector names

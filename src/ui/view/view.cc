@@ -225,6 +225,21 @@ Range Container::to_range() const {
 		return cssclass;
 	}
 
+	bool View::has_class(cString& name) const {
+		_IfCssclass()
+			return _cssclass->has(name);
+		return false;
+	}
+
+	void View::add_class(cString& name) {
+		cssclass()->add(name);
+	}
+
+	void View::remove_class(cString& name) {
+		_IfCssclass()
+			_cssclass->remove(name);
+	}
+
 	MorphView* View::morph_view() {
 		auto v = this;
 		do {
@@ -478,7 +493,7 @@ Range Container::to_range() const {
 	}
 
 	bool View::is_focus() const {
-		return _window->dispatch()->focusView() == this;
+		return _window->dispatch()->activeView() == this;
 	}
 
 	Array<String> View::classNames() const {
@@ -777,9 +792,9 @@ Range Container::to_range() const {
 
 	void View::clear_level_rt() { //  clear view depth
 		auto win = _window;
-		if (win->dispatch()->focusView() == this) {
+		if (win->dispatch()->activeView() == this) {
 			pre_render().post(Cb([this,win](auto e) {
-				if (win->dispatch()->focusView() == this)
+				if (win->dispatch()->activeView() == this)
 					blur();
 			}),this);
 		}

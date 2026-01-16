@@ -117,8 +117,8 @@ namespace qk {
 		return _host->_loop;
 	}
 
-	View* Window::focusView() {
-		return _dispatch->focusView();
+	View* Window::activeView() {
+		return _dispatch->activeView();
 	}
 
 	Window* Window::Make(Options opts) {

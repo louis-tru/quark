@@ -90,20 +90,22 @@ namespace qk {
 		}, this, CSSCName(name_).hashCode());
 	}
 
-	void CStyleSheetsClass::toggle(cString &name) {
+	bool CStyleSheetsClass::toggle(cString &name) {
 		auto name_ = name.trim();
-		if (name_.is_empty()) return;
+		if (name_.is_empty()) return false;
 		if (_names.erase(name_)) { // removed
 			_async_call([](auto ctx, auto hash) {
 				ctx->_nameHash_rt.erase(hash.arg);
 				ctx->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
+			return false;
 		} else {
 			_names.add(name_); // add name
 			_async_call([](auto ctx, auto hash) {
 				ctx->_nameHash_rt.add(hash.arg);
 				ctx->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
+			return true;
 		}
 	}
 

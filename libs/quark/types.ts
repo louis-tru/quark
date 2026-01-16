@@ -476,6 +476,7 @@ export enum CursorStyle {
 	DragCopy, //!<
 	ContextualMenu, //!<
 	IbeamForVertical, //!<
+	Default = Arrow, //!< Default cursor style
 };
 
 /**

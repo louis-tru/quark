@@ -148,6 +148,19 @@ namespace qk { namespace js {
 				Js_ReturnBool( self->is_child(v) );
 			});
 
+			Js_Class_Method(hasClass, {
+				Js_Parse_Args(String, 0, "name = %s");
+				Js_ReturnBool( self->has_class(arg0) );
+			});
+			Js_Class_Method(addClass, {
+				Js_Parse_Args(String, 0, "name = %s");
+				self->add_class(arg0);
+			});
+			Js_Class_Method(removeClass, {
+				Js_Parse_Args(String, 0, "name = %s");
+				self->remove_class(arg0);
+			});
+
 			Js_Class_Method(before, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(

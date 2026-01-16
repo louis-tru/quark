@@ -101,9 +101,9 @@ declare class NativeWindow extends Notification<WEvent> {
 	readonly root: Root;
 
 	/**
-	 * Current focus view
+	 * Current active focus view
 	*/
-	readonly focusView: View;
+	readonly activeView: View;
 
 	/**
 	 * Navigation rect, possibly in the Android bottom navigation button area

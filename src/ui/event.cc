@@ -86,19 +86,23 @@ namespace qk {
 			}
 		}
 
-		void trigger_click(UIEvent &evt) {
-			bubble_trigger(UIEvent_Click, evt);
+		void trigger_click(ClickEvent &evt) {
+			bubble_trigger(evt.is_multi_click() ? UIEvent_MultiClick : UIEvent_Click, evt);
+			// Fallback focus handling:
+			// If a click occurs outside the current focused view hierarchy,
+			// and no view explicitly takes focus, reset focus to root.
+			// This prevents stale or "ghost" focus after clicking unrelated areas.
 			if ( evt.is_default() ) {
-				auto focus_view = _window->dispatch()->_focusView;
+				auto focus_view = _window->dispatch()->_activeView;
 				auto root = _window->root();
 				if (focus_view != evt.origin() && focus_view != root) {
 					if (!focus_view->is_child(evt.origin())) {
-						root->focus(); // root
+						root->focus(); // fallback focus target
 					}
 				}
 			}
 		}
-		
+
 		void trigger_UIStateChange(UIStateEvent &evt) {
 			bubble_trigger(UIEvent_UIStateChange, evt);
 			if ( evt.is_default() ) {
@@ -119,9 +123,9 @@ namespace qk {
 		if ( is_focus() ) return true;
 
 		auto dispatch = _window->dispatch();
-		auto old = dispatch->focusView();
+		auto old = dispatch->activeView();
 
-		if ( !dispatch->setFocusView(this) ) {
+		if ( !dispatch->setActiveView(this) ) {
 			return false;
 		}
 		if ( old ) {
@@ -164,11 +168,11 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	KeyEvent::KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
-										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-										uint32_t repeat, int device, int source)
-		: UIEvent(origin), _keycode(keycode), _keypress(keypress)
-		, _device(device), _source(source), _repeat(repeat), _shift(shift)
+	KeyEvent::KeyEvent(View* origin, KeyboardKeyCode keycode, KeyboardKeyCode code, int keypress,
+				KeyboardLocation location,  bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
+				uint32_t repeat, int device, int source)
+		: UIEvent(origin), _keycode(keycode), _code(code), _keypress(keypress)
+		, _location(location), _device(device), _source(source), _repeat(repeat), _shift(shift)
 		, _ctrl(ctrl), _alt(alt), _command(command)
 		, _caps_lock(caps_lock), _next_focus(nullptr)
 	{}
@@ -190,15 +194,15 @@ namespace qk {
 	ClickEvent::ClickEvent(View* origin, Vec2 position, Type type, uint32_t count,
 			KeyboardKeyCode keycode,
 			bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
-		: KeyEvent(origin, keycode, 0, shift, ctrl, alt, command, caps_lock
+		: KeyEvent(origin, keycode, keycode, 0, kSTANDARD_LOCATION, shift, ctrl, alt, command, caps_lock
 			, 0, 0, 0
-		), _position(position), _count(count), _type(type)
+		), _position(position), _multi_count(count), _type(type)
 	{}
 
-	MouseEvent::MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode,
+	MouseEvent::MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
-		: KeyEvent(origin, keycode, 0, shift, ctrl, alt, command, caps_lock, 0, 0, 0
-		), _position(position), _level(origin->level())
+		: KeyEvent(origin, keycode, keycode, 0, kSTANDARD_LOCATION, shift, ctrl, alt, command, caps_lock, 0, 0, 0
+		), _position(pos), _delta(delta), _level(origin->level())
 	{}
 
 	Sp<ClickEvent> NewClick(View* view, Vec2 pos,
@@ -212,10 +216,10 @@ namespace qk {
 		);
 	}
 
-	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, KeyboardKeyCode keycode) {
+	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode) {
 		auto dispatch = view->window()->dispatch();
 		auto keyboard = dispatch->keyboard();
-		return NewEvent<MouseEvent>(view, pos, keycode,
+		return NewEvent<MouseEvent>(view, pos, delta, keycode,
 			keyboard->shift(),
 			keyboard->ctrl(), keyboard->alt(),
 			keyboard->command(), keyboard->caps_lock()
@@ -229,6 +233,12 @@ namespace qk {
 	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
 		: UIEvent(origin), _change_touches(touches)
 	{}
+
+	Vec2 TouchEvent::position() const {
+		if (_change_touches.length() > 0)
+			return _change_touches[0].position;
+		return {};
+	}
 
 	void TouchEvent::release() {
 		for (auto& touch : _change_touches)
@@ -267,33 +277,44 @@ namespace qk {
 	// M o u s e H a n d l e r
 	class EventDispatch::MouseHandler {
 	public:
-		MouseHandler(): _view(nullptr), _down_view(nullptr) {}
-		~MouseHandler() {
-			Releasep(_view);
-			Releasep(_down_view);
-		}
-		View* view() { return _view; }
-		View* down_view() { return _down_view; }
+		constexpr static uint32_t DBLCLICK_INTERVAL = 400;
+		MouseHandler() {}
+		View* view() { return _view.get(); }
+		View* down_view() { return _downView.get(); }
 		Vec2 position() { return _position; }
 		Vec2 down_view_pos() { return _down_v_pos; }
 		Vec2 down_pos() { return _down_pos; }
 		void set_position(Vec2 value) { _position = value; }
 		void set_down_view_mt(View* view) {
-			Release(_down_view);
+			_downView = view;
 			if (view) {
-				view->retain();
 				_down_v_pos = view->position();
 				_down_pos = _position;
 			}
-			_down_view = view;
+			if (!view) {
+				_lastClick = nullptr; // clear reference
+			}
 		}
 		void set_view_mt(View* view) {
-			Release(_view);
-			Retain(view);
 			_view = view;
 		}
+		int multiclick(View* view) {
+			uint64_t timestamp = time_millisecond();
+			if ( _lastClick.get() == view ) {
+				if ( timestamp - _clickTimestamp <= DBLCLICK_INTERVAL ) {
+					_clickTimestamp = 0;
+					_lastClick = nullptr; // clear reference
+					return 2;
+				}
+			}
+			_lastClick = view;
+			_clickTimestamp = timestamp;
+			return 1;
+		}
 	private:
-		View *_view, *_down_view;
+		Sp<View> _view, _downView,
+				_lastClick; // last click view
+		uint64_t _clickTimestamp = 0;
 		Vec2 _position;
 		Vec2 _down_v_pos, _down_pos;
 	};
@@ -304,7 +325,7 @@ namespace qk {
 	EventDispatch::EventDispatch(Window* win)
 		: _window(win)
 		, _host(win->host())
-		, _text_input(nullptr), _focusView(nullptr)
+		, _text_input(nullptr), _activeView(nullptr)
 	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
@@ -314,28 +335,28 @@ namespace qk {
 	EventDispatch::~EventDispatch() {
 		for (auto& i : _origin_touches)
 			delete i.second;
-		if ( _focusView ) {
-			_focusView->release();
-			_focusView = nullptr;
+		if ( _activeView ) {
+			_activeView->release();
+			_activeView = nullptr;
 		}
 		Release(_keyboard);
 		delete _mouse;
 	}
 
-	Sp<View> EventDispatch::safe_focus_view() {
-		ScopeLock lock(_focus_view_mutex);
-		return Sp<View>(_focusView);
+	Sp<View> EventDispatch::safe_active_view() {
+		ScopeLock lock(_activeViewMutex);
+		return Sp<View>(_activeView);
 	}
 
-	bool EventDispatch::setFocusView(View *view) {
-		if ( _focusView != view ) {
+	bool EventDispatch::setActiveView(View *view) {
+		if ( _activeView != view ) {
 			if ( view->_level && view->can_become_focus() ) {
-				Lock lock(_focus_view_mutex);
-				if ( _focusView ) {
-					_focusView->release(); // unref
+				Lock lock(_activeViewMutex);
+				if ( _activeView ) {
+					_activeView->release(); // unref
 				}
-				_focusView = view;
-				_focusView->retain(); // strong ref
+				_activeView = view;
+				_activeView->retain(); // strong ref
 				lock.unlock();
 				// set text input
 				auto input = view->asTextInput();
@@ -654,7 +675,7 @@ namespace qk {
 
 	void EventDispatch::mousemove(View *view, Vec2 pos) {
 		// always trigger mouse move that is to ensure the continuity of move events, even view first enters
-		auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
+		auto evt = NewMouseEvent(view, pos, {/*zero delta*/}, KEYCODE_UNKNOWN);
 		_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **evt);
 
 		View* v_down = _mouse->down_view();
@@ -682,7 +703,7 @@ namespace qk {
 			if (old) {
 				// Can trigger the MouseOut event here.
 				if (!old->is_child(view)) {
-					auto evt = NewMouseEvent(old, pos, KEYCODE_UNKNOWN);
+					auto evt = NewMouseEvent(old, pos, {}, KEYCODE_UNKNOWN);
 					_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 				}
 				_inl_view(old)->trigger_UIStateChange( // emit style status event
@@ -693,7 +714,7 @@ namespace qk {
 			_window->setCursorStyle(view->cursor_style_exec(), true);
 
 			if (!old || !view->is_child(old)) {
-				auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
+				auto evt = NewMouseEvent(view, pos, {}, KEYCODE_UNKNOWN);
 				_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 			}
 			auto status = view == v_down || view->is_child(v_down) ?
@@ -706,7 +727,7 @@ namespace qk {
 		if (_mouse->view() != view) {
 			mousemove(view, pos); // ensure mouse move to this view first
 		}
-		Sp<MouseEvent> evt = NewMouseEvent(view, pos, code);
+		Sp<MouseEvent> evt = NewMouseEvent(view, pos, {}, code);
 		Sp<View> v_down = _mouse->down_view();
 
 		if (down) {
@@ -729,7 +750,9 @@ namespace qk {
 				**NewEvent<UIStateEvent>(view, kHover_UIState)); // emit style status event
 
 			if (view == *v_down || view->is_child(*v_down)) {
-				_inl_view(view)->trigger_click(**NewClick(view, pos, ClickEvent::kMouse, code));
+				// trigger click event or dblclick event
+				auto count = _mouse->multiclick(view);
+				_inl_view(view)->trigger_click(**NewClick(view, pos, ClickEvent::kMouse, code, count) );
 			}
 		}
 	}
@@ -777,13 +800,20 @@ namespace qk {
 			case KEYCODE_MOUSE_WHEEL_LEFT:
 				deltaDefault = Vec2(10, 0); goto whell;
 			case KEYCODE_MOUSE_WHEEL_RIGHT:
+				// TODO future: maybe support WheelSource marker
+				// enum WheelSource {
+				// 	Mouse,      // 离散滚轮
+				// 	Touchpad,   // 连续触控板
+				// 	Unknown
+				// }
 				deltaDefault = Vec2(-10, 0); whell:
 				if (isDown) {
-					auto delta = val ? *val: deltaDefault;
+					auto delta = val ? *val: deltaDefault; // use default 10 units delta if not provided
+					auto pos = _mouse->position(); // last mouse pos
 					_loop->post(Cb([=](auto e) {
 						auto v = _mouse->view();
 						if (v)
-							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, delta, code));
+							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, pos, delta, code));
 					}));
 				}
 				break;
@@ -796,7 +826,9 @@ namespace qk {
 	static KeyEvent* NewKeyEvent(View* view, KeyboardAdapter* _keyboard) {
 		auto evt = new KeyEvent(view,
 			_keyboard->keycode(),
+			_keyboard->code(),
 			_keyboard->keypress(),
+			_keyboard->location(),
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
 			_keyboard->command(), _keyboard->caps_lock(),
@@ -806,7 +838,7 @@ namespace qk {
 	}
 
 	void EventDispatch::onKeyboardDown() {
-		auto safe_v = safe_focus_view();
+		auto safe_v = safe_active_view();
 		auto view = *safe_v;
 		if (!view) return;
 
@@ -876,7 +908,7 @@ namespace qk {
 	}
 
 	void EventDispatch::onKeyboardUp() {
-		auto safe_v = safe_focus_view();
+		auto safe_v = safe_active_view();
 		View* view = *safe_v;
 		if (!view) return;
 

@@ -365,6 +365,24 @@ namespace qk {
 		void remove_all_child();
 
 		/**
+		 * query whether the view has the specified class name
+		 * @method has_class(name)
+		*/
+		bool has_class(cString& name) const;
+
+		/**
+		 * add the specified class name to the view
+		 * @method add_class(name)
+		*/
+		void add_class(cString& name);
+
+		/**
+		 * remove the specified class name from the view
+		 * @method remove_class(name)
+		*/
+		void remove_class(cString& name);
+
+		/**
 		 * Returns as text input object
 		*/
 		virtual TextInput* asTextInput();

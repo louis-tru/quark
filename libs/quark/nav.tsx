@@ -207,7 +207,7 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 			this._iterator = this.navStack.pushBack(this);
 			let prev = this._iterator.prev;
 			if ( prev !== this.navStack.end ) {
-				let focus = this.window.focusView;
+				let focus = this.window.activeView;
 				prev.value._focusResume =
 					focus && prev.value.metaView.isChild(focus) ? focus : null;
 				prev.value.intoBackground(animate);
