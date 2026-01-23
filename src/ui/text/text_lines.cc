@@ -188,18 +188,18 @@ namespace qk {
 		}
 
 		if (_have_init_line_height) {
-			auto tf = opts->text_family().value->match(opts->font_style());
+			auto tf = opts->font_family().value->match(opts->font_style());
 			FontMetricsBase metrics;
-			tf->getMetrics(&metrics, opts->text_size().value);
-			set_line_height(&metrics, opts->text_line_height().value, opts->text_size().value);
+			tf->getMetrics(&metrics, opts->font_size().value);
+			set_line_height(&metrics, opts->line_height().value, opts->font_size().value);
 		}
 	}
 
-	void TextLines::set_have_init_line_height(float textSize, float line_height) {
+	void TextLines::set_have_init_line_height(float fontSize, float line_height) {
 		_have_init_line_height = true;
 		FontMetricsBase metrics;
-		shared_fontPool()->getUnitMetrics(&metrics, textSize);
-		set_line_height(&metrics, line_height, textSize);
+		shared_fontPool()->getUnitMetrics(&metrics, fontSize);
+		set_line_height(&metrics, line_height, fontSize);
 	}
 
 	void TextLines::set_line_height(float top, float bottom) {
@@ -214,7 +214,7 @@ namespace qk {
 		_last->line_height = _last->end_y - _last->start_y;
 	}
 
-	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height, float text_size) {
+	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height, float font_size) {
 		if (line_height == 0 && _last->line_height != 0) {
 			return; // use previous line height
 		}
@@ -222,7 +222,7 @@ namespace qk {
 		auto bottom = metrics->fDescent + metrics->fLeading;
 		if (_last->line_height == 0) { // first time init use max metrics
 			FontMetricsBase metrics;
-			shared_fontPool()->getUnitMetrics(&metrics, text_size);
+			shared_fontPool()->getUnitMetrics(&metrics, font_size);
 			top = Float32::max(-metrics.fAscent, top);
 			bottom = Float32::max(bottom, metrics.fDescent + metrics.fLeading);
 		}
@@ -368,7 +368,7 @@ namespace qk {
 		}
 
 		FontMetricsBase metrics;
-		auto height = pre.typeface->getMetrics(&metrics, pre.text_size);
+		auto height = pre.typeface->getMetrics(&metrics, pre.font_size);
 		auto ascent = -metrics.fAscent;
 		auto origin = _last->width;
 
@@ -386,7 +386,7 @@ namespace qk {
 		_last->width = origin + blob.blob.offset.back().x();
 
 		// if (!_have_init_line_height)
-		set_line_height(&metrics, pre.line_height, pre.text_size);
+		set_line_height(&metrics, pre.line_height, pre.font_size);
 	}
 
 	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {
@@ -394,9 +394,9 @@ namespace qk {
 		auto _blob = builder->blobOut();
 		auto line = _core->lineNum(); // current line
 		if (!_blob->length() || _blob->back().line != line) { // empty line
-			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
+			auto tf = _opts->font_family().value->match(_opts->font_style(), 0);
 			FontMetricsBase metrics;
-			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
+			auto height = tf->getMetrics(&metrics, _opts->font_size().value);
 			auto ascent = -metrics.fAscent;
 			auto origin = _last->width;
 

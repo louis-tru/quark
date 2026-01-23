@@ -441,11 +441,11 @@ namespace qk { namespace js {
 		return jsValue((uint32_t)value);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextWhiteSpace& value) {
+	JSValue* TypesParser::jsvalue(const WhiteSpace& value) {
 		return jsValue((uint32_t)value);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextWordBreak& value) {
+	JSValue* TypesParser::jsvalue(const WordBreak& value) {
 		return jsValue((uint32_t)value);
 	}
 
@@ -460,12 +460,12 @@ namespace qk { namespace js {
 		return _newTextColor->call(worker, 5, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextSize& value) {
+	JSValue* TypesParser::jsvalue(const FontSize& value) {
 		JSValue* args[] = {
 			jsValue((uint32_t)value.kind),
 			jsValue(value.value),
 		};
-		return _newTextSize->call(worker, 2, args);
+		return _newFontSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextShadow& value) {
@@ -494,23 +494,23 @@ namespace qk { namespace js {
 		return _newTextStroke->call(worker, 6, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextFamily& value) {
+	JSValue* TypesParser::jsvalue(const FontFamily& value) {
 		JSValue* args[] = {
 			jsValue((uint32_t)value.kind),
 			jsvalue(value.value),
 		};
-		return _newTextFamily->call(worker, 2, args);
+		return _newFontFamily->call(worker, 2, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextWeight& value) {
+	JSValue* TypesParser::jsvalue(const FontWeight& value) {
 		return jsValue((uint32_t)value);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextWidth& value) {
+	JSValue* TypesParser::jsvalue(const FontWidth& value) {
 		return jsValue((uint32_t)value);
 	}
 
-	JSValue* TypesParser::jsvalue(const TextSlant& value) {
+	JSValue* TypesParser::jsvalue(const FontSlant& value) {
 		return jsValue((uint32_t)value);
 	}
 
@@ -1069,17 +1069,17 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextWhiteSpace& out, cChar* msg) {
-		js_parse(TextWhiteSpace, {
+	bool TypesParser::parse(JSValue* in, WhiteSpace& out, cChar* msg) {
+		js_parse(WhiteSpace, {
 			// TODO: need to check type
-			out = (TextWhiteSpace)obj->toUint32(worker)->value();
+			out = (WhiteSpace)obj->toUint32(worker)->value();
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextWordBreak& out, cChar* msg) {
-		js_parse(TextWordBreak, {
+	bool TypesParser::parse(JSValue* in, WordBreak& out, cChar* msg) {
+		js_parse(WordBreak, {
 			// TODO: need to check type
-			out = (TextWordBreak)obj->toUint32(worker)->value();
+			out = (WordBreak)obj->toUint32(worker)->value();
 		});
 	}
 
@@ -1094,13 +1094,13 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextSize& out, cChar* msg) {
+	bool TypesParser::parse(JSValue* in, FontSize& out, cChar* msg) {
 		if (in->isNumber()) {
 			out.kind = TextValueKind::Value;
 			out.value = in->cast<JSNumber>()->float32();
 			return true;
 		}
-		js_parse(TextSize, {
+		js_parse(FontSize, {
 			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
 			out.value = obj->get(worker, strs->value())->cast<JSNumber>()->float32();
@@ -1133,32 +1133,32 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextFamily& out, cChar* msg) {
-		js_parse(TextFamily, {
+	bool TypesParser::parse(JSValue* in, FontFamily& out, cChar* msg) {
+		js_parse(FontFamily, {
 			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
 			return parse(obj->get(worker, strs->value()), out.value, msg);
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextWeight& out, cChar* msg) {
-		js_parse(TextWeight, {
+	bool TypesParser::parse(JSValue* in, FontWeight& out, cChar* msg) {
+		js_parse(FontWeight, {
 			// TODO: need to check type
-			out = (TextWeight)obj->toUint32(worker)->value();
+			out = (FontWeight)obj->toUint32(worker)->value();
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextWidth& out, cChar* msg) {
-		js_parse(TextWidth, {
+	bool TypesParser::parse(JSValue* in, FontWidth& out, cChar* msg) {
+		js_parse(FontWidth, {
 			// TODO: need to check type
-			out = (TextWidth)obj->toUint32(worker)->value();
+			out = (FontWidth)obj->toUint32(worker)->value();
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, TextSlant& out, cChar* msg) {
-		js_parse(TextSlant, {
+	bool TypesParser::parse(JSValue* in, FontSlant& out, cChar* msg) {
+		js_parse(FontSlant, {
 			// TODO: need to check type
-			out = (TextSlant)obj->toUint32(worker)->value();
+			out = (FontSlant)obj->toUint32(worker)->value();
 		});
 	}
 

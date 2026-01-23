@@ -40,16 +40,52 @@
 namespace qk {
 
 	/**
+	 * Input sink view, implement TextInput protocol only
+	*/
+	class Qk_EXPORT InputSink: public View, public TextInput {
+	public:
+		InputSink();
+		Qk_DEFINE_PROP_GET(String, marked_text, Const);
+		Qk_DEFINE_ACCE_GET(uint32_t, marked_text_length, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, cursor_index, Const); // marked text cursor position
+		// spotRect is an IME anchor only.
+		// It does not affect rendering or layout.
+		Qk_DEFINE_PROPERTY(Rect, spot_rect, Const);
+		Qk_DEFINE_PROPERTY(bool, can_delete, Const);
+		Qk_DEFINE_PROPERTY(bool, can_backspace, Const);
+		Qk_DEFINE_PROP_GET(bool, is_marked_text, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, readonly, Const);
+		Qk_DEFINE_VIEW_PROPERTY(KeyboardType, keyboard_type, Const);
+		Qk_DEFINE_VIEW_PROPERTY(KeyboardReturnType, return_type, Const);
+		void cancel_marked_text();
+		bool can_become_focus() override;
+		ViewType view_type() const override;
+		TextInput* asTextInput() override;
+		void input_delete(int count) override;
+		void input_insert(cString& text) override;
+		void input_marked(cString& text, int caret) override;
+		void input_unmark(cString& text) override;
+		void input_control(KeyboardCode name) override;
+		bool input_can_delete() override;
+		bool input_can_backspace() override;
+		Rect input_spot_rect() override;
+		void input_close() override;
+		KeyboardType input_keyboard_type() override;
+		KeyboardReturnType input_keyboard_return_type() override;
+		Object* asObject() override;
+	};
+
+	/**
 	 * This is a text input view that cannot have subviews.
 	*/
 	class Qk_EXPORT Input: public Box
 		, public TextOptions, public RenderTask, public TextInput {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
-		// define props
 		Qk_DEFINE_VIEW_PROPERTY(bool, security, Const);
 		Qk_DEFINE_VIEW_PROPERTY(bool, readonly, Const);
-		Qk_DEFINE_VIEW_PROPERTY(KeyboardType, type, Const);
+		Qk_DEFINE_VIEW_PROP_GET(bool, is_marked_text, Const);
+		Qk_DEFINE_VIEW_PROPERTY(KeyboardType, keyboard_type, Const);
 		Qk_DEFINE_VIEW_PROPERTY(KeyboardReturnType, return_type, Const);
 		Qk_DEFINE_VIEW_PROPERTY(String4, value_u4, Const);
 		Qk_DEFINE_VIEW_PROPERTY(String4, placeholder_u4, Const);
@@ -59,8 +95,14 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(String, value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(String, placeholder, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(uint32_t, text_length, Const);
+		Qk_DEFINE_VIEW_PROP_GET(uint32_t, cursor_index, Const); // cursor index in text
+		Qk_DEFINE_VIEW_PROP_GET(uint32_t, cursor_line, Const); // cursor line number in text
+		Qk_DEFINE_VIEW_ACCE_GET(String, marked_text, Const);
+		Qk_DEFINE_VIEW_PROP_GET(uint32_t, marked_text_index, Const); // marked text start index in text
+		Qk_DEFINE_VIEW_ACCE_GET(uint32_t, marked_text_length, Const);
 
 		Input();
+		void cancel_marked_text();
 		virtual bool is_multiline();
 		// @override
 		virtual bool can_become_focus() override;
@@ -78,12 +120,13 @@ namespace qk {
 		// impl text input
 		virtual void input_delete(int count) override;
 		virtual void input_insert(cString& text) override;
-		virtual void input_marked(cString& text) override;
+		virtual void input_marked(cString& text, int caret) override;
 		virtual void input_unmark(cString& text) override;
-		virtual void input_control(KeyboardKeyCode name) override;
+		virtual void input_control(KeyboardCode name) override;
 		virtual bool input_can_delete() override;
 		virtual bool input_can_backspace() override;
 		virtual Rect input_spot_rect() override;
+		virtual void input_close() override;
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* asObject() override;
@@ -101,9 +144,6 @@ namespace qk {
 		Array<uint32_t> _blob_visible;
 		String4 _marked_text;
 		Color   _marked_color;
-		uint32_t  _marked_text_idx; // marked text index for text
-		uint32_t _cursor; // cursor index for text
-		uint32_t _cursor_line;  // cursor line number
 		uint32_t  _marked_blob_begin, _marked_blob_end;
 		float _cursor_x, _input_text_offset_x, _input_text_offset_y;
 		float _cursor_ascent, _cursor_height;

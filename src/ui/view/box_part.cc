@@ -583,14 +583,14 @@ namespace qk {
 	}
 
 	void Box::layout_text(TextLines *lines, TextOptions *opts) {
-		auto text_white_space = opts->text_white_space_value();
-		//auto text_word_break = opts->text_word_break_value();
+		auto white_space = opts->white_space_value();
+		//auto word_break = opts->word_break_value();
 		bool is_auto_wrap = true;
 		auto limitX = lines->limit_range().end.x();
 		auto origin = lines->pre_width();
 
-		if (text_white_space == TextWhiteSpace::NoWrap ||
-				text_white_space == TextWhiteSpace::Pre
+		if (white_space == WhiteSpace::NoWrap ||
+				white_space == WhiteSpace::Pre
 		) { // 不使用自动wrap（不使用自动换行）
 			is_auto_wrap = false;
 		}

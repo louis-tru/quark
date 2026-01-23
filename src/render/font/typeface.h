@@ -58,8 +58,8 @@ namespace qk {
 		};
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, ProtectedConst);
 		~Typeface() override;
-		bool isBold() const { return _fontStyle.weight() >= TextWeight::Semibold; }
-		bool isItalic() const { return _fontStyle.slant() >= TextSlant::Italic; }
+		bool isBold() const { return _fontStyle.weight() >= FontWeight::Semibold; }
+		bool isItalic() const { return _fontStyle.slant() >= FontSlant::Italic; }
 		int countGlyphs() const;
 		int countTables() const;
 		int getTableTags(FontTableTag tags[]) const;

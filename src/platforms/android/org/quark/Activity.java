@@ -185,18 +185,25 @@ public class Activity extends NativeActivity implements
 			host.getWindow().setBackgroundDrawable(new ColorDrawable(Color.RED));
 		}
 
-		public void ime_keyboard_open(boolean clear, int type, int return_type) {
+		public void ime_keyboard_open(boolean cancel_marked, int type, int return_type) {
 			Log.d(TAG, "ime_keyboard_open");
 			if ( host._ime == null ) {
 				host._ime = new IMEHelper(host);
 				((FrameLayout) host.findViewById(android.R.id.content)).addView(host._ime);
 			}
-			if ( clear ) {
-				host._ime.clear();
+			if ( cancel_marked ) {
+				host._ime.cancel_marked();
 			}
 			host._ime.set_keyboard_return_type(return_type);
 			host._ime.set_keyboard_type(type);
 			host._ime.open();
+		}
+
+		public void ime_keyboard_cancel_marked() {
+			Log.d(TAG, "ime_keyboard_cancel_marked");
+			if ( host._ime != null ) {
+				host._ime.cancel_marked();
+			}
 		}
 
 		public void ime_keyboard_can_backspace(boolean can_backspace, boolean can_delete) {

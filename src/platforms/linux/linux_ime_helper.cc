@@ -101,8 +101,8 @@ namespace qk {
 			closeIM();
 		}
 
-		void clear() {
-			Qk_DLog("IME clear");
+		void cancel_marked() {
+			Qk_DLog("IME cancel_marked");
 			if (_isOpen && _ic) {
 				if (!_preeditString.is_empty()) {
 					_preeditString = String();
@@ -200,9 +200,10 @@ namespace qk {
 			char* str = Xutf8ResetIC(_ic);
 
 			if (str != nullptr) {
-				setPreeditString(str, 0, 0);
+				int caret = int(strlen(str));
+				setPreeditString(str, caret, 0, caret);
 			}
-			setPreeditString(nullptr, 0, 0);
+			setPreeditString(nullptr, 0, 0, 0);
 
 			XUnsetICFocus(_ic);
 		}
@@ -258,7 +259,7 @@ namespace qk {
 				return;
 
 			auto self = reinterpret_cast<Inl*>(user_data);
-			self->setPreeditString(nullptr, 0, 0);
+			self->setPreeditString(nullptr, 0, 0, 0);
 		}
 		////
 		static void preeditDrawCallback(XIM xim, XPointer user_data, XPointer data)
@@ -275,15 +276,15 @@ namespace qk {
 
 			if (draw_data->text == nullptr) {
 				self->setPreeditString(nullptr,
-					draw_data->chg_first, draw_data->chg_length);
+					draw_data->caret, draw_data->chg_first, draw_data->chg_length);
 			} else {
 				if (draw_data->text->encoding_is_wchar) {
 					String str = wchar_t_to_string(draw_data->text->string.wide_char);
 					self->setPreeditString(*str,
-							draw_data->chg_first, draw_data->chg_length);
+							draw_data->caret, draw_data->chg_first, draw_data->chg_length);
 				} else {
 					self->setPreeditString(draw_data->text->string.multi_byte,
-						draw_data->chg_first, draw_data->chg_length);
+						draw_data->caret, draw_data->chg_first, draw_data->chg_length);
 				}
 			}
 		}
@@ -509,15 +510,15 @@ namespace qk {
 			_win->dispatch()->onImeInsert(str);
 		}
 
-		void setPreeditString(cChar* str, int pos, int length)
+		void setPreeditString(cChar* str, int caret, int ch_pos, int ch_len)
 		{
-			Qk_DLog("setPreeditString, %s, %d, %d", str, pos, length);
+			Qk_DLog("setPreeditString, %s, %d, %d", str, ch_pos, ch_len);
 			if (str == nullptr) {
 				_win->dispatch()->onImeUnmark(String());
 				_preeditString = String();
 			} else {
 				_preeditString = str;
-				_win->dispatch()->onImeMarked(_preeditString);
+				_win->dispatch()->onImeMarked(_preeditString, caret);
 			}
 		}
 
@@ -541,7 +542,7 @@ namespace qk {
 			// TODO ...
 		}
 
-		void onKeyControl(KeyboardKeyCode name) {
+		void onKeyControl(KeyboardCode name) {
 			_win->dispatch()->onImeControl(name);
 		}
 	};
@@ -571,15 +572,15 @@ namespace qk {
 
 	// ***************** E v e n t . D i s p a t c h *****************
 
-	void EventDispatch::setImeKeyboardOpen(KeyboardOptions opts) {
+	void EventDispatch::setImeKeyboardAndOpen(KeyboardOptions opts) {
 		auto impl = window()->impl();
 		post_messate_main(Cb([impl, opts](auto e) {
 			auto ime = static_cast<LinuxIMEHelperImpl*>(impl->ime());
-			ime->set_keyboard_type(opts.type);
+			ime->set_keyboard_type(opts.keyboard_type);
 			ime->set_keyboard_return_type(opts.return_type);
 			ime->set_spot_rect(opts.spot_rect);
-			if (opts.clear) {
-				ime->clear();
+			if (opts.cancel_marked) {
+				ime->cancel_marked();
 			}
 			ime->open();
 		}));
@@ -604,6 +605,13 @@ namespace qk {
 		auto impl = window()->impl();
 		post_messate_main(Cb([impl, rect](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->set_spot_rect(rect);
+		}));
+	}
+
+	void EventDispatch::cancelImeMarked() {
+		auto impl = window()->impl();
+		post_messate_main(Cb([impl](auto e) {
+			static_cast<LinuxIMEHelperImpl*>(impl->ime())->cancel_marked();
 		}));
 	}
 

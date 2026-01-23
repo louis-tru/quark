@@ -70,19 +70,19 @@ namespace qk {
 
 	#define _Func_TextOptions_Props(_Func) \
 		_Func(TextAlign, text_align) \
-		_Func(TextSize, text_size) \
+		_Func(FontSize, font_size) \
 		_Func(TextColor, text_color) \
-		_Func(TextLineHeight, text_line_height) \
-		_Func(TextFamily, text_family) \
+		_Func(LineHeight, line_height) \
+		_Func(FontFamily, font_family) \
 		_Func(TextShadow, text_shadow) \
 		_Func(TextColor, text_background_color) \
 		_Func(TextStroke, text_stroke) \
-		_Func(TextWeight, text_weight) \
-		_Func(TextSlant, text_slant) \
+		_Func(FontWeight, font_weight) \
+		_Func(FontSlant, font_slant) \
 		_Func(TextDecoration, text_decoration) \
 		_Func(TextOverflow, text_overflow) \
-		_Func(TextWhiteSpace, text_white_space) \
-		_Func(TextWordBreak, text_word_break) \
+		_Func(WhiteSpace, white_space) \
+		_Func(WordBreak, word_break) \
 
 	#define _Func_ScrollView_Props(_Func) \
 		_Func(Color, scrollbar_color) \
@@ -170,6 +170,7 @@ namespace qk {
 			accessors[kSpine_ViewType] = accessors[kView_ViewType]; // copy view props to spine
 			accessors[kWorld_ViewType] = accessors[kView_ViewType]; // copy view props to world
 			accessors[kRoot_ViewType] = accessors[kView_ViewType]; // copy view props to root
+			accessors[kInputSink_ViewType] = accessors[kView_ViewType];
 			// Box
 			Qk_Set_Accessor(Box, CLIP, clip, bool);
 			Qk_Set_Accessor(Box, LAYOUT, layout, LayoutType);
@@ -240,19 +241,19 @@ namespace qk {
 			Qk_Set_Accessor(Video, SRC, src, String);
 			// Text/Input/Label of TextOptions
 			Qk_Set_Accessor(Text, TEXT_ALIGN, text_align, TextAlign);
-			Qk_Set_Accessor(Text, TEXT_WEIGHT, text_weight, TextWeight);
-			Qk_Set_Accessor(Text, TEXT_SLANT, text_slant, TextSlant);
+			Qk_Set_Accessor(Text, FONT_WEIGHT, font_weight, FontWeight);
+			Qk_Set_Accessor(Text, FONT_SLANT, font_slant, FontSlant);
 			Qk_Set_Accessor(Text, TEXT_DECORATION, text_decoration, TextDecoration);
 			Qk_Set_Accessor(Text, TEXT_OVERFLOW, text_overflow, TextOverflow);
-			Qk_Set_Accessor(Text, TEXT_WHITE_SPACE, text_white_space, TextWhiteSpace);
-			Qk_Set_Accessor(Text, TEXT_WORD_BREAK, text_word_break, TextWordBreak);
-			Qk_Set_Accessor(Text, TEXT_SIZE, text_size, TextSize);
+			Qk_Set_Accessor(Text, WHITE_SPACE, white_space, WhiteSpace);
+			Qk_Set_Accessor(Text, WORD_BREAK, word_break, WordBreak);
+			Qk_Set_Accessor(Text, FONT_SIZE, font_size, FontSize);
 			Qk_Set_Accessor(Text, TEXT_BACKGROUND_COLOR, text_background_color, TextColor);
 			Qk_Set_Accessor(Text, TEXT_STROKE, text_stroke, TextStroke);
 			Qk_Set_Accessor(Text, TEXT_COLOR, text_color, TextColor);
-			Qk_Set_Accessor(Text, TEXT_LINE_HEIGHT, text_line_height, TextLineHeight);
+			Qk_Set_Accessor(Text, LINE_HEIGHT, line_height, LineHeight);
 			Qk_Set_Accessor(Text, TEXT_SHADOW, text_shadow, TextShadow);
-			Qk_Set_Accessor(Text, TEXT_FAMILY, text_family, TextFamily);
+			Qk_Set_Accessor(Text, FONT_FAMILY, font_family, FontFamily);
 			Qk_Set_Accessor(Label, ALIGN, align, Align);
 			Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 14); // copy text props to input
 			Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 14); // copy text props to textarea
@@ -261,13 +262,17 @@ namespace qk {
 			// Input/Textarea
 			Qk_Set_Accessor(Input, SECURITY, security, bool);
 			Qk_Set_Accessor(Input, READONLY, readonly, bool);
-			Qk_Set_Accessor(Input, KEYBOARD_TYPE, type, KeyboardType);
+			Qk_Set_Accessor(Input, KEYBOARD_TYPE, keyboard_type, KeyboardType);
 			Qk_Set_Accessor(Input, KEYBOARD_RETURN_TYPE, return_type, KeyboardReturnType);
 			Qk_Set_Accessor(Input, PLACEHOLDER_COLOR, placeholder_color, Color);
 			Qk_Set_Accessor(Input, CURSOR_COLOR, cursor_color, Color);
 			Qk_Set_Accessor(Input, MAX_LENGTH, max_length, uint32_t);
 			Qk_Set_Accessor(Input, PLACEHOLDER, placeholder, String);
 			Qk_Copy_Accessor(Input, Textarea, SECURITY, 8); // copy input props to textarea
+			// InputSink
+			Qk_Set_Accessor(InputSink, READONLY, readonly, bool);
+			Qk_Set_Accessor(InputSink, KEYBOARD_TYPE, keyboard_type, KeyboardType);
+			Qk_Set_Accessor(InputSink, KEYBOARD_RETURN_TYPE, return_type, KeyboardReturnType);
 			// Scroll/Textarea of ScrollView
 			Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color, Color);
 			Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width, float);

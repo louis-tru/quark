@@ -40,7 +40,7 @@ namespace qk {
 	};
 
 	AndroidKeyboardAdapter::AndroidKeyboardAdapter() {
-		_PlatformKeyCodeToKeyCode[AKEYCODE_UNKNOWN] = KEYCODE_UNKNOWN;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_UNKNOWN] = KEYCODE_NONE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DEL] = KEYCODE_BACK_SPACE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_TAB] = KEYCODE_TAB;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -67,16 +67,16 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_FORWARD_DEL] = KEYCODE_DELETE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SYSRQ] = KEYCODE_SYSRQ;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_HELP] = KEYCODE_HELP;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_0] = KEYCODE_0;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_1] = KEYCODE_1;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_2] = KEYCODE_2;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_3] = KEYCODE_3;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_4] = KEYCODE_4;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_5] = KEYCODE_5;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_6] = KEYCODE_6;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_7] = KEYCODE_7;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_8] = KEYCODE_8;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_9] = KEYCODE_9;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_0] = KEYCODE_NUM_0;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_1] = KEYCODE_NUM_1;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_2] = KEYCODE_NUM_2;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_3] = KEYCODE_NUM_3;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_4] = KEYCODE_NUM_4;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_5] = KEYCODE_NUM_5;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_6] = KEYCODE_NUM_6;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_7] = KEYCODE_NUM_7;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_8] = KEYCODE_NUM_8;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_9] = KEYCODE_NUM_9;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_A] = KEYCODE_A;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_B] = KEYCODE_B;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_C] = KEYCODE_C;

@@ -59,8 +59,9 @@ namespace qk
 		Android_ime_keyboard_can_backspace(can_backspace, can_delete);
 	}
 
-	void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
-		Android_ime_keyboard_open(options.clear, int(options.type), int(options.return_type));
+	void EventDispatch::setImeKeyboardAndOpen(KeyboardOptions options) {
+		Android_ime_keyboard_open(options.cancel_marked, int(options.keyboard_type), int(options.return_type));
+		Android_ime_keyboard_can_backspace(options.can_backspace, options.can_delete);
 	}
 
 	void EventDispatch::setImeKeyboardClose() {
@@ -68,6 +69,10 @@ namespace qk
 	}
 
 	void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
+	}
+
+	void EventDispatch::cancelImeMarked() {
+		Android_ime_keyboard_cancel_marked();
 	}
 } // namespace qk
 
@@ -83,8 +88,8 @@ extern "C" {
 		shared_app()->activeWindow()->dispatch()->onImeInsert(JNI::jstring_to_string(text));
 	}
 
-	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
-		shared_app()->activeWindow()->dispatch()->onImeMarked(JNI::jstring_to_string(text));
+	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text, jint newCursor) {
+		shared_app()->activeWindow()->dispatch()->onImeMarked(JNI::jstring_to_string(text), newCursor);
 	}
 
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {

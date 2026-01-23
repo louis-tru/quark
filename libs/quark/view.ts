@@ -31,7 +31,7 @@
 import util from './util';
 import event, {
 	Listen, NativeNotification, Notification, EventNoticer,
-	UIEvent, UIStateEvent, KeyEvent,
+	UIEvent, UIStateEvent, KeyEvent, InputEvent,
 	ClickEvent, TouchEvent, MouseEvent, ActionEvent, GestureEvent,
 	GestureTouchPoint,
 	GestureStage, GestureType,
@@ -1221,10 +1221,10 @@ export interface TextOptions {
 	textAlign: types.TextAlign;
 
 	/** Font weight. */
-	textWeight: types.TextWeight;
+	fontWeight: types.FontWeight;
 
 	/** Font slant / italic style. */
-	textSlant: types.TextSlant;
+	fontSlant: types.FontSlant;
 
 	/** Text decoration (underline, strike, etc.). */
 	textDecoration: types.TextDecoration;
@@ -1233,13 +1233,13 @@ export interface TextOptions {
 	textOverflow: types.TextOverflow;
 
 	/** Whitespace handling. */
-	textWhiteSpace: types.TextWhiteSpace;
+	whiteSpace: types.WhiteSpace;
 
 	/** Word-break rule. */
-	textWordBreak: types.TextWordBreak;
+	wordBreak: types.WordBreak;
 
 	/** Font size. */
-	textSize: types.TextSize;
+	fontSize: types.FontSize;
 
 	/** Background color for text glyphs. */
 	textBackgroundColor: types.TextColor;
@@ -1251,13 +1251,13 @@ export interface TextOptions {
 	textColor: types.TextColor;
 
 	/** Line height. */
-	textLineHeight: types.TextSize;
+	lineHeight: types.FontSize;
 
 	/** Shadow styling for text. */
 	textShadow: types.TextShadow;
 
 	/** Font family / fallback list. */
-	textFamily: types.TextFamily;
+	fontFamily: types.FontFamily;
 
 	/**
 	 * Measure the rendered layout size of a text string,
@@ -1280,19 +1280,19 @@ export interface TextOptions {
 export declare class Text extends Box implements TextOptions {
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
-	textWeight: types.TextWeight;
-	textSlant: types.TextSlant;
+	fontWeight: types.FontWeight;
+	fontSlant: types.FontSlant;
 	textDecoration: types.TextDecoration;
 	textOverflow: types.TextOverflow;
-	textWhiteSpace: types.TextWhiteSpace;
-	textWordBreak: types.TextWordBreak;
-	textSize: types.TextSize;
+	whiteSpace: types.WhiteSpace;
+	wordBreak: types.WordBreak;
+	fontSize: types.FontSize;
 	textBackgroundColor: types.TextColor;
 	textStroke: types.TextStroke;
 	textColor: types.TextColor;
-	textLineHeight: types.TextSize;
+	lineHeight: types.FontSize;
 	textShadow: types.TextShadow;
-	textFamily: types.TextFamily;
+	fontFamily: types.FontFamily;
 
 	/** Actual displayed string content. */
 	value: string;
@@ -1331,19 +1331,19 @@ export declare class Button extends Text {
 export declare class Label extends View implements TextOptions {
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
-	textWeight: types.TextWeight;
-	textSlant: types.TextSlant;
+	fontWeight: types.FontWeight;
+	fontSlant: types.FontSlant;
 	textDecoration: types.TextDecoration;
 	textOverflow: types.TextOverflow;
-	textWhiteSpace: types.TextWhiteSpace;
-	textWordBreak: types.TextWordBreak;
-	textSize: types.TextSize;
+	whiteSpace: types.WhiteSpace;
+	wordBreak: types.WordBreak;
+	fontSize: types.FontSize;
 	textBackgroundColor: types.TextColor;
 	textStroke: types.TextStroke;
 	textColor: types.TextColor;
-	textLineHeight: types.TextSize;
+	lineHeight: types.FontSize;
 	textShadow: types.TextShadow;
-	textFamily: types.TextFamily;
+	fontFamily: types.FontFamily;
 
 	/** Text content for display. */
 	value: string;
@@ -1353,6 +1353,133 @@ export declare class Label extends View implements TextOptions {
 
 	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string, limit?: Vec2): Vec2;
+}
+
+/**
+ * InputSink is a shadow input view.
+ *
+ * It does not own, store, or render any text content.
+ * Its sole responsibility is to act as a sink for text input semantics
+ * coming from the system keyboard or IME (Input Method Editor),
+ * and forward them to higher-level logic (e.g. editors like ACE).
+ *
+ * InputSink participates in focus management and IME positioning,
+ * but delegates all document, cursor, and rendering logic to external systems.
+ */
+export declare class InputSink extends View {
+
+	/**
+	 * Fired when text is deleted.
+	 *
+	 * This event represents a semantic delete operation, not a key press.
+	 * The deletion count is provided via `InputEvent.inputDelete`.
+	 */
+	readonly onInputDelete: EventNoticer<InputEvent>;
+
+	/**
+	 * Fired when text is inserted.
+	 *
+	 * This event represents committed text input, including:
+	 * - direct keyboard input
+	 * - IME commit results
+	 *
+	 * The inserted text is provided via `InputEvent.input`.
+	 */
+	readonly onInputInsert: EventNoticer<InputEvent>;
+
+	/**
+	 * Fired when text is in a marked (composing) state.
+	 *
+	 * This typically corresponds to IME composition updates,
+	 * where the text is provisional and not yet committed.
+	 * The composing text is provided via `InputEvent.input`.
+	 */
+	readonly onInputMarked: EventNoticer<InputEvent>;
+
+	/**
+	 * Fired when marked (composing) text is finalized.
+	 *
+	 * This indicates the end of an IME composition session.
+	 * The finalized text (if any) is provided via `InputEvent.input`,
+	 * and is typically followed by an insertion event.
+	 */
+	readonly onInputUnmark: EventNoticer<InputEvent>;
+
+	/**
+	 * Fired on non-textual input control actions.
+	 *
+	 * This includes keys such as:
+	 * - Enter / Return
+	 * - Escape
+	 * - Arrow keys
+	 * - Other control or navigation commands
+	 *
+	 * The control key is provided via `InputEvent.inputControl`.
+	 */
+	readonly onInputControl: EventNoticer<InputEvent>;
+
+	/**
+	 * The rectangle representing the current input caret position.
+	 *
+	 * This is used by the system IME to position candidate or composition windows.
+	 * InputSink itself does not render a caret; the value is provided
+	 * by the owning editor or logic layer.
+	 */
+	spotRect: types.Rect;
+
+	/**
+	 * Indicates whether the current context allows deletion.
+	 * Used by the system to enable or disable delete operations.
+	 */
+	canDelete: boolean;
+
+	/**
+	 * Indicates whether backspace is allowed in the current context.
+	 * This may differ from `canDelete` depending on editor semantics.
+	 */
+	canBackspace: boolean;
+
+	/**
+	 * Indicates whether the input target is read-only.
+	 *
+	 * When true, text insertion and deletion may be suppressed,
+	 * but control events can still be delivered.
+	 */
+	readonly: boolean;
+
+	/**
+	 * Hint for the preferred virtual keyboard type.
+	 *
+	 * This value is forwarded to the platform input system
+	 * and does not affect input semantics within InputSink itself.
+	 */
+	keyboardType: types.KeyboardType;
+
+	/**
+	 * Hint for the preferred return/enter key behavior.
+	 *
+	 * This value is used by virtual keyboards to adjust the appearance
+	 * or label of the return key (e.g. Done, Search, Go).
+	 */
+	returnType: types.KeyboardReturnType;
+
+	/** Cancel any ongoing marked (composing) text state.
+	 *
+	 * This aborts the current IME composition session without committing text.
+	 */
+	cancelMarkedText(): void;
+
+	/** Whether there is currently marked (composing) text. */
+	readonly isMarkedText: boolean;
+
+	/** Current cursor position (index in text). */
+	readonly cursorIndex: number;
+
+	/** Current text length (may differ from value.length due to encoding). */
+	readonly markedText: string;
+
+	/** Current marked (composing) text length. */
+	readonly markedTextLength: number;
 }
 
 /**
@@ -1370,21 +1497,31 @@ export declare class Label extends View implements TextOptions {
 export declare class Input extends Box implements TextOptions {
 	/** @event Fired when the value changes (user edit). */
 	readonly onChange: EventNoticer<UIEvent>;
+	/** @event Fired on text insertion. */
+	readonly onInputDelete: EventNoticer<InputEvent>;
+	/** @event Fired on text deletion. */
+	readonly onInputInsert: EventNoticer<InputEvent>;
+	/** @event Fired when text is marked (e.g. IME composition). */
+	readonly onInputMarked: EventNoticer<InputEvent>;
+	/** @event Fired when text is unmarked (e.g. IME composition end). */
+	readonly onInputUnmark: EventNoticer<InputEvent>;
+	/** @event Fired on any text input control action. */
+	readonly onInputControl: EventNoticer<InputEvent>;
 
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
-	textWeight: types.TextWeight;
-	textSlant: types.TextSlant;
+	fontWeight: types.FontWeight;
+	fontSlant: types.FontSlant;
 	textDecoration: types.TextDecoration;
 	textOverflow: types.TextOverflow;
-	textWhiteSpace: types.TextWhiteSpace;
-	textWordBreak: types.TextWordBreak;
-	textSize: types.TextSize;
+	whiteSpace: types.WhiteSpace;
+	wordBreak: types.WordBreak;
+	fontSize: types.FontSize;
 	textBackgroundColor: types.TextColor;
 	textColor: types.TextColor;
-	textLineHeight: types.TextSize;
+	lineHeight: types.FontSize;
 	textShadow: types.TextShadow;
-	textFamily: types.TextFamily;
+	fontFamily: types.FontFamily;
 	textStroke: types.TextStroke;
 
 	/** If true, mask input (password-style). */
@@ -1394,7 +1531,7 @@ export declare class Input extends Box implements TextOptions {
 	readonly: boolean;
 
 	/** Keyboard type hint for virtual keyboards. */
-	type: types.KeyboardType;
+	keyboardType: types.KeyboardType;
 
 	/** Return/enter key style hint. */
 	returnType: types.KeyboardReturnType;
@@ -1417,8 +1554,32 @@ export declare class Input extends Box implements TextOptions {
 	/** Current text length (may differ from value.length due to encoding). */
 	readonly textLength: number;
 
+	/** Current cursor position (index in text). */
+	readonly cursorIndex: number;
+
+	/** Current cursor line number (for multi-line IME). */
+	readonly cursorLine: number;
+
+	/** Whether there is currently marked (composing) text. */
+	readonly isMarkedText: boolean;
+
+	/** Current marked (composing) text. */
+	readonly markedText: string;
+
+	/** Current marked (composing) text start index. */
+	readonly markedTextIndex: number;
+
+	/** Current marked (composing) text length. */
+	readonly markedTextLength: number;
+
 	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string, limit?: Vec2): Vec2;
+
+	/** Cancel any ongoing marked (composing) text state.
+	 *
+	 * This aborts the current IME composition session without committing text.
+	 */
+	cancelMarkedText(): void;
 }
 
 /**
@@ -1662,6 +1823,7 @@ Object.assign(exports, {
 	Spine: _ui.Spine,
 	World: _ui.World,
 	Root: _ui.Root,
+	InputSink: _ui.InputSink,
 	testOverlapFromConvexQuadrilateral: _ui.testOverlapFromConvexQuadrilateral,
 	testOverlapFromConvexPolygons: _ui.testOverlapFromConvexPolygons,
 });
@@ -1869,18 +2031,18 @@ declare global {
 
 		interface TextOptionsJSX {
 			textAlign?: types.TextAlignIn;
-			textWeight?: types.TextWeightIn;
-			textSlant?: types.TextSlantIn;
+			fontWeight?: types.FontWeightIn;
+			fontSlant?: types.FontSlantIn;
 			textDecoration?: types.TextDecorationIn;
 			textOverflow?: types.TextOverflowIn;
-			textWhiteSpace?: types.TextWhiteSpaceIn;
-			textWordBreak?: types.TextWordBreakIn;
-			textSize?: types.TextSizeIn;
+			whiteSpace?: types.WhiteSpaceIn;
+			wordBreak?: types.WordBreakIn;
+			fontSize?: types.FontSizeIn;
 			textBackgroundColor?: types.TextColorIn;
 			textColor?: types.TextColorIn;
-			textLineHeight?: types.TextSizeIn;
+			lineHeight?: types.FontSizeIn;
 			textShadow?: types.TextShadowIn;
-			textFamily?: types.TextFamilyIn;
+			fontFamily?: types.FontFamilyIn;
 			textStroke?: types.TextStrokeIn;
 		}
 
@@ -1896,12 +2058,26 @@ declare global {
 			align?: types.AlignIn;
 		}
 
-		interface InputJSX extends BoxJSX, TextOptionsJSX {
+		interface TextInput {
+			onInputDelete?: Listen<InputEvent, Input> | null;
+			onInputInsert?: Listen<InputEvent, Input> | null;
+			onInputMarked?: Listen<InputEvent, Input> | null;
+			onInputUnmark?: Listen<InputEvent, Input> | null;
+			onInputControl?: Listen<InputEvent, Input> | null;
+			readonly?: boolean;
+			keyboardType?: types.KeyboardTypeIn;
+			returnType?: types.KeyboardReturnTypeIn;
+		}
+
+		interface InputSinkJSX extends ViewJSX, TextInput {
+			spotRect?: types.RectIn;
+			canDelete?: boolean;
+			canBackspace?: boolean;
+		}
+
+		interface InputJSX extends BoxJSX, TextOptionsJSX, TextInput {
 			onChange?: Listen<UIEvent, Input> | null;
 			security?: boolean;
-			readonly?: boolean;
-			type?: types.KeyboardTypeIn;
-			returnType?: types.KeyboardReturnTypeIn;
 			placeholderColor?: types.ColorIn;
 			cursorColor?: types.ColorIn;
 			maxLength?: number;
@@ -1957,6 +2133,7 @@ declare global {
 			scroll: ScrollJSX;
 			video: VideoJSX;
 			world: WorldJSX;
+			inputsink: InputSinkJSX;
 		}
 
 		type IntrinsicElementsName = keyof IntrinsicElements;

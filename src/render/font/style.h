@@ -36,13 +36,14 @@
 
 namespace qk {
 
-	enum class TextWeight: uint16_t {
+	enum class FontWeight: uint16_t {
 		Inherit      = 0, // inherit
 		Default      = 1, // user application default value
 		Thin         = 100,
 		Ultralight   = 200,
 		Light        = 300,
 		Regular      = 400,
+		Normal       = 400, // alias of Regular
 		Medium       = 500,
 		Semibold     = 600,
 		Bold         = 700,
@@ -51,7 +52,7 @@ namespace qk {
 		ExtraBlack   = 1000,
 	};
 
-	enum class TextWidth: uint8_t {
+	enum class FontWidth: uint8_t {
 		Inherit = 0, // inherit
 		Default, // user application default value
 		UltraCondensed,
@@ -65,7 +66,7 @@ namespace qk {
 		UltraExpanded,
 	};
 
-	enum class TextSlant: uint8_t {
+	enum class FontSlant: uint8_t {
 		Inherit = 0, // inherit
 		Default, // use application default value
 		Normal, // 正常
@@ -80,33 +81,33 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(uint32_t, value, Const);
 
-		FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
-			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::Inherit), uint32_t(TextWeight::ExtraBlack))) +
-			(Uint32::clamp(uint32_t(width), uint32_t(TextWidth::UltraCondensed), uint32_t(TextWidth::UltraExpanded)) << 16) +
+		FontStyle(FontWeight weight, FontWidth width, FontSlant slant) : _value(
+			(Uint32::clamp(uint32_t(weight), uint32_t(FontWeight::Inherit), uint32_t(FontWeight::ExtraBlack))) +
+			(Uint32::clamp(uint32_t(width), uint32_t(FontWidth::UltraCondensed), uint32_t(FontWidth::UltraExpanded)) << 16) +
 			(Uint32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
 		) {}
 
-		FontStyle(): FontStyle{TextWeight::Regular, TextWidth::Normal, TextSlant::Normal} {}
+		FontStyle(): FontStyle{FontWeight::Regular, FontWidth::Normal, FontSlant::Normal} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;
 		}
 
-		TextWeight weight() const { return TextWeight(_value & 0xFFFF); }
-		TextWidth width() const { return TextWidth((_value >> 16) & 0xFF); }
-		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
+		FontWeight weight() const { return FontWeight(_value & 0xFFFF); }
+		FontWidth width() const { return FontWidth((_value >> 16) & 0xFF); }
+		FontSlant slant() const { return FontSlant(((_value >> 24) & 0xFF) + 1); }
 
 		static FontStyle Normal() {
-			return FontStyle(TextWeight::Regular, TextWidth::Normal, TextSlant::Normal);
+			return FontStyle(FontWeight::Regular, FontWidth::Normal, FontSlant::Normal);
 		}
 		static FontStyle Bold() {
-			return FontStyle(TextWeight::Bold, TextWidth::Normal, TextSlant::Normal);
+			return FontStyle(FontWeight::Bold, FontWidth::Normal, FontSlant::Normal);
 		}
 		static FontStyle Italic() {
-			return FontStyle(TextWeight::Regular, TextWidth::Normal, TextSlant::Italic );
+			return FontStyle(FontWeight::Regular, FontWidth::Normal, FontSlant::Italic );
 		}
 		static FontStyle BoldItalic() {
-			return FontStyle(TextWeight::Bold, TextWidth::Normal, TextSlant::Italic );
+			return FontStyle(FontWeight::Bold, FontWidth::Normal, FontSlant::Italic );
 		}
 	};
 

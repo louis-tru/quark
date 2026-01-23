@@ -50,8 +50,9 @@ namespace qk {
  * @protocol QkIMEHelprt
 */
 @protocol QkIMEHelprt<NSObject>
-- (void)activate:(bool)clear;
+- (void)activate:(bool)cancelMarked;
 - (void)deactivate;
+- (void)cancel_marked;
 - (void)set_keyboard_can_backspace:(bool)can_backspace
 												can_delete:(bool)can_delete;
 - (void)set_keyboard_type:(qk::KeyboardType)type;

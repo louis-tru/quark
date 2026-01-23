@@ -72,24 +72,25 @@ namespace qk {
 	typedef Array<Border> ArrayBorder;
 
 	enum ViewType {
-		kView_ViewType, // view
-		kEntity_ViewType, // entity
-		kSprite_ViewType, // sprite
-		kSpine_ViewType, // spine
-		kLabel_ViewType, // textOpts
-		kBox_ViewType,  // box
-		kFlex_ViewType, // box flex
-		kFlow_ViewType, // box flow
-		kImage_ViewType, // box
-		kVideo_ViewType, // box
-		kInput_ViewType, // box textOpts input
-		kTextarea_ViewType, // box textOpts input
-		kScroll_ViewType, // box
-		kText_ViewType, // box textOpts
-		kButton_ViewType, // box
-		kMorph_ViewType, // box
-		kWorld_ViewType, // box
-		kRoot_ViewType, // box
+		kView_ViewType,
+		kLabel_ViewType, // base view,textOpts
+		kBox_ViewType,  // base view
+		kFlex_ViewType, // base box
+		kFlow_ViewType, // base flow
+		kImage_ViewType, // base box
+		kVideo_ViewType, // base box
+		kInput_ViewType, // base box,textOpts,textInput
+		kTextarea_ViewType, // base input,scrollView
+		kScroll_ViewType, // base box,scrollView
+		kText_ViewType, // base box,textOpts
+		kButton_ViewType, // base text
+		kMorph_ViewType, // base box
+		kEntity_ViewType, // base view
+		kSprite_ViewType, // base entity
+		kSpine_ViewType, // base entity
+		kWorld_ViewType, // base box
+		kRoot_ViewType, // base box
+		kInputSink_ViewType, // base view
 		kEnum_Counts_ViewType,
 	};
 }

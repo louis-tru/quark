@@ -83,7 +83,7 @@ namespace qk {
 		, _fspTick(0)
 		, _fspTime(0)
 		, _beginTime(0)
-		, _lastTime(0)
+		, _time(0)
 		, _surfaceDisplayRange()
 		, _preRender(this)
 		, _impl(nullptr)
@@ -301,7 +301,7 @@ namespace qk {
 			_beginTime = time_monotonic();
 		// if pause play, it just needs to use the _lastTime and also not change the _lastTime
 		auto time = time_monotonic() - _beginTime;
-		auto deltaTime = time - _lastTime;
+		auto deltaTime = time - _time;
 
 		if ( deltaTime > 2e5 ) { // 200ms
 			// Restart the timer when the time interval exceeds 200ms,
@@ -311,28 +311,28 @@ namespace qk {
 			_beginTime += diff; // Restart the timer
 			deltaTime = 2e5;
 		}
-		_lastTime = time;
+		_time = time;
 
 		if (!_preRender.solve(time, deltaTime)) {
 			solveNextFrame();
 			return false;
 		}
 
-		if (_lastTime - _fspTime > 1e6) { // 1ns * 1e6
+		if (_time - _fspTime > 1e6) { // 1ns * 1e6
 			if (_debugMode && _fsp != _fspTick) {
 				// text blob build fps
 				Array<TextBlob> blob;
 				TextLines lines(TextAlign::Default, {0,0}, false);
 				lines.set_ignore_single_space_line(true);
 				TextBlobBuilder builder(&lines, _host->defaultTextOptions(), &blob);
-				builder.set_text_size(32.0f);
+				builder.set_font_size(32.0f);
 				builder.make(String::format("%d FPS", _fspTick));
 				lines.finish(); // finish lines
 				*_fspBlob = std::move(blob.front()); // only one blob
 			}
 			_fsp = _fspTick;
 			_fspTick = 0;
-			_fspTime = _lastTime;
+			_fspTime = _time;
 		}
 		_fspTick++;
 

@@ -37,8 +37,20 @@
 
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
+#define _async_call window()->pre_render().async_call
 
 namespace qk {
+
+	template<class T, typename... Args>
+	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
+
+	template<class T, typename... Args>
+	inline static void triggerEvent(View *self, cUIEventName &name, Args... args) {
+		self->pre_render().post(Cb([&name, args...](auto &e) {
+			auto self = static_cast<View*>(e.data);
+			self->trigger(name, **NewEvent<T>(self, args...));
+		}), self);
+	}
 
 	enum {
 		kFlag_Normal = 0,         // 正常状态未激活光标查找
@@ -54,8 +66,15 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		#define _this static_cast<Input::Inl*>(this)
-		#define _async_call window()->pre_render().async_call
 	public:
+
+		void setImeKeyboardAndOpen() {
+			if ( _editing ) {
+				window()->dispatch()->
+					setImeKeyboardAndOpen({ _keyboard_type, _return_type, spot_rect(), false,
+						input_can_backspace(), input_can_delete() });
+			}
+		}
 
 		#pragma mark Utils
 		void prevent_default(UIEvent &evt) {
@@ -79,45 +98,45 @@ namespace qk {
 		// ============================================================================
 		// Event handles
 		// ============================================================================
-		void handle_Touchstart(UIEvent& evt) {
+		void onTouchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, arg);
 		}
 
-		void handle_Touchmove(UIEvent& evt) {
+		void onTouchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
-		void handle_Touchend(UIEvent& evt) {
+		void onTouchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
-		void handle_Mousedown(UIEvent& evt) {
+		void onMousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, false); }, this, arg);
 		}
 
-		void handle_Mousemove(UIEvent& evt) {
+		void onMousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
-		void handle_Mouseup(UIEvent& evt) {
+		void onMouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
-		void handle_Click(UIEvent& evt) {
+		void onClick(UIEvent& evt) {
 			auto e = static_cast<ClickEvent*>(&evt);
 
 			if (_readonly) return;
@@ -126,12 +145,9 @@ namespace qk {
 				focus();
 			}
 
-			//_async_call([](auto self, auto arg) {
-			window()->pre_render().async_call([](auto self, auto arg) {
+			_async_call([](auto self, auto arg) {
 				if ( self->_editing ) {
-					self->window()->dispatch()->setImeKeyboardOpen({
-						false, self->_type, self->_return_type, self->spot_rect()
-					});
+					self->setImeKeyboardAndOpen();
 					self->find_cursor(arg.arg);
 				} else {
 					if ( self->_flag == kFlag_Disable_Click_Focus ) { // 禁用点击聚焦
@@ -140,20 +156,24 @@ namespace qk {
 						if (!self->is_focus())
 							// request focus again in render thread
 							self->pre_render().post(Cb([self](auto &e) { self->focus(); }), self);
-						self->handle_Focus_for_render_t();
+						self->onFocus_for_render_t();
 						self->find_cursor(arg.arg);
 					}
 				}
 			}, this, e->position());
 		}
 
-		void handle_Keydown(UIEvent& evt) {
+		void onKeydown(UIEvent& evt) {
+			// Qk_DLog("Input::onKeydown");
 			_async_call([](auto ctx, auto arg) {
+				if (!ctx->_marked_text.is_empty()) {
+					return; // When there is marked text, ignore arrow key operations and use IME processing.
+				}
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
 					auto line_height = ctx->_lines->line(0).end_y;
 					switch ( arg.arg ) {
 						case KEYCODE_LEFT:
-							ctx->_cursor = Qk_Max(0, int(ctx->_cursor - 1));
+							ctx->_cursor_index = Int32::max(0, ctx->_cursor_index - 1);
 							break;
 						case KEYCODE_UP: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -162,7 +182,7 @@ namespace qk {
 							break;
 						}
 						case KEYCODE_RIGHT:
-							ctx->_cursor = Qk_Min(ctx->text_length(), ctx->_cursor + 1);
+							ctx->_cursor_index = Int32::min(ctx->text_length(), ctx->_cursor_index + 1);
 							break;
 						case KEYCODE_DOWN: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -175,10 +195,10 @@ namespace qk {
 						case KEYCODE_PAGE_DOWN: /* TODO page down */
 							break;
 						case KEYCODE_MOVE_HOME:
-							ctx->_cursor = 0;
+							ctx->_cursor_index = 0;
 							break;
 						case KEYCODE_MOVE_END:
-							ctx->_cursor = ctx->text_length();
+							ctx->_cursor_index = ctx->text_length();
 							break;
 						default: break;
 					}
@@ -189,7 +209,7 @@ namespace qk {
 			}, this, static_cast<KeyEvent*>(&evt)->keycode());
 		}
 
-		void handle_Focus_for_render_t() {
+		void onFocus_for_render_t() {
 		if (!_readonly) {
 				_editing = true;
 				_cursor_twinkle_status = 0;
@@ -199,21 +219,12 @@ namespace qk {
 			}
 		}
 
-		void handle_Focus(UIEvent& evt) {
-			_async_call([](auto ctx, auto args) { ctx->handle_Focus_for_render_t(); }, this, 0);
+		void onFocus(UIEvent& evt) {
+			_async_call([](auto ctx, auto args) { ctx->onFocus_for_render_t(); }, this, 0);
 		}
 
-		void handle_Blur(UIEvent& evt) {
-			_async_call([](auto ctx, auto args) {
-				ctx->_editing = false;
-				ctx->_flag = kFlag_Normal;
-				if ( ctx->_marked_text.length() ) {
-					ctx->input_unmark_text(ctx->_marked_text);
-				} else {
-					ctx->mark(kInput_Status, true);
-				}
-				ctx->window()->pre_render().untask(ctx);
-			}, this, 0);
+		void onBlur(UIEvent& evt) {
+			input_close(); // close IME notify
 		}
 
 		// ============================================================================
@@ -399,7 +410,7 @@ namespace qk {
 						if ( _blob[begin].line == _cursor_line ) break;
 					}
 
-					int cursor = _cursor + (dir.x() > 0 ? 1: -1);
+					int cursor = _cursor_index + (dir.x() > 0 ? 1: -1);
 					cursor = Qk_Min(text_length(), Qk_Max(cursor, 0));
 					
 					for ( int j = begin; j >= 0; j-- ) {
@@ -481,21 +492,21 @@ namespace qk {
 					//else if (blob.line > line->line) {
 						// line_feed
 					//	auto idx = Int32::max(0, int32_t(blob.index) - 1);
-					//	_cursor = idx;
+					//	_cursor_index = idx;
 					//	goto end_action;
 					//}
 				}
 			}
 
 			if ( cell_begin == -1 || cell_end == -1 ) { // 所在行没有cell,选择最后行尾
-				_cursor = text_length();
+				_cursor_index = text_length();
 			} else {
 				float offset_start = offset.x() + line->origin;
 
 				if ( x <= offset_start ) { // 行开始位置
-					_cursor = _blob[cell_begin].index;
+					_cursor_index = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor = Float32::min(
+					_cursor_index = Float32::min(
 						_blob[cell_end].index + _blob[cell_end].blob.glyphs.length(), text_length()
 					); // end_action
 				} else {
@@ -510,9 +521,9 @@ namespace qk {
 							
 							if ( (offset0 <= x && x <= offset) || (offset <= x && x <= offset0) ) {
 								if ( fabs(x - offset0) < fabs(x - offset) ) {
-									_cursor = cell.index + j - 1;
+									_cursor_index = cell.index + j - 1;
 								} else {
-									_cursor = cell.index + j;
+									_cursor_index = cell.index + j;
 								}
 								goto end_action;
 							} else {
@@ -523,8 +534,8 @@ namespace qk {
 				}
 				// if ( x <= offset_start )
 			}
-			Qk_ASSERT(_cursor <= text_length());
-		end_action:
+			Qk_ASSERT(_cursor_index <= text_length());
+		 end_action:
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
 			mark(kInput_Status, true);
@@ -532,20 +543,21 @@ namespace qk {
 
 		void limit_cursor_in_marked_text() {
 			if ( _marked_text.length() ) { // 限制在marked中
-				if ( _cursor < _marked_text_idx ) {
-					_cursor = _marked_text_idx;
-				} else if ( _cursor > _marked_text_idx + _marked_text.length() ) {
-					_cursor = _marked_text_idx + _marked_text.length();
+				if ( _cursor_index < _marked_text_index ) {
+					_cursor_index = _marked_text_index;
+				} else if ( _cursor_index > _marked_text_index + _marked_text.length() ) {
+					_cursor_index = _marked_text_index + _marked_text.length();
 				}
 			}
 		}
 
 		void reset_cursor_twinkle_task_timeout() {
 			if ( _flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Auto_Range_Select ) {
-				set_task_timeout(time_monotonic() + 10000); // 10ms
+				set_task_timeout(window()->time() + 10000); // 10ms
 			} else {
-				set_task_timeout(time_monotonic() + 700000); // 700ms
+				set_task_timeout(window()->time() + 700000); // 700ms
 			}
+			window()->dispatch()->setImeKeyboardCanBackspace(input_can_backspace(), input_can_delete());
 			_cursor_twinkle_status = 1;
 		}
 
@@ -572,63 +584,65 @@ namespace qk {
 				if (_max_length && _value_u4.length() + text.length() > _max_length)
 					return;
 
-				if ( _cursor < text_length() ) { // insertd text
-					String4 u4(_value_u4);
-					_value_u4 = String4(*u4, _cursor, *text, text.length());
-					_value_u4.append(*u4 + _cursor, u4.length() - _cursor);
+				if ( _cursor_index < text_length() ) { // insertd text
+					String4 u4(_value_u4); // save current value
+					_value_u4 = String4(*u4, _cursor_index, *text, text.length());
+					_value_u4.append(*u4 + _cursor_index, u4.length() - _cursor_index);
 				} else { // append text
 					_value_u4.append( text );
 				}
-				_cursor += text.length();
+				_cursor_index += text.length();
 				mark_layout(kLayout_Typesetting, true); // 标记内容变化
 			}
 		}
 
-		bool input_marked_text(cString4& text) {
+		void input_marked_text(cString4& text, int caret_pos) {
+			if ( text.length() == 0 && _marked_text.length() == 0 )
+				return; // nothing to do
 			if (_max_length) {
 				if ( _value_u4.length() + text.length() - _marked_text.length() > _max_length)
-					return false;
+					return;
 			}
 			if ( _marked_text.length() == 0 ) {
-				_marked_text_idx = _cursor;
+				_marked_text_index = _cursor_index;
 			}
-			String4 u4(_value_u4);
-			_value_u4 = String4(*u4, _marked_text_idx, *text, text.length());
-			_value_u4.append(*u4 + _marked_text_idx + _marked_text.length(),
-												u4.length() - _marked_text_idx - _marked_text.length());
+			String4 u4(_value_u4); // save current value
+			_value_u4 = String4(*u4, _marked_text_index, *text, text.length());
+			_value_u4.append(*u4 + _marked_text_index + _marked_text.length(),
+												u4.length() - _marked_text_index - _marked_text.length());
 
-			_cursor += text.length() - _marked_text.length();
-			_cursor = Qk_Max(_marked_text_idx, _cursor);
+			int safe_caret = caret_pos % (text.length() + 1);
+
+			Qk_DLog("caret_pos: %d, safe_caret: %d, text.length(): %d", caret_pos, safe_caret, text.length());
+
+			// Android 兼容：负数表示从末尾算,裁剪到合法区间
+			if (safe_caret < 0) {
+				safe_caret += (text.length() + 1);
+			}
+			_cursor_index = _marked_text_index + safe_caret;
+			// _cursor_index += text.length() - _marked_text.length();
+			// _cursor_index = Qk_Max(_marked_text_index, _cursor_index); // limit cursor index
 			_marked_text = text;
 			mark_layout(kLayout_Typesetting, true); // 标记内容变化
-
-			return true;
-		}
-
-		void input_unmark_text(cString4& text) {
-			if (input_marked_text(text)) {
-				_cursor = _marked_text_idx + _marked_text.length();
-				_marked_text = String4();
-			}
 		}
 
 		void trigger_Change() {
-			pre_render().post(Cb([this](Cb::Data& e) {
-				Sp<UIEvent> evt(new UIEvent(this));
-				trigger(UIEvent_Change, **evt);
+			pre_render().post(Cb([](Cb::Data& e) {
+				auto self = static_cast<Input*>(e.data);
+				self->trigger(UIEvent_Change, **NewEvent<UIEvent>(self));
 			}),this);
 		}
 	};
 
 	Input::Input()
-		: _security(false), _readonly(false)
-		, _type(KeyboardType::Normal)
+		: _security(false), _readonly(false), _is_marked_text(false)
+		, _keyboard_type(KeyboardType::Normal)
 		, _return_type(KeyboardReturnType::Normal)
 		, _placeholder_color(150, 150, 150)
 		, _cursor_color(0x43,0x95,0xff) //#4395ff
 		, _max_length(0)
 		, _marked_color(0, 160, 255, 100)
-		, _marked_text_idx(0), _cursor(0), _cursor_line(0)
+		, _cursor_index(0), _cursor_line(0), _marked_text_index(0)
 		, _marked_blob_begin(0), _marked_blob_end(0)
 		, _cursor_x(0), _input_text_offset_x(0), _input_text_offset_y(0)
 		, _cursor_ascent(0), _cursor_height(0)
@@ -636,17 +650,17 @@ namespace qk {
 	{
 		auto _inl = static_cast<Input::Inl*>(this);
 		// bind events
-		add_event_listener(UIEvent_Click, &Inl::handle_Click, _inl);
-		add_event_listener(UIEvent_TouchStart, &Inl::handle_Touchstart, _inl);
-		add_event_listener(UIEvent_TouchMove, &Inl::handle_Touchmove, _inl);
-		add_event_listener(UIEvent_TouchEnd, &Inl::handle_Touchend, _inl);
-		add_event_listener(UIEvent_TouchCancel, &Inl::handle_Touchend, _inl);
-		add_event_listener(UIEvent_MouseDown, &Inl::handle_Mousedown, _inl);
-		add_event_listener(UIEvent_MouseMove, &Inl::handle_Mousemove, _inl);
-		add_event_listener(UIEvent_MouseUp, &Inl::handle_Mouseup, _inl);
-		add_event_listener(UIEvent_Focus, &Inl::handle_Focus, _inl);
-		add_event_listener(UIEvent_Blur, &Inl::handle_Blur, _inl);
-		add_event_listener(UIEvent_KeyDown, &Inl::handle_Keydown, _inl);
+		add_event_listener(UIEvent_Click, &Inl::onClick, _inl);
+		add_event_listener(UIEvent_TouchStart, &Inl::onTouchstart, _inl);
+		add_event_listener(UIEvent_TouchMove, &Inl::onTouchmove, _inl);
+		add_event_listener(UIEvent_TouchEnd, &Inl::onTouchend, _inl);
+		add_event_listener(UIEvent_TouchCancel, &Inl::onTouchend, _inl);
+		add_event_listener(UIEvent_MouseDown, &Inl::onMousedown, _inl);
+		add_event_listener(UIEvent_MouseMove, &Inl::onMousemove, _inl);
+		add_event_listener(UIEvent_MouseUp, &Inl::onMouseup, _inl);
+		add_event_listener(UIEvent_Focus, &Inl::onFocus, _inl);
+		add_event_listener(UIEvent_Blur, &Inl::onBlur, _inl);
+		add_event_listener(UIEvent_KeyDown, &Inl::onKeydown, _inl);
 	}
 
 	View* Input::init(Window *win) {
@@ -654,8 +668,19 @@ namespace qk {
 		set_clip(true);
 		set_receive(true);
 		set_cursor(CursorStyle::Ibeam);
-		//set_text_word_break(TextWordBreak::BreakWord);
+		//set_word_break(WordBreak::BreakWord);
 		return this;
+	}
+
+	void Input::cancel_marked_text() {
+		if (_editing) {
+			window()->dispatch()->cancelImeMarked(); // first cancel marked from IME
+			if (_is_marked_text) {
+				_async_call([](auto ctx, auto arg) {
+					ctx->input_unmark(String()); // then unmark marked text for reader thread
+				}, this, 0);
+			}
+		}
 	}
 
 	bool Input::is_multiline() {
@@ -708,8 +733,8 @@ namespace qk {
 
 		TextLines lines(text_align_value(), _container.to_range(), _container.float_x());
 
-		lines.set_have_init_line_height(text_size().value, text_line_height().value);
-		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
+		lines.set_have_init_line_height(font_size().value, line_height().value);
+		_cursor_height = font_family().value->match(font_style())->getMetrics(&metrics, font_size().value);
 		_lines = lines.core();
 		_cursor_ascent = -metrics.fAscent;
 		_marked_blob_begin = _marked_blob_end = 0;
@@ -732,7 +757,7 @@ namespace qk {
 			if (value_u4.length() && !_security && _marked_text.length()) {
 				// marked text layout
 				auto src = *value_u4;
-				auto marked = _marked_text_idx;
+				auto marked = _marked_text_index;
 				auto marked_end = marked + _marked_text.length();
 
 				Array<TextBlob> blob;
@@ -843,7 +868,7 @@ namespace qk {
 		TextBlob *cursor_blob = nullptr;
 		if (_value_u4.length()) {
 			for ( int i = Qk_Minus(_blob.length(), 1); i >= 0; i-- ) {
-				if (_blob[i].index <= _cursor) { // blob index 小于等于_cursor 做为光标位置
+				if (_blob[i].index <= _cursor_index) { // blob index 小于等于_cursor_index 做为光标位置
 					cursor_blob = &_blob[i];
 					break;
 				}
@@ -859,7 +884,7 @@ namespace qk {
 		if ( cursor_blob ) { // set cursor pos
 			Qk_ASSERT(_value_u4.length());
 			auto len = cursor_blob->blob.offset.length();
-			auto index = _cursor - cursor_blob->index;
+			auto index = _cursor_index - cursor_blob->index;
 			Qk_ASSERT(int(index) >= 0);
 			float offset = 0;
 			if (index < len) { // Index is within the offset range
@@ -962,16 +987,17 @@ namespace qk {
 	}
 
 	void Input::input_delete(int count) {
+		// Qk_DLog("Input::input_delete, %d, %d", count, _marked_text.length());
 		if ( _editing ) {
-			int cursor = _cursor;
+			int cursor = _cursor_index;
 			if ( !_marked_text.length() ) {
-				Qk_ASSERT(_cursor <= _value_u4.length());
+				Qk_ASSERT(_cursor_index <= _value_u4.length());
 				if ( count < 0 ) {
 					count = Qk_Min(cursor, -count);
 					if ( count ) {
 						String4 u4(_value_u4);
 						_value_u4 = String4(*u4, cursor - count, *u4 + cursor, u4.length() - cursor);
-						_cursor -= count;
+						_cursor_index -= count;
 						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
@@ -987,6 +1013,7 @@ namespace qk {
 			}
 			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
+			triggerEvent<InputEvent>(this, UIEvent_InputDelete, String(), count, KEYCODE_NONE);
 		}
 	}
 
@@ -995,37 +1022,46 @@ namespace qk {
 			_this->input_insert_text(_this->delete_line_feed_format(text));
 			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
+			triggerEvent<InputEvent>(this, UIEvent_InputInsert, text, 0, KEYCODE_NONE);
 		}
 	}
 
-	void Input::input_marked(cString& text) {
+	void Input::input_marked(cString& text, int caret_pos) {
 		if ( _editing ) {
-			_this->input_marked_text(_this->delete_line_feed_format(text));
+			_this->input_marked_text(_this->delete_line_feed_format(text), caret_pos);
+			_this->_is_marked_text = true;
 			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
+			triggerEvent<InputEvent>(this, UIEvent_InputMarked, text, _cursor_index, KEYCODE_NONE);
 		}
 	}
 
 	void Input::input_unmark(cString& text) {
-		if ( _editing ) {
-			_this->input_unmark_text(_this->delete_line_feed_format(text));
+		if ( _is_marked_text ) {
+			auto u4 = _this->delete_line_feed_format(text);
+			_this->input_marked_text(u4, u4.length());
+			_this->_cursor_index = _marked_text_index + _marked_text.length();
+			_this->_marked_text = String4();
+			_this->_is_marked_text = false;
 			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
+			triggerEvent<InputEvent>(this, UIEvent_InputUnmark, text, _cursor_index, KEYCODE_NONE);
 		}
 	}
 
-	void Input::input_control(KeyboardKeyCode name) {
+	void Input::input_control(KeyboardCode code) {
 		if ( _editing && _flag == kFlag_Normal ) {
-			// LOG("input_control,%d", name);
+			// LOG("input_control,%d", code);
+			triggerEvent<InputEvent>(this, UIEvent_InputControl, String(), 0, code);
 		}
 	}
 
 	bool Input::input_can_delete() {
-		return _editing && _cursor < text_length();
+		return _editing && _cursor_index < text_length();
 	}
 
 	bool Input::input_can_backspace() {
-		return _editing && _cursor;
+		return _editing && _cursor_index;
 	}
 
 	Rect Input::input_spot_rect() {
@@ -1036,8 +1072,24 @@ namespace qk {
 		}
 	}
 
+	void Input::input_close() {
+		if ( _editing ) {
+			_async_call([](auto ctx, auto args) {
+				if (ctx->_editing == false) return;
+				ctx->_editing = false;
+				ctx->_flag = kFlag_Normal;
+				if (ctx->_is_marked_text) {
+					ctx->input_unmark(ctx->marked_text());
+				} else {
+					ctx->mark(kInput_Status, true);
+				}
+				ctx->window()->pre_render().untask(ctx);
+			}, _this, 0);
+		}
+	}
+
 	KeyboardType Input::input_keyboard_type() {
-		return _type;
+		return _keyboard_type;
 	}
 
 	KeyboardReturnType Input::input_keyboard_return_type() {
@@ -1052,23 +1104,17 @@ namespace qk {
 		return this;
 	}
 
-	void Input::set_type(KeyboardType value, bool isRt) {
-		if (value != _type) {
-			_type = value;
-			if ( _editing ) {
-				window()->dispatch()->
-					setImeKeyboardOpen({ false, _type, _return_type, input_spot_rect() });
-			}
+	void Input::set_keyboard_type(KeyboardType value, bool isRt) {
+		if (value != _keyboard_type) {
+			_keyboard_type = value;
+			_this->setImeKeyboardAndOpen();
 		}
 	}
 
 	void Input::set_return_type(KeyboardReturnType value, bool isRt) {
 		if (value != _return_type) {
 			_return_type = value;
-			if ( _editing ) {
-				window()->dispatch()->
-					setImeKeyboardOpen({ false, _type, _return_type, input_spot_rect() });
-			}
+			_this->setImeKeyboardAndOpen();
 		}
 	}
 
@@ -1116,7 +1162,7 @@ namespace qk {
 					mark_layout(kLayout_Typesetting, true);
 				}
 			} else {
-				window()->pre_render().async_call([](auto self, auto arg) {
+				_async_call([](auto self, auto arg) {
 					if (self->_value_u4.length() > self->_max_length) {
 						self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
 						self->mark_layout(kLayout_Typesetting, true);
@@ -1128,6 +1174,14 @@ namespace qk {
 
 	uint32_t Input::text_length() const {
 		return _value_u4.length();
+	}
+
+	String Input::marked_text() const {
+		return String(codec_encode(kUTF8_Encoding, _marked_text.array().buffer()));
+	}
+
+	uint32_t Input::marked_text_length() const {
+		return _marked_text.length();
 	}
 
 	Vec2 Input::layout_offset_inside() {

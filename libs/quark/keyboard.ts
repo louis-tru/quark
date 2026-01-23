@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * @enum KeyboardKeyCode
+ * @enum KeyboardCode
 */
-export enum KeyboardKeyCode {
-	UNKNOWN =          0,   /* unknown key */
+export enum KeyboardCode {
+	NONE =             0,   /* NONE key */
 	BACK_SPACE =       8,   /* back space */
 	TAB =              9,   /* tab */
 	CLEAR =            12,  /* clear */

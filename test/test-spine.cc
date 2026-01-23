@@ -158,7 +158,7 @@ Qk_TEST_Func(spine) {
 	if (1) {
 		auto t0 = m0->append_new<Text>();
 		t0->set_value("CTFont"); // DrawGlyphs
-		t0->set_text_size({24});
+		t0->set_font_size({24});
 		t0->set_text_stroke({1, {0,0,255}});
 		//t0->set_text_shadow({2,2,3,{0,0,0,255}});
 		//t0->set_text_background_color({{0,255,255,128}});

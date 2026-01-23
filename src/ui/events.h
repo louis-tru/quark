@@ -55,12 +55,18 @@ F(Focus, Default, kBubble_UIEventFlags) \
 F(Blur, Default, kBubble_UIEventFlags) \
 F(UIStateChange, UIState, kBubble_UIEventFlags) /* normal / hover / active */ \
 F(Error, Default, kError_UIEventFlags) \
-/* canno bubble event */ \
+/* cannot bubble event */ \
 F(ActionKeyframe, Action, kNone_UIEventFlags) \
 F(ActionLoop, Action, kNone_UIEventFlags) \
 F(Scroll, Default, kNone_UIEventFlags) /*ScrollView*/\
 F(Change, Default, kNone_UIEventFlags) /*Input*/ \
 F(Load, Default, kNone_UIEventFlags) /* Image */ \
+/* Text input semantic events */ \
+F(InputDelete, Input, kNone_UIEventFlags) \
+F(InputInsert, Input, kNone_UIEventFlags) \
+F(InputMarked, Input, kNone_UIEventFlags) \
+F(InputUnmark, Input, kNone_UIEventFlags) \
+F(InputControl, Input, kNone_UIEventFlags) \
 /* Player */ \
 F(Stop, Player, kNone_UIEventFlags) \
 F(Buffering, Player, kFloat32_UIEventFlags) \

@@ -162,7 +162,7 @@ namespace qk {
 		return string4_to_unichar(*str, str.length(), is_merge_space, is_merge_line_feed, disable_line_feed);
 	}
 
-	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space, bool ignore_single_space_line) {
+	Array<Array<Unichar>> string_to_unichar(cString& str, WhiteSpace space, bool ignore_single_space_line) {
 		Unichar data;
 		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
@@ -178,10 +178,10 @@ namespace qk {
 		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
 		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
 
-		if (space == TextWhiteSpace::Pre || space == TextWhiteSpace::PreWrap) { // 保留所有空白
+		if (space == WhiteSpace::Pre || space == WhiteSpace::PreWrap) { // 保留所有空白
 			is_merge_space = false;
 			is_merge_line_feed = false;
-		} else if (space == TextWhiteSpace::PreLine) { // 保留换行符
+		} else if (space == WhiteSpace::PreLine) { // 保留换行符
 			is_merge_line_feed = false;
 		}
 
@@ -202,12 +202,12 @@ namespace qk {
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
 		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blobOut(blob)
 		, _index_of_unichar(0)
-		, _text_size(opts->text_size().value)
+		, _font_size(opts->font_size().value)
 	{
 	}
 
-	void TextBlobBuilder::set_text_size(float val) {
-		_text_size = val;
+	void TextBlobBuilder::set_font_size(float val) {
+		_font_size = val;
 	}
 
 	void TextBlobBuilder::set_disable_overflow(bool value) {
@@ -220,7 +220,7 @@ namespace qk {
 
 	void TextBlobBuilder::make(cString& text) {
 		auto lines = string_to_unichar(
-			text, _opts->text_white_space_value(), _lines->ignore_single_space_line()
+			text, _opts->white_space_value(), _lines->ignore_single_space_line()
 		);
 		make(lines);
 	}
@@ -232,11 +232,11 @@ namespace qk {
 	void TextBlobBuilder::make(Array<Array<Unichar>>& lines) {
 		if (lines.length() == 0)
 			return;
-		auto text_white_space = _opts->text_white_space_value();
-		auto text_word_break = _opts->text_word_break_value();
+		auto white_space = _opts->white_space_value();
+		auto word_break = _opts->word_break_value();
 		bool is_auto_wrap = true;
 
-		// enum class TextWhiteSpace: uint8_t {
+		// enum class WhiteSpace: uint8_t {
 		// 	NORMAL,        /* 合并空白序列,使用自动wrap */
 		// 	NO_WRAP,       /* 合并空白序列,不使用自动wrap */
 		// 	PRE,           /* 保留所有空白,不使用自动wrap */
@@ -244,7 +244,7 @@ namespace qk {
 		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
 		// };
 
-		// enum class TextWordBreak: uint8_t {
+		// enum class WordBreak: uint8_t {
 		// 	NORMAL,    /* 保持单词在同一行并清除行尾溢出的空白符 */
 		// 	BREAK_WORD,/* 保持单词在同一行,除非单词长度超过一行才截断 */
 		// 	BREAK_ALL, /* 以字为单位行空间不足换行 */
@@ -254,8 +254,8 @@ namespace qk {
 		auto no_limit = _lines->limit_range().end.x() == 0;
 
 		if (_disable_auto_wrap || no_limit || // 不使用自动wrap
-				text_white_space == TextWhiteSpace::NoWrap ||
-				text_white_space == TextWhiteSpace::Pre
+				white_space == WhiteSpace::NoWrap ||
+				white_space == WhiteSpace::Pre
 		) { // 不使用自动wrap,溢出不换行
 			is_auto_wrap = false;
 		}
@@ -276,21 +276,21 @@ namespace qk {
 				_index_of_unichar++; // add index \n
 			}
 
-			auto fg_arr = _opts->text_family().value->
-				makeFontGlyphs(lines[i], _opts->font_style(), _text_size);
+			auto fg_arr = _opts->font_family().value->
+				makeFontGlyphs(lines[i], _opts->font_style(), _font_size);
 			auto unichar = *lines[i];
 
 			for (auto& fg: fg_arr) {
 				if (is_auto_wrap) {
-					switch (text_word_break) {
+					switch (word_break) {
 						default:
-						case TextWordBreak::Normal:
+						case WordBreak::Normal:
 							as_normal(fg, unichar, false, false); break;
-						case TextWordBreak::BreakWord:
+						case WordBreak::BreakWord:
 							as_normal(fg, unichar, true, false); break;
-						case TextWordBreak::BreakAll:
+						case WordBreak::BreakAll:
 							as_break_all(fg, unichar); break;
-						case TextWordBreak::KeepAll:
+						case WordBreak::KeepAll:
 							as_normal(fg, unichar, false, true); break;
 					}
 					unichar += fg.length();
@@ -319,8 +319,8 @@ namespace qk {
 		auto  offset = fg.getHorizontalOffset();
 		auto  line = _lines->last();
 		bool  isEmpty = line->width == 0.0; // empty line
-		auto  text_size = _text_size;
-		auto  line_height = _opts->text_line_height().value;
+		auto  font_size = _font_size;
+		auto  line_height = _opts->line_height().value;
 
 		float limitX = _lines->limit_range().end.width();
 		float origin = _lines->pre_width();
@@ -333,7 +333,7 @@ namespace qk {
 			}
 			if (start < j) {
 				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
+					{fg.typeface(), font_size, line_height, _index_of_unichar + start, _blobOut},
 					glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), isPre
 				);
 			}
@@ -382,8 +382,8 @@ namespace qk {
 	void TextBlobBuilder::as_break_all(FontGlyphs &fg, Unichar *unichar) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.getHorizontalOffset();
-		auto  text_size = _opts->text_size().value;
-		auto  line_height = _opts->text_line_height().value;
+		auto  font_size = _opts->font_size().value;
+		auto  line_height = _opts->line_height().value;
 
 		float limitX = _lines->limit_range().end.width();
 		float origin = _lines->pre_width();
@@ -394,7 +394,7 @@ namespace qk {
 			_lines->finish_text_blob_pre(); // finish pre
 			if (start < j) {
 				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
+					{fg.typeface(), font_size, line_height, _index_of_unichar + start, _blobOut},
 					glyphs.slice(start, j).buffer(), offset.slice(start, j+1).buffer(), false
 				);
 			}
@@ -425,8 +425,8 @@ namespace qk {
 		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
 		auto limitX = _lines->limit_range().end.width();
-		auto text_size = _text_size;
-		auto line_height = _opts->text_line_height().value;
+		auto font_size = _font_size;
+		auto line_height = _opts->line_height().value;
 
 		if (!_disable_overflow && overflow != TextOverflow::Normal && limitX > 0) {
 			if (origin >= limitX) return; // skip
@@ -445,7 +445,7 @@ namespace qk {
 						if (x > limitX) {
 							// discard overflow part
 							_lines->add_text_blob(
-								{fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
+								{fg.typeface(), font_size, line_height, _index_of_unichar, _blobOut},
 								fg.glyphs().slice(0, j).buffer(), offset.slice(0, j+1).buffer(), false
 							);
 							_lines->set_pre_width(limitX);
@@ -455,7 +455,7 @@ namespace qk {
 				} else { // ELLIPSIS or ELLIPSIS_CENTER
 
 					Array<Unichar> uinchar({46,46,46});
-					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
+					auto ellipsis = _opts->font_family().value->makeFontGlyphs(uinchar, _opts->font_style(), font_size)[0];
 					auto ellipsis_offset = ellipsis.getHorizontalOffset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width.x();
@@ -467,7 +467,7 @@ namespace qk {
 							if (x > limit2) {
 								if (j) {
 									_lines->add_text_blob(
-										{fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
+										{fg.typeface(), font_size, line_height, _index_of_unichar, _blobOut},
 										fg.glyphs().slice(0, j).buffer(), offset.slice(0, j+1).buffer(), false
 									);
 								}
@@ -477,7 +477,7 @@ namespace qk {
 
 						// add ellipsis
 						_lines->add_text_blob(
-							{ellipsis.typeface(), text_size, line_height, j, _blobOut},
+							{ellipsis.typeface(), font_size, line_height, j, _blobOut},
 							ellipsis.glyphs(), ellipsis_offset, false
 						);
 						_lines->set_pre_width(limitX);
@@ -487,7 +487,7 @@ namespace qk {
 							float x = origin + offset[j + 1].x();
 							if (x > limitX) {
 								_lines->add_text_blob(
-									{ellipsis.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
+									{ellipsis.typeface(), font_size, line_height, _index_of_unichar, _blobOut},
 									ellipsis.glyphs().slice(0, j).buffer(), ellipsis_offset.slice(0, j + 1).buffer(), false
 								);
 								_lines->set_pre_width(limitX);
@@ -502,7 +502,7 @@ namespace qk {
 			}
 		}
 
-		_lines->add_text_blob({fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut}, fg.glyphs(), offset, false);
+		_lines->add_text_blob({fg.typeface(), font_size, line_height, _index_of_unichar, _blobOut}, fg.glyphs(), offset, false);
 		_lines->set_pre_width(origin + offset.back().x());
 	}
 

@@ -50,12 +50,12 @@ struct CTFontVariation {
 	OpszVariation opsz;
 };
 
-QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz);
+QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat fontSize, OpszVariation opsz);
 
 FontStyle QkCTFontDescriptorGetQkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider);
 
-CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight);
-CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
+CGFloat QkCTFontCTWeightForCSSWeight(FontWeight fontstyleWeight);
+CGFloat QkCTFontCTWidthForCSSWidth(FontWidth fontstyleWidth);
 
 class Typeface_Mac: public Typeface {
 public:

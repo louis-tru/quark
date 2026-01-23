@@ -41,19 +41,19 @@ namespace qk { namespace js {
 		typedef Object Type;
 		Js_UIObject_Acce_Get(TextOptions, FontStyle, font_style, fontStyle);
 		Js_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
-		Js_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
-		Js_UIObject_Accessor(TextOptions, TextSlant, text_slant, textSlant);
+		Js_UIObject_Accessor(TextOptions, FontWeight, font_weight, fontWeight);
+		Js_UIObject_Accessor(TextOptions, FontSlant, font_slant, fontSlant);
 		Js_UIObject_Accessor(TextOptions, TextDecoration, text_decoration, textDecoration);
 		Js_UIObject_Accessor(TextOptions, TextOverflow, text_overflow, textOverflow);
-		Js_UIObject_Accessor(TextOptions, TextWhiteSpace, text_white_space, textWhiteSpace);
-		Js_UIObject_Accessor(TextOptions, TextWordBreak, text_word_break, textWordBreak);
-		Js_UIObject_Accessor(TextOptions, TextSize, text_size, textSize);
+		Js_UIObject_Accessor(TextOptions, WhiteSpace, white_space, whiteSpace);
+		Js_UIObject_Accessor(TextOptions, WordBreak, word_break, wordBreak);
+		Js_UIObject_Accessor(TextOptions, FontSize, font_size, fontSize);
 		Js_UIObject_Accessor(TextOptions, TextColor, text_background_color, textBackgroundColor);
 		Js_UIObject_Accessor(TextOptions, TextStroke, text_stroke, textStroke);
 		Js_UIObject_Accessor(TextOptions, TextColor, text_color, textColor);
-		Js_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
+		Js_UIObject_Accessor(TextOptions, FontSize, line_height, lineHeight);
 		Js_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
-		Js_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
+		Js_UIObject_Accessor(TextOptions, FontFamily, font_family, fontFamily);
 		Js_Class_Method(computeLayoutSize, {
 			if (!args.length())
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value, Vec2 limit)\n");
@@ -115,12 +115,18 @@ namespace qk { namespace js {
 			inheritTextOptions(cls, worker);
 			Js_MixObject_Accessor(Input, bool, security, security);
 			Js_MixObject_Accessor(Input, bool, readonly, readonly);
-			Js_MixObject_Accessor(Input, KeyboardType, type, type);
+			Js_MixObject_Acce_Get(Input, bool, is_marked_text, isMarkedText);
+			Js_MixObject_Accessor(Input, KeyboardType, keyboard_type, keyboardType);
 			Js_MixObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
 			Js_MixObject_Accessor(Input, Color, placeholder_color, placeholderColor);
 			Js_MixObject_Accessor(Input, Color, cursor_color, cursorColor);
 			Js_MixObject_Accessor(Input, uint32_t, max_length, maxLength);
 			Js_MixObject_Acce_Get(Input, uint32_t, text_length, textLength);
+			Js_MixObject_Acce_Get(Input, uint32_t, cursor_index, cursorIndex);
+			Js_MixObject_Acce_Get(Input, uint32_t, cursor_line, cursorLine);
+			Js_MixObject_Acce_Get(Input, String, marked_text, markedText);
+			Js_MixObject_Acce_Get(Input, uint32_t, marked_text_index, markedTextIndex);
+			Js_MixObject_Acce_Get(Input, uint32_t, marked_text_length, markedTextLength);
 
 			Js_Class_Accessor(value, {
 				Js_Return( self->value_u4() );
@@ -133,6 +139,8 @@ namespace qk { namespace js {
 			}, {
 				self->set_placeholder_u4(val->toString(worker)->value4(worker));
 			});
+
+			Js_Class_Method(cancelMarkedText, { self->cancel_marked_text(); });
 
 			cls->exports("Input", exports);
 		}
@@ -147,6 +155,27 @@ namespace qk { namespace js {
 			inheritTextOptions(cls, worker);
 			inheritScrollView(cls, worker);
 			cls->exports("Textarea", exports);
+		}
+	};
+
+	class MixInputSink: public MixViewObject {
+	public:
+		typedef InputSink Type;
+		virtual TextOptions* asTextOptions() { return self<Input>(); }
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(InputSink, View, { Js_NewView(InputSink); });
+			Js_MixObject_Acce_Get(InputSink, bool, is_marked_text, isMarkedText);
+			Js_MixObject_Acce_Get(InputSink, String, marked_text, markedText);
+			Js_MixObject_Acce_Get(InputSink, uint32_t, marked_text_length, markedTextLength);
+			Js_MixObject_Acce_Get(InputSink, uint32_t, cursor_index, cursorIndex);
+			Js_MixObject_Accessor(InputSink, Rect, spot_rect, spotRect);
+			Js_MixObject_Accessor(InputSink, bool, can_delete, canDelete);
+			Js_MixObject_Accessor(InputSink, bool, can_backspace, canBackspace);
+			Js_MixObject_Accessor(InputSink, bool, readonly, readonly);
+			Js_MixObject_Accessor(InputSink, KeyboardType, keyboard_type, keyboardType);
+			Js_MixObject_Accessor(InputSink, KeyboardReturnType, return_type, returnType);
+			Js_Class_Method(cancelMarkedText, { self->cancel_marked_text(); });
+			cls->exports("InputSink", exports);
 		}
 	};
 
@@ -165,6 +194,6 @@ namespace qk { namespace js {
 		MixLabel::binding(exports, worker);
 		MixInput::binding(exports, worker);
 		MixTextarea::binding(exports, worker);
+		MixInputSink::binding(exports, worker);
 		MixDefaultTextOptions::binding(exports, worker);
-	}
-} }
+} }}

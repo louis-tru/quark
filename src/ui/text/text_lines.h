@@ -76,7 +76,7 @@ namespace qk {
 		typedef TextLinesCore::Line Line;
 		struct PreTextBlob {
 			Sp<Typeface>     typeface;
-			float            text_size, line_height;
+			float            font_size, line_height;
 			uint32_t         index_of_unichar;
 			Array<TextBlob> *blobOut;
 			Array<GlyphID>   glyphs;
@@ -105,7 +105,7 @@ namespace qk {
 		inline TextLinesCore* core() { return *_core; }
 	private:
 		void set_line_height(float top, float bottom);
-		void set_line_height(FontMetricsBase *metrics, float line_height, float text_size);
+		void set_line_height(FontMetricsBase *metrics, float line_height, float font_size);
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);

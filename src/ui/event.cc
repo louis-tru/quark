@@ -168,9 +168,9 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	KeyEvent::KeyEvent(View* origin, KeyboardKeyCode keycode, KeyboardKeyCode code, int keypress,
+	KeyEvent::KeyEvent(View* origin, KeyboardCode keycode, KeyboardCode code, int keypress,
 				KeyboardLocation location,  bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-				uint32_t repeat, int device, int source)
+				int repeat, int device, int source)
 		: UIEvent(origin), _keycode(keycode), _code(code), _keypress(keypress)
 		, _location(location), _device(device), _source(source), _repeat(repeat), _shift(shift)
 		, _ctrl(ctrl), _alt(alt), _command(command)
@@ -182,7 +182,7 @@ namespace qk {
 			_next_focus = view;
 	}
 
-	void KeyEvent::set_keycode(KeyboardKeyCode keycode) {
+	void KeyEvent::set_keycode(KeyboardCode keycode) {
 		_keycode = keycode;
 	}
 
@@ -192,21 +192,21 @@ namespace qk {
 	}
 
 	ClickEvent::ClickEvent(View* origin, Vec2 position, Type type, uint32_t count,
-			KeyboardKeyCode keycode,
+			KeyboardCode keycode,
 			bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
 		: KeyEvent(origin, keycode, keycode, 0, kSTANDARD_LOCATION, shift, ctrl, alt, command, caps_lock
 			, 0, 0, 0
 		), _position(position), _multi_count(count), _type(type)
 	{}
 
-	MouseEvent::MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode,
+	MouseEvent::MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardCode keycode,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
 		: KeyEvent(origin, keycode, keycode, 0, kSTANDARD_LOCATION, shift, ctrl, alt, command, caps_lock, 0, 0, 0
 		), _position(pos), _delta(delta), _level(origin->level())
 	{}
 
 	Sp<ClickEvent> NewClick(View* view, Vec2 pos,
-			ClickEvent::Type type, KeyboardKeyCode keycode = KEYCODE_UNKNOWN, uint32_t count = 1) {
+			ClickEvent::Type type, KeyboardCode keycode = KEYCODE_NONE, uint32_t count = 1) {
 		auto dispatch = view->window()->dispatch();
 		auto keyboard = dispatch->keyboard();
 		return NewEvent<ClickEvent>(view, pos, type, count, keycode,
@@ -216,7 +216,7 @@ namespace qk {
 		);
 	}
 
-	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode) {
+	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, Vec2 delta, KeyboardCode keycode) {
 		auto dispatch = view->window()->dispatch();
 		auto keyboard = dispatch->keyboard();
 		return NewEvent<MouseEvent>(view, pos, delta, keycode,
@@ -244,6 +244,14 @@ namespace qk {
 		for (auto& touch : _change_touches)
 			touch.view = nullptr; // clear weak reference
 		UIEvent::release();
+	}
+
+	InputEvent::InputEvent(View* origin, cString& text, int input_delete_or_cursor_index, KeyboardCode input_control)
+		: UIEvent(origin), _input(text), _input_delete(input_delete_or_cursor_index), _input_control(input_control)
+	{}
+
+	int InputEvent::cursor_index() const {
+		return _input_delete;
 	}
 
 	// O r i g i n T o u c h e
@@ -361,25 +369,21 @@ namespace qk {
 				// set text input
 				auto input = view->asTextInput();
 				if ( _text_input != input ) {
+					if (_text_input)
+						_text_input.load()->input_close(); // close previous IME
 					_text_input = input;
 					if ( input ) {
-						setImeKeyboardOpen({
-							true,
+						setImeKeyboardAndOpen({
 							input->input_keyboard_type(),
 							input->input_keyboard_return_type(),
 							input->input_spot_rect(),
+							true,
+							input->input_can_backspace(), input->input_can_delete()
 						});
 					} else {
 						setImeKeyboardClose();
 					}
-				} else if ( input ) {
-					setImeKeyboardOpen({
-						false,
-						input->input_keyboard_type(),
-						input->input_keyboard_return_type(),
-						input->input_spot_rect(),
-					});
-				} // if ( _text_input != input ) {
+				}
 			} else {
 				return false;
 			}
@@ -675,7 +679,7 @@ namespace qk {
 
 	void EventDispatch::mousemove(View *view, Vec2 pos) {
 		// always trigger mouse move that is to ensure the continuity of move events, even view first enters
-		auto evt = NewMouseEvent(view, pos, {/*zero delta*/}, KEYCODE_UNKNOWN);
+		auto evt = NewMouseEvent(view, pos, {/*zero delta*/}, KEYCODE_NONE);
 		_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **evt);
 
 		View* v_down = _mouse->down_view();
@@ -703,7 +707,7 @@ namespace qk {
 			if (old) {
 				// Can trigger the MouseOut event here.
 				if (!old->is_child(view)) {
-					auto evt = NewMouseEvent(old, pos, {}, KEYCODE_UNKNOWN);
+					auto evt = NewMouseEvent(old, pos, {}, KEYCODE_NONE);
 					_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 				}
 				_inl_view(old)->trigger_UIStateChange( // emit style status event
@@ -714,7 +718,7 @@ namespace qk {
 			_window->setCursorStyle(view->cursor_style_exec(), true);
 
 			if (!old || !view->is_child(old)) {
-				auto evt = NewMouseEvent(view, pos, {}, KEYCODE_UNKNOWN);
+				auto evt = NewMouseEvent(view, pos, {}, KEYCODE_NONE);
 				_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 			}
 			auto status = view == v_down || view->is_child(v_down) ?
@@ -723,7 +727,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyCode code, bool down) {
+	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardCode code, bool down) {
 		if (_mouse->view() != view) {
 			mousemove(view, pos); // ensure mouse move to this view first
 		}
@@ -776,7 +780,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *val) {
+	void EventDispatch::onMousepress(KeyboardCode code, bool isDown, const Vec2 *val) {
 		Vec2 deltaDefault;
 		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
@@ -951,9 +955,6 @@ namespace qk {
 		TextInput* input = _text_input;
 		if ( input ) {
 			input->input_delete(count);
-			bool can_backspace = input->input_can_backspace();
-			bool can_delete = input->input_can_delete();
-			setImeKeyboardCanBackspace(can_backspace, can_delete);
 		}
 	}
 
@@ -965,11 +966,11 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onImeMarked(cString& text) {
+	void EventDispatch::onImeMarked(cString& text, int caret_in_marked) {
 		UILock lock(_window);
 		TextInput* input = _text_input;
 		if ( input ) {
-			input->input_marked(text);
+			input->input_marked(text, caret_in_marked);
 		}
 	}
 
@@ -981,7 +982,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onImeControl(KeyboardKeyCode code) {
+	void EventDispatch::onImeControl(KeyboardCode code) {
 		UILock lock(_window);
 		TextInput* input = _text_input;
 		if ( input ) {

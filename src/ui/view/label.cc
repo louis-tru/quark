@@ -37,16 +37,21 @@
 
 namespace qk {
 
-	static Sp<TextLinesCore> default_textLinesCore([]() {
-		auto rv = new TextLinesCore();
+	static TextLinesCore* newEmptyTextLinesCore() {
+		auto rv = NewRetain<TextLinesCore>();
 		rv->push({0,0,0,0,0,0,0,false}); // avoid null pointer
 		return rv;
-	}());
+	}
+
+	static TextLinesCore* default_textLinesCore() {
+		static auto rv = newEmptyTextLinesCore(); // singleton
+		return rv;
+	};
 
 	Vec2 set_layout_offset_free(Align align, Vec2 hostSize, Vec2 layout_size);
 
 	Label::Label(): _align(Align::Normal)
-		, _lines(default_textLinesCore) // avoid null pointer
+		, _lines(default_textLinesCore()) // avoid null pointer
 	{
 	}
 

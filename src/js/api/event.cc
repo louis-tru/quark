@@ -97,18 +97,15 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(KeyEvent, int, code, code);
 			Js_MixObject_Acce_Get(KeyEvent, int, keypress, keypress);
 			Js_MixObject_Acce_Get(KeyEvent, int, location, location);
-			Js_MixObject_Acce_Get(KeyEvent, uint32_t, repeat, repeat);
+			Js_MixObject_Acce_Get(KeyEvent, int, repeat, repeat);
 			Js_MixObject_Acce_Get(KeyEvent, bool, shift, shift);
 			Js_MixObject_Acce_Get(KeyEvent, bool, ctrl, ctrl);
 			Js_MixObject_Acce_Get(KeyEvent, bool, alt, alt);
 			Js_MixObject_Acce_Get(KeyEvent, bool, command, command);
 			Js_MixObject_Acce_Get(KeyEvent, bool, caps_lock, capsLock);
-			Js_MixObject_Acce_Get(KeyEvent, uint32_t, device, device);
-			Js_MixObject_Acce_Get(KeyEvent, uint32_t, source, source);
-			// Js_MixObject_Acce_Get(KeyEvent, View*, next_focus, nextFocus);
-			Js_Class_Accessor(nextFocus, {
-				Js_Return(self->next_focus());
-			}, {
+			Js_MixObject_Acce_Get(KeyEvent, int, device, device);
+			Js_MixObject_Acce_Get(KeyEvent, int, source, source);
+			Js_Class_Accessor(nextFocus, { Js_Return(self->next_focus()); }, {
 				View* view = nullptr;
 				if ( Js_IsView(val) ) {
 					view = MixObject::mix<View>(val)->self();
@@ -263,6 +260,18 @@ namespace qk { namespace js {
 		}
 	};
 
+	struct MixInputEvent: MixObject {
+		typedef InputEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(InputEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(InputEvent, String, input, input);
+			Js_MixObject_Acce_Get(InputEvent, int, input_delete, inputDelete);
+			Js_MixObject_Acce_Get(InputEvent, int, cursor_index, cursorIndex);
+			Js_MixObject_Acce_Get(InputEvent, int, input_control, inputControl);
+			cls->exports("InputEvent", exports);
+		}
+	};
+
 	struct MixEvent {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->runNativeScript((Char*)
@@ -282,6 +291,7 @@ namespace qk { namespace js {
 			MixReachWaypointEvent::binding(exports, worker);
 			MixAgentMovementEvent::binding(exports, worker);
 			MixDiscoveryAgentEvent::binding(exports, worker);
+			MixInputEvent::binding(exports, worker);
 		}
 	};
 

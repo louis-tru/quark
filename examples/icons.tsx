@@ -1651,12 +1651,12 @@ createCss({
 		textAlign: "center",
 		width:"25%",
 		align:"start",
-		textSize:28,
-		textFamily:"icomoon-ultimate",
+		fontSize:28,
+		fontFamily:"icomoon-ultimate",
 	},
 	'.icon_page .txt': {
-		textSize:16,
-		textFamily: 'default',
+		fontSize:16,
+		fontFamily: 'default',
 		textColor: "#555",
 	}
 });

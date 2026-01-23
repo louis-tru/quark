@@ -36,8 +36,8 @@
 namespace qk {
 
 	KeyboardAdapter::KeyboardAdapter()
-		: _keycode(KEYCODE_UNKNOWN)
-		, _code(KEYCODE_UNKNOWN)
+		: _keycode(KEYCODE_NONE)
+		, _code(KEYCODE_NONE)
 		, _keypress(0)
 		, _location(kSTANDARD_LOCATION)
 		, _shift(false)
@@ -49,16 +49,16 @@ namespace qk {
 		, _device(0)
 		, _source(0)
 	{
-		_KeyCodeToKeypress[KEYCODE_0]               = { 48, 41 }; 	// 0 )
-		_KeyCodeToKeypress[KEYCODE_1]               = { 49, 33 }; 	// 1 !
-		_KeyCodeToKeypress[KEYCODE_2]               = { 50, 64 }; 	// 2 @
-		_KeyCodeToKeypress[KEYCODE_3]               = { 51, 35 }; 	// 3 #
-		_KeyCodeToKeypress[KEYCODE_4]               = { 52, 36 }; 	// 4 $
-		_KeyCodeToKeypress[KEYCODE_5]               = { 53, 37 }; 	// 5 %
-		_KeyCodeToKeypress[KEYCODE_6]               = { 54, 94 }; 	// 6 ^
-		_KeyCodeToKeypress[KEYCODE_7]               = { 55, 38 }; 	// 7 &
-		_KeyCodeToKeypress[KEYCODE_8]               = { 56, 42 }; 	// 8 *
-		_KeyCodeToKeypress[KEYCODE_9]               = { 57, 40 }; 	// 9 (
+		_KeyCodeToKeypress[KEYCODE_NUM_0]           = { 48, 41 }; 	// 0 )
+		_KeyCodeToKeypress[KEYCODE_NUM_1]           = { 49, 33 }; 	// 1 !
+		_KeyCodeToKeypress[KEYCODE_NUM_2]           = { 50, 64 }; 	// 2 @
+		_KeyCodeToKeypress[KEYCODE_NUM_3]           = { 51, 35 }; 	// 3 #
+		_KeyCodeToKeypress[KEYCODE_NUM_4]           = { 52, 36 }; 	// 4 $
+		_KeyCodeToKeypress[KEYCODE_NUM_5]           = { 53, 37 }; 	// 5 %
+		_KeyCodeToKeypress[KEYCODE_NUM_6]           = { 54, 94 }; 	// 6 ^
+		_KeyCodeToKeypress[KEYCODE_NUM_7]           = { 55, 38 }; 	// 7 &
+		_KeyCodeToKeypress[KEYCODE_NUM_8]           = { 56, 42 }; 	// 8 *
+		_KeyCodeToKeypress[KEYCODE_NUM_9]           = { 57, 40 }; 	// 9 (
 		_KeyCodeToKeypress[KEYCODE_SEMICOLON]       = { 59, 58 };  // ; :
 		_KeyCodeToKeypress[KEYCODE_EQUALS]          = { 61, 43 };  // = +
 		_KeyCodeToKeypress[KEYCODE_MINUS]           = { 45, 95 };  // - _
@@ -92,26 +92,26 @@ namespace qk {
 		_AsciiToKeyCode[KEYCODE_ESC] = { KEYCODE_ESC, 0 };
 		_AsciiToKeyCode[KEYCODE_ENTER] = { KEYCODE_ENTER, 0 };
 		_AsciiToKeyCode['\n'] = { KEYCODE_ENTER, 1 }; // 换行使用换挡的回车表示，因为键盘上并没有换行健
-		_AsciiToKeyCode['0'] = { KEYCODE_0, 0 };
-		_AsciiToKeyCode['1'] = { KEYCODE_1, 0 };
-		_AsciiToKeyCode['2'] = { KEYCODE_2, 0 };
-		_AsciiToKeyCode['3'] = { KEYCODE_3, 0 };
-		_AsciiToKeyCode['4'] = { KEYCODE_4, 0 };
-		_AsciiToKeyCode['5'] = { KEYCODE_5, 0 };
-		_AsciiToKeyCode['6'] = { KEYCODE_6, 0 };
-		_AsciiToKeyCode['7'] = { KEYCODE_7, 0 };
-		_AsciiToKeyCode['8'] = { KEYCODE_8, 0 };
-		_AsciiToKeyCode['9'] = { KEYCODE_9, 0 };
-		_AsciiToKeyCode[')'] = { KEYCODE_0, 1 };
-		_AsciiToKeyCode['!'] = { KEYCODE_1, 1 };
-		_AsciiToKeyCode['@'] = { KEYCODE_2, 1 };
-		_AsciiToKeyCode['#'] = { KEYCODE_3, 1 };
-		_AsciiToKeyCode['$'] = { KEYCODE_4, 1 };
-		_AsciiToKeyCode['%'] = { KEYCODE_5, 1 };
-		_AsciiToKeyCode['^'] = { KEYCODE_6, 1 };
-		_AsciiToKeyCode['&'] = { KEYCODE_7, 1 };
-		_AsciiToKeyCode['*'] = { KEYCODE_8, 1 };
-		_AsciiToKeyCode['('] = { KEYCODE_9, 1 };
+		_AsciiToKeyCode['0'] = { KEYCODE_NUM_0, 0 };
+		_AsciiToKeyCode['1'] = { KEYCODE_NUM_1, 0 };
+		_AsciiToKeyCode['2'] = { KEYCODE_NUM_2, 0 };
+		_AsciiToKeyCode['3'] = { KEYCODE_NUM_3, 0 };
+		_AsciiToKeyCode['4'] = { KEYCODE_NUM_4, 0 };
+		_AsciiToKeyCode['5'] = { KEYCODE_NUM_5, 0 };
+		_AsciiToKeyCode['6'] = { KEYCODE_NUM_6, 0 };
+		_AsciiToKeyCode['7'] = { KEYCODE_NUM_7, 0 };
+		_AsciiToKeyCode['8'] = { KEYCODE_NUM_8, 0 };
+		_AsciiToKeyCode['9'] = { KEYCODE_NUM_9, 0 };
+		_AsciiToKeyCode[')'] = { KEYCODE_NUM_0, 1 };
+		_AsciiToKeyCode['!'] = { KEYCODE_NUM_1, 1 };
+		_AsciiToKeyCode['@'] = { KEYCODE_NUM_2, 1 };
+		_AsciiToKeyCode['#'] = { KEYCODE_NUM_3, 1 };
+		_AsciiToKeyCode['$'] = { KEYCODE_NUM_4, 1 };
+		_AsciiToKeyCode['%'] = { KEYCODE_NUM_5, 1 };
+		_AsciiToKeyCode['^'] = { KEYCODE_NUM_6, 1 };
+		_AsciiToKeyCode['&'] = { KEYCODE_NUM_7, 1 };
+		_AsciiToKeyCode['*'] = { KEYCODE_NUM_8, 1 };
+		_AsciiToKeyCode['('] = { KEYCODE_NUM_9, 1 };
 		_AsciiToKeyCode['a'] = { KEYCODE_A, 0 };
 		_AsciiToKeyCode['b'] = { KEYCODE_B, 0 };
 		_AsciiToKeyCode['c'] = { KEYCODE_C, 0 };
@@ -202,7 +202,7 @@ namespace qk {
 		onDispatch(code, isAscii, isDown);
 	}
 
-	int KeyboardAdapter::toKeypress(KeyboardKeyCode code) {
+	int KeyboardAdapter::toKeypress(KeyboardCode code) {
 		// Letters
 		if ( code >= 65 && code <= 90 ) {
 			if ( _caps_lock || _shift ) { // A - Z
@@ -227,7 +227,7 @@ namespace qk {
 				_keypress = toKeypress(_keycode);
 				_location = kSTANDARD_LOCATION;
 			} else {
-				_keycode = _code = KEYCODE_UNKNOWN;
+				_keycode = _code = KEYCODE_NONE;
 				_keypress = code;
 				_location = kSTANDARD_LOCATION;
 			}
@@ -285,7 +285,7 @@ namespace qk {
 				}
 				_keypress = toKeypress(_keycode);
 			} else { // Unknown keycode
-				_keycode = _code = KEYCODE_UNKNOWN;
+				_keycode = _code = KEYCODE_NONE;
 				_keypress = 0;
 				_location = kSTANDARD_LOCATION;
 			}

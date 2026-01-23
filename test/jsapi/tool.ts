@@ -107,8 +107,8 @@ function MethodVcb<
 				reject(new Error('test fail'));
 			}
 		}
-		if (typeof args.indexReverse(0) == 'function' ) {
-			let cb = args.indexReverse(0) as any;
+		if (typeof args.reverseAt(0) == 'function' ) {
+			let cb = args.reverseAt(0) as any;
 			args[args.length - 1] = async (err: any, ...args: any[])=>{
 				await cb(err, ...args);
 				if (err) {

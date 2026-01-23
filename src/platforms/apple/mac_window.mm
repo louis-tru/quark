@@ -249,7 +249,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 
 - (void)scrollWheel:(NSEvent *)e{
 	// Qk_DLog("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
-	KeyboardKeyCode code = e.deltaX != 0 ?
+	KeyboardCode code = e.deltaX != 0 ?
 		e.deltaX > 0 ? KEYCODE_MOUSE_WHEEL_RIGHT: KEYCODE_MOUSE_WHEEL_LEFT:
 		e.deltaY > 0 ? KEYCODE_MOUSE_WHEEL_UP: KEYCODE_MOUSE_WHEEL_DOWN;
 	Vec2 delta(e.deltaX, e.deltaY);

@@ -37,18 +37,20 @@
 namespace qk {
 
 	/**
+	 * IME Text Input Protocol
 	 * @class TextInput protocol
 	 */
 	class Qk_EXPORT TextInput: public Protocol {
 	public:
 		virtual void input_delete(int count) = 0;
 		virtual void input_insert(cString& text) = 0;
-		virtual void input_marked(cString& text) = 0;
+		virtual void input_marked(cString& text, int caret_in_marked) = 0;
 		virtual void input_unmark(cString& text) = 0;
-		virtual void input_control(KeyboardKeyCode name) = 0;
+		virtual void input_control(KeyboardCode name) = 0;
 		virtual bool input_can_delete() = 0;
 		virtual bool input_can_backspace() = 0;
 		virtual Rect input_spot_rect() = 0;
+		virtual void input_close() = 0; // close IME notify or switch to other view
 		virtual KeyboardType input_keyboard_type() = 0;
 		virtual KeyboardReturnType input_keyboard_return_type() = 0;
 	};

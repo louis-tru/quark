@@ -125,7 +125,7 @@ struct CGFloatIdentity {
  *  The -1 to 1 weights reported by CTFontDescriptors have different mappings depending on if the
  *  CTFont is native or created from a CGDataProvider.
  */
-CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight) {
+CGFloat QkCTFontCTWeightForCSSWeight(FontWeight fontstyleWeight) {
 	using Interpolator = QkLinearInterpolater<int, CGFloat, CGFloatIdentity>;
 
 	// Note that Mac supports the old OS2 version A so 0 through 10 are as if multiplied by 100.
@@ -149,7 +149,7 @@ CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight) {
 }
 
 /** Convert the [0, 10] CSS weight to [-1, 1] CTFontDescriptor width. */
-CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth) {
+CGFloat QkCTFontCTWidthForCSSWidth(FontWidth fontstyleWidth) {
 	using Interpolator = QkLinearInterpolater<int, CGFloat, CGFloatIdentity>;
 
 	// Values determined by creating font data with every width, creating a CTFont,
@@ -188,7 +188,7 @@ static void add_notrak_attr(CFMutableDictionaryRef attr) {
 	CFDictionarySetValue(attr, QkCTFontUnscaledTrackingAttribute, unscaledTrackingNumber.get());
 }
 
-QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz)
+QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat fontSize, OpszVariation opsz)
 {
 	QkUniqueCFRef<CFMutableDictionaryRef> attr(
 	CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
@@ -224,7 +224,7 @@ QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat tex
 	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontDescriptorCreateWithAttributes(attr.get()));
 
 	return QkUniqueCFRef<CTFontRef>(
-					CTFontCreateCopyWithAttributes(baseFont, textSize, nullptr, desc.get()));
+					CTFontCreateCopyWithAttributes(baseFont, fontSize, nullptr, desc.get()));
 }
 
 /** Convert the [-1, 1] CTFontDescriptor weight to [0, 1000] CSS weight.
@@ -268,8 +268,8 @@ static int ct_width_to_fontstyle(CGFloat cgWidth) {
 	// Values determined by creating font data with every width, creating a CTFont,
 	// and asking the CTFont for its width. See TypefaceStyle test for basics.
 	static constexpr Interpolator::Mapping widthMappings[] = {
-		{ -0.5,  1 }, // 1 because TextWidth enum is 1-11
-		{  0.5, 11 }, // 11 because TextWidth enum is 1-11
+		{ -0.5,  1 }, // 1 because FontWidth enum is 1-11
+		{  0.5, 11 }, // 11 because FontWidth enum is 1-11
 	};
 	static constexpr Interpolator interpolator(widthMappings, Qk_ARRAY_COUNT(widthMappings));
 	return interpolator.map(cgWidth);
@@ -300,9 +300,9 @@ FontStyle QkCTFontDescriptorGetQkFontStyle(CTFontDescriptorRef desc, bool fromDa
 		slant = 0;
 	}
 
-	return FontStyle((TextWeight)ct_weight_to_fontstyle(weight, fromDataProvider),
-										(TextWidth)ct_width_to_fontstyle(width),
-										slant ? TextSlant::Italic: TextSlant::Normal);
+	return FontStyle((FontWeight)ct_weight_to_fontstyle(weight, fromDataProvider),
+										(FontWidth)ct_width_to_fontstyle(width),
+										slant ? FontSlant::Italic: FontSlant::Normal);
 }
 
 

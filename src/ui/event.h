@@ -61,6 +61,7 @@ namespace qk {
 		kPlayer_UIEventCategory,
 		kSpine_UIEventCategory,
 		kAgent_UIEventCategory,
+		kInput_UIEventCategory,
 	};
 
 	// event flags / cast
@@ -132,21 +133,21 @@ namespace qk {
 	};
 
 	/**
-	* @func KeyEvent keyboard event
+	* @class KeyEvent keyboard event
 	*/
 	class Qk_EXPORT KeyEvent: public UIEvent {
 	public:
-		KeyEvent(View* origin, KeyboardKeyCode keycode, KeyboardKeyCode code, int keypress,
+		KeyEvent(View* origin, KeyboardCode keycode, KeyboardCode code, int keypress,
 						KeyboardLocation location, bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-						uint32_t repeat, int device, int source);
+						int repeat, int device, int source);
 		Qk_DEFINE_PROPERTY(View*, next_focus);
-		Qk_DEFINE_PROPERTY(KeyboardKeyCode, keycode, Const);
-		Qk_DEFINE_PROPERTY(KeyboardKeyCode, code, Const);
+		Qk_DEFINE_PROPERTY(KeyboardCode, keycode, Const);
+		Qk_DEFINE_PROPERTY(KeyboardCode, code, Const);
 		Qk_DEFINE_PROPERTY(int, keypress, Const);
 		Qk_DEFINE_PROPERTY(KeyboardLocation, location, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, device, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, source, Const);
+		Qk_DEFINE_PROP_GET(int, repeat, Const);
+		Qk_DEFINE_PROP_GET(int, device, Const);
+		Qk_DEFINE_PROP_GET(int, source, Const);
 		Qk_DEFINE_PROP_GET(bool, shift, Const);
 		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
 		Qk_DEFINE_PROP_GET(bool, alt, Const);
@@ -163,7 +164,7 @@ namespace qk {
 		enum Type {
 			kTouch = 1, kKeyboard, kMouse
 		};
-		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count, KeyboardKeyCode keycode,
+		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count, KeyboardCode keycode,
 			bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		bool is_multi_click() const { return _multi_count > 1; }
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
@@ -176,7 +177,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardKeyCode keycode,
+		MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardCode keycode,
 				bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
 		Qk_DEFINE_PROP_GET(Vec2, delta, Const); // mouse wheel delta only
@@ -217,13 +218,25 @@ namespace qk {
 
 	typedef TouchEvent::TouchPoint TouchPoint;
 
+	/**
+	* @class InputEvent input event
+	*/
+	class InputEvent: public UIEvent {
+	public:
+		InputEvent(View* origin, cString& text, int input_delete_or_cursor_index, KeyboardCode input_control);
+		Qk_DEFINE_PROP_GET(String, input, Const); // input text
+		Qk_DEFINE_PROP_GET(int, input_delete, Const); // delete char count
+		Qk_DEFINE_ACCE_GET(int, cursor_index, Const); // cursor index in input text
+		Qk_DEFINE_PROP_GET(KeyboardCode, input_control, Const); // control keycode
+	};
+
 	class Qk_EXPORT EventDispatch: public Object {
 	public:
 		struct KeyboardOptions {
-			bool               clear;
-			KeyboardType       type;
+			KeyboardType       keyboard_type;
 			KeyboardReturnType return_type;
 			Rect               spot_rect;
+			bool cancel_marked, can_backspace, can_delete;
 		};
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
@@ -238,31 +251,32 @@ namespace qk {
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
-		void onMousepress(KeyboardKeyCode key, bool isDown, const Vec2 *vec);
+		void onMousepress(KeyboardCode key, bool isDown, const Vec2 *vec);
 		// ime
 		void onImeDelete(int count);
 		void onImeInsert(cString& text);
-		void onImeMarked(cString& text);
+		void onImeMarked(cString& text, int caret_in_marked);
 		void onImeUnmark(cString& text);
-		void onImeControl(KeyboardKeyCode code);
+		void onImeControl(KeyboardCode code);
 		// keyboard work loop call
 		void onKeyboardDown();
 		void onKeyboardUp();
 		// setting state
 		void setVolumeUp();
 		void setVolumeDown();
-		void setImeKeyboardOpen(KeyboardOptions options);
+		void setImeKeyboardAndOpen(KeyboardOptions options);
 		void setImeKeyboardCanBackspace(bool can_back_space, bool can_delete);
 		void setImeKeyboardClose();
 		void setImeKeyboardSpotRect(Rect rect);
 		bool setActiveView(View *view); // set focus from main thread
+		void cancelImeMarked(); // clear marked text
 	private:
 		void touchstart_consume(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, bool isCancel);
 		void mousemove(View* view, Vec2 pos);
-		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
+		void mousepress(View* view, Vec2 pos, KeyboardCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view_and_retain(Vec2 pos);
 		Sp<View> safe_active_view();

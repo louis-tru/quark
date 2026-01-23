@@ -320,46 +320,46 @@ static FontStyle Qkfontstyle_from_fcpattern(FcPattern* pattern) {
 
 	// FcWeightToOpenType was buggy until 2.12.4
 	static constexpr MapRanges weightRanges[] = {
-		{ FC_WEIGHT_THIN,       float(TextWeight::Thin) },
-		{ FC_WEIGHT_EXTRALIGHT, float(TextWeight::Ultralight) },
-		{ FC_WEIGHT_LIGHT,      float(TextWeight::Light) },
+		{ FC_WEIGHT_THIN,       float(FontWeight::Thin) },
+		{ FC_WEIGHT_EXTRALIGHT, float(FontWeight::Ultralight) },
+		{ FC_WEIGHT_LIGHT,      float(FontWeight::Light) },
 		{ FC_WEIGHT_DEMILIGHT,  350 },
 		{ FC_WEIGHT_BOOK,       380 },
-		{ FC_WEIGHT_REGULAR,    float(TextWeight::Regular) },
-		{ FC_WEIGHT_MEDIUM,     float(TextWeight::Medium) },
-		{ FC_WEIGHT_DEMIBOLD,   float(TextWeight::Semibold) },
-		{ FC_WEIGHT_BOLD,       float(TextWeight::Bold) },
-		{ FC_WEIGHT_EXTRABOLD,  float(TextWeight::Heavy) },
-		{ FC_WEIGHT_BLACK,      float(TextWeight::Black) },
-		{ FC_WEIGHT_EXTRABLACK, float(TextWeight::ExtraBlack) },
+		{ FC_WEIGHT_REGULAR,    float(FontWeight::Regular) },
+		{ FC_WEIGHT_MEDIUM,     float(FontWeight::Medium) },
+		{ FC_WEIGHT_DEMIBOLD,   float(FontWeight::Semibold) },
+		{ FC_WEIGHT_BOLD,       float(FontWeight::Bold) },
+		{ FC_WEIGHT_EXTRABOLD,  float(FontWeight::Heavy) },
+		{ FC_WEIGHT_BLACK,      float(FontWeight::Black) },
+		{ FC_WEIGHT_EXTRABLACK, float(FontWeight::ExtraBlack) },
 	};
 	QkScalar weight = map_ranges(get_int(pattern, FC_WEIGHT, FC_WEIGHT_REGULAR),
 								weightRanges, Qk_ARRAY_COUNT(weightRanges));
 
 	static constexpr MapRanges widthRanges[] = {
-		{ FC_WIDTH_ULTRACONDENSED, float(TextWidth::UltraCondensed) },
-		{ FC_WIDTH_EXTRACONDENSED, float(TextWidth::ExtraCondensed) },
-		{ FC_WIDTH_CONDENSED,      float(TextWidth::Condensed) },
-		{ FC_WIDTH_SEMICONDENSED,  float(TextWidth::SemiCondensed) },
-		{ FC_WIDTH_NORMAL,         float(TextWidth::Normal) },
-		{ FC_WIDTH_SEMIEXPANDED,   float(TextWidth::SemiExpanded) },
-		{ FC_WIDTH_EXPANDED,       float(TextWidth::Expanded) },
-		{ FC_WIDTH_EXTRAEXPANDED,  float(TextWidth::ExtraExpanded) },
-		{ FC_WIDTH_ULTRAEXPANDED,  float(TextWidth::UltraExpanded) },
+		{ FC_WIDTH_ULTRACONDENSED, float(FontWidth::UltraCondensed) },
+		{ FC_WIDTH_EXTRACONDENSED, float(FontWidth::ExtraCondensed) },
+		{ FC_WIDTH_CONDENSED,      float(FontWidth::Condensed) },
+		{ FC_WIDTH_SEMICONDENSED,  float(FontWidth::SemiCondensed) },
+		{ FC_WIDTH_NORMAL,         float(FontWidth::Normal) },
+		{ FC_WIDTH_SEMIEXPANDED,   float(FontWidth::SemiExpanded) },
+		{ FC_WIDTH_EXPANDED,       float(FontWidth::Expanded) },
+		{ FC_WIDTH_EXTRAEXPANDED,  float(FontWidth::ExtraExpanded) },
+		{ FC_WIDTH_ULTRAEXPANDED,  float(FontWidth::UltraExpanded) },
 	};
 	QkScalar width = map_ranges(get_int(pattern, FC_WIDTH, FC_WIDTH_NORMAL),
 								widthRanges, Qk_ARRAY_COUNT(widthRanges));
 
-	TextSlant slant = TextSlant::Normal;
+	FontSlant slant = FontSlant::Normal;
 	switch (get_int(pattern, FC_SLANT, FC_SLANT_ROMAN)) {
-		case FC_SLANT_ROMAN:   slant = TextSlant::Normal; break;
-		case FC_SLANT_ITALIC : slant = TextSlant::Italic ; break;
-		case FC_SLANT_OBLIQUE: slant = TextSlant::Oblique; break;
+		case FC_SLANT_ROMAN:   slant = FontSlant::Normal; break;
+		case FC_SLANT_ITALIC : slant = FontSlant::Italic ; break;
+		case FC_SLANT_OBLIQUE: slant = FontSlant::Oblique; break;
 		default: Qk_ASSERT(false); break;
 	}
 
-	return FontStyle(TextWeight(QkScalarRoundToInt(weight)),
-		TextWidth(QkScalarRoundToInt(width)), slant);
+	return FontStyle(FontWeight(QkScalarRoundToInt(weight)),
+		FontWidth(QkScalarRoundToInt(width)), slant);
 }
 
 static void fcpattern_from_Qkfontstyle(FontStyle style, FcPattern* pattern) {
@@ -367,39 +367,39 @@ static void fcpattern_from_Qkfontstyle(FontStyle style, FcPattern* pattern) {
 
 	// FcWeightFromOpenType was buggy until 2.12.4
 	static constexpr MapRanges weightRanges[] = {
-		{ float(TextWeight::Thin),       FC_WEIGHT_THIN },
-		{ float(TextWeight::Ultralight), FC_WEIGHT_EXTRALIGHT },
-		{ float(TextWeight::Light),      FC_WEIGHT_LIGHT },
+		{ float(FontWeight::Thin),       FC_WEIGHT_THIN },
+		{ float(FontWeight::Ultralight), FC_WEIGHT_EXTRALIGHT },
+		{ float(FontWeight::Light),      FC_WEIGHT_LIGHT },
 		{ 350,                           FC_WEIGHT_DEMILIGHT },
 		{ 380,                           FC_WEIGHT_BOOK },
-		{ float(TextWeight::Regular),    FC_WEIGHT_REGULAR },
-		{ float(TextWeight::Medium),     FC_WEIGHT_MEDIUM },
-		{ float(TextWeight::Semibold),   FC_WEIGHT_DEMIBOLD },
-		{ float(TextWeight::Bold),       FC_WEIGHT_BOLD },
-		{ float(TextWeight::Heavy),      FC_WEIGHT_EXTRABOLD },
-		{ float(TextWeight::Black),      FC_WEIGHT_BLACK },
-		{ float(TextWeight::ExtraBlack), FC_WEIGHT_EXTRABLACK },
+		{ float(FontWeight::Regular),    FC_WEIGHT_REGULAR },
+		{ float(FontWeight::Medium),     FC_WEIGHT_MEDIUM },
+		{ float(FontWeight::Semibold),   FC_WEIGHT_DEMIBOLD },
+		{ float(FontWeight::Bold),       FC_WEIGHT_BOLD },
+		{ float(FontWeight::Heavy),      FC_WEIGHT_EXTRABOLD },
+		{ float(FontWeight::Black),      FC_WEIGHT_BLACK },
+		{ float(FontWeight::ExtraBlack), FC_WEIGHT_EXTRABLACK },
 	};
 	int weight = map_ranges(float(style.weight()), weightRanges, Qk_ARRAY_COUNT(weightRanges));
 
 	static constexpr MapRanges widthRanges[] = {
-		{ float(TextWidth::UltraCondensed), FC_WIDTH_ULTRACONDENSED },
-		{ float(TextWidth::ExtraCondensed), FC_WIDTH_EXTRACONDENSED },
-		{ float(TextWidth::Condensed),      FC_WIDTH_CONDENSED },
-		{ float(TextWidth::SemiCondensed),  FC_WIDTH_SEMICONDENSED },
-		{ float(TextWidth::Normal),         FC_WIDTH_NORMAL },
-		{ float(TextWidth::SemiExpanded),   FC_WIDTH_SEMIEXPANDED },
-		{ float(TextWidth::Expanded),       FC_WIDTH_EXPANDED },
-		{ float(TextWidth::ExtraExpanded),  FC_WIDTH_EXTRAEXPANDED },
-		{ float(TextWidth::UltraExpanded),  FC_WIDTH_ULTRAEXPANDED },
+		{ float(FontWidth::UltraCondensed), FC_WIDTH_ULTRACONDENSED },
+		{ float(FontWidth::ExtraCondensed), FC_WIDTH_EXTRACONDENSED },
+		{ float(FontWidth::Condensed),      FC_WIDTH_CONDENSED },
+		{ float(FontWidth::SemiCondensed),  FC_WIDTH_SEMICONDENSED },
+		{ float(FontWidth::Normal),         FC_WIDTH_NORMAL },
+		{ float(FontWidth::SemiExpanded),   FC_WIDTH_SEMIEXPANDED },
+		{ float(FontWidth::Expanded),       FC_WIDTH_EXPANDED },
+		{ float(FontWidth::ExtraExpanded),  FC_WIDTH_EXTRAEXPANDED },
+		{ float(FontWidth::UltraExpanded),  FC_WIDTH_ULTRAEXPANDED },
 	};
 	int width = map_ranges(float(style.width()), widthRanges, Qk_ARRAY_COUNT(widthRanges));
 
 	int slant = FC_SLANT_ROMAN;
 	switch (style.slant()) {
-		case TextSlant::Normal:  slant = FC_SLANT_ROMAN  ; break;
-		case TextSlant::Italic : slant = FC_SLANT_ITALIC ; break;
-		case TextSlant::Oblique: slant = FC_SLANT_OBLIQUE; break;
+		case FontSlant::Normal:  slant = FC_SLANT_ROMAN  ; break;
+		case FontSlant::Italic : slant = FC_SLANT_ITALIC ; break;
+		case FontSlant::Oblique: slant = FC_SLANT_OBLIQUE; break;
 		default: Qk_ASSERT(false); break;
 	}
 

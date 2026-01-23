@@ -46,10 +46,10 @@ app.fontPool.addFontFamily( reader.readFileSync(resolve('./icomoon.ttf')) );
 createCss({
 	'.category_title': {
 		width: 'match',
-		textLineHeight: 30,
+		lineHeight: 30,
 		textColor: '#6d6d72',
-		textSize: 14,
-		textWhiteSpace: 'preWrap',
+		fontSize: 14,
+		whiteSpace: 'preWrap',
 		margin: 16,
 	},
 
@@ -62,7 +62,7 @@ createCss({
 
 	'.hello': {
 		width: 'match',
-		textSize:46, 
+		fontSize:46, 
 		textAlign:"center",
 		textColor:"#000",
 		margin: 16,
@@ -80,14 +80,14 @@ createCss({
 
 	'.toolbar_btn': {
 		padding: 8,
-		textFamily: 'icomoon-ultimate',
-		textSize: 24,
+		fontFamily: 'icomoon-ultimate',
+		fontSize: 24,
 	},
 
 	'.codepre': {
 		width: 'match',
 		margin: 10,
-		textWhiteSpace: 'preWrap'
+		whiteSpace: 'preWrap'
 	},
 	'.codepre:normal': {
 		textColor: '#000'

@@ -200,6 +200,10 @@ using namespace qk;
 	[self resignFirstResponder];
 }
 
+- (void)cancel_marked {
+	[self clear];
+}
+
 - (void)clear {
 	_marked_text = @"";
 	_keyboard_down_keycode = 0;
@@ -295,10 +299,11 @@ using namespace qk;
 	_host->dispatch()->keyboard()->dispatch(KEYCODE_BACK_SPACE, true, false, false, 0, -1, 0);
 }
 
-- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
+- (void)setMarkedText:(NSString*)markedText 
+				selectedRange:(NSRange)selectedRange {
 	if ( _clearing ) return;
 	_marked_text = markedText;
-	_host->dispatch()->onImeMarked([_marked_text UTF8String]);
+	_host->dispatch()->onImeMarked([_marked_text UTF8String], selectedRange.location);
 
 	if ( _keyboard_down_keycode ) {
 		_host->dispatch()->keyboard()->dispatch(_keyboard_down_keycode, true, false, false, 0, -1, 0);
@@ -348,11 +353,11 @@ using namespace qk;
 - (void)setSelectedTextRange:(UITextRange*)aSelectedTextRange {
 }
 
-- (NSDictionary*)markedTextSlant {
+- (NSDictionary*)markedFontSlant {
 	return nil;
 }
 
-- (void)setMarkedTextSlant:(NSDictionary*)style {
+- (void)setMarkedFontSlant:(NSDictionary*)style {
 }
 
 - (UITextPosition*)beginningOfDocument {
@@ -503,17 +508,18 @@ void EventDispatch::setVolumeDown() {
 
 void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
 	auto delegate = window()->impl()->delegate();
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
-	});
+	// don't use dispatch_async to avoid race condition, 
+	// because this function just setting a flag.
+	[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 }
 
-void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
+void EventDispatch::setImeKeyboardAndOpen(KeyboardOptions options) {
 	auto delegate = window()->impl()->delegate();
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_type:options.keyboard_type];
 		[delegate.ime set_keyboard_return_type:options.return_type];
-		[delegate.ime activate: options.clear];
+		[delegate.ime activate: options.cancel_marked ];
+		[delegate.ime set_keyboard_can_backspace:options.can_backspace can_delete:options.can_delete];
 	});
 }
 
@@ -525,4 +531,11 @@ void EventDispatch::setImeKeyboardClose() {
 }
 
 void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
+}
+
+void EventDispatch::cancelImeMarked() {
+	auto delegate = window()->impl()->delegate();
+	post_messate_main(Cb([delegate](auto e) {
+		[delegate.ime cancel_marked];
+	}), false);
 }

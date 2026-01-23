@@ -85,7 +85,7 @@ Typeface* QkFontStyleSet::matchStyleCSS3(FontStyle pattern) {
 
 		// CSS stretch / FontStyle::Width
 		// Takes priority over everything else.
-		if (pattern_width <= int(TextWidth::Normal)) {
+		if (pattern_width <= int(FontWidth::Normal)) {
 			if (current_width <= pattern_width) {
 				currentScore += 10 - pattern_width + current_width;
 			} else {
@@ -102,9 +102,9 @@ Typeface* QkFontStyleSet::matchStyleCSS3(FontStyle pattern) {
 
 		// CSS style (normal, italic, oblique) / FontStyle::Slant (upright, italic, oblique)
 		// Takes priority over all valid weights.
-		static_assert(TextSlant::Normal == TextSlant(2) &&
-					TextSlant::Italic  == TextSlant(3) &&
-					TextSlant::Oblique == TextSlant(4),
+		static_assert(FontSlant::Normal == FontSlant(2) &&
+					FontSlant::Italic  == FontSlant(3) &&
+					FontSlant::Oblique == FontSlant(4),
 					"FontStyle::Slant values not as required.");
 
 		Qk_ASSERT(2 <= pattern_slant && pattern_slant <= 4 &&

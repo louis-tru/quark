@@ -723,7 +723,7 @@ export class DOMCollection implements DOM {
 	readonly owner: ViewController; //!< Owning ViewController
 
 	get metaView() {
-		return this.collection.indexReverse(0).metaView;
+		return this.collection.reverseAt(0).metaView;
 	}
 	constructor(owner: ViewController) {
 		this.owner = owner;
@@ -1027,7 +1027,7 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	morph: view.Morph, sprite: view.Sprite, spine: view.Spine,
 	text: view.Text, button: view.Button, label: view.Label,
 	input: view.Input, textarea: view.Textarea, scroll: view.Scroll,
-	video: view.Video, entity: view.Entity, world: view.World,
+	video: view.Video, entity: view.Entity, world: view.World, inputsink: view.InputSink,
 };
 
 /**

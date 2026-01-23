@@ -49,7 +49,7 @@ export default async function (win: Window) {
 	Mv(app, 'clear', []);
 	Pv(app, 'screen', app.screen)
 	Pv(win, 'root', e=>e.isFocus)
-	Pv(win, 'focusView', win.root)
+	Pv(win, 'activeView', win.root)
 
 	// defaultTextOptions
 	Pv(app.defaultTextOptions, 'textBackgroundColor', e=>e.toString()=='#ffffff',
@@ -58,29 +58,27 @@ export default async function (win: Window) {
 	Pv(app.defaultTextOptions, 'textColor', e=>e.toString()=='#ff0000',
 		e=>e.textColor=types.parseTextColor('#f00'))
 
-	Pv(app.defaultTextOptions, 'textSize', e=>e.value==16,
-		e=>e.textSize=types.parseTextSize(16))
+	Pv(app.defaultTextOptions, 'fontSize', e=>e.value==16,
+		e=>e.fontSize=types.parseFontSize(16))
 
-	Pv(app.defaultTextOptions, 'textWeight', e=>e==types.TextWeight.Thin,
-		e=>e.textWeight=types.parseTextWeight('thin'))
+	Pv(app.defaultTextOptions, 'fontWeight', e=>e==types.FontWeight.Thin,
+		e=>e.fontWeight=types.parseFontWeight('thin'))
+	Pv(app.defaultTextOptions, 'fontSlant', e=>e==types.FontSlant.Italic,
+		e=>e.fontSlant=types.parseFontSlant('italic'))
 
-	Pv(app.defaultTextOptions, 'textSlant', e=>e==types.TextSlant.Italic,
-		e=>e.textSlant=types.parseTextSlant('italic'))
-
-	Pv(app.defaultTextOptions, 'textFamily', e=>!!e.families())
+	Pv(app.defaultTextOptions, 'fontFamily', e=>!!e.families())
 
 	Pv(app.defaultTextOptions, 'textShadow', e=>e.value.color.toString()=='#0000ff'&&e.value.x==10,
 		e=>e.textShadow=types.parseTextShadow('10 10 10 #00f'))
 
-	Pv(app.defaultTextOptions, 'textLineHeight', e=>e.value==0,
-		e=>e.textLineHeight=types.parseTextLineHeight(0))
-
+	Pv(app.defaultTextOptions, 'lineHeight', e=>e.value==0,
+		e=>e.lineHeight=types.parseLineHeight(0))
 	Pv(app.defaultTextOptions, 'textDecoration', e=>e==types.TextDecoration.LineThrough,
 		e=>e.textDecoration=types.parseTextDecoration('lineThrough'))
 
 	Pv(app.defaultTextOptions, 'textOverflow', e=>e==types.TextOverflow.Clip,
 		e=>e.textOverflow=types.parseTextOverflow('clip'))
 
-	Pv(app.defaultTextOptions, 'textWhiteSpace', e=>e==types.TextWhiteSpace.NoWrap,
-		e=>e.textWhiteSpace=types.parseTextWhiteSpace('noWrap'))
+	Pv(app.defaultTextOptions, 'whiteSpace', e=>e==types.WhiteSpace.NoWrap,
+		e=>e.whiteSpace=types.parseWhiteSpace('noWrap'))
 }

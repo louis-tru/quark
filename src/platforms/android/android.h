@@ -38,7 +38,8 @@
 #include "../../util/jni.h"
 
 namespace qk {
-	void Android_ime_keyboard_open(bool clear, int type, int return_type);
+	void Android_ime_keyboard_open(bool cancel_marked, int type, int return_type);
+	void Android_ime_keyboard_cancel_marked();
 	void Android_ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
 	void Android_ime_keyboard_close();
 	void Android_prevent_screen_sleep(bool prevent);

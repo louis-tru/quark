@@ -17,9 +17,9 @@ createCss({
 	'.next_btn': {
 		width: 'match',
 		// height: 45,
-		textLineHeight: 45,
-		// textSize: 14,
-		textWhiteSpace: 'pre',
+		lineHeight: 45,
+		// fontSize: 14,
+		whiteSpace: 'pre',
 		textAlign: "left",
 		borderRadius: 0,
 		//textBackgroundColor: "#0f0",

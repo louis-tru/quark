@@ -43,11 +43,11 @@ export default async function (win: Window) {
 			</morph>
 			<image ref="img" align="end" src={resolve('./res/0.jpg')} />
 			<morph width="50!" align="center" y={10} backgroundColor="#00f6">
-				<button ref="play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Play</button>
-				<button ref="stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Stop</button>
-				<button ref="seek_play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Seek Play</button>
-				<button ref="seek_stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Seek Stop</button>
-				<button ref="clear" textLineHeight={30} backgroundColor="#aaa" margin={2}>Clear</button>
+				<button ref="play" lineHeight={30} backgroundColor="#aaa" margin={2}>Play</button>
+				<button ref="stop" lineHeight={30} backgroundColor="#aaa" margin={2}>Stop</button>
+				<button ref="seek_play" lineHeight={30} backgroundColor="#aaa" margin={2}>Seek Play</button>
+				<button ref="seek_stop" lineHeight={30} backgroundColor="#aaa" margin={2}>Seek Stop</button>
+				<button ref="clear" lineHeight={30} backgroundColor="#aaa" margin={2}>Clear</button>
 			</morph>
 		</box>
 	)
@@ -170,18 +170,18 @@ export default async function (win: Window) {
 		borderTop: '0 #000',
 		borderRight: '0 #000',
 		borderBottom: '0 #000',
-		borderWidthLeft: 0,
-		borderWidthTop: 0,
-		borderWidthRight: 0,
-		borderWidthBottom: 0,
-		borderColorLeft: '#000',
-		borderColorTop: '#000',
-		borderColorRight: '#000',
-		borderColorBottom: '#000',
-		borderRadiusLeftTop: 0,
-		borderRadiusRightTop: 0,
-		borderRadiusRightBottom: 0,
-		borderRadiusLeftBottom: 0,
+		borderLeftWidth: 0,
+		borderTopWidth: 0,
+		borderRightWidth: 0,
+		borderBottomWidth: 0,
+		borderLeftColor: '#000',
+		borderTopColor: '#000',
+		borderRightColor: '#000',
+		borderBottomColor: '#000',
+		borderTopLeftRadius: 0,
+		borderTopRightRadius: 0,
+		borderBottomRightRadius: 0,
+		borderBottomLeftRadius: 0,
 		backgroundColor: '#f008',
 		align: 'end',
 		textAlign: 'center',
@@ -191,16 +191,16 @@ export default async function (win: Window) {
 		// maxHeight: 'auto',
 		textBackgroundColor: '#ff0',
 		textColor: '#f00',
-		textSize: 'inherit',
-		textSlant: 'italic',
-		textWeight: 'bold',
-		textWordBreak: 'breakAll',
-		textFamily: 'inherit',
-		textLineHeight: 'inherit',
+		fontSize: 'inherit',
+		fontSlant: 'italic',
+		fontWeight: 'bold',
+		wordBreak: 'breakAll',
+		fontFamily: 'inherit',
+		lineHeight: 'inherit',
 		textShadow: '2 2 2 #000',
 		textDecoration: 'overline',
 		textOverflow: 'ellipsis',
-		textWhiteSpace: 'noWrap',
+		whiteSpace: 'noWrap',
 		boxShadow: '2 2 2 #f00',
 		src: resolve('./res/aa.jpg'),
 		background: `image(${resolve('./res/aa.jpg')})`,

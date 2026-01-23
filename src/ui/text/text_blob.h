@@ -49,7 +49,7 @@ namespace qk {
 		cString4& str, bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed
 	);
 	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(
-		cString& str, TextWhiteSpace space, bool ignore_single_white_space
+		cString& str, WhiteSpace space, bool ignore_single_white_space
 	);
 
 	struct TextBlob {
@@ -70,7 +70,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextOptions*, opts);
 		Qk_DEFINE_PROP_GET(Array<TextBlob>*, blobOut);
 		Qk_DEFINE_PROP_GET(uint32_t, index_of_unichar, Const);
-		Qk_DEFINE_PROPERTY(float, text_size, Const);
+		Qk_DEFINE_PROPERTY(float, font_size, Const);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

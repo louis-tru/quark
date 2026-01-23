@@ -156,8 +156,8 @@ declare global {
 	interface Array<T> {
 		hashCode(): Int;
 		deleteOf(value: T): boolean;
-		indexReverse(index: Uint): T;
-		indexAt(index: Uint): T;
+		reverseAt(at: Uint): T;
+		indexAt(at: Uint): T;
 	}
 
 	/**
@@ -166,7 +166,7 @@ declare global {
 	 * @global
 	 */
 	interface ArrayConstructor {
-		toArray(obj: any, index?: Uint, end?: Uint): any[];
+		toArray(obj: any, from?: Uint, end?: Uint): any[];
 	}
 
 	/**
@@ -298,7 +298,7 @@ declare global {
 		 * Add milliseconds to the current Date time and change the time value
 		 * @param ms The millisecond value to append
 		 */
-		add(ms: Uint): Date;
+		addMilliseconds(ms: Uint): this;
 
 		/**
 			* Returns a date string given a date format
@@ -360,7 +360,7 @@ declare global {
 		errno?: number | string;
 		description?: string;
 		child?: Error[];
-		extend: (desc: ErrorDescribe)=>this;
+		set: (desc: ErrorDescribe)=>this;
 	}
 
 	function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
@@ -478,8 +478,8 @@ definePropertys(Function.prototype, {
 });
 
 definePropertys(Array, {
-	toArray(obj: any, index: number, end: number): any[] {
-		return _slice.call(obj, index, end);
+	toArray(obj: any, from: number, end: number): any[] {
+		return _slice.call(obj, from, end);
 	},
 });
 
@@ -507,7 +507,7 @@ definePropertys(Array.prototype, {
 		return false;
 	},
 
-	indexReverse (index: number): any {
+	reverseAt (index: number): any {
 		return this[this.length - 1 - index];
 	},
 
@@ -666,7 +666,7 @@ definePropertys(Date, {
 
 		if (!start)
 			return format;
-		data.indexReverse(0).reverse();
+		data.reverseAt(0).reverse();
 		data.forEach(function (item, index) {
 			let val = Math.floor(item[0] as number);
 			let val2 = isFixedBefore ? val.toFixedBefore(2): String(val);
@@ -688,7 +688,7 @@ definePropertys(Date.prototype, {
 		return this.valueOf() >>> 0;
 	},
 
-	add(ms: number): Date {
+	addMilliseconds(ms: number): Date {
 		this.setMilliseconds(this.getMilliseconds() + ms);
 		return this;
 	},
@@ -774,7 +774,7 @@ definePropertys(Error, {
 });
 
 definePropertys(Error.prototype, {
-	extend(desc: ErrorDescribe) {
+	set(desc: ErrorDescribe) {
 		return Object.assign(this, desc);
 	},
 	hashCode(): Int {

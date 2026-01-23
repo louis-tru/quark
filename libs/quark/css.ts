@@ -105,22 +105,22 @@ export declare abstract class StyleSheets {
 	wrapAlign?: types.WrapAlignIn; //!<
 	src?: string; //!<
 	textAlign?: types.TextAlignIn; //!<
-	textWeight?: types.TextWeightIn; //!<
-	textSlant?: types.TextSlantIn; //!<
+	fontWeight?: types.FontWeightIn; //!<
+	fontSlant?: types.FontSlantIn; //!<
 	textDecoration?: types.TextDecorationIn; //!<
 	textOverflow?: types.TextOverflowIn; //!<
-	textWhiteSpace?: types.TextWhiteSpaceIn; //!<
-	textWordBreak?: types.TextWordBreakIn; //!<
-	textSize?: types.TextSizeIn; //!<
+	whiteSpace?: types.WhiteSpaceIn; //!<
+	wordBreak?: types.WordBreakIn; //!<
+	fontSize?: types.FontSizeIn; //!<
 	textBackgroundColor?: types.TextColorIn; //!<
 	textStroke?: types.TextStrokeIn; //!<
 	textColor?: types.TextColorIn; //!<
-	textLineHeight?: types.TextSizeIn; //!<
+	lineHeight?: types.FontSizeIn; //!<
 	textShadow?: types.TextShadowIn; //!<
-	textFamily?: types.TextFamilyIn; //!<
+	fontFamily?: types.FontFamilyIn; //!<
 	security?: boolean; //!<
 	readonly?: boolean; //!<
-	type?: types.KeyboardTypeIn; //!<
+	keyboardType?: types.KeyboardTypeIn; //!<
 	returnType?: types.KeyboardReturnTypeIn; //!<
 	placeholderColor?: types.ColorIn; //!<
 	cursorColor?: types.ColorIn; //!<

@@ -214,7 +214,7 @@ namespace qk {
 		EllipsisCenter, /* 剪切并居中显示省略号 */
 	};
 
-	enum class TextWhiteSpace: uint8_t {
+	enum class WhiteSpace: uint8_t {
 		Inherit,      /* inherit */
 		Default,      /* use default of the application */
 		Normal,       /* 使用自动wrap,  合并空白序列 */
@@ -224,7 +224,7 @@ namespace qk {
 		PreLine,      /* 使用自动wrap, 合并空白符序列但保留换行符 */
 	};
 
-	enum class TextWordBreak: uint8_t {
+	enum class WordBreak: uint8_t {
 		Inherit,  /* inherit */
 		Default,  /* use default of the application */
 		Normal,   /* 保持单词在同一行 */
@@ -352,10 +352,10 @@ namespace qk {
 
 	// inherit / default / value
 	typedef WrapTextValue<Color>  TextColor;
-	typedef WrapTextValue<float>  TextSize;
-	typedef TextSize              TextLineHeight;
+	typedef WrapTextValue<float>  FontSize;
+	typedef FontSize              LineHeight;
 	typedef WrapTextValue<Shadow> TextShadow;
-	typedef WrapTextValue<FFID>   TextFamily;
+	typedef WrapTextValue<FFID>   FontFamily;
 	typedef WrapTextValue<Border> TextStroke;
 }
 #endif

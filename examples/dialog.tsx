@@ -62,7 +62,7 @@ function custom(e: ClickEvent) {
 		win,
 		'蓝牙已关闭',
 		'CarPlay将只能通过USB使用。您希望同时启用无线CarPlay吗？',
-		[<label textWeight="bold" textColor="#000" value="仅USB"/>, '无线蓝牙'],
+		[<label fontWeight="bold" textColor="#000" value="仅USB"/>, '无线蓝牙'],
 		(num)=>{
 			if ( num == 0 ) {
 				dialog.alert(win, '仅USB');

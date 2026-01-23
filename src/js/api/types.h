@@ -108,15 +108,15 @@ namespace qk {
 		F(TextAlign) \
 		F(TextDecoration) \
 		F(TextOverflow) \
-		F(TextWhiteSpace) \
-		F(TextWordBreak) \
+		F(WhiteSpace) \
+		F(WordBreak) \
 		F(TextColor) \
-		F(TextSize) /*TextLineHeight*/\
+		F(FontSize) /*LineHeight*/\
 		F(TextShadow) \
-		F(TextFamily) \
-		F(TextWeight) \
-		F(TextWidth) \
-		F(TextSlant) \
+		F(FontFamily) \
+		F(FontWeight) \
+		F(FontWidth) \
+		F(FontSlant) \
 		F(FontStyle) \
 		F(KeyboardType) \
 		F(KeyboardReturnType) \

@@ -101,7 +101,7 @@ namespace qk {
 	}
 
 	template<>
-	TextSize transition_value(TextSize v1, TextSize v2, float y) {
+	FontSize transition_value(FontSize v1, FontSize v2, float y) {
 		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
 			return { v1.value - (v1.value - v2.value) * y, TextValueKind::Value };
 		} else {
@@ -168,13 +168,13 @@ namespace qk {
 	_Define_Enum_transition(WrapAlign)
 	_Define_Enum_transition(String)
 	_Define_Enum_transition(TextAlign)
-	_Define_Enum_transition(TextWeight)
-	_Define_Enum_transition(TextSlant)
+	_Define_Enum_transition(FontWeight)
+	_Define_Enum_transition(FontSlant)
 	_Define_Enum_transition(TextDecoration)
 	_Define_Enum_transition(TextOverflow)
-	_Define_Enum_transition(TextWhiteSpace)
-	_Define_Enum_transition(TextWordBreak)
-	_Define_Enum_transition(TextFamily)
+	_Define_Enum_transition(WhiteSpace)
+	_Define_Enum_transition(WordBreak)
+	_Define_Enum_transition(FontFamily)
 	_Define_Enum_transition(KeyboardType)
 	_Define_Enum_transition(KeyboardReturnType)
 	_Define_Enum_transition(CursorStyle)
@@ -545,7 +545,7 @@ namespace qk {
 
 	template<>
 	template<CssProp key>
-	void SetProp<TextFamily>::asyncSet(TextFamily value) {
+	void SetProp<FontFamily>::asyncSet(FontFamily value) {
 		asyncSetLarge<key>(value);
 	}
 

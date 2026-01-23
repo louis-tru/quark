@@ -44,7 +44,7 @@ createCss({
 		marginBottom: 0,
 		width: "match",
 		height: 36,
-		textLineHeight: 36,
+		lineHeight: 36,
 		textColor: "#0079ff",
 		borderRadius: 8,
 		border: `${px} #0079ff`,
@@ -65,7 +65,7 @@ createCss({
 		marginBottom: 0,
 		width: "match",
 		height: 36,
-		textLineHeight: 36,
+		lineHeight: 36,
 		textColor: "#fff",
 		borderRadius: 8,
 		border: `${px} #fff`,
@@ -93,7 +93,7 @@ createCss({
 
 	'.next_btn .text': {
 		textColor: "#0079ff",
-		textLineHeight: 45,
+		lineHeight: 45,
 		textAlign: "left",
 		marginLeft: 16,
 		marginRight: 50,
@@ -101,9 +101,9 @@ createCss({
 	},
 
 	'.next_btn .icon': {
-		textFamily: "icomoon-ultimate",
+		fontFamily: "icomoon-ultimate",
 		textColor: "#aaa",
-		textLineHeight: 45,
+		lineHeight: 45,
 		marginRight: 10,
 		align: "floatEnd",
 	},

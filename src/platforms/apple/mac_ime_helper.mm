@@ -37,8 +37,11 @@
 
 using namespace qk;
 
-//#define Qk_NSLog(...) NSLog(__VA_ARGS__)
+#if DEBUG
+#define Qk_NSLog(...) NSLog(__VA_ARGS__)
+#else
 #define Qk_NSLog(...)
+#endif
 
 static const NSRange kEmptyRange = {NSNotFound, 0};
 
@@ -46,6 +49,8 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 	@private
 	Window      *_win;
 	BOOL         _isOpen;
+	BOOL         _canBackspace;
+	BOOL         _canDelete;
 	CGRect       _spot_rect;
 	NSRange      _selectedRange, _markedRange;
 }
@@ -60,6 +65,8 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 	if (self) {
 		_win = win;
 		_isOpen = NO;
+		_canBackspace = NO;
+		_canDelete = NO;
 		_selectedRange = _markedRange = kEmptyRange;
 		self.markedText = @"";
 	}
@@ -83,13 +90,21 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 - (void)deactivate {
 	if (_isOpen) {
 		_isOpen = NO;
+		_canBackspace = NO;
+		_canDelete = NO;
 		[self removeMarkedText];
 		[self resignFirstResponder];
 		[self.inputContext deactivate];
 	}
 }
 
+- (void)cancel_marked {
+	[self removeMarkedText];
+}
+
 - (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete {
+	_canBackspace = can_backspace;
+	_canDelete = can_delete;
 }
 
 - (void)set_keyboard_type:(KeyboardType)type {
@@ -135,14 +150,35 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 }
 
 - (void)deleteForward:(nullable id)sender {
+	if (!_canDelete) {
+		NSBeep(); // 🔔 明确发声
+		return;
+	}
 	_win->dispatch()->onImeDelete(1);
 	Qk_NSLog(@"deleteForward");
 }
 
 - (void) deleteBackward: (nullable id) sender {
+	if (!_canBackspace) {
+		NSBeep(); // 🔔 明确发声
+		return;
+	}
 	_win->dispatch()->onImeDelete(-1);
 	Qk_NSLog(@"deleteBackward");
 }
+
+- (void)moveLeft:(id)sender {}
+- (void)moveRight:(id)sender {}
+- (void)moveUp:(id)sender {}
+- (void)moveDown:(id)sender {}
+// - (void)moveForward:(nullable id)sender {}
+// - (void)moveBackward:(nullable id)sender {}
+// - (void)moveToBeginningOfLine:(nullable id)sender {}
+// - (void)moveToEndOfLine:(nullable id)sender {}
+- (void)moveToBeginningOfDocument:(nullable id)sender {}
+- (void)moveToEndOfDocument:(nullable id)sender {}
+- (void)scrollToBeginningOfDocument:(nullable id)sender {}
+- (void)scrollToEndOfDocument:(nullable id)sender {}
 
 - (void) insertNewline: (id) sender {
 	[self insertText: @"\n" replacementRange:kEmptyRange];
@@ -160,6 +196,8 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // NSTextInputClient (Mac OS X 10.5)
 // ----------------------------------------------------------------
 - (void) doCommandBySelector: (SEL) aSelector { // copy,cut..
+	// Qk_NSLog(@"doCommandBySelector: %s", sel_getName(aSelector));
+	// 命令（delete / copy / cut / paste / moveLeft 等）
 	[super doCommandBySelector: aSelector];
 }
 
@@ -184,12 +222,20 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 		self.markedText = [NSString stringWithFormat:@"%@", aString];
 	}
 
+	String text = _markedText.UTF8String;
+	int caret_in_marked = text.length();
+
 	_selectedRange = selectedRange;
-	_markedRange = selectedRange.location == NSNotFound ? kEmptyRange: NSRange{0,_markedText.length};
+	_markedRange = kEmptyRange;
 
-	Qk_NSLog(@"setMarkedText,%@", _markedText);
+	if (selectedRange.location != NSNotFound) {
+		caret_in_marked = (int)selectedRange.location;
+		_markedRange = NSMakeRange(0, _markedText.length);
+	}
 
-	_win->dispatch()->onImeMarked(_markedText.UTF8String);
+	Qk_NSLog(@"setMarkedText: %@, caret_in_marked: %d", _markedText, caret_in_marked);
+
+	_win->dispatch()->onImeMarked(text, caret_in_marked);
 
 	if ([aString length] == 0) {
 		[self removeMarkedText];
@@ -268,15 +314,20 @@ void EventDispatch::setVolumeDown() {
 }
 
 void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
+	auto delegate = window()->impl()->delegate();
+	// don't use dispatch_async to avoid race condition, 
+	// because this function just setting a flag.
+	[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 }
 
-void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
+void EventDispatch::setImeKeyboardAndOpen(KeyboardOptions options) {
 	auto delegate = window()->impl()->delegate();
 	post_messate_main(Cb([options,delegate](auto e) {
-		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_type:options.keyboard_type];
 		[delegate.ime set_keyboard_return_type:options.return_type];
-		[delegate.ime activate: options.clear];
+		[delegate.ime activate: options.cancel_marked ];
 		[delegate.ime set_spot_rect:options.spot_rect];
+		[delegate.ime set_keyboard_can_backspace:options.can_backspace can_delete:options.can_delete];
 	}), false);
 }
 
@@ -291,5 +342,12 @@ void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 	auto delegate = window()->impl()->delegate();
 	post_messate_main(Cb([delegate,rect](auto e) {
 		[delegate.ime set_spot_rect:rect];
+	}), false);
+}
+
+void EventDispatch::cancelImeMarked() {
+	auto delegate = window()->impl()->delegate();
+	post_messate_main(Cb([delegate](auto e) {
+		[delegate.ime cancel_marked];
 	}), false);
 }

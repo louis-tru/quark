@@ -138,7 +138,7 @@ namespace qk {
 		auto entity = child->asEntity();
 		if (entity) {
 			auto other = entity->asAgent();
-			if (other && !child->parent() || !child->visible()) { // removed from world or invisible
+			if (other && (!child->parent() || !child->visible())) { // removed from world or invisible
 				auto v = first();
 				while (v) {
 					auto agent = v->asAgent();

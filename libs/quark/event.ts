@@ -32,7 +32,7 @@ import {Event,EventNoticer,Notification,event} from './_event';
 import {Action} from './action';
 import {View,Agent,Spine} from './view';
 import {RemoveReadonly,Vec2,newVec2,Direction,PIDegree} from './types';
-import {KeyboardKeyCode} from './keyboard';
+import {KeyboardCode} from './keyboard';
 import type {Uint,Int,Float} from './defs';
 
 export * from './_event';
@@ -102,9 +102,9 @@ export declare class KeyEvent extends UIEvent {
 	/** The next possible remote focus view */
 	nextFocus: View | null;
 	/** Keyboard Code */
-	readonly keycode: KeyboardKeyCode;
+	readonly keycode: KeyboardCode;
 	/** Keyboard code for physical key */
-	readonly code: KeyboardKeyCode;
+	readonly code: KeyboardCode;
 	/** Ascii code converted from keyboard code */
 	readonly keypress: number;
 	/** The location of the key on the keyboard or device */
@@ -193,6 +193,24 @@ export enum UIState {
 export declare class UIStateEvent extends UIEvent {
 	/** UI state type */
 	readonly state: UIState;
+}
+
+/**
+ * InputEvent payload.
+ * Note: actual semantic is defined by the bound event type.
+ * Receivers should only access the field relevant to the event.
+ * @class InputEvent
+ * @extends UIEvent
+*/
+export declare class InputEvent extends UIEvent {
+	/** input text that includes input text or marked text or unmarked text */
+	readonly input: string;
+	/** delete char count */
+	readonly inputDelete: Int;
+	/** cursor index after input */
+	readonly cursorIndex: Int;
+	/** control keycode */
+	readonly inputControl: KeyboardCode;
 }
 
 /**
@@ -369,7 +387,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	/** The first gesture touch point */
 	get first() { return this.touchs[0]; }
 	/** The last gesture touch point */
-	get last() { return this.touchs.indexReverse(0); }
+	get last() { return this.touchs.reverseAt(0); }
 	/** The number of gesture touch points */
 	get length() { return this.touchs.length; }
 

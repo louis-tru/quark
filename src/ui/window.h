@@ -62,6 +62,9 @@ namespace qk {
 		~UILock();
 		void lock();
 		void unlock();
+		// void assertLocked() {
+		// 	QK_ASSERT(_lock);
+		// }
 	private:
 		Window *_win;
 		bool _lock;
@@ -125,6 +128,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Rect, navigationRect, Const); //! navigation rect for android
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_PROP_GET(int64_t, time, Const); //!< current window render time in milliseconds
 		Qk_DEFINE_PROPERTY(bool, debugMode, Const); //! debug mode
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
@@ -233,7 +237,7 @@ namespace qk {
 		List<Cb>       _nextFrame;
 		uint32_t       _fspTick;
 		int64_t        _fspTime;
-		int64_t        _beginTime, _lastTime;
+		int64_t        _beginTime;
 		TextBlob      *_fspBlob; // debug fps text blobs
 		Array<RangeSize> _clipRange;
 		List<Window*>::Iterator _id;

@@ -30,7 +30,7 @@
 
 import util from './util';
 import { List,ListIterator,ClickType } from './event';
-import { KeyboardKeyCode } from './keyboard';
+import { KeyboardCode } from './keyboard';
 import {Window} from './window';
 import {Jsx,link,ViewController,RenderResult,VDom,assertDom,VirtualDOM} from './ctr';
 import {mainScreenScale} from './screen';
@@ -146,15 +146,15 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 				let nextFocus = e.nextFocus;
 	
 				switch(e.keycode) {
-					case KeyboardKeyCode.LEFT: // left
+					case KeyboardCode.LEFT: // left
 						nextFocus = nav.navigationLeft(nextFocus); break;
-					case KeyboardKeyCode.UP: // up
+					case KeyboardCode.UP: // up
 						nextFocus = nav.navigationTop(nextFocus); break;
-					case KeyboardKeyCode.RIGHT: // right
+					case KeyboardCode.RIGHT: // right
 						nextFocus = nav.navigationRight(nextFocus); break;
-					case KeyboardKeyCode.DOWN: // down
+					case KeyboardCode.DOWN: // down
 						nextFocus = nav.navigationDown(nextFocus); break;
-					case KeyboardKeyCode.MENU: // menu
+					case KeyboardCode.MENU: // menu
 						nav.navigationMenu();
 					default: return;
 				}
@@ -578,17 +578,17 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 					paddingLeft={5}
 					paddingRight={5}
 					textColor={this.backTextColor}
-					textLineHeight={1} // 100%
-					textSize={16}
+					lineHeight={1} // 100%
+					fontSize={16}
 					onClick={this._handleBack}
-					textFamily="iconfont"
+					fontFamily="iconfont"
 					value={showBack && this.visibleBackIcon ? "\uedc5": ""}
-					textWhiteSpace="noWrap"
+					whiteSpace="noWrap"
 				>
 					<label
 						ref="back_text"
-						textFamily="default"
-						textSize={16}
+						fontFamily="default"
+						fontSize={16}
 						textOverflow="ellipsis"
 						visible={showBack && this.visibleBackText}
 						value={this._backText}
@@ -599,10 +599,10 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 					weight={[0,1]}
 					height="100%"
 					textColor={this.titleTextColor}
-					textLineHeight={1}
-					textSize={16}
-					textWhiteSpace="noWrap"
-					textWeight="bold"
+					lineHeight={1}
+					fontSize={16}
+					whiteSpace="noWrap"
+					fontWeight="bold"
 					textOverflow="ellipsisCenter"
 					textAlign="center"
 					value={this._titleText}

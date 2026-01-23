@@ -40,6 +40,7 @@ namespace qk {
 		jmethodID ime_keyboard_open,
 			ime_keyboard_can_backspace,
 			ime_keyboard_close,
+			ime_keyboard_cancel_marked,
 			prevent_screen_sleep,
 			get_status_bar_height,
 			set_visible_status_bar,
@@ -75,6 +76,7 @@ namespace qk {
 			ime_keyboard_open  = JNI::find_static_method(clazz, "ime_keyboard_open", "(ZII)V");
 			ime_keyboard_can_backspace = JNI::find_static_method(clazz, "ime_keyboard_can_backspace", "(ZZ)V");
 			ime_keyboard_close = JNI::find_static_method(clazz, "ime_keyboard_close", "()V");
+			ime_keyboard_cancel_marked = JNI::find_static_method(clazz, "ime_keyboard_cancel_marked", "()V");
 			prevent_screen_sleep = JNI::find_static_method(clazz, "prevent_screen_sleep", "(Z)V");
 			get_status_bar_height = JNI::find_static_method(clazz, "get_status_bar_height", "()I");
 			set_visible_status_bar = JNI::find_static_method(clazz, "set_visible_status_bar", "(Z)V");
@@ -118,6 +120,10 @@ namespace qk {
 	void Android_ime_keyboard_open(bool clear, int type, int return_type) {
 		ScopeENV env;
 		env->CallStaticVoidMethod(clazz, api->ime_keyboard_open, clear, type, return_type);
+	}
+	void Android_ime_keyboard_cancel_marked() {
+		ScopeENV env;
+		env->CallStaticVoidMethod(clazz, api->ime_keyboard_cancel_marked);
 	}
 	void Android_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 		ScopeENV env;

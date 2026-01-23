@@ -341,9 +341,9 @@ export enum TextOverflow {
 };
 
 /**
- * @enum TextWhiteSpace
+ * @enum WhiteSpace
 */
-export enum TextWhiteSpace {
+export enum WhiteSpace {
 	Inherit,      //!< inherit
 	Default,      //!< use default of the application
 	Normal,       //!< 合并空白序列,使用自动wrap
@@ -354,9 +354,9 @@ export enum TextWhiteSpace {
 };
 
 /**
- * @enum TextWordBreak
+ * @enum WordBreak
 */
-export enum TextWordBreak {
+export enum WordBreak {
 	Inherit,  //!< inherit
 	Default,  //!< use default of the application
 	Normal,   //!< 保持单词在同一行
@@ -366,15 +366,16 @@ export enum TextWordBreak {
 };
 
 /**
- * @enum TextWeight
+ * @enum FontWeight
 */
-export enum TextWeight {
+export enum FontWeight {
 	Inherit      = 0,   //!<
 	Default      = 1,   //!< use default of the application
 	Thin         = 100, //!<
 	Ultralight   = 200, //!<
 	Light        = 300, //!<
 	Regular      = 400, //!<
+	Normal       = 400, //!< alias of Regular
 	Medium       = 500, //!<
 	Semibold     = 600, //!<
 	Bold         = 700, //!<
@@ -384,9 +385,9 @@ export enum TextWeight {
 };
 
 /**
- * @enum TextWidth
+ * @enum FontWidth
 */
-export enum TextWidth {
+export enum FontWidth {
 	Inherit = 0, //!<
 	Default, //!< use default of the application
 	UltraCondensed, //!<
@@ -401,9 +402,9 @@ export enum TextWidth {
 };
 
 /**
- * @enum TextSlant
+ * @enum FontSlant
 */
-export enum TextSlant {
+export enum FontSlant {
 	Inherit, //!<
 	Default, //!< use default of the application
 	Normal,  //!<
@@ -541,27 +542,27 @@ export type TextDecorationIn = Uncapitalize<keyof typeof TextDecoration> | TextD
 */
 export type TextOverflowIn = Uncapitalize<keyof typeof TextOverflow> | TextOverflow;
 /**
- * @type TextWhiteSpaceIn:"noWrap"|"normal"|"inherit"|"default"|"pre"|"preWrap"|"preLine"|TextWhiteSpace
+ * @type WhiteSpaceIn:"noWrap"|"normal"|"inherit"|"default"|"pre"|"preWrap"|"preLine"|WhiteSpace
 */
-export type TextWhiteSpaceIn = Uncapitalize<keyof typeof TextWhiteSpace> | TextWhiteSpace;
+export type WhiteSpaceIn = Uncapitalize<keyof typeof WhiteSpace> | WhiteSpace;
 /**
- * @type TextWordBreakIn:"normal"|"inherit"|"default"|"breakWord"|"breakAll"|"keepAll"|TextWordBreak
+ * @type WordBreakIn:"normal"|"inherit"|"default"|"breakWord"|"breakAll"|"keepAll"|WordBreak
 */
-export type TextWordBreakIn = Uncapitalize<keyof typeof TextWordBreak> | TextWordBreak;
+export type WordBreakIn = Uncapitalize<keyof typeof WordBreak> | WordBreak;
 /**
- * @type TextWeightIn:"inherit"|"default"|"thin"|"ultralight"|"light"|"regular"|"medium"|"semibold"\
-|"bold"|"heavy"|"black"|"extraBlack"|TextWeight
+ * @type FontWeightIn:"inherit"|"default"|"thin"|"ultralight"|"light"|"regular"|"medium"|"semibold"\
+|"bold"|"heavy"|"black"|"extraBlack"|FontWeight
 */
-export type TextWeightIn = Uncapitalize<keyof typeof TextWeight> | TextWeight;
+export type FontWeightIn = Uncapitalize<keyof typeof FontWeight> | FontWeight;
 /**
- * @type TextWidthIn:"normal"|"inherit"|"default"|"ultraCondensed"|"extraCondensed"|"condensed"|\
-"semiCondensed"|"semiExpanded"|"expanded"|"extraExpanded"|"ultraExpanded"|TextWidth
+ * @type FontWidthIn:"normal"|"inherit"|"default"|"ultraCondensed"|"extraCondensed"|"condensed"|\
+"semiCondensed"|"semiExpanded"|"expanded"|"extraExpanded"|"ultraExpanded"|FontWidth
  */
-export type TextWidthIn = Uncapitalize<keyof typeof TextWidth> | TextWidth;
+export type FontWidthIn = Uncapitalize<keyof typeof FontWidth> | FontWidth;
 /**
- * @type TextSlantIn:"normal"|"inherit"|"default"|"italic"|"oblique"|TextSlant
+ * @type FontSlantIn:"normal"|"inherit"|"default"|"italic"|"oblique"|FontSlant
 */
-export type TextSlantIn = Uncapitalize<keyof typeof TextSlant> | TextSlant; 
+export type FontSlantIn = Uncapitalize<keyof typeof FontSlant> | FontSlant; 
 /**
  * @type KeyboardTypeIn:"number"|"normal"|"ascii"|"url"|"numberPad"|"phone"|"namePhone"|\
 "email"|"decimal"|"search"|"asciiNumber"|KeyboardType
@@ -1244,12 +1245,12 @@ export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; //!<
 /**
  * @class
 */
-export class TextSize extends TextBase<TextSize,N> {}
-initDefaults(TextSize, { value: 0, kind: TextValueKind.Inherit });
-export type TextSizeIn = TextValueKindInStr | N | TextSize; //!<
-export type TextLineHeightIn = TextSizeIn; //!<
-export type TextLineHeight = TextSize; //!<
-export const TextLineHeight = TextSize;
+export class FontSize extends TextBase<FontSize,N> {}
+initDefaults(FontSize, { value: 0, kind: TextValueKind.Inherit });
+export type FontSizeIn = TextValueKindInStr | N | FontSize; //!<
+export type LineHeightIn = FontSizeIn; //!<
+export type LineHeight = FontSize; //!<
+export const LineHeight = FontSize;
 
 /**
  * @class
@@ -1285,7 +1286,7 @@ export type FFID = Uint8Array; //!<
 /**
  * @class
 */
-export class TextFamily extends TextBase<TextFamily,FFID> {
+export class FontFamily extends TextBase<FontFamily,FFID> {
 	toString() {
 		if (this.kind == TextValueKind.Value) {
 			// let _ = this.value;
@@ -1307,8 +1308,8 @@ export class TextFamily extends TextBase<TextFamily,FFID> {
 	}
 }
 export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]); //!< {FFID}
-initDefaults(TextFamily, { value: EmptyFFID, kind: TextValueKind.Inherit });
-export type TextFamilyIn = TextValueKindInStr | string | TextFamily; //!<
+initDefaults(FontFamily, { value: EmptyFFID, kind: TextValueKind.Inherit });
+export type FontFamilyIn = TextValueKindInStr | string | FontFamily; //!<
 
 // -------------------------------------------------------------------------------------
 
@@ -1779,16 +1780,16 @@ export function newTextColor(kind: TextValueKind, r: N, g: N, b: N, a: N) {
 }
 
 /**
- * @method newTextSize(kink:TextValueKind,value:N)TextSize
+ * @method newFontSize(kink:TextValueKind,value:N)FontSize
 */
-export function newTextSize(kind: TextValueKind, value: N) {
-	return newBase(TextSize, { kind, value });
+export function newFontSize(kind: TextValueKind, value: N) {
+	return newBase(FontSize, { kind, value });
 }
 
 /**
- * @method newTextLineHeight(kink:TextValueKind,value:N)TextLineHeight
+ * @method newLineHeight(kink:TextValueKind,value:N)LineHeight
 */
-export const newTextLineHeight = newTextSize;
+export const newLineHeight = newFontSize;
 
 /**
  * @method newTextShadow(kind:TextValueKind,offset_x:N,offset_y:N,size:N,r:N,g:N,b:N,a:N)TextShadow
@@ -1809,10 +1810,10 @@ export function newTextStroke(
 }
 
 /**
- * @method newTextFamily(kind:TextValueKind,ffid?:FFID)TextFamily
+ * @method newFontFamily(kind:TextValueKind,ffid?:FFID)FontFamily
 */
-export function newTextFamily(kind: TextValueKind, ffid: FFID = EmptyFFID) {
-	return newBase(TextFamily,{kind,value:ffid});
+export function newFontFamily(kind: TextValueKind, ffid: FFID = EmptyFFID) {
+	return newBase(FontFamily,{kind,value:ffid});
 }
 
 // parse
@@ -1875,29 +1876,29 @@ export function parseTextOverflow(val: TextOverflowIn, msg?: string): TextOverfl
 		TextOverflow[toCapitalize(val)] || 0 : val in TextOverflow ? val: 0;
 }
 
-export function parseTextWhiteSpace(val: TextWhiteSpaceIn, msg?: string): TextWhiteSpace { //!<
+export function parseWhiteSpace(val: WhiteSpaceIn, msg?: string): WhiteSpace { //!<
 	return typeof val === 'string' ?
-		TextWhiteSpace[toCapitalize(val)] || 0 : val in TextWhiteSpace ? val: 0;
+		WhiteSpace[toCapitalize(val)] || 0 : val in WhiteSpace ? val: 0;
 }
 
-export function parseTextWordBreak(val: TextWordBreakIn, msg?: string): TextWordBreak { //!<
+export function parseWordBreak(val: WordBreakIn, msg?: string): WordBreak { //!<
 	return typeof val === 'string' ?
-		TextWordBreak[toCapitalize(val)] || 0 : val in TextWordBreak ? val: 0;
+		WordBreak[toCapitalize(val)] || 0 : val in WordBreak ? val: 0;
 }
 
-export function parseTextWeight(val: TextWeightIn, msg?: string): TextWeight { //!<
+export function parseFontWeight(val: FontWeightIn, msg?: string): FontWeight { //!<
 	return typeof val === 'string' ?
-		TextWeight[toCapitalize(val)] || 0 : val in TextWeight ? val: 0;
+		FontWeight[toCapitalize(val)] || 0 : val in FontWeight ? val: 0;
 }
 
-export function parseTextWidth(val: TextWidthIn, msg?: string): TextWidth { //!<
+export function parseFontWidth(val: FontWidthIn, msg?: string): FontWidth { //!<
 	return typeof val === 'string' ?
-		TextWidth[toCapitalize(val)] || 0 : val in TextWidth ? val: 0;
+		FontWidth[toCapitalize(val)] || 0 : val in FontWidth ? val: 0;
 }
 
-export function parseTextSlant(val: TextSlantIn, msg?: string): TextSlant { //!<
+export function parseFontSlant(val: FontSlantIn, msg?: string): FontSlant { //!<
 	return typeof val === 'string' ?
-		TextSlant[toCapitalize(val)] || 0 : val in TextSlant ? val: 0;
+		FontSlant[toCapitalize(val)] || 0 : val in FontSlant ? val: 0;
 }
 
 export function parseKeyboardType(val: KeyboardTypeIn, msg?: string): KeyboardType { //!<
@@ -2311,26 +2312,26 @@ export function parseTextColor(val: TextColorIn, msg?: string): TextColor { //!<
 	]);
 }
 
-const TextSizeReg = /^(?:\d+)?\.?\d+$/;
-export function parseTextSize(val: TextSizeIn, msg?: string): TextSize { //!<
+const FontSizeReg = /^(?:\d+)?\.?\d+$/;
+export function parseFontSize(val: FontSizeIn, msg?: string): FontSize { //!<
 	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
-			return newTextSize(kind, 0);
+			return newFontSize(kind, 0);
 		}
-		if (TextSizeReg.test(val)) {
-			return newTextSize(TextValueKind.Value, parseFloat(val));
+		if (FontSizeReg.test(val)) {
+			return newFontSize(TextValueKind.Value, parseFloat(val));
 		}
 	} else if (typeof val === 'number') {
-		return newTextSize(TextValueKind.Value, val);
-	} else if (val instanceof TextSize) {
+		return newFontSize(TextValueKind.Value, val);
+	} else if (val instanceof FontSize) {
 		return val;
 	}
 	throw error(val, msg, ['inherit', 'default', 16, '12']);
 }
 
-export function parseTextLineHeight(val: TextLineHeightIn, msg?: string): TextLineHeight { //!<
-	return parseTextSize(val, msg);
+export function parseLineHeight(val: LineHeightIn, msg?: string): LineHeight { //!<
+	return parseFontSize(val, msg);
 }
 
 export function parseTextShadow(val: TextShadowIn, msg?: string): TextShadow { //!<
@@ -2375,14 +2376,14 @@ export function parseTextStroke(val: TextStrokeIn, msg?: string): TextStroke { /
 	throw error(val, msg, ['inherit', 'default', '1 #ff00aa', '2 rgba(255,255,0,1)']);
 }
 
-export function parseTextFamily(val: TextFamilyIn, msg?: string): TextFamily { ///!<
+export function parseFontFamily(val: FontFamilyIn, msg?: string): FontFamily { ///!<
 	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
-			return newTextFamily(kind,EmptyFFID);
+			return newFontFamily(kind,EmptyFFID);
 		}
-		return newTextFamily(TextValueKind.Value, _font.getFontFamilies(val));
-	} else if (val instanceof TextFamily) {
+		return newFontFamily(TextValueKind.Value, _font.getFontFamilies(val));
+	} else if (val instanceof FontFamily) {
 		return val;
 	}
 	throw error(val, msg, ['inherit', 'default', 'Ubuntu Mono']);

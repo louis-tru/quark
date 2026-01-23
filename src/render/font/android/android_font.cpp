@@ -147,12 +147,12 @@ public:
 				continue;
 			}
 
-			TextWeight weight = fontFile.fWeight != 0 ? TextWeight(fontFile.fWeight): style.weight();
-			TextSlant slant = style.slant();
+			FontWeight weight = fontFile.fWeight != 0 ? FontWeight(fontFile.fWeight): style.weight();
+			FontSlant slant = style.slant();
 			switch (fontFile.fStyle) {
 				case FontFileInfo::Style::kAuto: slant = style.slant(); break;
-				case FontFileInfo::Style::kNormal: slant = TextSlant::Normal; break;
-				case FontFileInfo::Style::kItalic: slant = TextSlant::Italic; break;
+				case FontFileInfo::Style::kNormal: slant = FontSlant::Normal; break;
+				case FontFileInfo::Style::kItalic: slant = FontSlant::Italic; break;
 				default: Qk_ASSERT(false); break;
 			}
 			style = FontStyle(weight, style.width(), slant);

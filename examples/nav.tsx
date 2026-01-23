@@ -44,7 +44,7 @@ export default (self: Page)=>{
 		self.navbar = (
 			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
 				<button align="rightBottom" paddingRight={10} paddingBottom={5}
-					textFamily="icomoon-ultimate" textColor="#fff" textSize={20} value={"\ued63"} />
+					fontFamily="icomoon-ultimate" textColor="#fff" fontSize={20} value={"\ued63"} />
 			</Navbar>
 		)
 	}

@@ -97,22 +97,22 @@ namespace qk {
 	F(WRAP_ALIGN, WrapAlign, wrap_align, Flow) \
 	F(SRC, String, src, Image) /*image/video*//*****Large size data*****/\
 	F(TEXT_ALIGN, TextAlign, text_align, TextOptions) /*text/input/label of TextOptions*/\
-	F(TEXT_WEIGHT, TextWeight, text_weight, TextOptions) \
-	F(TEXT_SLANT, TextSlant, text_slant, TextOptions) \
+	F(FONT_WEIGHT, FontWeight, font_weight, TextOptions) \
+	F(FONT_SLANT, FontSlant, font_slant, TextOptions) \
 	F(TEXT_DECORATION, TextDecoration, text_decoration, TextOptions) \
 	F(TEXT_OVERFLOW, TextOverflow, text_overflow, TextOptions) \
-	F(TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space, TextOptions) \
-	F(TEXT_WORD_BREAK, TextWordBreak, text_word_break, TextOptions) \
-	F(TEXT_SIZE, TextSize, text_size, TextOptions) \
+	F(WHITE_SPACE, WhiteSpace, white_space, TextOptions) \
+	F(WORD_BREAK, WordBreak, word_break, TextOptions) \
+	F(FONT_SIZE, FontSize, font_size, TextOptions) \
 	F(TEXT_BACKGROUND_COLOR, TextColor, text_background_color, TextOptions) \
 	F(TEXT_STROKE, TextStroke, text_stroke, TextOptions) \
 	F(TEXT_COLOR, TextColor, text_color, TextOptions) \
-	F(TEXT_LINE_HEIGHT, TextLineHeight, text_line_height, TextOptions) \
+	F(LINE_HEIGHT, LineHeight, line_height, TextOptions) \
 	F(TEXT_SHADOW, TextShadow, text_shadow, TextOptions) /*****Large size data*****/\
-	F(TEXT_FAMILY, TextFamily, text_family, TextOptions) /*****Large size data*****/\
+	F(FONT_FAMILY, FontFamily, font_family, TextOptions) /*****Large size data*****/\
 	F(SECURITY, bool, security, Input) /*input*/\
 	F(READONLY, bool, readonly, Input) \
-	F(KEYBOARD_TYPE, KeyboardType, type, Input) \
+	F(KEYBOARD_TYPE, KeyboardType, keyboard_type, Input) \
 	F(KEYBOARD_RETURN_TYPE, KeyboardReturnType, return_type, Input) \
 	F(PLACEHOLDER_COLOR, Color, placeholder_color, Input) \
 	F(CURSOR_COLOR, Color, cursor_color, Input) \

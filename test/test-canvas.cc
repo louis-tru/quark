@@ -89,7 +89,7 @@ public:
 
 		{ // font text
 			paint.fill.color = Color4f(255,0,255);
-			auto stype = FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Normal);
+			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
 			auto pool = shared_app()->fontPool();
 			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
 			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);

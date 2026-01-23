@@ -87,6 +87,7 @@
 			'ui/view/image.cc',
 			'ui/view/input.h',
 			'ui/view/input.cc',
+			'ui/view/input_sink.cc',
 			'ui/view/textarea.h',
 			'ui/view/textarea.cc',
 			'ui/view/label.h',

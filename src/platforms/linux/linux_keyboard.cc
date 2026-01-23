@@ -38,7 +38,7 @@ namespace qk {
 	};
 
 	LinuxKeyboardAdapter::LinuxKeyboardAdapter() {
-		_PlatformKeyCodeToKeyCode[0] = KEYCODE_UNKNOWN;
+		_PlatformKeyCodeToKeyCode[0] = KEYCODE_NONE;
 		_PlatformKeyCodeToKeyCode[22] = KEYCODE_BACK_SPACE;
 		_PlatformKeyCodeToKeyCode[23] = KEYCODE_TAB;
 		// _PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -65,16 +65,16 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[119] = KEYCODE_DELETE;
 		_PlatformKeyCodeToKeyCode[107] = KEYCODE_SYSRQ;
 		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_HELP;
-		_PlatformKeyCodeToKeyCode[19] = KEYCODE_0;
-		_PlatformKeyCodeToKeyCode[10] = KEYCODE_1;
-		_PlatformKeyCodeToKeyCode[11] = KEYCODE_2;
-		_PlatformKeyCodeToKeyCode[12] = KEYCODE_3;
-		_PlatformKeyCodeToKeyCode[13] = KEYCODE_4;
-		_PlatformKeyCodeToKeyCode[14] = KEYCODE_5;
-		_PlatformKeyCodeToKeyCode[15] = KEYCODE_6;
-		_PlatformKeyCodeToKeyCode[16] = KEYCODE_7;
-		_PlatformKeyCodeToKeyCode[17] = KEYCODE_8;
-		_PlatformKeyCodeToKeyCode[18] = KEYCODE_9;
+		_PlatformKeyCodeToKeyCode[19] = KEYCODE_NUM_0;
+		_PlatformKeyCodeToKeyCode[10] = KEYCODE_NUM_1;
+		_PlatformKeyCodeToKeyCode[11] = KEYCODE_NUM_2;
+		_PlatformKeyCodeToKeyCode[12] = KEYCODE_NUM_3;
+		_PlatformKeyCodeToKeyCode[13] = KEYCODE_NUM_4;
+		_PlatformKeyCodeToKeyCode[14] = KEYCODE_NUM_5;
+		_PlatformKeyCodeToKeyCode[15] = KEYCODE_NUM_6;
+		_PlatformKeyCodeToKeyCode[16] = KEYCODE_NUM_7;
+		_PlatformKeyCodeToKeyCode[17] = KEYCODE_NUM_8;
+		_PlatformKeyCodeToKeyCode[18] = KEYCODE_NUM_9;
 		_PlatformKeyCodeToKeyCode[38] = KEYCODE_A;
 		_PlatformKeyCodeToKeyCode[56] = KEYCODE_B;
 		_PlatformKeyCodeToKeyCode[54] = KEYCODE_C;

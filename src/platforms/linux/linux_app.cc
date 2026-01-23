@@ -144,12 +144,12 @@ namespace qk
 					case ButtonPress:
 						Qk_DLog("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						win->dispatch()->onMousepress(
-							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), true, nullptr);
+							KeyboardCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), true, nullptr);
 						break;
 					case ButtonRelease:
 						Qk_DLog("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 						win->dispatch()->onMousepress(
-							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), false, nullptr);
+							KeyboardCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), false, nullptr);
 						break;
 					case MotionNotify: {
 						// Qk_DLog("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);

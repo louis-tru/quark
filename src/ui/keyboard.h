@@ -38,8 +38,8 @@ namespace qk {
 	class EventDispatch;
 
 	// The keycode here should match ascii as possible.
-	enum KeyboardKeyCode {
-		KEYCODE_UNKNOWN =          0,   /* unknown key */
+	enum KeyboardCode {
+		KEYCODE_NONE =             0,   /* none key */
 		KEYCODE_BACK_SPACE =       8,   /* back space */
 		KEYCODE_TAB =              9,   /* tab */
 		KEYCODE_CLEAR =            12,  /* clear */
@@ -155,7 +155,7 @@ namespace qk {
 		KEYCODE_PERIOD =           190,  /* . > */
 		KEYCODE_SLASH =            191,  /* / ? */
 		KEYCODE_GRAVE =            192,  /* ` ~ */
-		KEYCODE_FUN =              209,  /* Function */ /*Maybe the platform is not implemented*/
+		KEYCODE_FUN =              209,  /* Function */ /*Maybe the somes platform is not implemented*/
 		KEYCODE_LEFT_BRACKET =     219,  /* [ { */
 		KEYCODE_BACK_SLASH =       220,  /* \ | */
 		KEYCODE_RIGHT_BRACKET =    221,  /* ] } */
@@ -186,7 +186,7 @@ namespace qk {
 		KEYCODE_MEDIA_NEXT =       316,  /* 多媒体键 下一首 */
 		KEYCODE_MEDIA_PREVIOUS =   317,  /* 多媒体键 上一首 */
 		KEYCODE_MEDIA_REWIND =     318,  /* 多媒体键 快退 */
-		KEYCODE_MEDIA_FAST_FORWARD =319, /* 多媒体键 快进 */
+		KEYCODE_MEDIA_FAST_FORWARD=319,  /* 多媒体键 快进 */
 		KEYCODE_MUTE =             320,  /* 话筒静音键 */
 		KEYCODE_CHANNEL_UP =       321,  /* 按键Channel up */
 		KEYCODE_CHANNEL_DOWN =     322,  /* 按键Channel down */
@@ -218,37 +218,36 @@ namespace qk {
 	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
 		typedef int Ascii;
-		Qk_DEFINE_PROP_GET(EventDispatch*, host);
-		Qk_DEFINE_PROP_GET(KeyboardKeyCode, keycode, Const);
-		Qk_DEFINE_PROP_GET(KeyboardKeyCode, code, Const);
-		Qk_DEFINE_PROP_GET(Ascii, keypress, Const);
-		Qk_DEFINE_PROP_GET(KeyboardLocation, location, Const);
-		Qk_DEFINE_PROP_GET(bool, shift, Const);
-		Qk_DEFINE_PROP_GET(bool, alt, Const);
-		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
-		Qk_DEFINE_PROP_GET(bool, command, Const);
-		Qk_DEFINE_PROP_GET(bool, caps_lock, Const);
-		Qk_DEFINE_PROP_GET(bool, repeat, Const);
-		Qk_DEFINE_PROP_GET(bool, device, Const);
-		Qk_DEFINE_PROP_GET(bool, source, Const);
+		Qk_DEFINE_PROP_GET(EventDispatch*, host); // event dispatch host
+		Qk_DEFINE_PROP_GET(KeyboardCode, keycode, Const); // logical key code
+		Qk_DEFINE_PROP_GET(KeyboardCode, code, Const); // physical key code
+		Qk_DEFINE_PROP_GET(Ascii, keypress, Const); // ascii code
+		Qk_DEFINE_PROP_GET(KeyboardLocation, location, Const); // key location
+		Qk_DEFINE_PROP_GET(bool, shift, Const); // shift key
+		Qk_DEFINE_PROP_GET(bool, alt, Const); // alt key
+		Qk_DEFINE_PROP_GET(bool, ctrl, Const); // control key
+		Qk_DEFINE_PROP_GET(bool, command, Const); // command key (mac only)
+		Qk_DEFINE_PROP_GET(bool, caps_lock, Const); // caps lock state
+		Qk_DEFINE_PROP_GET(int, repeat, Const); // key repeat count
+		Qk_DEFINE_PROP_GET(int, device, Const); // input device
+		Qk_DEFINE_PROP_GET(int, source, Const); // input source
 		KeyboardAdapter();
 		void dispatch(
-			int code, bool isAscii, bool isDown, bool isCapsLock,
-			int repeat, int device, int source
+			int code, bool isAscii, bool isDown, bool isCapsLock, int repeat, int device, int source
 		);
-		Ascii toKeypress(KeyboardKeyCode code);
+		Ascii toKeypress(KeyboardCode code);
 		static KeyboardAdapter* create();
 	protected:
 		virtual void onDispatch(int code, bool isAscii, bool isDown);
 
 		struct AsciiToKeyCode {
-			KeyboardKeyCode code;
+			KeyboardCode code;
 			bool shift;
 		};
 		struct KeyCodeToKeypress {
 			Ascii normal, shift; // Keypress ascii code
 		};
-		Dict<int, KeyboardKeyCode>   _PlatformKeyCodeToKeyCode;
+		Dict<int, KeyboardCode>   _PlatformKeyCodeToKeyCode;
 		Dict<int, AsciiToKeyCode>    _AsciiToKeyCode;
 		Dict<int, KeyCodeToKeypress> _KeyCodeToKeypress;
 

@@ -43,14 +43,14 @@ namespace qk {
 	class Qk_EXPORT TextOptions {
 	public:
 		struct SecondOpts {
-			TextFamily text_family;
+			FontFamily font_family;
 			TextShadow text_shadow;
 			TextColor  text_background_color;
 			TextStroke text_stroke;
-			TextSlant  text_slant, text_slant_value;
+			FontSlant  font_slant, font_slant_value;
 			TextDecoration text_decoration, text_decoration_value;
 			TextOverflow   text_overflow, text_overflow_value;
-			TextWordBreak  text_word_break, text_word_break_value;
+			WordBreak  word_break, word_break_value;
 			// std::atomic<int> ref;
 		};
 		enum {
@@ -58,60 +58,60 @@ namespace qk {
 			kTextShadow_TextOpt = (1 << 1),
 			kTextBackgroundColor_TextOpt = (1 << 2),
 			kTextStroke_TextOpt = (1 << 3),
-			kTextSlant_TextOpt = (1 << 4),
+			kFontSlant_TextOpt = (1 << 4),
 			kTextDecoration_TextOpt = (1 << 5),
 			kTextAlign_TextOpt = (1 << 6), // Typesetting
-			kTextSize_TextOpt = (1 << 7), // Typesetting
-			kTextLineHeight_TextOpt = (1 << 8), // Typesetting
-			kTextFamily_TextOpt = (1 << 9), // Typesetting
-			kTextWeight_TextOpt = (1 << 10), // Typesetting
+			kFontSize_TextOpt = (1 << 7), // Typesetting
+			kLineHeight_TextOpt = (1 << 8), // Typesetting
+			kFontFamily_TextOpt = (1 << 9), // Typesetting
+			kFontWeight_TextOpt = (1 << 10), // Typesetting
 			kTextOverflow_TextOpt = (1 << 11), // Typesetting
-			kTextWhiteSpace_TextOpt = (1 << 12), // Typesetting
-			kTextWordBreak_TextOpt = (1 << 13), // Typesetting
+			kWhiteSpace_TextOpt = (1 << 12), // Typesetting
+			kWordBreak_TextOpt = (1 << 13), // Typesetting
 			kSecondOpts_Mask_TextOpt = ( // All second options
-				kTextFamily_TextOpt |
+				kFontFamily_TextOpt |
 				kTextShadow_TextOpt |
 				kTextBackgroundColor_TextOpt |
 				kTextStroke_TextOpt |
-				kTextSlant_TextOpt |
+				kFontSlant_TextOpt |
 				kTextDecoration_TextOpt |
 				kTextOverflow_TextOpt |
-				kTextWordBreak_TextOpt
+				kWordBreak_TextOpt
 			),
 			kLayout_Typesetting_Mask_TextOpt = ( // Typesetting related options
 				kTextAlign_TextOpt |
-				kTextSize_TextOpt |
-				kTextLineHeight_TextOpt |
-				kTextFamily_TextOpt |
-				kTextWeight_TextOpt |
+				kFontSize_TextOpt |
+				kLineHeight_TextOpt |
+				kFontFamily_TextOpt |
+				kFontWeight_TextOpt |
 				kTextOverflow_TextOpt |
-				kTextWhiteSpace_TextOpt |
-				kTextWordBreak_TextOpt
+				kWhiteSpace_TextOpt |
+				kWordBreak_TextOpt
 			),
 		};
 		// Common props
 		Qk_DEFINE_VIEW_PROPERTY(TextAlign,      text_align, Const);
 		Qk_DEFINE_VIEW_PROP_GET(TextAlign,      text_align_value, Const);
-		Qk_DEFINE_VIEW_PROPERTY(TextWhiteSpace, text_white_space, Const);
-		Qk_DEFINE_VIEW_PROP_GET(TextWhiteSpace, text_white_space_value, Const);
-		Qk_DEFINE_VIEW_PROPERTY(TextWeight,     text_weight, Const);
-		Qk_DEFINE_VIEW_PROP_GET(TextWeight,     text_weight_value, Const);
-		Qk_DEFINE_VIEW_PROPERTY(TextSize,       text_size, Const);
+		Qk_DEFINE_VIEW_PROPERTY(WhiteSpace,     white_space, Const);
+		Qk_DEFINE_VIEW_PROP_GET(WhiteSpace,     white_space_value, Const);
+		Qk_DEFINE_VIEW_PROPERTY(FontWeight,     font_weight, Const);
+		Qk_DEFINE_VIEW_PROP_GET(FontWeight,     font_weight_value, Const);
+		Qk_DEFINE_VIEW_PROPERTY(FontSize,       font_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(TextColor,      text_color, Const);
-		Qk_DEFINE_VIEW_PROPERTY(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_VIEW_PROPERTY(LineHeight,     line_height, Const);
 		// Secondary props
-		Qk_DEFINE_VIEW_ACCESSOR(TextFamily,     text_family, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(FontFamily,     font_family, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextShadow,     text_shadow, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextColor,      text_background_color, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextStroke,     text_stroke, Const); // border stroke
-		Qk_DEFINE_VIEW_ACCESSOR(TextSlant,      text_slant, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextSlant,      text_slant_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(FontSlant,      font_slant, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(FontSlant,      font_slant_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextDecoration, text_decoration, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(TextDecoration, text_decoration_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextOverflow,   text_overflow, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(TextOverflow,   text_overflow_value, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(TextWordBreak,  text_word_break, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextWordBreak,  text_word_break_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(WordBreak,      word_break, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(WordBreak,      word_break_value, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(FontStyle,      font_style, Const);
 
 		Vec2 compute_layout_size(cString& value, Vec2 limit);

@@ -50,7 +50,7 @@ export const review = ()=>(
 		}
 	>
 		<scroll width="match" height="match" bounceLock={false}>
-			<text width="match" ref="text" textColor="#fff" textSize={12} margin={5} />
+			<text width="match" ref="text" textColor="#fff" fontSize={12} margin={5} />
 		</scroll>
 	</Page>
 );

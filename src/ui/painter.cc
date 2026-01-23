@@ -582,7 +582,7 @@ namespace qk {
 	{
 		if (!_color.a())
 			return;
-		auto size = v->text_size().value;
+		auto size = v->font_size().value;
 		auto shadow = v->text_shadow().value;
 
 		// draw text  background
@@ -858,7 +858,7 @@ namespace qk {
 				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
 				canvas->drawPathvColor(rect, color, defaultBlendMode, true);
 			};
-			auto size = text_size().value;
+			auto size = font_size().value;
 			auto shadow = text_shadow().value;
 
 			// draw text background

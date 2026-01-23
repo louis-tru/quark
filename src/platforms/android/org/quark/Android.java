@@ -101,10 +101,18 @@ public class Android {
 		return activity.getCacheDir().getPath();
 	}
 
-	private static void ime_keyboard_open(final boolean clear, final int type, final int return_type) {
+	private static void ime_keyboard_open(final boolean cancel_marked, final int type, final int return_type) {
 		activity.post(new Runnable() {
 			public void run() {
-				api.ime_keyboard_open(clear, type, return_type);
+				api.ime_keyboard_open(cancel_marked, type, return_type);
+			}
+		});
+	}
+
+	private static void ime_keyboard_cancel_marked() {
+		activity.post(new Runnable() {
+			public void run() {
+				api.ime_keyboard_cancel_marked();
 			}
 		});
 	}

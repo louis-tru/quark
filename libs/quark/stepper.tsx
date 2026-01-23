@@ -42,9 +42,9 @@ createCss({
 	.qk_stepper .qk_plus': {
 		width: 45,
 		height: 28,
-		textLineHeight: 1,
-		textSize: 18,
-		textFamily: 'iconfont',
+		lineHeight: 1,
+		fontSize: 18,
+		fontFamily: 'iconfont',
 		textColor: '#727272',
 		border: `${px} #727272`,
 		borderColor: '#727272',

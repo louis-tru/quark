@@ -24,7 +24,7 @@ void layout_text(Window* win) {
 
 	text->set_width({ 0, BoxSizeKind::Match });
 	text->set_height({ 0, BoxSizeKind::Match });
-	text->set_text_size({ 22 });
+	text->set_font_size({ 22 });
 	//text->set_origin_x({ 0, BoxOriginKind::kAuto });
 	//text->set_origin_y({ 0, BoxOriginKind::kAuto });
 	//text->set_rotate(45);
@@ -36,9 +36,9 @@ void layout_text(Window* win) {
 	//text->set_text_family({ app()->font_pool()->getFFID("Helvetica, PingFang SC") });
 	text->set_padding_top(20);
 
-	labe->set_text_white_space(TextWhiteSpace::PreWrap);
-	labe->set_text_slant(TextSlant::Italic);
-	labe->set_text_weight(TextWeight::Bold);
+	labe->set_white_space(WhiteSpace::PreWrap);
+	labe->set_font_slant(FontSlant::Italic);
+	labe->set_font_weight(FontWeight::Bold);
 	//labe->set_value("BAC");
 	labe->set_value("Quark 1           abcdefghijkmln 禁忌");
 	labe->set_text_color({ Color(255,0,0) });
@@ -128,8 +128,8 @@ void layout_input(Window* win) {
 	input->set_placeholder("Placeholder..");
 	input->set_text_background_color({Color(255,0,0)});
 	input->set_text_color({Color(255,255,255)});
-	input->set_text_line_height({20});
- 	input->set_text_weight(TextWeight::Bold);
+	input->set_line_height({20});
+ 	input->set_font_weight(FontWeight::Bold);
 	input->set_scrollbar_width(5);
 	//input->set_readonly(true);
 	input->set_value("ABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\n");

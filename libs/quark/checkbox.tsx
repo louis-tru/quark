@@ -39,10 +39,10 @@ createCss({
 		border: '2 #aaa',
 		borderRadius: 100,
 		textAlign: 'center',
-		textLineHeight: 1,
-		textFamily: 'iconfont',
+		lineHeight: 1,
+		fontFamily: 'iconfont',
 		textColor: '#fff',
-		textSize: 14,
+		fontSize: 14,
 		opacity: 1,
 	},
 	'.qk_checkbox:hover': {

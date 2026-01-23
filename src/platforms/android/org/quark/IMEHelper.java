@@ -65,7 +65,7 @@ public class IMEHelper extends EditText {
 
 	private static native void dispatchIMEDelete(int count);
 	private static native void dispatchIMEInsert(String text);
-	private static native void dispatchIMEMarked(String text);
+	private static native void dispatchIMEMarked(String text, int newCursorPosition);
 	private static native void dispatchIMEUnmark(String text);
 	private static native void dispatchKeyboardInput(int keycode, boolean ascii, boolean down,
 																									 int repeat, int device, int source);
@@ -184,7 +184,7 @@ public class IMEHelper extends EditText {
 
 		public boolean setComposingText(CharSequence text, int newCursorPosition) {
 			_host._marked = text;
-			dispatchIMEMarked(text.toString());
+			dispatchIMEMarked(text.toString(), newCursorPosition);
 			return true;
 		}
 
@@ -278,7 +278,7 @@ public class IMEHelper extends EditText {
 		}
 	}
 
-	public void clear() {
+	public void cancel_marked() {
 		_text = new StringBuilder();
 		_marked = null;
 		_can_backspace = true;

@@ -43,7 +43,7 @@ export default (self: Page)=>{
 	}
 
 	function end_input(e: ClickEvent) {
-		e.origin.window.focusView.blur();
+		e.origin.window.activeView.blur();
 	}
 
 	return (
@@ -54,7 +54,7 @@ export default (self: Page)=>{
 				width="match"
 				height={30}
 				backgroundColor="#eee"
-				type="phone"
+				keyboardType="phone"
 				returnType="next"
 				paddingLeft={5}
 				borderRadius={8} placeholder="Please enter.." />
@@ -66,7 +66,7 @@ export default (self: Page)=>{
 				height={30}
 				border="0 #f00"
 				borderRadius={0}
-				type="decimal"
+				keyboardType="decimal"
 				textAlign="center"
 				placeholder="Please enter.." value="Hello" />
 			
@@ -79,7 +79,7 @@ export default (self: Page)=>{
 				borderRadius={8}
 				returnType="next"
 				placeholder="Please enter.."
-				textSize={14}
+				fontSize={14}
 				textAlign="center" />
 
 			<button class="long_btn" onClick={end_input} value="Done" />

@@ -64,7 +64,7 @@ export default async function test1(win: Window) {
 				width: "match",
 				height: "match",
 				borderRadius: 50,
-				borderWidthLeft: 0,
+				borderLeftWidth: 0,
 				border: '20 #000',
 				backgroundColor: '#0f0',
 				margin: 20,
@@ -109,7 +109,7 @@ export default async function test1(win: Window) {
 				<box key={j} width="100%">
 					<text align="start" backgroundColor="#f70" width={100} height={100}>
 						<label textAlign="left" textBackgroundColor="#ff0" value="hello!哈哈 " textColor="#fff" textStroke="1 #000b" />
-						<label textAlign="center" textBackgroundColor="#f0f" value={`hello!\n`} textWhiteSpace="preLine" />
+						<label textAlign="center" textBackgroundColor="#f0f" value={`hello!\n`} whiteSpace="preLine" />
 						<label textAlign="right" textBackgroundColor="#0ff">hello</label>
 					</text>
 					{/* <box backgroundColor="#f80" width={100} height={100}>
@@ -126,7 +126,7 @@ export default async function test1(win: Window) {
 						backgroundColor="#fff" width={200} height={100}
 						textBackgroundColor="#0fff"
 						textColor="#000"
-						textSize={12}
+						fontSize={12}
 						textAlign="center"
 					>
 						Touch Code Pro

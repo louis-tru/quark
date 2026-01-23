@@ -308,56 +308,56 @@ bool Scanner::scanFont(
 		return false;
 	}
 
-	TextWeight weight = TextWeight::Regular;
-	TextWidth width = TextWidth::Normal;
-	TextSlant slant = TextSlant::Normal;
+	FontWeight weight = FontWeight::Regular;
+	FontWidth width = FontWidth::Normal;
+	FontSlant slant = FontSlant::Normal;
 	if (face->style_flags & FT_STYLE_FLAG_BOLD) {
-		weight = TextWeight::Bold;
+		weight = FontWeight::Bold;
 	}
 	if (face->style_flags & FT_STYLE_FLAG_ITALIC) {
-		slant = TextSlant::Italic;
+		slant = FontSlant::Italic;
 	}
 
 	PS_FontInfoRec psFontInfo;
 	TT_OS2* os2 = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(face.get(), ft_sfnt_os2));
 	if (os2 && os2->version != 0xffff) {
-		weight = TextWeight(os2->usWeightClass);
-		width = TextWidth(os2->usWidthClass+1); // +1 because usWidthClass is 1-9
+		weight = FontWeight(os2->usWeightClass);
+		width = FontWidth(os2->usWidthClass+1); // +1 because usWidthClass is 1-9
 
 		// OS/2::fsSelection bit 9 indicates oblique.
 		if (QkToBool(os2->fsSelection & (1u << 9))) {
-			slant = TextSlant::Oblique;
+			slant = FontSlant::Oblique;
 		}
 	} else if (0 == FT_Get_PS_Font_Info(face.get(), &psFontInfo) && psFontInfo.weight) {
-		static Dict<String, TextWeight> commonWeights({
+		static Dict<String, FontWeight> commonWeights({
 			// There are probably more common names, but these are known to exist.
-			{ String("all"), TextWeight::Regular }, // Multiple Masters usually default to normal.
-			{ String("black"), TextWeight::Black },
-			{ String("bold"), TextWeight::Bold },
-			{ String("book"), TextWeight((int(TextWeight::Regular) + int(TextWeight::Light)) / 2) },
-			{ String("demi"), TextWeight::Semibold },
-			{ String("demibold"), TextWeight::Semibold },
-			{ String("extra"), TextWeight::Heavy },
-			{ String("extrabold"), TextWeight::Heavy },
-			{ String("extralight"), TextWeight::Ultralight },
-			{ String("hairline"), TextWeight::Thin },
-			{ String("heavy"), TextWeight::Black },
-			{ String("light"), TextWeight::Light },
-			{ String("medium"), TextWeight::Medium },
-			{ String("normal"), TextWeight::Regular },
-			{ String("plain"), TextWeight::Regular },
-			{ String("regular"), TextWeight::Regular },
-			{ String("roman"), TextWeight::Regular },
-			{ String("semibold"), TextWeight::Semibold },
-			{ String("standard"), TextWeight::Regular },
-			{ String("thin"), TextWeight::Thin },
-			{ String("ultra"), TextWeight::Heavy },
-			{ String("ultrablack"), TextWeight::ExtraBlack },
-			{ String("ultrabold"), TextWeight::Heavy },
-			{ String("ultraheavy"), TextWeight::ExtraBlack },
-			{ String("ultralight"), TextWeight::Ultralight },
+			{ String("all"), FontWeight::Regular }, // Multiple Masters usually default to normal.
+			{ String("black"), FontWeight::Black },
+			{ String("bold"), FontWeight::Bold },
+			{ String("book"), FontWeight((int(FontWeight::Regular) + int(FontWeight::Light)) / 2) },
+			{ String("demi"), FontWeight::Semibold },
+			{ String("demibold"), FontWeight::Semibold },
+			{ String("extra"), FontWeight::Heavy },
+			{ String("extrabold"), FontWeight::Heavy },
+			{ String("extralight"), FontWeight::Ultralight },
+			{ String("hairline"), FontWeight::Thin },
+			{ String("heavy"), FontWeight::Black },
+			{ String("light"), FontWeight::Light },
+			{ String("medium"), FontWeight::Medium },
+			{ String("normal"), FontWeight::Regular },
+			{ String("plain"), FontWeight::Regular },
+			{ String("regular"), FontWeight::Regular },
+			{ String("roman"), FontWeight::Regular },
+			{ String("semibold"), FontWeight::Semibold },
+			{ String("standard"), FontWeight::Regular },
+			{ String("thin"), FontWeight::Thin },
+			{ String("ultra"), FontWeight::Heavy },
+			{ String("ultrablack"), FontWeight::ExtraBlack },
+			{ String("ultrabold"), FontWeight::Heavy },
+			{ String("ultraheavy"), FontWeight::ExtraBlack },
+			{ String("ultralight"), FontWeight::Ultralight },
 		});
-		TextWeight out;
+		FontWeight out;
 		if (commonWeights.get(String(psFontInfo.weight).lowerCase(), out)) {
 			weight = out;
 		} else {

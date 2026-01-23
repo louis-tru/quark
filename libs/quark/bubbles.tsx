@@ -318,9 +318,9 @@ export class Bubbles<P={},S={}> extends Navigation<{
 							<text
 								marginTop={-10}
 								marginLeft={-3}
-								textFamily='iconfont'
-								textLineHeight={36}
-								textSize={36}
+								fontFamily='iconfont'
+								lineHeight={36}
+								fontSize={36}
 								textColor={this.backgroundColor}
 								value={"\uedcb"} />
 						</morph>
