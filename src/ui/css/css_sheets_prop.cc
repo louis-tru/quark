@@ -49,7 +49,7 @@ namespace qk {
 
 	template<>
 	BoxFilter* copy_value_ptr(BoxFilter* value) {
-		return value ? value->copy(nullptr, true): nullptr;
+		return value ? value->copy(nullptr): nullptr;
 	}
 
 	template<>
@@ -58,9 +58,9 @@ namespace qk {
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
 			auto v_new =
-				v1 && v2 ? v1->transition(v, v2, y, true):
+				v1 && v2 ? v1->transition(v, v2, y):
 				y < 1.0 ? v1: v2;
-			(target->*(void (View::*)(BoxFilter*,bool))acc->set)(v_new,true);
+			(target->*(void (View::*)(BoxFilter*))acc->set)(v_new);
 		}
 	}
 
@@ -185,10 +185,18 @@ namespace qk {
 	template<typename T>
 	struct PropImpl: Property {
 		inline PropImpl(CssProp prop, T value): _prop(prop), _value(value) {}
-		void apply(View *view, bool isRt) override {
-			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
-			if (set)
-				(view->*set)(_value,isRt);
+		void apply(View *view) override {
+			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
+			if (set) {
+				(view->*set)(_value);
+			}
+		}
+		void apply_with_priority(View *view) override {
+			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
+			if (set) {
+				if (!view->has_style_flag(_prop))
+					(view->*set)(_value);
+			}
 		}
 		void fetch(View *view) override {
 			auto get = (T (View::*)())(view->accessor() + _prop)->get;
@@ -197,9 +205,9 @@ namespace qk {
 		}
 		void transition(View *view, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
-			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
 			if (set) {
-				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y),true);
+				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y));
 			}
 		}
 		Property* copy() override {
@@ -219,15 +227,24 @@ namespace qk {
 		~PropImpl() {
 			Release(_value);
 		}
-		void apply(View *view, bool isRt) override {
-			auto set = (void (View::*)(T*,bool))(view->accessor() + _prop)->set;
-			if (set)
-				(view->*set)(_value, isRt);
+		void apply(View *view) override {
+			auto set = (void (View::*)(T*))(view->accessor() + _prop)->set;
+			if (set) {
+				(view->*set)(_value);
+			}
+		}
+		void apply_with_priority(View *view) override {
+			auto set = (void (View::*)(T*))(view->accessor() + _prop)->set;
+			if (set) {
+				if (!view->has_style_flag(_prop)) {
+					(view->*set)(_value);
+				}
+			}
 		}
 		void fetch(View *view) override {
 			auto get = (T* (View::*)())(view->accessor() + _prop)->get;
 			if (get) {
-				_value = BoxFilter::assign(_value, (view->*get)(), nullptr, true);
+				BoxFilter::assign(_value, (view->*get)(), nullptr);
 			}
 		}
 		void transition(View *target, Property *to, float t) override {
@@ -259,7 +276,7 @@ namespace qk {
 		}
 		template<CssProp key>
 		void asyncSet(T value) {
-			auto win = getWindowForAsyncSet();
+			auto win = getWindow();
 			if (win) {
 				win->pre_render().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg);
@@ -270,7 +287,7 @@ namespace qk {
 		}
 		template<CssProp key>
 		void asyncSetLarge(T &value) {
-			auto win = getWindowForAsyncSet();
+			auto win = getWindow();
 			if (win) {
 				win->pre_render().async_call([](auto self, auto arg) {
 					Sp<T> h(arg.arg);
@@ -555,11 +572,12 @@ namespace qk {
 			Property *prop;
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
-				p->_value = BoxFilter::assign(p->_value, value, nullptr, isRt);
+				BoxFilter::assign(p->_value, value, nullptr);
 				if (value)
 					p->_value->mark_public();
 			} else if (value) {
-				auto filter = BoxFilter::assign(nullptr, value, nullptr, isRt); // copy filter
+				BoxFilter* filter = nullptr;
+				BoxFilter::assign(filter, value, nullptr); // copy filter
 				filter->mark_public();
 				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, filter)));
 				filter->release(); // @BoxFilter::assign
@@ -570,7 +588,7 @@ namespace qk {
 		}
 		template<CssProp key>
 		void asyncSet(BoxFilter* value) {
-			auto win = getWindowForAsyncSet();
+			auto win = getWindow();
 			if (win) {
 				Retain(value); // retain the object before calling
 				win->pre_render().async_call([](auto self, auto arg) {

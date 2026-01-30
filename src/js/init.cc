@@ -314,10 +314,8 @@ namespace qk { namespace js {
 		static void clear_timer(Worker *worker, FunctionArgs args, cChar* name) {
 			uint32_t id;
 			if (!args.length() || !args[0]->asUint32(worker).to(id)) {
-				Js_Throw(
-					"@method %s(id)\n"
-					"@param id {Number}\n", name
-				);
+				// Js_Throw("@method %s(id:number)void", name);
+				return;
 			}
 			first_loop()->timer_stop(id);
 		}

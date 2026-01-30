@@ -145,6 +145,11 @@ namespace qk {
 		*/
 		bool post(Cb cb, View *view, bool toQueue = false);
 
+		/**
+		 * @method mark_is_render() mark next frame need render
+		 */
+		inline void mark_is_render() { _is_render = true; }
+
 	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated

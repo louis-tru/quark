@@ -89,7 +89,7 @@ namespace qk {
 
 		_async_call([](auto self, auto arg) {
 			Release(arg.arg); // safe release old pts
-			self->mark(kTransform, true); // mark to update
+			self->template mark<true>(kTransform); // mark to update
 		}, this, oldPts);
 	}
 
@@ -474,7 +474,7 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			Sp<Arg> self_sp(arg.arg); // rtti delete arg
 			if (arg.arg->immediately) {
-				self->set_translate(arg.arg->target, true);
+				self->set_translate_rt(arg.arg->target); // set position immediately
 			}
 			self->_target = arg.arg->target; // set target position again
 			if (!self->_moving) {

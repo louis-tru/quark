@@ -162,7 +162,7 @@ namespace qk {
 
 	bool PreRender::solve(int64_t time, int64_t deltaTime) {
 		bool is_render = _is_render;
-		_is_render = false; // Reset render flag
+		_is_render = false;  // Reset render flag
 
 		// Flush async calls
 		solveAsyncCall();
@@ -189,7 +189,7 @@ namespace qk {
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
 					if (view->_mark_value & View::kClass_All)
-						view->apply_class_rt(view->parent_ssclass_rt());
+						view->apply_class_rt(view->parent_cssclass_rt());
 				}
 			}
 		}

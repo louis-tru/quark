@@ -42,14 +42,15 @@ namespace qk {
 		return Player::src();
 	}
 
-	void Video::set_src(String value, bool isRt) {
-		if (isRt) {
-			pre_render().post(Cb([this, value](auto e) {
-				Player::set_src(value);
-			}), this);
-		} else {
+	void Video::set_src(String value) {
+		mark_style_flag(kSRC_CssProp);
+		Player::set_src(value);
+	}
+
+	void Video::set_src_rt(String value) {
+		pre_render().post(Cb([this, value](auto e) {
 			Player::set_src(value);
-		}
+		}), this);
 	}
 
 	void Video::lock() {
@@ -123,7 +124,7 @@ namespace qk {
 		}
 		auto src = source();
 		if (!src || !(src->state() & ImageSource::kSTATE_LOAD_COMPLETE)) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
+			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
 		}
 		_seeking = 0;
 		_pts = _fv->pts; // set current the presentation timestamp

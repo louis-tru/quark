@@ -52,24 +52,23 @@ namespace qk {
 			kShadow, kBlur, kBackdropBlur,
 		};
 		Qk_DEFINE_PROP_GET_Atomic(View*, view);
-		Qk_DEFINE_VIEW_PROPERTY_Atomic(BoxFilter*, next); // async set next
+		Qk_DEFINE_PROPERTY_Atomic(BoxFilter*, next); // async set next
 
 		BoxFilter();
 		// virtual void release() override;
 		virtual void destroy() override;
 		virtual Type type() const = 0;
-		virtual BoxFilter* copy(BoxFilter *dest, bool isRt) = 0; // @thread Rt
-		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t, bool isRt) = 0; // @thread Rt
-		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt);
-
+		virtual BoxFilter* copy(BoxFilter *dest) = 0; // @thread Rt
+		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @thread Rt
+		static bool assign(BoxFilter *&left, BoxFilter *right, View *view);
+		static bool assign_atomic(std::atomic<BoxFilter*>& left, BoxFilter *right, View *view);
 		inline void mark_public() { _is_public = true; }
 
 		template<class T>
 		inline static T* Link(const std::initializer_list<T*>& list) {
 			static_cast<T*>(link(*reinterpret_cast<std::initializer_list<BoxFilter*>*>(&list)));
 		}
-	protected:
-		void set_next_no_check(BoxFilter *next, bool isRt);
+	protected: void set_next_no_check(BoxFilter *next);
 	private:
 		bool _is_public; // is public use
 		void set_view(View* value);
@@ -83,17 +82,17 @@ namespace qk {
 			FillPosition x, y;
 			Repeat repeat=Repeat::Repeat;
 		};
-		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
-		Qk_DEFINE_VIEW_PROPERTY(FillSize, width, Const);
-		Qk_DEFINE_VIEW_PROPERTY(FillSize, height, Const);
-		Qk_DEFINE_VIEW_PROPERTY(FillPosition, x, Const);
-		Qk_DEFINE_VIEW_PROPERTY(FillPosition, y, Const);
-		Qk_DEFINE_VIEW_PROPERTY(Repeat, repeat, Const);
+		Qk_DEFINE_ACCESSOR(String, src, Const);
+		Qk_DEFINE_PROPERTY(FillSize, width, Const);
+		Qk_DEFINE_PROPERTY(FillSize, height, Const);
+		Qk_DEFINE_PROPERTY(FillPosition, x, Const);
+		Qk_DEFINE_PROPERTY(FillPosition, y, Const);
+		Qk_DEFINE_PROPERTY(Repeat, repeat, Const);
 
 		FillImage(cString& src, Init init = {.repeat=Repeat::Repeat});
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
 		static bool compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	private:
@@ -106,36 +105,36 @@ namespace qk {
 		inline cArray<float>& positions() const { return _pos; }
 		inline cArray<Color4f>& premul_colors() const { return _colors; }
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
 	protected:
-		void transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt);
+		void transition_g(BoxFilter* dest, BoxFilter *to, float t);
 		Array<float> _pos;
 		Array<Color4f> _colors; // premul alpha colors
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradientRadial {
 	public:
-		Qk_DEFINE_VIEW_PROPERTY(float, angle, Const);
-		Qk_DEFINE_VIEW_PROP_GET(float, radian, Const);
-		Qk_DEFINE_VIEW_PROP_GET(uint8_t, quadrant, Const);
+		Qk_DEFINE_PROPERTY(float, angle, Const);
+		Qk_DEFINE_PROP_GET(float, radian, Const);
+		Qk_DEFINE_PROP_GET(uint8_t, quadrant, Const);
 
 		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/, bool isPremul = false);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
 	private:
 		void setRadian();
 	};
 
 	class Qk_EXPORT BoxShadow: public BoxFilter {
 	public:
-		Qk_DEFINE_VIEW_PROPERTY(Shadow, value, Const);
+		Qk_DEFINE_PROPERTY(Shadow, value, Const);
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
+		virtual BoxFilter* copy(BoxFilter* dest) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
 	};
 }
 

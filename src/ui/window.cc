@@ -156,7 +156,6 @@ namespace qk {
 			return false;
 
 		beforeClose();
-
 		// ------------------------
 		_host->_windows.erase(_id);
 		if (_host->_activeWindow == this) {
@@ -164,6 +163,7 @@ namespace qk {
 		}
 		// ------------------------
 
+		_renderThreadId = thread_self_id();
 		_root->remove_all_child(); // remove child view
 		Releasep(_root); // release root view
 		_preRender.flushAsyncCall(); // flush async call
@@ -175,8 +175,10 @@ namespace qk {
 		_preRender.clearTasks(); // clear tasks
 		// ------------------------
 		lock.unlock(); // Avoid deadlocks with rendering threads
-		Releasep(_render); // delete obj and stop render draw
+		Releasep(_render); // delete obj and stop render draw thread
+		_viewsByClass.clear(); // clear css class views map
 		lock.lock(); // relock
+		_renderThreadId = ThreadID(); // reset render thread id
 		// ------------------------
 
 		closeImpl(); // close platform window
@@ -259,6 +261,8 @@ namespace qk {
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
 		if (isRt) {
+			// set render thread id avoid assert fail
+			_renderThreadId = thread_self_id();
 			_root->reload_rt();
 		} else {
 			_preRender.async_call([](auto self, auto arg) {
@@ -312,6 +316,7 @@ namespace qk {
 			deltaTime = 2e5;
 		}
 		_time = time;
+		_renderThreadId = thread_self_id(); // set render thread id
 
 		if (!_preRender.solve(time, deltaTime)) {
 			solveNextFrame();
@@ -407,5 +412,9 @@ namespace qk {
 	void Window::clipRestore() {
 		Qk_ASSERT(_clipRange.length() > 1);
 		_clipRange.pop();
+	}
+
+	bool Window::isRenderThread() const {
+		return thread_self_id() == _renderThreadId;
 	}
 }

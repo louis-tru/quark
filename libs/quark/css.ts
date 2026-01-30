@@ -36,13 +36,59 @@ const _css = __binding__('_css');
 exports.CStyleSheetsClass = _css.CStyleSheetsClass;
 
 /**
+ * Qk Style System
+ *
+ * Qk provides a lightweight, CSS-inspired style system designed
+ * specifically for hierarchical GUI view trees, not for browser DOMs.
+ *
+ * The system intentionally supports only a constrained and explicit
+ * subset of CSS concepts that map cleanly onto Qk’s view architecture
+ * and rendering pipeline.
+ *
+ * Supported selector features:
+ * - Class selectors (e.g. `.a`, `.a.b`)
+ * - Hierarchical selectors (e.g. `.a .b`, `.a > .b`)
+ * - Limited pseudo states (`:normal`, `:hover`, `:active`)
+ *
+ * Non-goals:
+ * - Full CSS selector compatibility
+ * - Layout-driven or cascade-heavy semantics
+ * - Browser-specific behaviors
+ *
+ * The design prioritizes:
+ * - Explicit structure over implicit cascading
+ * - Predictable selector resolution
+ * - Efficient propagation and incremental updates
+ * - Stable performance on deep or dynamic view trees
+ */
+
+/**
  * @type CSSNameExp:'.className'
-*/
+ *
+ * Represents a class-based selector expression.
+ *
+ * IMPORTANT:
+ * - Only class selectors are supported.
+ * - This does NOT represent a full CSS selector grammar.
+ *
+ * Example:
+ *   '.button'
+ *   '.button.primary'
+ */
 export type CSSNameExp = `.${string}`;
 
 /**
  * @class StyleSheets
-*/
+ *
+ * Represents a collection of style properties applied to a View.
+ *
+ * This class does NOT describe selector logic.
+ * Selector matching and propagation are handled separately by
+ * `CStyleSheetsClass`.
+ *
+ * Properties defined here are inspired by CSS,
+ * but semantics are adapted for Qk's GUI layout and rendering model.
+ */
 export declare abstract class StyleSheets {
 	time?: Uint; //!< keyframe time or css transition time in milliseconds
 	curve?: types.CurveIn; //!< keyframe curve or css transition curve
@@ -145,8 +191,19 @@ export declare abstract class StyleSheets {
 }
 
 /**
- * A collection of stylesheet names to apply to the view
-*/
+ * @class CStyleSheetsClass
+ *
+ * Runtime stylesheet class collection bound to a View.
+ *
+ * This object:
+ * - Holds the set of class names applied to a View
+ * - Resolves which style rules apply at runtime
+ * - Manages propagation of class-based selectors to descendant Views
+ *
+ * IMPORTANT:
+ * - Only class names participate in selector matching.
+ * - No attribute, tag, or structural selectors are involved.
+ */
 export declare class CStyleSheetsClass {
 	/**
 	 * Set Style Collection
@@ -186,16 +243,38 @@ export declare class CStyleSheetsClass {
  *
  * @method createCss(sheets)
  *
- * * `css` stylesheet is similar to html `css` stylesheet, supports multi-level stylesheet, but only supports `class` type
+ * Creates style rules using a CSS-inspired, class-driven syntax.
  *
- * * Supports `3` pseudo-types `normal`, `hover`, `action`
+ * IMPORTANT:
+ * This API intentionally supports ONLY a constrained subset of CSS.
+ * It is designed for GUI view styling in Qk, not for full web CSS compatibility.
  *
- * 	Corresponds to [`HighlightedStatus.Normal`], [`HighlightedStatus.Hover`], [`HighlightedStatus.Active`] in [`View.onHighlighted`] event
+ * Supported:
+ * - Class selectors only (e.g. `.a`, `.a.b`, `.a .b`, `.a > .b`)
+ * - Multi-level hierarchical selectors
+ * - Limited pseudo states: `:normal`, `:hover`, `:active`
+ * - Style properties inspired by CSS, adapted for Qk view rendering
  *
- * * When calling this method to create a stylesheet, pause the rendering threads of all windows
+ * Unsupported:
+ * - ID selectors, attribute selectors, and tag selectors
+ * - Complex combinators (e.g. sibling selectors)
+ * - Arbitrary or custom pseudo-classes and pseudo-elements
+ * - Media queries, keyframes, and CSS animations
+ * - Browser-specific or layout-driven CSS features
  *
- * @param sheets:object
- * @param apply?:boolean Apply the created stylesheet to all views, **default false**
+ * Pseudo state mapping:
+ * - `:normal` → [`HighlightedStatus.Normal`]
+ * - `:hover`  → [`HighlightedStatus.Hover`]
+ * - `:active` → [`HighlightedStatus.Active`]
+ *
+ * Notes:
+ * - Selector semantics are resolved at creation time, not at runtime.
+ * - This method mutates global style state.
+ * - All rendering threads are automatically paused and resumed internally
+ *   while stylesheets are being created or modified.
+ *
+ * @param sheets:object Style rule definitions keyed by class selectors
+ * @param apply?:boolean Whether to apply the created styles to all views, **default false**
  * 
  * @example
  * 
@@ -209,6 +288,9 @@ export declare class CStyleSheetsClass {
  *		'.test .a': {
  *			width: 50,
  *			height: 50,
+ *		},
+ *		'.test > .c': {
+ *			width: 100,
  *		},
  *		'.test .a.b': { // This selector will have a higher priority
  *			height: 60,

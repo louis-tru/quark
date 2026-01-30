@@ -40,7 +40,7 @@ namespace qk {
 
 	class Qk_EXPORT Text: public Box, public TextOptions {
 	public:
-		Qk_DEFINE_VIEW_PROPERTY(String, value);
+		Qk_DEFINE_PROPERTY(String, value);
 		virtual ViewType view_type() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;

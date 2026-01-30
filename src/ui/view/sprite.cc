@@ -68,29 +68,51 @@ namespace qk {
 		return _keyAction;
 	}
 
-	void Sprite::set_width(float val, bool isRt) {
+	void Sprite::set_width(float val) {
+		mark_style_flag(kWIDTH_CssProp);
+		if (_width != val) {
+			// mark(kTransform, isRt);
+			mark_layout(kLayout_Typesetting | kTransform);
+			_width = val;
+		}
+	}
+
+	void Sprite::set_width_rt(float val) {
 		if (_width != val) {
 			_width = val;
-			// mark(kTransform, isRt);
-			mark_layout(kLayout_Typesetting | kTransform, isRt);
+			mark_layout<true>(kLayout_Typesetting | kTransform);
 		}
 	}
 
-	void Sprite::set_height(float val, bool isRt) {
+	void Sprite::set_height(float val) {
+		mark_style_flag(kHEIGHT_CssProp);
+		if (_height != val) {
+			// mark(kTransform, isRt);
+			mark_layout(kLayout_Typesetting | kTransform);
+			_height = val;
+		}
+	}
+
+	void Sprite::set_height_rt(float val) {
 		if (_height != val) {
 			_height = val;
-			// mark(kTransform, isRt);
-			mark_layout(kLayout_Typesetting | kTransform, isRt);
+			mark_layout<true>(kLayout_Typesetting | kTransform);
 		}
 	}
 
-	void Sprite::set_frame(uint16_t val, bool isRt) {
+	void Sprite::set_frame(uint16_t val) {
+		mark_style_flag(kFRAME_CssProp);
+		if (_frame != val) {
+			mark_render();
+			_frame = val;
+			getKeyAction()->seek(val * 1e3); // Seek to frame in milliseconds
+		}
+	}
+
+	void Sprite::set_frame_rt(uint16_t val) {
 		if (_frame != val) {
 			_frame = val;
-			if (!isRt) { // is main thread
-				getKeyAction()->seek(val * 1e3); // Seek to frame in milliseconds
-			}
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
@@ -119,21 +141,21 @@ namespace qk {
 	void Sprite::set_set(uint16_t val) {
 		if (_set != val) {
 			_set = val;
-			mark(kLayout_None, false);
+			mark(kLayout_None);
 		}
 	}
 
 	void Sprite::set_sets(uint16_t val) {
 		if (_sets != val) {
 			_sets = Qk_Max(1, val);
-			mark(kLayout_None, false);
+			mark(kLayout_None);
 		}
 	}
 
 	void Sprite::set_spacing(uint8_t val) {
 		if (_spacing != val) {
 			_spacing = val;
-			mark(kLayout_None, false);
+			mark(kLayout_None);
 		}
 	}
 
@@ -146,10 +168,18 @@ namespace qk {
 		getKeyAction()->set_speed(Qk_Min(60, val)); // Use speed as fsp
 	}
 
-	void Sprite::set_direction(Direction val, bool isRt) {
+	void Sprite::set_direction(Direction val) {
+		mark_style_flag(kDIRECTION_CssProp);
+		if (_direction != val) {
+			mark_render();
+			_direction = val;
+		}
+	}
+
+	void Sprite::set_direction_rt(Direction val) {
 		if (_direction != val) {
 			_direction = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
@@ -157,9 +187,16 @@ namespace qk {
 		return ImageSourceHold::src();
 	}
 
-	void Sprite::set_src(String val, bool isRt) {
+	void Sprite::set_src(String val) {
+		mark_style_flag(kSRC_CssProp);
 		if (ImageSourceHold::set_src(val)) {
-			mark(kLayout_None, isRt); // mark re-render
+			mark_render();
+		}
+	}
+
+	void Sprite::set_src_rt(String val) {
+		if (ImageSourceHold::set_src(val)) {
+			mark_render();
 		}
 	}
 
@@ -195,7 +232,7 @@ namespace qk {
 
 	void Sprite::onSourceState(ImageSource::State state) {
 		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
-			mark(kLayout_None, false); // mark re-render
+			mark(kLayout_None); // mark re-render
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
 		}

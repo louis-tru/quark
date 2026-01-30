@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import type {Path} from './path';
-import type {Float} from './defs';
+import type {Float, Int} from './defs';
 
 const _font = __binding__('_font');
 
@@ -2092,6 +2092,10 @@ export function parseMat4(val: Mat4In, msg?: string): Mat4 { //!<
 	throw error(val, msg, ['mat4(1,0,0,1,0,1,0,1,0,0,1,1,0,0,0,1)']);
 }
 
+function clampColorN(n: Int): Int {
+	return n < 0 ? 0 : n > 255 ? 255 : n;
+}
+
 // type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`;
 // export type ColorIn = ColorStrIn | N | Color;
 const ColorReg = [
@@ -2133,13 +2137,18 @@ export function parseColor(val: ColorIn, msg?: string, ref?: Reference): Color {
 			if (m[1] == 'a') { // rgba
 				if (m[5]) { // a
 					return newColor(
-						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, parseFloat(m[6]) * 255
+						clampColorN(parseInt(m[2])),
+						clampColorN(parseInt(m[3])),
+						clampColorN(parseInt(m[4])),
+						clampColorN(parseFloat(m[6]) * 255 >>> 0)
 					);
 				}
 			} else { // rgb
 				if (!m[5]) {
 					return newColor(
-						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, 255
+						clampColorN(parseInt(m[2])),
+						clampColorN(parseInt(m[3])),
+						clampColorN(parseInt(m[4])), 255
 					);
 				}
 			}
@@ -2156,17 +2165,21 @@ export function parseColor(val: ColorIn, msg?: string, ref?: Reference): Color {
 	], ref);
 }
 
-const ShadowReg = /^\s*(-?(?:\d+)?\.?\d+)\s+(-?(?:\d+)?\.?\d+)\s+((?:\d+)?\.?\d+)/;
+const ShadowReg = /^\s*(-?(?:\d+)?\.?\d+)\s+(-?(?:\d+)?\.?\d+)\s+((?:\d+)?\.?\d+)\s+/;
 export function parseShadow(val: ShadowIn, msg?: string, ref?: Reference): Shadow { //!<
 	if (typeof val === 'string') {
 		// 10 10 2 #ff00aa
 		let m = val.match(ShadowReg);
 		if (m) {
+			// const testrgba = parseColor(val.substring(m[0].length) as ColorStrIn, msg, r=>{
+			// 	return (ref||(r=>r))(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']);
+			// })
+			// console.log('parseShadow', val, '-', val.substring(m[0].length), testrgba, testrgba.a, testrgba.toHex32String());
 			return new Shadow({
 				x: parseFloat(m[1]),
 				y: parseFloat(m[2]),
 				size: parseFloat(m[3]),
-				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, msg, r=>{
+				color: parseColor(val.substring(m[0].length) as ColorStrIn, msg, r=>{
 					return (ref||(r=>r))(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']);
 				}),
 			});
@@ -2177,7 +2190,7 @@ export function parseShadow(val: ShadowIn, msg?: string, ref?: Reference): Shado
 	throw error(val, msg, ['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)'], ref);
 }
 
-const BorderReg = /^\s*(-?(?:\d+)?\.?\d+)/;
+const BorderReg = /^\s*(-?(?:\d+)?\.?\d+)\s*/;
 export function parseBorder(val: BorderIn, msg?: string, ref?: Reference): Border { //!<
 	if (typeof val === 'string') {
 		// 10 #ff00aa
@@ -2185,15 +2198,15 @@ export function parseBorder(val: BorderIn, msg?: string, ref?: Reference): Borde
 		if (m) {
 			return new Border({
 				width: parseFloat(m[1]),
-				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, msg, r=>{
+				color: parseColor(val.substring(m[0].length) as ColorStrIn, msg, r=>{
 					return (ref||(r=>r))(['10 #ff00aa', '10 rgba(255,255,0,1)']);
 				}),
 			});
 		}
-	} else if (val instanceof BoxShadow) {
+	} else if (val instanceof Border) {
 		return val;
 	}
-	throw error(val, msg, ['10 #ff00aa', '10 rgba(255,255,0,1)']);
+	throw error(val, msg, ['10 #ff00aa', '10 rgba(255,255,0,1)'], ref);
 }
 
 export function parseFillPosition(val: FillPositionIn, msg?: string): FillPosition { //!<

@@ -56,6 +56,8 @@ namespace qk {
 		}
 
 		void timer_stop(timer_t *timer) {
+			if (uv_is_closing((uv_handle_t*)timer))
+				return;
 			uv_close((uv_handle_t*)timer, [](uv_handle_t* h){
 				delete (timer_t*)(h);
 			});

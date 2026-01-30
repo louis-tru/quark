@@ -31,10 +31,6 @@
 #ifndef __quark__window__
 #define __quark__window__
 
-#include "../util/util.h"
-#include "../util/event.h"
-#include "../util/cb.h"
-#include "../render/math.h"
 #include "../render/render.h"
 #include "./pre_render.h"
 #include "./types.h"
@@ -48,6 +44,7 @@ namespace qk {
 	class Root;
 	class Window;
 	class RootStyleSheets;
+	class CStyleSheetsClass;
 	class ActionCenter;
 	class FontPool;
 	class TextBlob;
@@ -62,9 +59,6 @@ namespace qk {
 		~UILock();
 		void lock();
 		void unlock();
-		// void assertLocked() {
-		// 	QK_ASSERT(_lock);
-		// }
 	private:
 		Window *_win;
 		bool _lock;
@@ -133,6 +127,7 @@ namespace qk {
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
 		Qk_DEFINE_ACCE_GET(View*, activeView); //! focus active view
+		Qk_DEFINE_PROP_GET(ThreadID, renderThreadId, Const); //!< window render thread ID
 
 		/**
 		 * @prop surfaceSize
@@ -210,6 +205,11 @@ namespace qk {
 		*/
 		inline Painter* painter() { return _painter; }
 
+		/**
+		 * @method isRenderThread() check current thread is render thread
+		*/
+		bool isRenderThread() const;
+
 	private:
 		void reload(bool isRt);
 		void solveNextFrame();
@@ -244,8 +244,14 @@ namespace qk {
 		RecursiveMutex _renderMutex;
 		PreRender _preRender;
 		Options _opts;
+		// Reverse index: class hash -> views declaring the class.
+		// Used only as a pre-filter to eliminate unrelated views
+		// before CSS class resolution.
+		// Not part of selector semantics.
+		Dict<uint64_t, Set<View*>> _viewsByClass;
 		friend class WindowImpl;
 		friend class UILock;
+		friend class CStyleSheetsClass;
 	};
 
 }

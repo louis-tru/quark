@@ -250,7 +250,7 @@ namespace qk {
 			_skel = skel;
 			_firstDraw = true;
 			Release(lastSkel);
-			mark_layout(kLayout_Typesetting | kTransform, false);
+			mark_layout(kLayout_Typesetting | kTransform);
 		}
 	}
 

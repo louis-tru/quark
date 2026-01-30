@@ -50,7 +50,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, scrollbar_v, Const); // 是否显示垂直滚动条
 		Qk_DEFINE_ACCESSOR(float, scroll_left, Const);
 		Qk_DEFINE_ACCESSOR(float, scroll_top, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(Vec2, scroll, Const);
+		Qk_DEFINE_ACCESSOR(Vec2, scroll, Const);
 		Qk_DEFINE_PROP_GET(Vec2, scroll_size, Const);
 		Qk_DEFINE_PROPERTY(float, resistance, Const); // resistance default=1
 		Qk_DEFINE_PROPERTY(float, catch_position_x, Const); // 停止后捕获位置
@@ -70,6 +70,7 @@ namespace qk {
 		~ScrollView();
 		void solve(uint32_t mark); // @thread Rt
 		void set_scroll_size_rt(Vec2 size); // @thread Rt
+		void set_scroll_rt(Vec2 value); // @thread Rt
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);

@@ -33,15 +33,18 @@
 
 #define Qk_DEFINE_VIEW_ACCE_GET(...) Qk_DEFINE_ACCE_GET(__VA_ARGS__)
 #define Qk_DEFINE_VIEW_ACCESSOR(type,name,...) \
-	Qk_DEFINE_VIEW_ACCE_GET(type,name,##__VA_ARGS__); void set_##name (type val,bool isRt=false);
+	Qk_DEFINE_VIEW_ACCE_GET(type,name,##__VA_ARGS__); void set_##name (type val); \
+	void set_##name##_rt (type val)
 
 #define Qk_DEFINE_VIEW_PROP_GET(...) Qk_DEFINE_PROP_GET(__VA_ARGS__)
 #define Qk_DEFINE_VIEW_PROPERTY(type,name,...) \
-	Qk_DEFINE_VIEW_PROP_GET(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
+	Qk_DEFINE_VIEW_PROP_GET(type,name,##__VA_ARGS__) void set_##name (type val); \
+	void set_##name##_rt (type val)
 
 #define Qk_DEFINE_VIEW_PROP_GET_Atomic(...) Qk_DEFINE_PROP_GET_Atomic(__VA_ARGS__)
 #define Qk_DEFINE_VIEW_PROPERTY_Atomic(type,name,...) \
-	Qk_DEFINE_VIEW_PROP_GET_Atomic(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
+	Qk_DEFINE_VIEW_PROP_GET_Atomic(type,name,##__VA_ARGS__) void set_##name (type val); \
+	void set_##name##_rt (type val)
 
 #include "./types.h"
 

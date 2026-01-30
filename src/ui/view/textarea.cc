@@ -88,7 +88,7 @@ namespace qk {
 	}
 
 	void Textarea::set_input_text_offset(Vec2 value) {
-		set_scroll(Vec2(_input_text_offset_x - value.x(), -value.y()), true);
+		set_scroll_rt(Vec2(_input_text_offset_x - value.x(), -value.y()));
 	}
 
 	ScrollView* Textarea::asScrollView() {

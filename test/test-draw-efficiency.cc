@@ -34,7 +34,7 @@ public:
 			canvas->drawPath(circle, paint);
 		}
 		canvas->restore();
-		mark(kLayout_None,true);
+		mark_render();
 	}
 };
 

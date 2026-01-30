@@ -619,7 +619,7 @@ namespace qk {
 	}
 
 	Sp<ImageSource> ImageSourceHold::source() {
-		return _imageSource.load();
+		return _imageSource.load(std::memory_order_acquire);
 	}
 
 	bool ImageSourceHold::set_src(String value) {
@@ -632,13 +632,21 @@ namespace qk {
 	}
 
 	bool ImageSourceHold::set_source(Sp<ImageSource> source) {
-		auto oldSrc = _imageSource.load();
+		auto oldSrc = _imageSource.load(std::memory_order_acquire);
 		auto newSrc = source.get();
 		if (oldSrc != newSrc) {
-			_imageSource = newSrc;
 			if (newSrc) {
 				newSrc->Qk_On(State, &ImageSourceHold::handleSourceState, this);
 				newSrc->retain();
+			}
+			// compare and swap
+			if (!_imageSource.compare_exchange_strong(oldSrc, newSrc,
+					std::memory_order_release, std::memory_order_acquire)) { // fail
+				if (newSrc) { // rollback
+					newSrc->Qk_Off(State, &ImageSourceHold::handleSourceState, this);
+					newSrc->release();
+				}
+				return false;
 			}
 			if (oldSrc) {
 				oldSrc->Qk_Off(State, &ImageSourceHold::handleSourceState, this);

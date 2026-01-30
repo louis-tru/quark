@@ -34,6 +34,17 @@
 #include "../views.h"
 #include "../event.h"
 #include "../pre_render.h"
+#include "../window.h"
+
+#if DEBUG
+# define Qk_Assert_FirstThread(...) \
+	Qk_ASSERT(RunLoop::is_first(), ##__VA_ARGS__)
+# define Qk_Assert_ReaderThread(...) \
+	Qk_ASSERT(_window->isRenderThread(), ##__VA_ARGS__)
+#else
+# define Qk_Assert_FirstThread(...) (void)0
+# define Qk_Assert_ReaderThread(...) (void)0
+#endif
 
 namespace qk {
 	/**
@@ -49,7 +60,6 @@ namespace qk {
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_DISABLE_COPY(View);
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
-		std::atomic<CStyleSheetsClass*> _cssclass;
 	public:
 
 		// Layout mark key values
@@ -71,7 +81,8 @@ namespace qk {
 			kScroll                   = (1 << 9), /* scroll state change */
 			kClass_Change             = (1 << 10), /* View style changes caused by changing class names or view level */
 			kClass_State              = (1 << 11), /* View style changes caused by changing state, normal/hover/active */
-			kClass_All                = (kClass_Change | kClass_State), /* include class changes and state changes */
+			kClass_Recursive          = (1 << 12), /* View style recursive changes caused by changing class names or view level */
+			kClass_All                = (kClass_Change | kClass_State | kClass_Recursive), /* include class changes and state changes */
 			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 30), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
@@ -120,6 +131,9 @@ namespace qk {
 			inline bool float_y() const { return state_y == kNone_FloatState; }
 		};
 
+		// CStyleSheetsClass fields pointer
+		private: std::atomic<CStyleSheetsClass*> _cssclass;
+
 		/**
 		 * @prop style sheets class object
 		*/
@@ -153,6 +167,21 @@ namespace qk {
 		 * @prop matrix
 		*/
 		Qk_DEFINE_ACCE_GET(MorphView*, morph_view);
+
+		/**
+		 * Style priority flags.
+		 *
+		 * Bitwise OR combination of `StylePriorityFlag` values indicating style
+		 * properties that are explicitly set by code.
+		 *
+		 * When a style property is set directly via code, the corresponding flag
+		 * is set here, marking that property as having the highest priority.
+		 * Properties marked by these flags will NOT be overridden by CSS or
+		 * other style sources.
+		 *
+		 * Default: 0 (no properties locked by code)
+		 */
+		protected: uint32_t _style_flags[4];
 
 		/**
 		* @prop mark_value
@@ -381,6 +410,41 @@ namespace qk {
 		 * @method remove_class(name)
 		*/
 		void remove_class(cString& name);
+
+		/**
+		 * Check if the specified CSS property has its style flag set.
+		 *
+		 * A style flag indicates that the property was set directly by code,
+		 * giving it the highest priority and preventing it from being overridden
+		 * by CSS or other style sources.
+		 *
+		 * @param prop {CssProp} The CSS property to check.
+		 * @return {bool} `true` if the property has its style flag set, `false` otherwise.
+		 */
+		inline bool has_style_flag(CssProp prop) const {
+			return (_style_flags[prop / 32] & (1u << (prop % 32))) != 0;
+		}
+
+		/**
+		 * Set the style flag of the specified CSS property.
+		 *
+		 * This marks the given property as being set directly by code,
+		 * giving it the highest priority and preventing it from being
+		 * overridden by CSS or other style sources.
+		 *
+		 * This method does not modify the current property value.
+		 */
+		void set_style_flag(CssProp prop);
+
+		/**
+		 * Remove the style flag of the specified CSS property.
+		 *
+		 * This clears the code-set style flag associated with the given property,
+		 * allowing it to be overridden again by CSS or other style sources.
+		 *
+		 * This method does not modify the current property value.
+		 */
+		void remove_style_flag(CssProp prop);
 
 		/**
 		 * Returns as text input object
@@ -626,27 +690,12 @@ namespace qk {
 		virtual void draw(Painter *render);
 
 		/**
-			* @method mark(mark)
-			*/
-		void mark(uint32_t mark, bool isRt);
-
-		/**
-			* @method mark_layout(mark)
-			*/
-		void mark_layout(uint32_t mark, bool isRt);
-
-		/**
 			* @method unmark(mark)
 			* @thread Rt
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_mark_value &= (~mark);
 		}
-
-		/**
-		 * @method pre_render()
-		*/
-		PreRender& pre_render();
 
 		/**
 		 * Safely use and hold view objects in rendering thread,
@@ -656,10 +705,106 @@ namespace qk {
 		View* try_retain_rt();
 
 		/**
+		 * @method pre_render()
+		*/
+		inline PreRender& pre_render() {
+			return _window->pre_render();
+		}
+
+		/**
 		 * get closest text options from parent view
 		 * @method get_closest_text_options
 		*/
 		TextOptions* get_closest_text_options();
+
+		/**
+		 * Mark the view as needing a render/update pass.
+		 *
+		 * This method is a unified entry point for both main-thread (MT)
+		 * and render-thread (RT) callers.
+		 *
+		 * Template parameter:
+		 *   - isRT = false (default):
+		 *       Called from the main thread. The mark request is forwarded
+		 *       to the render thread asynchronously via pre_render().
+		 *
+		 *   - isRT = true:
+		 *       Called from the render thread. The mark is applied immediately
+		 *       without any cross-thread dispatch.
+		 *
+		 * Thread safety:
+		 *   - MT calls are validated with Qk_Assert_FirstThread().
+		 *   - RT calls are validated with Qk_Assert_ReaderThread().
+		 *
+		 * Design notes:
+		 *   - Thread semantics are fixed at compile time via the template
+		 *     parameter, avoiding runtime branches or boolean flags.
+		 *   - All observable state changes ultimately occur on the render
+		 *     thread to maintain a single-writer model.
+		 */
+		template<bool isRT = false>
+		inline void mark(uint32_t mark) {
+			if (isRT) {
+				Qk_Assert_ReaderThread("View::mark can only be called on the render thread");
+				mark_rt_(mark);
+			} else {
+				Qk_Assert_FirstThread("View::mark can only be called on the main thread");
+				mark_(mark);
+			}
+		}
+
+		/**
+		 * Mark the view as needing layout recalculation.
+		 *
+		 * Similar to mark(), this method provides a single API for both
+		 * main-thread (MT) and render-thread (RT) usage, with behavior
+		 * determined at compile time.
+		 *
+		 * Template parameter:
+		 *   - isRT = false (default):
+		 *       Called from the main thread. The layout mark is enqueued
+		 *       and executed asynchronously on the render thread.
+		 *
+		 *   - isRT = true:
+		 *       Called from the render thread. The layout mark is applied
+		 *       immediately and the view is pushed into the pre-render
+		 *       layout queue if necessary.
+		 *
+		 * Thread safety:
+		 *   - MT calls are validated with Qk_Assert_FirstThread().
+		 *   - RT calls are validated with Qk_Assert_ReaderThread().
+		 *
+		 * Design notes:
+		 *   - Layout invalidation is centralized on the render thread.
+		 *   - The template-based split ensures zero runtime overhead
+		 *     while preserving clear thread semantics.
+		 */
+		template<bool isRT = false>
+		inline void mark_layout(uint32_t mark) {
+			if (isRT) {
+				Qk_Assert_ReaderThread("View::mark_layout can only be called on the render thread");
+				mark_layout_rt_(mark);
+			} else {
+				Qk_Assert_FirstThread("View::mark_layout can only be called on the main thread");
+				mark_layout_(mark);
+			}
+		}
+
+		/**
+		 * Mark the view as needing to be rendered only.
+		 *
+		 * It indicates that the view's visual appearance has changed and requires
+		 * a redraw in the next rendering pass.
+		 *
+		 * Thread safety:
+		 *   - This method can be called from any thread.
+		 */
+		inline void mark_render() { pre_render()._is_render = true; }
+
+		// Set the style flag of the specified CSS property (inline version).
+		inline void mark_style_flag(CssProp prop) {
+			_style_flags[prop / 32] |= (1u << (prop % 32));
+		}
 
 	protected:
 		/**
@@ -669,22 +814,29 @@ namespace qk {
 
 		View(); // @constructor
 		virtual View* init(Window* win);
+
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(bool notice); // Cleaning up associated view information
-		void set_visible_rt(bool visible);
+		void set_visible_rt_(bool visible);
 		void set_level_rt(uint32_t level); // settings depth
 		void clear_level_rt(); //  clear view depth rt
-		void apply_class_rt(CStyleSheetsClass* parentSsclass); // apply class for self
-		void apply_class_all_rt(CStyleSheetsClass* parentSsclass, bool force); // apply class for all subviews
-		CStyleSheetsClass* parent_ssclass_rt();
+		void apply_class_rt(CStyleSheetsClass* parent); // apply class for self
+		void apply_class_recursive_rt(CStyleSheetsClass* parent, bool alwaysApply); // apply class for self and sub views
+		CStyleSheetsClass* parent_cssclass_rt();
 		CursorStyle cursor_style_exec();
+		bool is_child_rt(View *child);
+		void mark_(uint32_t mark);
+		void mark_layout_(uint32_t mark);
+		void mark_rt_(uint32_t mark);
+		void mark_layout_rt_(uint32_t mark);
 
 		friend class Painter;
 		friend class PreRender;
 		friend class EventDispatch;
 		friend class Root;
 		friend class TextOptions;
+		friend class CStyleSheetsClass;
 	};
 
 	/**

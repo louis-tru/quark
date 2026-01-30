@@ -364,7 +364,7 @@ namespace qk {
 					}
 					v = v->next();
 				}
-				mark_layout(kLayout_Typesetting | kVisible_Region, true); // layout reverse
+				mark_layout<true>(kLayout_Typesetting | kVisible_Region); // layout reverse
 			}
 		}
 	}
@@ -401,7 +401,7 @@ namespace qk {
 			_container.content[0] = content;
 			_container.state_x |= kFixedByLock_FloatState; // Add lock state
 			_container.locked_x = true;
-			mark_layout(kLayout_Child_Width, true);
+			mark_layout<true>(kLayout_Child_Width);
 		}
 
 		// unmark(kLayout_Inner_Width);
@@ -430,7 +430,7 @@ namespace qk {
 			_container.content[1] = content;
 			_container.state_y |= kFixedByLock_FloatState; // Add lock state
 			_container.locked_y = true;
-			mark_layout(kLayout_Child_Height, true);
+			mark_layout<true>(kLayout_Child_Height);
 		}
 
 		// unmark(kLayout_Inner_Height);

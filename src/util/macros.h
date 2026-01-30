@@ -327,7 +327,7 @@
 
 #define Qk_DEFINE_PROP_GET_Atomic(type, name, ...) \
 	__Qk_DEFINE_PROPERTY_Modifier##__VA_ARGS__: std::atomic<type> _##name; public:\
-	inline type name () __Qk_DEFINE_PROPERTY_##__VA_ARGS__ { return _##name.load(); }
+	inline type name () __Qk_DEFINE_PROPERTY_##__VA_ARGS__ { return _##name.load(std::memory_order_acquire); }
 
 #define Qk_DEFINE_PROPERTY_Atomic(type, name, ...) \
 	Qk_DEFINE_PROP_GET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)

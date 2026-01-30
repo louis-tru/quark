@@ -53,7 +53,7 @@ public:
 		paint.fill.image = &pimg;
 		canvas->drawRect({{0},{width}}, paint);
 
-		mark(kLayout_None,true);
+		mark_render();
 	}
 };
 

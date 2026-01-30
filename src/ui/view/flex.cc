@@ -265,25 +265,50 @@ namespace qk {
 	{
 	}
 
-	void Flex::set_direction(Direction val, bool isRt) {
+	void Flex::set_direction(Direction val) {
+		mark_style_flag(kDIRECTION_CssProp);
+		if (val != _direction) {
+			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
+			mark_layout(kLayout_Typesetting | kLayout_Child_Size);
+			_direction = val;
+		}
+	}
+
+	void Flex::set_direction_rt(Direction val) {
 		if (val != _direction) {
 			_direction = val;
 			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
-			mark_layout(kLayout_Typesetting | kLayout_Child_Size, isRt);
+			mark_layout<true>(kLayout_Typesetting | kLayout_Child_Size);
 		}
 	}
 
-	void Flex::set_items_align(ItemsAlign align, bool isRt) {
+	void Flex::set_items_align(ItemsAlign align) {
+		mark_style_flag(kITEMS_ALIGN_CssProp);
+		if (align != _items_align) {
+			mark_layout(kLayout_Typesetting);
+			_items_align = align;
+		}
+	}
+
+	void Flex::set_items_align_rt(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 
-	void Flex::set_cross_align(CrossAlign align, bool isRt) {
+	void Flex::set_cross_align(CrossAlign align) {
+		mark_style_flag(kCROSS_ALIGN_CssProp);
+		if (align != _cross_align) {
+			mark_layout(kLayout_Typesetting);
+			_cross_align = align;
+		}
+	}
+
+	void Flex::set_cross_align_rt(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 
@@ -374,7 +399,7 @@ namespace qk {
 		if (value & (kChild_Layout_Size | kChild_Layout_Visible |
 								kChild_Layout_Align | kChild_Layout_Text | kChild_Layout_Weight)
 		) {
-			mark_layout(kLayout_Typesetting, true);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 

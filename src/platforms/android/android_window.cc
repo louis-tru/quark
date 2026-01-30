@@ -69,7 +69,7 @@ namespace qk {
 
 		void addMsg(Cb& cb) {
 			_msgMutex.lock();
-			_msg.pushBack(cb);
+			_msg.push_back(cb);
 			_msgMutex.unlock();
 			Android_resolve_msg_onmain();
 		}
@@ -317,11 +317,11 @@ namespace qk {
 		for (int i = 0; i < count; i++) {
 			if ( filter ) {
 				if ( convertToTouch(motionEvent, i, &touch) ) {
-					rv.pushBack(touch);
+					rv.push_back(touch);
 				}
 			} else {
 				convertToTouch(motionEvent, i, &touch);
-				rv.pushBack(touch);
+				rv.push_back(touch);
 			}
 		}
 		Qk_ReturnLocal(rv);
@@ -376,13 +376,13 @@ namespace qk {
 				case AMOTION_EVENT_ACTION_DOWN:
 				case AMOTION_EVENT_ACTION_POINTER_DOWN:
 					convertToTouch(event, pointerIndex, &touch);
-					touchs.pushBack(touch);
+					touchs.push_back(touch);
 					dispatch->onTouchstart( std::move(touchs) );
 					break;
 				case AMOTION_EVENT_ACTION_UP:
 				case AMOTION_EVENT_ACTION_POINTER_UP:
 					convertToTouch(event, pointerIndex, &touch);
-					touchs.pushBack(touch);
+					touchs.push_back(touch);
 					dispatch->onTouchend( std::move(touchs) );
 					break;
 				case AMOTION_EVENT_ACTION_MOVE:

@@ -97,10 +97,10 @@ namespace qk {
 		return false;
 	}
 
-	static void mark(BoxFilter *self, bool isRt) {
+	static void mark(BoxFilter *self) {
 		auto view = self->view();
 		if (view)
-			view->mark(0,isRt);
+			view->mark_render();
 	}
 
 	BoxFilter* BoxFilter::link(const std::initializer_list<BoxFilter*>& list) {
@@ -128,24 +128,25 @@ namespace qk {
 		}
 		auto app = shared_app();
 		if (app) {
-			Inl_Application(app)->add_delay_task(Cb([](auto e, Object *ctx) {
+			Inl_Application(app)->add_delay_task(Cb([](auto e, Object *self) {
 				// To ensure safety and efficiency,
 				// it should be Completely destroyed in RT (render thread)
-				static_cast<BoxFilter*>(ctx)->Object::destroy();
+				// However, since there is no window object available, delayed destruction is the only option.
+				static_cast<BoxFilter*>(self)->Object::destroy();
 			}, (Object*)this/* Avoid being re quoted */));
 		} else {
 			Object::destroy();
 		}
 	}
 
-	BoxFilter* BoxFilter::assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt) {
-		if (left == right)
-			return left;
+	bool BoxFilter::assign(BoxFilter *&left_, BoxFilter *right, View *view) {
+		auto left = left_;
+		if (left == right) return false;
 		if (right) {
 			auto new_left = right;
 			// To copy filter if view not nullptr or is public filter
-			if (right->_is_public || right->_view.load()) {
-				new_left = right->copy(left, isRt); // copy
+			if (right->_is_public || right->_view.load(std::memory_order_acquire)) {
+				new_left = right->copy(left); // copy
 			}
 			if (new_left != left) {
 				if (left) {
@@ -156,37 +157,81 @@ namespace qk {
 				left->retain();
 				left->set_view(view);
 			}
-		} else if (left) { // right nullptr
+			left_ = left; // set left_ to left
+		} else { // right nullptr
 			left->set_view(nullptr); // clear view
 			left->release();
-			left = nullptr;
+			left_ = nullptr; // set left_ to nullptr
 		}
 		if (view) {
-			view->mark(0, isRt);
+			view->mark_render();
 		}
-		return left;
+		return true;
 	}
 
-	void BoxFilter::set_next(BoxFilter *next, bool isRt) {
+	// assign_atomic:
+	// - Attempts to atomically replace the filter pointer.
+	// - Returns false if concurrent update occurs.
+	// - No retry is performed.
+	// - Caller must tolerate lost updates.
+	bool BoxFilter::assign_atomic(std::atomic<BoxFilter*>& left_, BoxFilter *right, View *view) {
+		auto left = left_.load(std::memory_order_acquire); // old left
+		if (left == right) return false;
+		if (right) {
+			auto new_left = right;
+			// To copy filter if view not nullptr or is public filter
+			if (right->_is_public || right->_view.load(std::memory_order_acquire)) {
+				// copy props of right to left props, if left is nullptr or type different, create new object
+				new_left = right->copy(left);
+			}
+			if (new_left != left) { // try safe to exchange
+				new_left->retain(); // retain first to avoid lost when exchange
+				new_left->set_view(view); // set view first avoid lost when exchange
+				if (!left_.compare_exchange_strong(left, new_left,
+							std::memory_order_release, std::memory_order_acquire))
+				{ // failed
+					new_left->release(); // release new_left
+					return false;
+				}
+				if (left) {
+					left->set_view(nullptr); // clear view
+					left->release(); // release old left
+				}
+			}
+		} else { // left != null and right = null
+			if (left_.compare_exchange_strong(left, nullptr,
+						std::memory_order_release, std::memory_order_acquire))
+			{
+				left->set_view(nullptr); // clear view
+				left->release(); // release old left
+			} else {
+				return false;
+			}
+		}
+		if (view) {
+			view->mark_render();
+		}
+		return true;
+	}
+
+	void BoxFilter::set_next(BoxFilter *next) {
 		if (!check_loop_ref(this, next)) {
-			set_next_no_check(next, isRt);
+			set_next_no_check(next);
 		}
 	}
 
-	void BoxFilter::set_next_no_check(BoxFilter *next, bool isRt) {
-		auto left = _next.load();
-		_next.store(
-			assign(left, next, left ? left->view(): nullptr, isRt)
-		);
+	void BoxFilter::set_next_no_check(BoxFilter *next) {
+		assign_atomic(_next, next, _view.load(std::memory_order_acquire));
 	}
 
 	void BoxFilter::set_view(View *value) {
-		if (!_is_public && value != _view.load()) { // public filter can not set view
+		// public filter can not set view
+		if (!_is_public && value != _view.load(std::memory_order_acquire)) {
 			if (value) {
 				Qk_ASSERT_EQ(_view.load(), nullptr); // can only set view once
 			}
 			_view.store(value);
-			auto next = _next.load();
+			auto next = _next.load(std::memory_order_acquire);
 			if (next)
 				next->set_view(value);
 		}
@@ -223,13 +268,13 @@ namespace qk {
 		return ImageSourceHold::src();
 	}
 
-	void FillImage::set_src(String val, bool isRt) {
+	void FillImage::set_src(String val) {
 		if (ImageSourceHold::set_src(val)) {
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	BoxFilter* FillImage::copy(BoxFilter* dest, bool isRt) {
+	BoxFilter* FillImage::copy(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kImage) ?
 				static_cast<FillImage*>(dest) : new FillImage(String(), {/*.repeat=Repeat::Repeat*/});
 		dest1->_repeat = _repeat;
@@ -238,11 +283,11 @@ namespace qk {
 		dest1->_width = _width;
 		dest1->_height = _height;
 		dest1->set_source(source());
-		dest1->set_next_no_check(next(), isRt);
+		dest1->set_next_no_check(next());
 		return dest1;
 	}
 
-	BoxFilter* FillImage::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
+	BoxFilter* FillImage::transition(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == kImage) {
 			if (!dest || dest->type() != kImage) {
 				dest = new FillImage(String(), {});
@@ -255,46 +300,46 @@ namespace qk {
 			dest1->_width = transition_value(_width, to1->_width, t);
 			dest1->_height = transition_value(_height, to1->_height, t);
 			dest1->set_source(t < 1.0 ? source(): to1->source());
-			mark(dest1, isRt);
+			mark(dest1);
 			auto n = next();
 			if (n)
-				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
+				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t));
 		}
 		return dest;
 	}
 
-	void FillImage::set_repeat(Repeat value, bool isRt) {
+	void FillImage::set_repeat(Repeat value) {
 		if (_repeat != value) {
 			_repeat = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	void FillImage::set_x(FillPosition value, bool isRt) {
+	void FillImage::set_x(FillPosition value) {
 		if (value != _x) {
 			_x = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	void FillImage::set_y(FillPosition value, bool isRt) {
+	void FillImage::set_y(FillPosition value) {
 		if (value != _y) {
 			_y = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	void FillImage::set_width(FillSize value, bool isRt) {
+	void FillImage::set_width(FillSize value) {
 		if (value != _width) {
 			_width = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	void FillImage::set_height(FillSize value, bool isRt) {
+	void FillImage::set_height(FillSize value) {
 		if (value != _height) {
 			_height = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
@@ -323,7 +368,7 @@ namespace qk {
 	void FillImage::onSourceState(ImageSource::State state) {
 		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			if (view()) {
-				mark(this, false);
+				mark(this);
 			} else if (shared_app()) {
 				// notice all windows render
 				for (auto w: shared_app()->windows()) {
@@ -346,7 +391,7 @@ namespace qk {
 		}
 	}
 
-	void FillGradientRadial::transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
+	void FillGradientRadial::transition_g(BoxFilter* dest, BoxFilter *to, float t) {
 		auto dest1 = static_cast<FillGradientRadial*>(dest);
 		auto to1 = static_cast<FillGradientRadial*>(to);
 		dest1->_pos = _pos;
@@ -366,26 +411,26 @@ namespace qk {
 		for (uint32_t i = 0; i < colorLen; i++) {
 			dest1->_colors[i] = transition_value(_colors[i], to1->_colors[i], t);
 		}
-		mark(dest1, isRt);
+		mark(dest1);
 		auto n = next();
 		if (n)
-			dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
+			dest1->set_next_no_check(n->transition(dest->next(), to->next(), t));
 	}
 
-	BoxFilter* FillGradientRadial::copy(BoxFilter* dest, bool isRt) {
+	BoxFilter* FillGradientRadial::copy(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kGradientRadial) ?
 			static_cast<FillGradientRadial*>(dest): new FillGradientRadial({}, {}, true);
 		dest1->_pos = _pos;
 		dest1->_colors = _colors;
-		dest1->set_next_no_check(next(), isRt);
+		dest1->set_next_no_check(next());
 		return dest1;
 	}
 
-	BoxFilter* FillGradientRadial::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
+	BoxFilter* FillGradientRadial::transition(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == type()) {
 			if (!dest || dest->type() != type())
 				dest = new FillGradientRadial({},{},true);
-			transition_g(dest, to, t, isRt);
+			transition_g(dest, to, t);
 		}
 		return dest;
 	}
@@ -403,15 +448,15 @@ namespace qk {
 		_quadrant = int(angle * 0.0111111111111111111) % 4;
 	}
 
-	void FillGradientLinear::set_angle(float val, bool isRt) {
+	void FillGradientLinear::set_angle(float val) {
 		if (val != _angle) {
 			_angle = val;
 			setRadian();
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	BoxFilter* FillGradientLinear::copy(BoxFilter* dest, bool isRt) {
+	BoxFilter* FillGradientLinear::copy(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kGradientLinear) ?
 			static_cast<FillGradientLinear*>(dest): new FillGradientLinear({},{},0,true);
 		dest1->_pos = _pos;
@@ -419,14 +464,14 @@ namespace qk {
 		dest1->_angle = _angle;
 		dest1->_radian = _radian;
 		dest1->_quadrant = _quadrant;
-		dest1->set_next_no_check(next(), isRt);
+		dest1->set_next_no_check(next());
 		return dest1;
 	}
 
-	BoxFilter* FillGradientLinear::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
+	BoxFilter* FillGradientLinear::transition(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == type()) {
 			if (!dest || dest->type() != type()) dest = new FillGradientLinear({},{},0,true);
-			transition_g(dest, to, t, isRt);
+			transition_g(dest, to, t);
 			auto to1 = static_cast<FillGradientLinear*>(to);
 			auto dest1 = static_cast<FillGradientLinear*>(dest);
 			dest1->_angle = transition_value(_angle, to1->_angle, t);
@@ -440,31 +485,31 @@ namespace qk {
 	BoxShadow::BoxShadow(Shadow value): _value(value) {}
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
-	void BoxShadow::set_value(Shadow value, bool isRt) {
+	void BoxShadow::set_value(Shadow value) {
 		if (value != _value) {
 			_value = value;
-			mark(this, isRt);
+			mark(this);
 		}
 	}
 
-	BoxFilter* BoxShadow::copy(BoxFilter* dest, bool isRt) {
+	BoxFilter* BoxShadow::copy(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kShadow) ?
 			static_cast<BoxShadow*>(dest): new BoxShadow({});
 		dest1->_value = _value;
-		dest1->set_next_no_check(next(), isRt);
+		dest1->set_next_no_check(next());
 		return dest1;
 	}
 
-	BoxFilter* BoxShadow::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
+	BoxFilter* BoxShadow::transition(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == kShadow) {
 			if (!dest || dest->type() != kShadow) dest = new BoxShadow({});
 			auto dest1 = static_cast<BoxShadow*>(dest);
 			auto to1 = static_cast<BoxShadow*>(to);
 			dest1->_value = transition_value(_value, to1->_value, t);
-			mark(dest1, isRt);
+			mark(dest1);
 			auto n = next();
 			if (n)
-				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
+				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t));
 		}
 		return dest;
 	}

@@ -105,6 +105,7 @@ Range Container::to_range() const {
 
 	View::View()
 		: _cssclass(nullptr)
+		, _style_flags{0}
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
@@ -157,35 +158,62 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	void View::set_receive(bool val, bool isRt) {
+	void View::set_receive(bool val) {
+		mark_style_flag(kRECEIVE_CssProp);
 		_receive = val;
 	}
 
-	void View::set_aa(bool val, bool isRt) {
+	void View::set_receive_rt(bool val) {
+		_receive = val;
+	}
+
+	void View::set_aa(bool val) {
+		mark_style_flag(kAA_CssProp);
 		_aa = val;
 	}
 
-	void View::set_cursor(CursorStyle val, bool isRt) {
+	void View::set_aa_rt(bool val) {
+		_aa = val;
+	}
+
+	void View::set_cursor(CursorStyle val) {
+		mark_style_flag(kCURSOR_CssProp);
 		_cursor = val;
 	}
 
-	void View::set_z_index(uint32_t val, bool isRt) {
+	void View::set_cursor_rt(CursorStyle val) {
+		_cursor = val;
+	}
+
+	void View::set_z_index(uint32_t val) {
+		mark_style_flag(kZ_INDEX_CssProp);
 		if (_z_index != val) {
+			mark_render();
 			_z_index = val;
-			mark(kLayout_None, isRt); // mark render
 		}
 	}
 
-	void View::set_visible(bool val, bool isRt) {
+	void View::set_z_index_rt(uint32_t val) {
+		if (_z_index != val) {
+			mark_render();
+			_z_index = val;
+		}
+	}
+
+	void View::set_visible(bool val) {
+		mark_style_flag(kVISIBLE_CssProp);
+		if (_visible != val) {
+			pre_render().async_call([](auto self, auto arg) {
+				self->set_visible_rt_(arg.arg);
+			}, this, val);
+			_visible = val;
+		}
+	}
+
+	void View::set_visible_rt(bool val) {
 		if (_visible != val) {
 			_visible = val;
-			if (isRt) {
-				set_visible_rt(val);
-			} else {
-				pre_render().async_call([](auto self, auto arg) {
-					self->set_visible_rt(arg.arg);
-				}, this, val);
-			}
+			set_visible_rt_(val);
 		}
 	}
 
@@ -193,25 +221,50 @@ Range Container::to_range() const {
 		return _color.to_float_alpha();
 	}
 
-	void View::set_opacity(float val, bool isRt) {
+	void View::set_opacity(float val) {
+		mark_style_flag(kOPACITY_CssProp);
+		uint8_t alpha8 = val * 255;
+		if (_color.a() != alpha8) {
+			mark_render();
+			_color.set_a(alpha8);
+		}
+	}
+
+	void View::set_opacity_rt(float val) {
 		uint8_t alpha8 = val * 255;
 		if (_color.a() != alpha8) {
 			_color.set_a(alpha8);
-			mark(0, isRt); // mark render
+			mark_render();
 		}
 	}
 
-	void View::set_color(Color val, bool isRt) {
+	void View::set_color(Color val) {
+		mark_style_flag(kCOLOR_CssProp);
+		if (_color != val) {
+			mark_render();
+			_color = val;
+		}
+	}
+
+	void View::set_color_rt(Color val) {
 		if (_color != val) {
 			_color = val;
-			mark(0, isRt); // mark render
+			mark_render();
 		}
 	}
 
-	void View::set_cascade_color(CascadeColor val, bool isRt) {
+	void View::set_cascade_color(CascadeColor val) {
+		mark_style_flag(kCASCADE_COLOR_CssProp);
+		if (_cascade_color != val) {
+			mark_render();
+			_cascade_color = val;
+		}
+	}
+
+	void View::set_cascade_color_rt(CascadeColor val) {
 		if (_cascade_color != val) {
 			_cascade_color = val;
-			mark(0, isRt); // mark render
+			mark_render(); // mark reader only
 		}
 	}
 
@@ -238,6 +291,16 @@ Range Container::to_range() const {
 	void View::remove_class(cString& name) {
 		_IfCssclass()
 			_cssclass->remove(name);
+	}
+
+	void View::set_style_flag(CssProp prop) {
+		if (prop < sizeof(_style_flags) * 8)
+			_style_flags[prop / 32] |= (1u << (prop % 32));
+	}
+
+	void View::remove_style_flag(CssProp prop) {
+		if (prop < sizeof(_style_flags) * 8)
+			_style_flags[prop / 32] &= ~(1u << (prop % 32));
 	}
 
 	MorphView* View::morph_view() {
@@ -413,7 +476,7 @@ Range Container::to_range() const {
 
 	void View::onChildLayoutChange(View *child, uint32_t mark) {
 		if (mark & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			// Optimize mark value @ mark_layout(kLayout_Typesetting, true)
+			// Optimize mark value @ mark_layout<true>(kLayout_Typesetting)
 			_mark_value |= kLayout_Typesetting;
 			if (_mark_index == 0 && _level) {
 				if (_level) {
@@ -426,50 +489,40 @@ Range Container::to_range() const {
 	void View::onActivate() {
 	}
 
-	PreRender& View::pre_render() {
-		return _window->pre_render();
-	}
-
-	void View::mark_layout(uint32_t mark, bool isRt) {
-		_Assert_IsRt(isRt, "View::mark_layout(), isRt param no match");
-		if (isRt) {
-			_mark_value |= mark;
-			if (_mark_index == 0) {
-				if (_level) {
-					pre_render().mark_layout(this, _level); // push to pre render
+	void View::mark_layout_(uint32_t mark) {
+		pre_render().async_call([](auto self, auto arg) {
+			self->_mark_value |= arg.arg;
+			if (self->_mark_index == 0) {
+				if (self->_level) {
+					self->pre_render().mark_layout(self, self->_level); // push to pre render
 				}
 			}
-		} else {
-			pre_render().async_call([](auto self, auto arg) {
-				self->_mark_value |= arg.arg;
-				if (self->_mark_index == 0) {
-					if (self->_level) {
-						self->pre_render().mark_layout(self, self->_level); // push to pre render
-					}
-				}
-			}, this, mark);
+		}, this, mark);
+	}
+
+	void View::mark_layout_rt_(uint32_t mark) {
+		_mark_value |= mark;
+		if (_mark_index == 0) {
+			if (_level) {
+				pre_render().mark_layout(this, _level); // push to pre render
+			}
 		}
 	}
 
-	void View::mark(uint32_t mark, bool isRt) {
+	void View::mark_(uint32_t mark) {
 		if (mark) {
-			_Assert_IsRt(isRt, "View::mark(), isRt param no match");
-			if (isRt) {
-				_mark_value |= mark;
-				if (_level) {
-					pre_render()._is_render = true;
-				}
-			} else {
-				pre_render().async_call([](auto self, auto arg) {
-					self->_mark_value |= arg.arg;
-					if (self->_level) {
-						self->pre_render()._is_render = true;
-					}
-				}, this, mark);
-			}
+			pre_render().async_call([](auto self, auto arg) {
+				self->_mark_value |= arg.arg;
+				self->pre_render()._is_render = true;
+			}, this, mark);
 		} else {
 			pre_render()._is_render = true;
 		}
+	}
+
+	void View::mark_rt_(uint32_t mark) {
+		_mark_value |= mark;
+		pre_render()._is_render = true;
 	}
 
 	bool View::is_clip() {
@@ -541,14 +594,28 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
+	// NOTE: _level is only reliable on the render thread.
+	// This method must not be called from the work thread.
+	bool View::is_child_rt(View *child) {
+		auto v = child->parent();
+		while (v && v->_level >= _level) { // only check views in the same or higher level
+			if ( v == this )
+				return true;
+			v = v->parent();
+		}
+		return false;
+	}
+
+	// NOTE: This method does not rely on _level.
+	// It provides a conservative hierarchy check for the work thread,
+	// where render-thread structural data may be stale.
 	bool View::is_child(View *child) {
 		if ( child ) {
-			auto parent = child->parent();
-			while (parent) {
-				if ( parent == this ) {
+			auto v = child->parent();
+			while (v) {
+				if ( v == this )
 					return true;
-				}
-				parent = parent->parent();
+				v = v->parent();
 			}
 		}
 		return false;
@@ -731,7 +798,7 @@ Range Container::to_range() const {
 					}
 					_parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice new parent view
 				}
-				self->mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true); // mark view size, reset view size
+				self->template mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // mark view size, reset view size
 
 				auto _cssclass = self->_cssclass.load();
 				if (_cssclass) {
@@ -745,7 +812,7 @@ Range Container::to_range() const {
 
 	// --------------------------------------------------------------------------------------
 
-	void View::set_visible_rt(bool visible) {
+	void View::set_visible_rt_(bool visible) {
 		_Parent();
 		auto level =
 			_parent && _parent->_level         ? _parent->_level + 1:
@@ -762,9 +829,10 @@ Range Container::to_range() const {
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
 		}
 		if (visible) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true); // reset view size
+			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // reset view size
 			_IfCssclass() {
-				_cssclass->updateClass_rt();
+				// _cssclass->updateClass_rt();
+				mark_layout<true>(View::kClass_Recursive); // mark class recursive
 			}
 		}
 	}
@@ -810,44 +878,35 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::apply_class_rt(CStyleSheetsClass *parentSsclass) {
+	void View::apply_class_rt(CStyleSheetsClass *parent) {
 		_Cssclass();
-		if (_cssclass->apply_rt(parentSsclass, false)) { // change affect sub styles
-			if (_cssclass->haveSubstyles()) {
-				parentSsclass = _cssclass;
-			}
-			if (_visible) {
-				auto v = first();
-				while (v) {
-					// if (v->_cssclass)
-					// 	v->apply_class_rt(parentSsclass);
-					v->apply_class_all_rt(parentSsclass, false);
-					v = v->next();
-				}
-			}
+		if (kClass_Recursive & _mark_value) {
+			apply_class_recursive_rt(parent, false);
+		} else {
+			_cssclass->apply_rt(parent, false, true);
+			unmark(kClass_All);
 		}
-		unmark(kClass_All);
 	}
 
-	void View::apply_class_all_rt(CStyleSheetsClass *parentSsclass, bool force) {
+	void View::apply_class_recursive_rt(CStyleSheetsClass *parent, bool alwaysApply) {
 		_Cssclass();
 		if (_cssclass) { // Impact sub view
-			_cssclass->apply_rt(parentSsclass, force);
+			_cssclass->apply_rt(parent, alwaysApply, false);
 			if (_cssclass->haveSubstyles()) {
-				parentSsclass = _cssclass;
+				parent = _cssclass;
 			}
 		}
 		if (_visible) { // apply all sub views if visible
 			auto v = first();
 			while (v) {
-				v->apply_class_all_rt(parentSsclass, force);
+				v->apply_class_recursive_rt(parent, alwaysApply);
 				v = v->next();
 			}
 		}
 		unmark(kClass_All);
 	}
 
-	CStyleSheetsClass* View::parent_ssclass_rt() {
+	CStyleSheetsClass* View::parent_cssclass_rt() {
 		_Parent();
 		while (_parent) {
 			auto ss = _parent->_cssclass.load();

@@ -40,7 +40,7 @@ public:
 		paint.fill.image = &ipaint;
 		canvas->drawRect({-150,300}, paint);
 
-		mark(kLayout_None,true);
+		mark_render();
 	}
 };
 

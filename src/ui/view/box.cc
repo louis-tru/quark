@@ -77,18 +77,34 @@ namespace qk {
 		View::destroy();
 	}
 
-	void Box::set_layout(LayoutType val, bool isRt) {
+	void Box::set_layout(LayoutType val) {
+		mark_style_flag(kLAYOUT_CssProp);
+		if (_layout != val) {
+			mark_layout(kLayout_Typesetting);
+			_layout = val;
+		}
+	}
+
+	void Box::set_layout_rt(LayoutType val) {
 		if (_layout != val) {
 			_layout = val;
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 
 	// is clip box display range
-	void Box::set_clip(bool val, bool isRt) {
+	void Box::set_clip(bool val) {
+		mark_style_flag(kCLIP_CssProp);
+		if (_clip != val) {
+			mark_render();
+			_clip = val;
+		}
+	}
+
+	void Box::set_clip_rt(bool val) {
 		if (_clip != val) {
 			_clip = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
@@ -100,39 +116,79 @@ namespace qk {
 		return _min_height;
 	}
 
-	void Box::set_width(BoxSize val, bool isRt) {
+	void Box::set_width(BoxSize val) {
+		mark_style_flag(kWIDTH_CssProp);
+		if (_min_width != val) {
+			mark_layout(kLayout_Inner_Width);
+			_min_width = val;
+		}
+	}
+
+	void Box::set_height(BoxSize val) {
+		mark_style_flag(kHEIGHT_CssProp);
+		if (_min_height != val) {
+			mark_layout(kLayout_Inner_Height);
+			_min_height = val;
+		}
+	}
+
+	void Box::set_width_rt(BoxSize val) {
 		if (_min_width != val) {
 			_min_width = val;
-			mark_layout(kLayout_Inner_Width, isRt);
+			mark_layout<true>(kLayout_Inner_Width);
 		}
 	}
 
-	void Box::set_height(BoxSize val, bool isRt) {
+	void Box::set_height_rt(BoxSize val) {
 		if (_min_height != val) {
 			_min_height = val;
-			mark_layout(kLayout_Inner_Height, isRt);
+			mark_layout<true>(kLayout_Inner_Height);
 		}
 	}
 
-	void Box::set_min_width(BoxSize val, bool isRt) {
-		set_width(val, isRt);
+	void Box::set_min_width(BoxSize val) {
+		set_width(val);
 	}
 
-	void Box::set_min_height(BoxSize val, bool isRt) {
-		set_height(val, isRt);
+	void Box::set_min_height(BoxSize val) {
+		set_height(val);
 	}
 
-	void Box::set_max_width(BoxSize val, bool isRt) {
+	void Box::set_min_width_rt(BoxSize val) {
+		set_width_rt(val);
+	}
+
+	void Box::set_min_height_rt(BoxSize val) {
+		set_height_rt(val);
+	}
+
+	void Box::set_max_width(BoxSize val) {
+		mark_style_flag(kMAX_WIDTH_CssProp);
+		if (_max_width != val) {
+			mark_layout(kLayout_Inner_Width);
+			_max_width = val;
+		}
+	}
+
+	void Box::set_max_height(BoxSize val) {
+		mark_style_flag(kMAX_HEIGHT_CssProp);
+		if (_max_height != val) {
+			mark_layout(kLayout_Inner_Height);
+			_max_height = val;
+		}
+	}
+
+	void Box::set_max_width_rt(BoxSize val) {
 		if (_max_width != val) {
 			_max_width = val;
-			mark_layout(kLayout_Inner_Width, isRt);
+			mark_layout<true>(kLayout_Inner_Width);
 		}
 	}
 
-	void Box::set_max_height(BoxSize val, bool isRt) {
+	void Box::set_max_height_rt(BoxSize val) {
 		if (_max_height != val) {
 			_max_height = val;
-			mark_layout(kLayout_Inner_Height, isRt);
+			mark_layout<true>(kLayout_Inner_Height);
 		}
 	}
 
@@ -140,61 +196,123 @@ namespace qk {
 		return ArrayFloat{_margin_top,_margin_right,_margin_bottom,_margin_left};
 	}
 
-	void Box::set_margin(ArrayFloat val, bool isRt) {
+	void Box::set_margin(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_margin_left(val[0], isRt);
-				set_margin_top(val[0], isRt);
-				set_margin_right(val[0], isRt);
-				set_margin_bottom(val[0], isRt);
+				set_margin_left(val[0]);
+				set_margin_top(val[0]);
+				set_margin_right(val[0]);
+				set_margin_bottom(val[0]);
 				break;
 			case 2:
-				set_margin_top(val[0], isRt);
-				set_margin_bottom(val[0], isRt);
-				set_margin_left(val[1], isRt);
-				set_margin_right(val[1], isRt);
+				set_margin_top(val[0]);
+				set_margin_bottom(val[0]);
+				set_margin_left(val[1]);
+				set_margin_right(val[1]);
 				break;
 			case 3:
-				set_margin_top(val[0], isRt);
-				set_margin_left(val[1], isRt);
-				set_margin_right(val[1], isRt);
-				set_margin_bottom(val[2], isRt);
+				set_margin_top(val[0]);
+				set_margin_left(val[1]);
+				set_margin_right(val[1]);
+				set_margin_bottom(val[2]);
 				break;
 			case 4: // 4
-				set_margin_top(val[0], isRt);
-				set_margin_right(val[1], isRt);
-				set_margin_bottom(val[2], isRt);
-				set_margin_left(val[3], isRt);
+				set_margin_top(val[0]);
+				set_margin_right(val[1]);
+				set_margin_bottom(val[2]);
+				set_margin_left(val[3]);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_margin_top(float val, bool isRt) { // margin
+	void Box::set_margin_rt(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_margin_left_rt(val[0]);
+				set_margin_top_rt(val[0]);
+				set_margin_right_rt(val[0]);
+				set_margin_bottom_rt(val[0]);
+				break;
+			case 2:
+				set_margin_top_rt(val[0]);
+				set_margin_bottom_rt(val[0]);
+				set_margin_left_rt(val[1]);
+				set_margin_right_rt(val[1]);
+				break;
+			case 3:
+				set_margin_top_rt(val[0]);
+				set_margin_left_rt(val[1]);
+				set_margin_right_rt(val[1]);
+				set_margin_bottom_rt(val[2]);
+				break;
+			case 4: // 4
+				set_margin_top_rt(val[0]);
+				set_margin_right_rt(val[1]);
+				set_margin_bottom_rt(val[2]);
+				set_margin_left_rt(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_margin_top(float val) { // margin
+		mark_style_flag(kMARGIN_TOP_CssProp);
+		if (_margin_top != val) {
+			mark_layout(kLayout_Size_Height | kTransform);
+			_margin_top = val;
+		}
+	}
+
+	void Box::set_margin_top_rt(float val) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
-			mark_layout(kLayout_Size_Height | kTransform, isRt);
+			mark_layout<true>(kLayout_Size_Height | kTransform);
 		}
 	}
 
-	void Box::set_margin_left(float val, bool isRt) {
+	void Box::set_margin_left(float val) {
+		mark_style_flag(kMARGIN_LEFT_CssProp);
+		if (_margin_left != val) {
+			mark_layout(kLayout_Size_Width | kTransform);
+			_margin_left = val;
+		}
+	}
+
+	void Box::set_margin_left_rt(float val) {
 		if (_margin_left != val) {
 			_margin_left = val;
-			mark_layout(kLayout_Size_Width | kTransform, isRt);
+			mark_layout<true>(kLayout_Size_Width | kTransform);
 		}
 	}
 
-	void Box::set_margin_right(float val, bool isRt) {
+	void Box::set_margin_right(float val) {
+		mark_style_flag(kMARGIN_RIGHT_CssProp);
+		if (_margin_right != val) {
+			mark_layout(kLayout_Size_Width);
+			_margin_right = val;
+		}
+	}
+
+	void Box::set_margin_right_rt(float val) {
 		if (_margin_right != val) {
 			_margin_right = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout<true>(kLayout_Size_Width);
 		}
 	}
 
-	void Box::set_margin_bottom(float val, bool isRt) {
+	void Box::set_margin_bottom(float val) {
+		mark_style_flag(kMARGIN_BOTTOM_CssProp);
+		if (_margin_bottom != val) {
+			mark_layout(kLayout_Size_Height);
+			_margin_bottom = val;
+		}
+	}
+
+	void Box::set_margin_bottom_rt(float val) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout<true>(kLayout_Size_Height);
 		}
 	}
 
@@ -202,63 +320,125 @@ namespace qk {
 		return ArrayFloat{_padding_top,_padding_right,_padding_bottom,_padding_left};
 	}
 
-	void Box::set_padding(ArrayFloat val, bool isRt) {
+	void Box::set_padding(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_padding_left(val[0], isRt);
-				set_padding_top(val[0], isRt);
-				set_padding_right(val[0], isRt);
-				set_padding_bottom(val[0], isRt);
+				set_padding_left(val[0]);
+				set_padding_top(val[0]);
+				set_padding_right(val[0]);
+				set_padding_bottom(val[0]);
 				break;
 			case 2:
-				set_padding_top(val[0], isRt);
-				set_padding_bottom(val[0], isRt);
-				set_padding_left(val[1], isRt);
-				set_padding_right(val[1], isRt);
+				set_padding_top(val[0]);
+				set_padding_bottom(val[0]);
+				set_padding_left(val[1]);
+				set_padding_right(val[1]);
 				break;
 			case 3:
-				set_padding_top(val[0], isRt);
-				set_padding_left(val[1], isRt);
-				set_padding_right(val[1], isRt);
-				set_padding_bottom(val[2], isRt);
+				set_padding_top(val[0]);
+				set_padding_left(val[1]);
+				set_padding_right(val[1]);
+				set_padding_bottom(val[2]);
 				break;
 			case 4: // 4
-				set_padding_top(val[0], isRt);
-				set_padding_right(val[1], isRt);
-				set_padding_bottom(val[2], isRt);
-				set_padding_left(val[3], isRt);
+				set_padding_top(val[0]);
+				set_padding_right(val[1]);
+				set_padding_bottom(val[2]);
+				set_padding_left(val[3]);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_padding_top(float val, bool isRt) { // padding
+	void Box::set_padding_rt(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_padding_left_rt(val[0]);
+				set_padding_top_rt(val[0]);
+				set_padding_right_rt(val[0]);
+				set_padding_bottom_rt(val[0]);
+				break;
+			case 2:
+				set_padding_top_rt(val[0]);
+				set_padding_bottom_rt(val[0]);
+				set_padding_left_rt(val[1]);
+				set_padding_right_rt(val[1]);
+				break;
+			case 3:
+				set_padding_top_rt(val[0]);
+				set_padding_left_rt(val[1]);
+				set_padding_right_rt(val[1]);
+				set_padding_bottom_rt(val[2]);
+				break;
+			case 4: // 4
+				set_padding_top_rt(val[0]);
+				set_padding_right_rt(val[1]);
+				set_padding_bottom_rt(val[2]);
+				set_padding_left_rt(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_padding_top(float val) { // padding
+		mark_style_flag(kPADDING_TOP_CssProp);
 		if (_padding_top != val) {
-			_padding_top = val;
 			// may affect the inside content height,
 			// so mark kLayout_Inner_Height with kLayout_Outside_Width together
-			mark_layout(kLayout_Size_Height/*| kTransform*/, isRt);
+			mark_layout(kLayout_Size_Height/*| kTransform*/);
+			_padding_top = val;
 		}
 	}
 
-	void Box::set_padding_left(float val, bool isRt) {
+	void Box::set_padding_top_rt(float val) {
+		if (_padding_top != val) {
+			_padding_top = val;
+			mark_layout<true>(kLayout_Size_Height);
+		}
+	}
+
+	void Box::set_padding_left(float val) {
+		mark_style_flag(kPADDING_LEFT_CssProp);
+		if (_padding_left != val) {
+			mark_layout(kLayout_Size_Width/*| kTransform*/);
+			_padding_left = val;
+		}
+	}
+
+	void Box::set_padding_left_rt(float val) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			mark_layout(kLayout_Size_Width/*| kTransform*/, isRt);
+			mark_layout<true>(kLayout_Size_Width);
 		}
 	}
 
-	void Box::set_padding_right(float val, bool isRt) {
+	void Box::set_padding_right(float val) {
+		mark_style_flag(kPADDING_RIGHT_CssProp);
+		if (_padding_right != val) {
+			mark_layout(kLayout_Size_Width);
+			_padding_right = val;
+		}
+	}
+
+	void Box::set_padding_right_rt(float val) {
 		if (_padding_right != val) {
 			_padding_right = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout<true>(kLayout_Size_Width);
 		}
 	}
 
-	void Box::set_padding_bottom(float val, bool isRt) {
+	void Box::set_padding_bottom(float val) {
+		mark_style_flag(kPADDING_BOTTOM_CssProp);
+		if (_padding_bottom != val) {
+			mark_layout(kLayout_Size_Height);
+			_padding_bottom = val;
+		}
+	}
+
+	void Box::set_padding_bottom_rt(float val) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout<true>(kLayout_Size_Height);
 		}
 	}
 
@@ -269,61 +449,123 @@ namespace qk {
 		};
 	}
 
-	void Box::set_border_radius(ArrayFloat val, bool isRt) {
+	void Box::set_border_radius(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_left_radius(val[0], isRt);
-				set_border_top_right_radius(val[0], isRt);
-				set_border_bottom_right_radius(val[0], isRt);
-				set_border_bottom_left_radius(val[0], isRt);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[0]);
+				set_border_bottom_right_radius(val[0]);
+				set_border_bottom_left_radius(val[0]);
 				break;
 			case 2:
-				set_border_top_left_radius(val[0], isRt);
-				set_border_top_right_radius(val[0], isRt);
-				set_border_bottom_right_radius(val[1], isRt);
-				set_border_bottom_left_radius(val[1], isRt);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[0]);
+				set_border_bottom_right_radius(val[1]);
+				set_border_bottom_left_radius(val[1]);
 				break;
 			case 3:
-				set_border_top_left_radius(val[0], isRt);
-				set_border_top_right_radius(val[1], isRt);
-				set_border_bottom_right_radius(val[2], isRt);
-				set_border_bottom_left_radius(val[2], isRt);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[1]);
+				set_border_bottom_right_radius(val[2]);
+				set_border_bottom_left_radius(val[2]);
 				break;
 			case 4: // 4
-				set_border_top_left_radius(val[0], isRt);
-				set_border_top_right_radius(val[1], isRt);
-				set_border_bottom_right_radius(val[2], isRt);
-				set_border_bottom_left_radius(val[3], isRt);
+				set_border_top_left_radius(val[0]);
+				set_border_top_right_radius(val[1]);
+				set_border_bottom_right_radius(val[2]);
+				set_border_bottom_left_radius(val[3]);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_border_top_left_radius(float val, bool isRt) {
+	void Box::set_border_radius_rt(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_border_top_left_radius_rt(val[0]);
+				set_border_top_right_radius_rt(val[0]);
+				set_border_bottom_right_radius_rt(val[0]);
+				set_border_bottom_left_radius_rt(val[0]);
+				break;
+			case 2:
+				set_border_top_left_radius_rt(val[0]);
+				set_border_top_right_radius_rt(val[0]);
+				set_border_bottom_right_radius_rt(val[1]);
+				set_border_bottom_left_radius_rt(val[1]);
+				break;
+			case 3:
+				set_border_top_left_radius_rt(val[0]);
+				set_border_top_right_radius_rt(val[1]);
+				set_border_bottom_right_radius_rt(val[2]);
+				set_border_bottom_left_radius_rt(val[2]);
+				break;
+			case 4: // 4
+				set_border_top_left_radius_rt(val[0]);
+				set_border_top_right_radius_rt(val[1]);
+				set_border_bottom_right_radius_rt(val[2]);
+				set_border_bottom_left_radius_rt(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_border_top_left_radius(float val) {
+		mark_style_flag(kBORDER_TOP_LEFT_RADIUS_CssProp);
+		if (val >= 0.0 && _border_top_left_radius != val) {
+			mark_render();
+			_border_top_left_radius = val;
+		}
+	}
+
+	void Box::set_border_top_left_radius_rt(float val) {
 		if (val >= 0.0 && _border_top_left_radius != val) {
 			_border_top_left_radius = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_top_right_radius(float val, bool isRt) {
+	void Box::set_border_top_right_radius(float val) {
+		mark_style_flag(kBORDER_TOP_RIGHT_RADIUS_CssProp);
+		if (val >= 0.0 && _border_top_right_radius != val) {
+			mark_render();
+			_border_top_right_radius = val;
+		}
+	}
+
+	void Box::set_border_top_right_radius_rt(float val) {
 		if (val >= 0.0 && _border_top_right_radius != val) {
 			_border_top_right_radius = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_bottom_right_radius(float val, bool isRt) {
+	void Box::set_border_bottom_right_radius(float val) {
+		mark_style_flag(kBORDER_BOTTOM_RIGHT_RADIUS_CssProp);
+		if (val >= 0.0 && _border_bottom_right_radius != val) {
+			mark_render();
+			_border_bottom_right_radius = val;
+		}
+	}
+
+	void Box::set_border_bottom_right_radius_rt(float val) {
 		if (val >= 0.0 && _border_bottom_right_radius != val) {
 			_border_bottom_right_radius = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_bottom_left_radius(float val, bool isRt) {
+	void Box::set_border_bottom_left_radius(float val) {
+		mark_style_flag(kBORDER_BOTTOM_LEFT_RADIUS_CssProp);
+		if (val >= 0.0 && _border_bottom_left_radius != val) {
+			mark_render();
+			_border_bottom_left_radius = val;
+		}
+	}
+
+	void Box::set_border_bottom_left_radius_rt(float val) {
 		if (val >= 0.0 && _border_bottom_left_radius != val) {
 			_border_bottom_left_radius = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
@@ -339,31 +581,61 @@ namespace qk {
 		}: ArrayBorder{default_border,default_border,default_border,default_border};
 	}
 
-	void Box::set_border(ArrayBorder val, bool isRt) {
+	void Box::set_border(ArrayBorder val) {
 		switch (val.length()) {
 			case 1:
-				set_border_top(val[0], isRt);
-				set_border_right(val[0], isRt);
-				set_border_bottom(val[0], isRt);
-				set_border_left(val[0], isRt);
+				set_border_top(val[0]);
+				set_border_right(val[0]);
+				set_border_bottom(val[0]);
+				set_border_left(val[0]);
 				break;
 			case 2:
-				set_border_top(val[0], isRt);
-				set_border_bottom(val[0], isRt);
-				set_border_left(val[1], isRt);
-				set_border_right(val[1], isRt);
+				set_border_top(val[0]);
+				set_border_bottom(val[0]);
+				set_border_left(val[1]);
+				set_border_right(val[1]);
 				break;
 			case 3:
-				set_border_top(val[0], isRt);
-				set_border_left(val[1], isRt);
-				set_border_right(val[1], isRt);
-				set_border_bottom(val[2], isRt);
+				set_border_top(val[0]);
+				set_border_left(val[1]);
+				set_border_right(val[1]);
+				set_border_bottom(val[2]);
 				break;
 			case 4: // 4
-				set_border_top(val[0], isRt);
-				set_border_right(val[1], isRt);
-				set_border_bottom(val[2], isRt);
-				set_border_left(val[3], isRt);
+				set_border_top(val[0]);
+				set_border_right(val[1]);
+				set_border_bottom(val[2]);
+				set_border_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_border_rt(ArrayBorder val) {
+		switch (val.length()) {
+			case 1:
+				set_border_top_rt(val[0]);
+				set_border_right_rt(val[0]);
+				set_border_bottom_rt(val[0]);
+				set_border_left_rt(val[0]);
+				break;
+			case 2:
+				set_border_top_rt(val[0]);
+				set_border_bottom_rt(val[0]);
+				set_border_left_rt(val[1]);
+				set_border_right_rt(val[1]);
+				break;
+			case 3:
+				set_border_top_rt(val[0]);
+				set_border_left_rt(val[1]);
+				set_border_right_rt(val[1]);
+				set_border_bottom_rt(val[2]);
+				break;
+			case 4: // 4
+				set_border_top_rt(val[0]);
+				set_border_right_rt(val[1]);
+				set_border_bottom_rt(val[2]);
+				set_border_left_rt(val[3]);
 				break;
 			default: break;
 		}
@@ -389,24 +661,44 @@ namespace qk {
 		return _border ? Border{_border->width[3],_border->color[3]}: default_border;
 	}
 
-	void Box::set_border_top(Border border, bool isRt) {
-		set_border_top_width(border.width, isRt);
-		set_border_top_color(border.color, isRt);
+	void Box::set_border_top(Border border) {
+		set_border_top_width(border.width);
+		set_border_top_color(border.color);
 	}
 
-	void Box::set_border_right(Border border, bool isRt) {
-		set_border_right_width(border.width, isRt);
-		set_border_right_color(border.color, isRt);
+	void Box::set_border_top_rt(Border border) {
+		set_border_top_width_rt(border.width);
+		set_border_top_color_rt(border.color);
 	}
 
-	void Box::set_border_bottom(Border border, bool isRt) {
-		set_border_bottom_width(border.width, isRt);
-		set_border_bottom_color(border.color, isRt);
+	void Box::set_border_right(Border border) {
+		set_border_right_width(border.width);
+		set_border_right_color(border.color);
 	}
 
-	void Box::set_border_left(Border border, bool isRt) {
-		set_border_left_width(border.width, isRt);
-		set_border_left_color(border.color, isRt);
+	void Box::set_border_right_rt(Border border) {
+		set_border_right_width_rt(border.width);
+		set_border_right_color_rt(border.color);
+	}
+
+	void Box::set_border_bottom(Border border) {
+		set_border_bottom_width(border.width);
+		set_border_bottom_color(border.color);
+	}
+
+	void Box::set_border_bottom_rt(Border border) {
+		set_border_bottom_width_rt(border.width);
+		set_border_bottom_color_rt(border.color);
+	}
+
+	void Box::set_border_left(Border border) {
+		set_border_left_width(border.width);
+		set_border_left_color(border.color);
+	}
+
+	void Box::set_border_left_rt(Border border) {
+		set_border_left_width_rt(border.width);
+		set_border_left_color_rt(border.color);
 	}
 
 	ArrayFloat Box::border_width() const {
@@ -416,31 +708,61 @@ namespace qk {
 			default_border_width;
 	}
 
-	void Box::set_border_width(ArrayFloat val, bool isRt) {
+	void Box::set_border_width(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_width(val[0], isRt);
-				set_border_right_width(val[0], isRt);
-				set_border_bottom_width(val[0], isRt);
-				set_border_left_width(val[0], isRt);
+				set_border_top_width(val[0]);
+				set_border_right_width(val[0]);
+				set_border_bottom_width(val[0]);
+				set_border_left_width(val[0]);
 				break;
 			case 2:
-				set_border_top_width(val[0], isRt);
-				set_border_bottom_width(val[0], isRt);
-				set_border_left_width(val[1], isRt);
-				set_border_right_width(val[1], isRt);
+				set_border_top_width(val[0]);
+				set_border_bottom_width(val[0]);
+				set_border_left_width(val[1]);
+				set_border_right_width(val[1]);
 				break;
 			case 3:
-				set_border_top_width(val[0], isRt);
-				set_border_left_width(val[1], isRt);
-				set_border_right_width(val[1], isRt);
-				set_border_bottom_width(val[2], isRt);
+				set_border_top_width(val[0]);
+				set_border_left_width(val[1]);
+				set_border_right_width(val[1]);
+				set_border_bottom_width(val[2]);
 				break;
 			case 4: // 4
-				set_border_top_width(val[0], isRt);
-				set_border_right_width(val[1], isRt);
-				set_border_bottom_width(val[2], isRt);
-				set_border_left_width(val[3], isRt);
+				set_border_top_width(val[0]);
+				set_border_right_width(val[1]);
+				set_border_bottom_width(val[2]);
+				set_border_left_width(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_border_width_rt(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_border_top_width_rt(val[0]);
+				set_border_right_width_rt(val[0]);
+				set_border_bottom_width_rt(val[0]);
+				set_border_left_width_rt(val[0]);
+				break;
+			case 2:
+				set_border_top_width_rt(val[0]);
+				set_border_bottom_width_rt(val[0]);
+				set_border_left_width_rt(val[1]);
+				set_border_right_width_rt(val[1]);
+				break;
+			case 3:
+				set_border_top_width_rt(val[0]);
+				set_border_left_width_rt(val[1]);
+				set_border_right_width_rt(val[1]);
+				set_border_bottom_width_rt(val[2]);
+				break;
+			case 4: // 4
+				set_border_top_width_rt(val[0]);
+				set_border_right_width_rt(val[1]);
+				set_border_bottom_width_rt(val[2]);
+				set_border_left_width_rt(val[3]);
 				break;
 			default: break;
 		}
@@ -453,31 +775,61 @@ namespace qk {
 			default_border_color;
 	}
 
-	void Box::set_border_color(ArrayColor val, bool isRt) {
+	void Box::set_border_color(ArrayColor val) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_color(val[0], isRt);
-				set_border_right_color(val[0], isRt);
-				set_border_bottom_color(val[0], isRt);
-				set_border_left_color(val[0], isRt);
+				set_border_top_color(val[0]);
+				set_border_right_color(val[0]);
+				set_border_bottom_color(val[0]);
+				set_border_left_color(val[0]);
 				break;
 			case 2:
-				set_border_top_color(val[0], isRt);
-				set_border_bottom_color(val[0], isRt);
-				set_border_left_color(val[1], isRt);
-				set_border_right_color(val[1], isRt);
+				set_border_top_color(val[0]);
+				set_border_bottom_color(val[0]);
+				set_border_left_color(val[1]);
+				set_border_right_color(val[1]);
 				break;
 			case 3:
-				set_border_top_color(val[0], isRt);
-				set_border_left_color(val[1], isRt);
-				set_border_right_color(val[1], isRt);
-				set_border_bottom_color(val[2], isRt);
+				set_border_top_color(val[0]);
+				set_border_left_color(val[1]);
+				set_border_right_color(val[1]);
+				set_border_bottom_color(val[2]);
 				break;
 			case 4: // 4
-				set_border_top_color(val[0], isRt);
-				set_border_right_color(val[1], isRt);
-				set_border_bottom_color(val[2], isRt);
-				set_border_left_color(val[3], isRt);
+				set_border_top_color(val[0]);
+				set_border_right_color(val[1]);
+				set_border_bottom_color(val[2]);
+				set_border_left_color(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	void Box::set_border_color_rt(ArrayColor val) {
+		switch (val.length()) {
+			case 1:
+				set_border_top_color_rt(val[0]);
+				set_border_right_color_rt(val[0]);
+				set_border_bottom_color_rt(val[0]);
+				set_border_left_color_rt(val[0]);
+				break;
+			case 2:
+				set_border_top_color_rt(val[0]);
+				set_border_bottom_color_rt(val[0]);
+				set_border_left_color_rt(val[1]);
+				set_border_right_color_rt(val[1]);
+				break;
+			case 3:
+				set_border_top_color_rt(val[0]);
+				set_border_left_color_rt(val[1]);
+				set_border_right_color_rt(val[1]);
+				set_border_bottom_color_rt(val[2]);
+				break;
+			case 4: // 4
+				set_border_top_color_rt(val[0]);
+				set_border_right_color_rt(val[1]);
+				set_border_bottom_color_rt(val[2]);
+				set_border_left_color_rt(val[3]);
 				break;
 			default: break;
 		}
@@ -526,92 +878,185 @@ namespace qk {
 	struct SetBorder: public Box {
 		#define _BorderAlloc() auto _border = static_cast<SetBorder*>(this)->alloc()
 		BorderInl* alloc() {
-			auto border = _border.load();
-			if (!border) {
-				border = (BorderInl*)malloc(sizeof(BorderInl));
-				memset(border, 0, sizeof(BorderInl));
-				if (_border) {
-					::free(border);
+			BorderInl* border = _border.load(std::memory_order_acquire);
+			if (Qk_UNLIKELY(!border)) {
+				BorderInl* newBorder = (BorderInl*)malloc(sizeof(BorderInl));
+				memset(newBorder, 0, sizeof(BorderInl));
+				// Safe exchange _border pointer
+				BorderInl* expected = nullptr;
+				if (_border.compare_exchange_strong(
+						expected,
+						newBorder,
+						std::memory_order_release,
+						std::memory_order_acquire)) {
+					// we won, newBorder is now global
+					border = newBorder;
 				} else {
-					_border.store(border);
+					// lost race, someone else installed it
+					::free(newBorder); // free ours
+					border = expected; // expected now holds the installed value
 				}
 			}
 			return border;
 		}
 	};
 
-	void Box::set_border_top_color(Color val, bool isRt) {
+	void Box::set_border_top_color(Color val) {
+		_BorderAlloc();
+		mark_style_flag(kBORDER_TOP_COLOR_CssProp);
+		if (_border->color[0] != val) {
+			mark_render();
+			_border->color[0] = val;
+		}
+	}
+
+	void Box::set_border_top_color_rt(Color val) {
 		_BorderAlloc();
 		if (_border->color[0] != val) {
 			_border->color[0] = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_right_color(Color val, bool isRt) {
+	void Box::set_border_right_color(Color val) {
+		_BorderAlloc();
+		mark_style_flag(kBORDER_RIGHT_COLOR_CssProp);
+		if (_border->color[1] != val) {
+			mark_render();
+			_border->color[1] = val;
+		}
+	}
+
+	void Box::set_border_right_color_rt(Color val) {
 		_BorderAlloc();
 		if (_border->color[1] != val) {
 			_border->color[1] = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_bottom_color(Color val, bool isRt) {
+	void Box::set_border_bottom_color(Color val) {
+		_BorderAlloc();
+		mark_style_flag(kBORDER_BOTTOM_COLOR_CssProp);
+		if (_border->color[2] != val) {
+			mark_render();
+			_border->color[2] = val;
+		}
+	}
+
+	void Box::set_border_bottom_color_rt(Color val) {
 		_BorderAlloc();
 		if (_border->color[2] != val) {
 			_border->color[2] = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_left_color(Color val, bool isRt) {
+	void Box::set_border_left_color(Color val) {
+		_BorderAlloc();
+		mark_style_flag(kBORDER_LEFT_COLOR_CssProp);
+		if (_border->color[3] != val) {
+			mark_render();
+			_border->color[3] = val;
+		}
+	}
+
+	void Box::set_border_left_color_rt(Color val) {
 		_BorderAlloc();
 		if (_border->color[3] != val) {
 			_border->color[3] = val;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Box::set_border_top_width(float val, bool isRt) {
+	void Box::set_border_top_width(float val) {
+		_BorderAlloc();
+		val = Qk_Max(0, val);
+		mark_style_flag(kBORDER_TOP_WIDTH_CssProp);
+		if (_border->width[0] != val) {
+			mark_layout(kLayout_Size_Height/*| kTransform*/);
+			_border->width[0] = val;
+		}
+	}
+
+	void Box::set_border_top_width_rt(float val) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
-			mark_layout(kLayout_Size_Height/*| kTransform*/, isRt);
+			mark_layout<true>(kLayout_Size_Height);
 		}
 	}
 
-	void Box::set_border_right_width(float val, bool isRt) {
+	void Box::set_border_right_width(float val) {
+		_BorderAlloc();
+		val = Qk_Max(0, val);
+		mark_style_flag(kBORDER_RIGHT_WIDTH_CssProp);
+		if (_border->width[1] != val) {
+			mark_layout(kLayout_Size_Width);
+			_border->width[1] = val;
+		}
+	}
+
+	void Box::set_border_right_width_rt(float val) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout<true>(kLayout_Size_Width);
 		}
 	}
 
-	void Box::set_border_bottom_width(float val, bool isRt) {
+	void Box::set_border_bottom_width(float val) {
+		_BorderAlloc();
+		val = Qk_Max(0, val);
+		mark_style_flag(kBORDER_BOTTOM_WIDTH_CssProp);
+		if (_border->width[2] != val) {
+			mark_layout(kLayout_Size_Height);
+			_border->width[2] = val;
+		}
+	}
+
+	void Box::set_border_bottom_width_rt(float val) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout<true>(kLayout_Size_Height);
 		}
 	}
 
-	void Box::set_border_left_width(float val, bool isRt) {
+	void Box::set_border_left_width(float val) {
+		_BorderAlloc();
+		val = Qk_Max(0, val);
+		mark_style_flag(kBORDER_LEFT_WIDTH_CssProp);
+		if (_border->width[3] != val) {
+			mark_layout(kLayout_Size_Width/*| kTransform*/);
+			_border->width[3] = val;
+		}
+	}
+
+	void Box::set_border_left_width_rt(float val) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
-			mark_layout(kLayout_Size_Width/*| kTransform*/, isRt);
+			mark_layout<true>(kLayout_Size_Width);
 		}
 	}
 
-	void Box::set_background_color(Color color, bool isRt) {
+	void Box::set_background_color(Color color) {
+		mark_style_flag(kBACKGROUND_COLOR_CssProp);
+		if (_background_color != color) {
+			mark_render();
+			_background_color = color;
+		}
+	}
+
+	void Box::set_background_color_rt(Color color) {
 		if (_background_color != color) {
 			_background_color = color;
-			mark(kLayout_None,isRt);
+			mark_render();
 		}
 	}
 
@@ -619,20 +1064,22 @@ namespace qk {
 		return _container.content;
 	}
 
-	void Box::set_background(BoxFilter* val, bool isRt) {
-		auto filter = _background.load();
-		auto newFilter = BoxFilter::assign(filter, val, this, isRt);
-		if (filter != newFilter) {
-			_background.store(newFilter);
-		}
+	void Box::set_background(BoxFilter* val) {
+		mark_style_flag(kBACKGROUND_CssProp);
+		BoxFilter::assign_atomic(_background, val, this);
 	}
 
-	void Box::set_box_shadow(BoxShadow* val, bool isRt) {
-		auto filter = _box_shadow.load();
-		auto newFilter = static_cast<BoxShadow*>(BoxFilter::assign(filter, val, this, isRt));
-		if (filter != newFilter) {
-			_box_shadow.store(newFilter);
-		}
+	void Box::set_background_rt(BoxFilter* val) {
+		BoxFilter::assign_atomic(_background, val, this);
+	}
+
+	void Box::set_box_shadow(BoxShadow* val) {
+		mark_style_flag(kBOX_SHADOW_CssProp);
+		BoxFilter::assign_atomic(reinterpret_cast<std::atomic<BoxFilter*>&>(_box_shadow), val, this);
+	}
+
+	void Box::set_box_shadow_rt(BoxShadow* val) {
+		BoxFilter::assign_atomic(reinterpret_cast<std::atomic<BoxFilter*>&>(_box_shadow), val, this);
 	}
 
 	void Box::set_content_size(Vec2 size) {
@@ -664,7 +1111,7 @@ namespace qk {
 			_IfParent() {
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			}
-			mark(kVisible_Region, true);
+			mark<true>(kVisible_Region);
 		}
 	}
 
@@ -723,43 +1170,49 @@ namespace qk {
 		return offset;
 	}
 
-	void Box::set_align(Align align, bool isRt) {
+	static void call_onChildLayoutChange(Box* self, Box::ChildLayoutChangeMark arg) {
+		auto _parent = self->parent();
+		if (_parent)
+			_parent->onChildLayoutChange(self, arg);
+	}
+
+	void Box::set_align(Align align) {
+		mark_style_flag(kALIGN_CssProp);
 		if (_align != align) {
+			pre_render().async_call([](auto self, auto arg) {
+				call_onChildLayoutChange(self, kChild_Layout_Align);
+			}, this, 0);
 			_align = align;
-			if (isRt) {
-				auto _parent = parent();
-				if (_parent)
-					_parent->onChildLayoutChange(this, kChild_Layout_Align);
-			} else {
-				pre_render().async_call([](auto self, auto arg) {
-					auto _parent = self->parent();
-					if (_parent)
-						_parent->onChildLayoutChange(self, kChild_Layout_Align);
-				}, this, 0);
-			}
 		}
 	}
 
-	void Box::set_weight(Vec2 weight, bool isRt) {
+	void Box::set_align_rt(Align align) {
+		if (_align != align) {
+			_align = align;
+			call_onChildLayoutChange(this, kChild_Layout_Align);
+		}
+	}
+
+	void Box::set_weight(Vec2 weight) {
+		mark_style_flag(kWEIGHT_CssProp);
+		if (_weight != weight) {
+			pre_render().async_call([](auto self, auto arg) {
+				call_onChildLayoutChange(self, kChild_Layout_Weight);
+			}, this, 0);
+			_weight = weight;
+		}
+	}
+
+	void Box::set_weight_rt(Vec2 weight) {
 		if (_weight != weight) {
 			_weight = weight;
-			if (isRt) {
-				auto _parent = parent();
-				if (_parent)
-					_parent->onChildLayoutChange(this, kChild_Layout_Weight);
-			} else {
-				pre_render().async_call([](auto self, auto arg) {
-					auto _parent = self->parent();
-					if (_parent)
-						_parent->onChildLayoutChange(self, kChild_Layout_Weight);
-				}, this, 0);
-			}
+			call_onChildLayoutChange(this, kChild_Layout_Weight);
 		}
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
 		_layout_offset = val;
-		mark(kTransform, true); // mark recursive transform
+		mark<true>(kTransform); // mark recursive transform
 	}
 
 	Vec2 Box::client_size() {

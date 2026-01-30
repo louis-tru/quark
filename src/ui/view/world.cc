@@ -608,14 +608,14 @@ namespace qk {
 					return deltaTime - stepDt * step;
 				} else if (d < moveLen) {
 					float scalar = d / moveLen;
-					agent->set_translate(pos + move * scalar, true); // update entity position
+					agent->set_translate_rt(pos + move * scalar); // update entity position
 					return deltaTime - (step + scalar) * stepDt; // return remaining time
 				}
 			}
 
 			// apply move
 			pos += move;
-			agent->set_translate(pos, true); // update entity position
+			agent->set_translate_rt(pos); // update entity position
 
 			// update toTarget for next substep
 			toTarget = agent->_target - pos;

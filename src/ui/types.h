@@ -169,9 +169,9 @@ namespace qk {
 		Normal, /* Use Normal layout */
 		Float, /* Float layout */
 		Free, /* Free layout */
-		Text, /* Text layout only Text-view */
-		Flex, /* Flex layout only Flex-view and Flow-view */
-		Flow, /* Flow layout only Flow-view */
+		Text, /* Text layout only Text and extended Text */
+		Flex, /* Flex layout only Flex and extended Flex */
+		Flow, /* Flow layout only Flow and extended Flow */
 	};
 
 	// ---------------- T e x t . F o n t ----------------

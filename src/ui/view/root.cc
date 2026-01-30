@@ -44,13 +44,13 @@ namespace qk {
 		_layout = LayoutType::Free; // free layout
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
-		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
+		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height);
 		set_background_color(Color(255, 255, 255, 255)); // default white background
-		mark(kTransform, false);
+		mark(kTransform);
 	}
 
 	void Root::reload_rt() {
-		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
+		mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
 	}
 
 	void Root::layout_forward(uint32_t mark) {
@@ -90,7 +90,7 @@ namespace qk {
 
 	void Root::apply_class_all() {
 		pre_render().async_call([](auto self, auto arg) {
-			self->apply_class_all_rt(nullptr, true);
+			self->apply_class_recursive_rt(nullptr, true);
 		}, this, 0);
 	}
 

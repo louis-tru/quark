@@ -222,17 +222,33 @@ namespace qk {
 	{
 	}
 
-	void Flow::set_wrap(Wrap wrap, bool isRt) {
+	void Flow::set_wrap(Wrap wrap) {
+		mark_style_flag(kWRAP_CssProp);
 		if (wrap != _wrap) {
+			mark_layout(kLayout_Typesetting);
 			_wrap = wrap;
-			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 
-	void Flow::set_wrap_align(WrapAlign align, bool isRt) {
+	void Flow::set_wrap_align(WrapAlign align) {
+		mark_style_flag(kWRAP_ALIGN_CssProp);
+		if (align != _wrap_align) {
+			mark_layout(kLayout_Typesetting);
+			_wrap_align = align;
+		}
+	}
+
+	void Flow::set_wrap_rt(Wrap wrap) {
+		if (wrap != _wrap) {
+			_wrap = wrap;
+			mark_layout<true>(kLayout_Typesetting);
+		}
+	}
+
+	void Flow::set_wrap_align_rt(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 

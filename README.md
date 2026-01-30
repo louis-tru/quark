@@ -1,8 +1,49 @@
 Quark
-===============
-Quark is a cross-platform front-end development framework (`Android`/`iOS`/`Mac`/`Linux`). Its core code is written in C++, with underlying OpenGL rendering. On top of that, it implements a streamlined layout engine and a JS/JSX runtime environment. Its goal is to develop GUI applications that balance development speed and runtime efficiency.
+=============
 
-* From here, [`Go API Index`](http://quarks.cc/doc/) takes you to the `API Documentation Index`.
+Quark is a cross-platform GUI framework (`Android` / `iOS` / `macOS` / `Linux`)
+designed for building high-performance, interactive applications with a
+clear and predictable runtime model.
+
+Quark is implemented primarily in **C++**, with a custom **OpenGL-based
+rendering pipeline**, a lightweight **layout engine**, and an embedded
+**JavaScript / JSX runtime** for application logic and UI description.
+
+Unlike browser-based frameworks, Quark is **not a web runtime**.
+Its architecture and APIs are designed specifically for GUI view trees,
+with explicit structure, deterministic behavior, and controllable
+performance characteristics.
+
+### Core Capabilities
+
+- **Cross-platform GUI rendering**
+  - Android / iOS / macOS / Linux
+  - Unified rendering and layout behavior across platforms
+
+- **C++ core with JS / JSX integration**
+  - Native performance–critical logic in C++
+  - High-level UI and interaction logic written in JavaScript / JSX
+
+- **Lightweight layout engine**
+  - Explicit layout models optimized for GUI applications
+  - No dependency on browser DOM or CSS layout engines
+
+- **Class-driven style system (CSS-like subset)**
+  - Supports class-based selectors (e.g. `.a`, `.a.b`, `.a .b`)
+  - Supports hierarchical selectors and limited pseudo states
+    (`:normal`, `:hover`, `:active`)
+  - Designed for predictable performance and efficient propagation
+  - Optimized for GUI usage rather than full web CSS compatibility
+
+- **Deterministic runtime model**
+  - Explicit view hierarchy
+  - Explicit event handling and state propagation
+  - No implicit browser-style reflow or style invalidation
+
+Quark is intended for developers who want **fine-grained control over UI
+structure and performance**, without sacrificing development efficiency.
+
+* From here, [`Go API Index`](http://quarks.cc/doc/) takes you to the API Documentation Index.
 
 | ![Screenshot](http://quarks.cc/img/000.jpg) | ![Screenshot](http://quarks.cc/img/001.jpg) | ![Screenshot](http://quarks.cc/img/002.jpg) |
 |--|--|--|
@@ -28,7 +69,7 @@ This is a simple program that displays "Hello world" on the screen.
 import { Jsx, Application, Window } from 'quark'
 new Application();
 new Window().render(
-	<text value="Hello world" textSize={48} align="centerMiddle" />
+	<text value="Hello world" fontSize={48} align="centerMiddle" />
 );
 ```
 
@@ -114,11 +155,11 @@ For detailed API documentation, please visit [View].
 Here are all the [View] classes currently available and their inheritance relationships:
 
 * [ScrollView]
-* [MatrixView]
+* [MorphView]
 * [TextOptions]
 * [View]
-	* [Sprite]<[MatrixView]>
-	* [Spine]<[MatrixView]>
+	* [Sprite]<[MorphView]>
+	* [Spine]<[MorphView]>
 	* [Box]
 		* [Flex]
 			* [Flow]
@@ -130,7 +171,7 @@ Here are all the [View] classes currently available and their inheritance relati
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Matrix]<[MatrixView]>
+		* [Morph]<[MorphView]>
 			* [Root]
 	* [Label]
 
@@ -146,23 +187,23 @@ new Window().render(
 			maxWidth="40%"
 			height="100%"
 			paddingLeft={5}
-			textLineHeight={1} // 100%
-			textSize={18}
-			textFamily="iconfont"
+			lineHeight={1} // 100%
+			fontSize={18}
+			fontFamily="iconfont"
 			backgroundColor="#f00"
-			textWhiteSpace="noWrap"
+			whiteSpace="noWrap"
 			textAlign="center"
 		>
-			<label textFamily="default" textSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
+			<label fontFamily="default" fontSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
 		</button>
 		<text
 			weight={[0,1]}
 			height="100%"
 			textColor="#00f"
-			textLineHeight={1}
-			textSize={16}
-			textWhiteSpace="noWrap"
-			textWeight="bold"
+			lineHeight={1}
+			fontSize={16}
+			whiteSpace="noWrap"
+			weight="bold"
 			textOverflow="ellipsisCenter"
 			textAlign="center"
 			value="Title"
@@ -173,7 +214,7 @@ new Window().render(
 			maxWidth="40%"
 			height="100%"
 			textColor="#f0f"
-			textLineHeight={1}
+			lineHeight={1}
 			backgroundColor="#0ff"
 			textAlign="center"
 			value="A"
@@ -185,18 +226,49 @@ new Window().render(
 
 # CSS Stylesheet
 
-* This is very similar to `HTML/CSS` stylesheets, but currently only supports `class` and not `id` or `tagName`.
+Quark provides a class-driven style system inspired by CSS,
+designed specifically for GUI view hierarchies.
+
+* The style system is based on a tree-structured selector model:
+each named style rule may have descendant rules separated by spaces,
+forming a hierarchical relationship aligned with the view tree.
 
 * The stylesheet data structure is actually a tree. Each named stylesheet can have child stylesheets, separated by spaces. There is no limit to the number of child stylesheets, but in theory, the more levels there are, the slower the query speed.
 
-* Each stylesheet can specify a `time` (in milliseconds) to indicate the transition time to this stylesheet. If not specified, no transition occurs.
 
-When a transition is triggered, an action is created and played.
+### Supported selector features
 
-* The stylesheet now has three pseudo-class states:
-  1. `normal` (when the cursor or touch leaves the cursor)
-  2. `hover` (when the cursor enters the cursor or the focus enters the cursor)
-  3. `action` (when the cursor is pressed or the touch leaves the cursor)
+- Class selectors (e.g. `.a`, `.a.b`)
+- Hierarchical selectors (e.g. `.a .b`)
+- Direct child selectors (e.g. `.a > .b`)
+- Pseudo states:
+  - `normal`
+  - `hover`
+  - `active`
+
+### Style transitions
+
+Each style rule may specify a `time` value (in milliseconds)
+to indicate the transition duration when switching into that rule.
+If `time` is not specified, the style change is applied immediately.
+
+When a transition is triggered, an action is created internally
+and played automatically.
+
+### Pseudo states
+
+The style system supports three pseudo states:
+
+1. `normal`  
+   Applied when the pointer or touch leaves the view.
+2. `hover`  
+   Applied when the pointer enters the view or the view gains focus.
+3. `active`  
+   Applied when the pointer or touch is pressed.
+
+Pseudo states are resolved at runtime based on view interaction events.
+
+### CSS Stylesheet Examples
 
 Here is how to write the stylesheet:
 ```tsx
@@ -204,9 +276,9 @@ import { Jsx, createCss } from 'quark';
 createCss({
 	'.a': {
 		width: 'match',
-		textLineHeight: 45,
-		textWhiteSpace: 'pre',
-		textSize: 16,
+		lineHeight: 45,
+		whiteSpace: 'pre',
+		fontSize: 16,
 	},
 	'.a:normal': {
 		textColor: '#0f0',
@@ -218,7 +290,10 @@ createCss({
 		textColor: '#f00',
 	},
 	'.a .b': {
-		textSize: 20,
+		fontSize: 20,
+	},
+	'.a > .c': {
+		width: 100,
 	},
 	'.a:normal .b': {
 		time: 500,  // 设置一个过渡时间
@@ -346,7 +421,7 @@ These two events are generated and sent by actions.
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
 [ScrollView]: https://quarks.cc/doc/view.html#scrollview
-[MatrixView]: https://quarks.cc/doc/view.html#matrixview
+[MorphView]: https://quarks.cc/doc/view.html#morphview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
 [View]: https://quarks.cc/doc/view.html#class-view
 [Free]: https://quarks.cc/doc/view.html#class-free
@@ -355,17 +430,16 @@ These two events are generated and sent by actions.
 [Flow]: https://quarks.cc/doc/view.html#class-flow
 [Image]:  https://quarks.cc/doc/view.html#class-image
 [Root]:  https://quarks.cc/doc/view.html#class-root
-[BasicScroll]: https://quarks.cc/doc/view.html#class-basicscroll
 [Scroll]: https://quarks.cc/doc/view.html#class-scroll
 [Button]: https://quarks.cc/doc/view.html#class-button
 [Text]: https://quarks.cc/doc/view.html#class-text
 [Input]: https://quarks.cc/doc/view.html#class-input
 [Textarea]: https://quarks.cc/doc/view.html#class-textarea
 [Label]: https://quarks.cc/doc/view.html#class-label
-[Video]: http://quarks.cc/doc/media.html#class-video
-[Matrix]: http://quarks.cc/doc/media.html#class-matrix
-[Sprite]: http://quarks.cc/doc/media.html#class-sprite
-[Spine]: http://quarks.cc/doc/media.html#class-spine
+[Video]: http://quarks.cc/doc/view.html#class-video
+[Morph]: http://quarks.cc/doc/view.html#class-morph
+[Sprite]: http://quarks.cc/doc/view.html#class-sprite
+[Spine]: http://quarks.cc/doc/view.html#class-spine
 
 
 <script>

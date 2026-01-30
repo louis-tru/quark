@@ -45,9 +45,16 @@ namespace qk {
 		return ImageSourceHold::src();
 	}
 
-	void Image::set_src(String val, bool isRt) {
+	void Image::set_src(String val) {
+		mark_style_flag(kSRC_CssProp);
 		if (ImageSourceHold::set_src(val)) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, isRt);
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height);
+		}
+	}
+
+	void Image::set_src_rt(String val) {
+		if (ImageSourceHold::set_src(val)) {
+			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
 		}
 	}
 
@@ -103,7 +110,7 @@ namespace qk {
 
 	void Image::onSourceState(ImageSource::State state) {
 		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height);
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
 		}

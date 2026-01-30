@@ -36,9 +36,9 @@
 
 namespace qk {
 
-	void Text::set_value(String val, bool isRt) {
+	void Text::set_value(String val) {
 		_value = val;
-		mark_layout(kLayout_Typesetting, isRt);
+		mark_layout(kLayout_Typesetting);
 	}
 
 	void Text::text_config(TextOptions* inherit) {
@@ -87,7 +87,7 @@ namespace qk {
 				_container.float_y() ? _container.clamp_height(_lines->max_height()): _container.content[1],
 			});
 			delete_lock_state();
-			mark(kVisible_Region, true); // force test region and lines region
+			mark<true>(kVisible_Region); // force test region and lines region
 			unmark(kLayout_Typesetting);
 		}
 	}
@@ -110,7 +110,7 @@ namespace qk {
 
 	void Text::onActivate() {
 		_textFlags = 0xffffffffu; // force all text options flags changed
-		mark_layout(kText_Options, true); // force text options resolve
+		mark_layout<true>(kText_Options); // force text options resolve
 	}
 
 	TextOptions* Text::asTextOptions() {

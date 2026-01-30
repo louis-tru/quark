@@ -312,7 +312,7 @@ public:
 		}
 		auto src = source();
 		if (!src || !(src->state() & ImageSource::kSTATE_LOAD_COMPLETE)) {
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true);
+			mark_layout<true>(kLayout_Size_Width | kLayout_Size_Height);
 		}
 		_seeking = 0;
 		_pts = _fv->pts; // set current the presentation timestamp

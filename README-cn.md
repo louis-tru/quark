@@ -1,8 +1,48 @@
 Quark
-===============
-Quark 是一个跨平台（`Android`/`iOS`/`Mac`/`Linux`）的前端开发框架。核心代码使用 C++ 编写，底层基于 OpenGL 绘制，上层实现了精简的排版引擎和 JS/JSX 运行环境。目标是在此基础上开发兼顾开发速度和运行效率的 GUI 应用。
+=============
 
-* 从这里，[`Go API Index`](http://quarks.cc/doc/) 可以转到 `API 文档索引`
+Quark 是一个跨平台 GUI 开发框架，支持
+`Android` / `iOS` / `macOS` / `Linux`，
+用于构建高性能、交互式的应用程序，并提供清晰、可预测的运行时模型。
+
+Quark 的核心使用 **C++** 实现，底层采用基于 **OpenGL 的渲染管线**，
+在此之上构建了精简的 **布局引擎**，并嵌入了 **JavaScript / JSX 运行环境**
+用于描述界面结构和业务逻辑。
+
+与基于浏览器的前端框架不同，Quark **不是 Web 运行时**。
+其架构和 API 是围绕 GUI 视图树设计的，强调显式结构、确定性行为
+以及可控的性能特征。
+
+### 核心能力
+
+- **跨平台 GUI 渲染**
+  - Android / iOS / macOS / Linux
+  - 各平台统一的渲染与布局行为
+
+- **C++ 核心 + JS / JSX 集成**
+  - 性能关键部分使用 C++ 实现
+  - UI 描述与交互逻辑使用 JavaScript / JSX 编写
+
+- **轻量级布局引擎**
+  - 面向 GUI 场景的显式布局模型
+  - 不依赖浏览器 DOM 或 CSS 布局系统
+
+- **基于 class 的样式系统（CSS-like 子集）**
+  - 支持 class 选择器（如 `.a`、`.a.b`、`.a .b`）
+  - 支持层级选择器和有限的伪状态
+    （`:normal`、`:hover`、`:active`）
+  - 以性能可预测性和高效传播为设计目标
+  - 面向 GUI 使用场景，而非完整 Web CSS 兼容
+
+- **确定性的运行时模型**
+  - 明确的视图层级结构
+  - 明确的事件与状态传播
+  - 不存在浏览器式的隐式重排或样式失效机制
+
+Quark 适合希望在 **开发效率** 与 **运行时性能**
+之间取得平衡，并且需要对 UI 结构和行为具有更强控制力的开发者。
+
+* 从这里，[`Go API Index`](http://quarks.cc/doc/) 可以进入 API 文档索引。
 
 | ![Screenshot](http://quarks.cc/img/000.jpg) | ![Screenshot](http://quarks.cc/img/001.jpg) | ![Screenshot](http://quarks.cc/img/002.jpg) |
 |--|--|--|
@@ -27,7 +67,7 @@ Quark 是一个跨平台（`Android`/`iOS`/`Mac`/`Linux`）的前端开发框架
 import { Jsx,Application,Window } from 'quark'
 new Application();
 new Window().render(
-	<text value="Hello world" textSize={48} align="centerMiddle" />
+	<text value="Hello world" fontSize={48} align="centerMiddle" />
 );
 ```
 
@@ -48,7 +88,7 @@ new Window().render(
 # shell
 $ sudo npm install -g qkmake
 ```
-	
+
 * 运行 `qkmake` 需要依赖 `nodejs` 和 `python`
 
 * 目前不支持 `windows` 系统，需要在 `mac` 系统下使用
@@ -113,11 +153,11 @@ $ qkmake watch
 以下是现在提供的所有[View]与继承关系：
 
 * [ScrollView]
-* [MatrixView]
+* [MorphView]
 * [TextOptions]
 * [View]
-	* [Sprite]<[MatrixView]>
-	* [Spine]<[MatrixView]>
+	* [Sprite]<[MorphView]>
+	* [Spine]<[MorphView]>
 	* [Box]
 		* [Flex]
 			* [Flow]
@@ -129,7 +169,7 @@ $ qkmake watch
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Matrix]<[MatrixView]>
+		* [Morph]<[MorphView]>
 			* [Root]
 	* [Label]
 
@@ -145,23 +185,23 @@ new Window().render(
 			maxWidth="40%"
 			height="100%"
 			paddingLeft={5}
-			textLineHeight={1} // 100%
-			textSize={18}
-			textFamily="iconfont"
+			lineHeight={1} // 100%
+			fontSize={18}
+			fontFamily="iconfont"
 			backgroundColor="#f00"
-			textWhiteSpace="noWrap"
+			whiteSpace="noWrap"
 			textAlign="center"
 		>
-			<label textFamily="default" textSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
+			<label fontFamily="default" fontSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
 		</button>
 		<text
 			weight={[0,1]}
 			height="100%"
 			textColor="#00f"
-			textLineHeight={1}
-			textSize={16}
-			textWhiteSpace="noWrap"
-			textWeight="bold"
+			lineHeight={1}
+			fontSize={16}
+			whiteSpace="noWrap"
+			weight="bold"
 			textOverflow="ellipsisCenter"
 			textAlign="center"
 			value="Title"
@@ -172,7 +212,7 @@ new Window().render(
 			maxWidth="40%"
 			height="100%"
 			textColor="#f0f"
-			textLineHeight={1}
+			lineHeight={1}
 			backgroundColor="#0ff"
 			textAlign="center"
 			value="A"
@@ -184,17 +224,41 @@ new Window().render(
 
 # CSS样式表
 
-* 这与`HTML/CSS`的样式表非常类似，但现在的只支持`class`并不支持`id`与`tagName`
+Quark 提供了一个受 CSS 启发的类驱动样式系统，专为 GUI 视图层级结构而设计。
 
-* 样式表的数据结构其实是个树状结构，每个具名的样式表都可以有子样式表，子级样式表以空格区分且级数没有限制但理论来说越多的级数查询的速度也会越慢。
+* 该样式系统基于树状结构选择器模型：每个命名样式规则都可以有以空格分隔的子规则，形成与视图树一致的层级关系。
 
-* 每个样式表可以指定一个时间`time`(毫秒)表示切换到此样式表的过渡时间，如果没指定表示没有过渡。
-  其实过渡触发时会创建一个动作并播放此动作。
+* 样式表数据结构实际上是一棵树。每个命名样式表都可以有以空格分隔的子样式表。子样式表的数量没有限制，但理论上，层级越多，查询速度越慢。
 
-* 样式表现在有三个伪类状态：
-  1. `normal` 光标或触摸离开（一般状态）时
-  2. `hover` 光标进入或者焦点进入时
-  3. `action` 光标按下时或者触摸离开时
+### 支持的选择器功能
+
+- 类选择器（例如 `.a`、`.a.b`）
+- 层级选择器（例如 `.a .b`）
+- 直接子级选择器（例如 `.a > .b`）
+- 伪状态：
+	- `normal`
+	- `hover`
+	- `active`
+
+### 样式过渡
+
+每个样式规则都可以指定一个 `time` 值（以毫秒为单位），以指示切换到该规则时的过渡持续时间。
+如果未指定 `time`，则样式更改会立即生效。
+触发过渡时，系统内部会创建一个动作，并自动播放。
+
+### 伪状态
+
+样式系统支持三种伪状态：
+
+1. `normal`
+	当指针或触摸离开视图时应用。
+2. `hover`
+	当指针进入视图或视图获得焦点时应用。
+3. `active`
+	当指针或触摸被按下时应用。
+	伪状态会在运行时根据视图交互事件进行解析。
+
+### CSS 样式表示例
 
 下面是样式表的写法：
 ```tsx
@@ -202,9 +266,9 @@ import { Jsx, createCss } from 'quark';
 createCss({
 	'.a': {
 		width: 'match',
-		textLineHeight: 45,
-		textWhiteSpace: 'pre',
-		textSize: 16,
+		lineHeight: 45,
+		whiteSpace: 'pre',
+		fontSize: 16,
 	},
 	'.a:normal': {
 		textColor: '#0f0',
@@ -216,7 +280,10 @@ createCss({
 		textColor: '#f00',
 	},
 	'.a .b': {
-		textSize: 20,
+		fontSize: 20,
+	},
+	'.a > .c': {
+		width: 100,
 	},
 	'.a:normal .b': {
 		time: 500,  // 设置一个过渡时间
@@ -290,7 +357,7 @@ act.play();
 # KeyframeAction与Keyframe
 
 关键帧动作这是动作系统的核心。所有动作的实现均在这里完成它是动作系统基本单元，前面的[SpawnAction]与[SpawnAction]只有包含[KeyframeAction]类型的动作才有真正的义意。
-而关键帧动作又包含理更加基本的元素[Keyframe]，关键帧的属性与`CSS`属性是完全同名的且包含全部视图上可以变化的全部属性，比如[Matrix]有`x`属性而[Keyframe]上也有`x`属性，但[Keyframe]上有的属性如果视图上并不存在，那么这个属性对视图是无效的，比如[View]上就不存在`width`属性，所以`width`的改变不会影响到[View]，但如果绑定的视图是[Box]那么`width`的改变就会影响到它，这与`CSS`样式表类似。
+而关键帧动作又包含理更加基本的元素[Keyframe]，关键帧的属性与`CSS`属性是完全同名的且包含全部视图上可以变化的全部属性，比如[Morph]有`x`属性而[Keyframe]上也有`x`属性，但[Keyframe]上有的属性如果视图上并不存在，那么这个属性对视图是无效的，比如[View]上就不存在`width`属性，所以`width`的改变不会影响到[View]，但如果绑定的视图是[Box]那么`width`的改变就会影响到它，这与`CSS`样式表类似。
 
 看下面的例子:
 ```js
@@ -344,7 +411,7 @@ act2.paly();
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
 [ScrollView]: https://quarks.cc/doc/view.html#scrollview
-[MatrixView]: https://quarks.cc/doc/view.html#matrixview
+[MorphView]: https://quarks.cc/doc/view.html#morphview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
 [View]: https://quarks.cc/doc/view.html#class-view
 [Free]: https://quarks.cc/doc/view.html#class-free
@@ -353,17 +420,17 @@ act2.paly();
 [Flow]: https://quarks.cc/doc/view.html#class-flow
 [Image]:  https://quarks.cc/doc/view.html#class-image
 [Root]:  https://quarks.cc/doc/view.html#class-root
-[BasicScroll]: https://quarks.cc/doc/view.html#class-basicscroll
 [Scroll]: https://quarks.cc/doc/view.html#class-scroll
 [Button]: https://quarks.cc/doc/view.html#class-button
 [Text]: https://quarks.cc/doc/view.html#class-text
 [Input]: https://quarks.cc/doc/view.html#class-input
 [Textarea]: https://quarks.cc/doc/view.html#class-textarea
 [Label]: https://quarks.cc/doc/view.html#class-label
-[Video]: http://quarks.cc/doc/media.html#class-video
-[Matrix]: http://quarks.cc/doc/media.html#class-matrix
-[Sprite]: http://quarks.cc/doc/media.html#class-sprite
-[Spine]: http://quarks.cc/doc/media.html#class-spine
+[Video]: http://quarks.cc/doc/view.html#class-video
+[Morph]: http://quarks.cc/doc/view.html#class-morph
+[Sprite]: http://quarks.cc/doc/view.html#class-sprite
+[Spine]: http://quarks.cc/doc/view.html#class-spine
+
 
 
 <script>

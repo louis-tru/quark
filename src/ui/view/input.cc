@@ -204,7 +204,7 @@ namespace qk {
 					}
 					ctx->limit_cursor_in_marked_text();
 					ctx->reset_cursor_twinkle_task_timeout();
-					ctx->mark(kInput_Status, true);
+					ctx->template mark<true>(kInput_Status);
 				}
 			}, this, static_cast<KeyEvent*>(&evt)->keycode());
 		}
@@ -214,7 +214,7 @@ namespace qk {
 				_editing = true;
 				_cursor_twinkle_status = 0;
 				_flag = kFlag_Normal;
-				mark(kInput_Status, true);
+				mark<true>(kInput_Status);
 				window()->pre_render().addtask(this);
 			}
 		}
@@ -538,7 +538,7 @@ namespace qk {
 		 end_action:
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
-			mark(kInput_Status, true);
+			mark<true>(kInput_Status);
 		}
 
 		void limit_cursor_in_marked_text() {
@@ -592,7 +592,7 @@ namespace qk {
 					_value_u4.append( text );
 				}
 				_cursor_index += text.length();
-				mark_layout(kLayout_Typesetting, true); // 标记内容变化
+				mark_layout<true>(kLayout_Typesetting); // 标记内容变化
 			}
 		}
 
@@ -623,7 +623,7 @@ namespace qk {
 			// _cursor_index += text.length() - _marked_text.length();
 			// _cursor_index = Qk_Max(_marked_text_index, _cursor_index); // limit cursor index
 			_marked_text = text;
-			mark_layout(kLayout_Typesetting, true); // 标记内容变化
+			mark_layout<true>(kLayout_Typesetting); // 标记内容变化
 		}
 
 		void trigger_Change() {
@@ -685,30 +685,6 @@ namespace qk {
 
 	bool Input::is_multiline() {
 		return false;
-	}
-
-	void Input::set_value_u4(String4 val, bool isRt) {
-		if (_value_u4 != val) {
-			_value_u4 = val;
-			mark_layout(kLayout_Typesetting, isRt);
-			set_max_length(_max_length, isRt);
-		}
-	}
-
-	String Input::value() const {
-		return String(codec_encode(kUTF8_Encoding, _value_u4.array().buffer()));
-	}
-
-	String Input::placeholder() const {
-		return String(codec_encode(kUTF8_Encoding, _placeholder_u4.array().buffer()));
-	}
-
-	void Input::set_value(String val, bool isRt) {
-		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRt);
-	}
-
-	void Input::set_placeholder(String val, bool isRt) {
-		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRt);
 	}
 
 	void Input::text_config(TextOptions* inherit) {
@@ -810,7 +786,7 @@ namespace qk {
 		unmark(kLayout_Typesetting);
 
 		// mark input status change
-		mark(kInput_Status | kVisible_Region, true);
+		mark<true>(kInput_Status | kVisible_Region);
 		
 		// Qk_DLog("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
 
@@ -975,7 +951,7 @@ namespace qk {
 
 	void Input::onActivate() {
 		_textFlags = 0xffffffff;
-		mark_layout(kText_Options, true);
+		mark_layout<true>(kText_Options);
 	}
 
 	TextInput* Input::asTextInput() {
@@ -998,7 +974,7 @@ namespace qk {
 						String4 u4(_value_u4);
 						_value_u4 = String4(*u4, cursor - count, *u4 + cursor, u4.length() - cursor);
 						_cursor_index -= count;
-						mark_layout(kLayout_Typesetting, true); // 标记内容变化
+						mark_layout<true>(kLayout_Typesetting); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
 					count = Qk_Min(int(text_length()) - cursor, count);
@@ -1007,7 +983,7 @@ namespace qk {
 						_value_u4 = String4(*u4, cursor,
 																*u4 + cursor + count,
 																u4.length() - cursor - count);
-						mark_layout(kLayout_Typesetting, true); // 标记内容变化
+						mark_layout<true>(kLayout_Typesetting); // 标记内容变化
 					}
 				}
 			}
@@ -1081,7 +1057,7 @@ namespace qk {
 				if (ctx->_is_marked_text) {
 					ctx->input_unmark(ctx->marked_text());
 				} else {
-					ctx->mark(kInput_Status, true);
+					ctx->template mark<true>(kInput_Status);
 				}
 				ctx->window()->pre_render().untask(ctx);
 			}, _this, 0);
@@ -1104,70 +1080,156 @@ namespace qk {
 		return this;
 	}
 
-	void Input::set_keyboard_type(KeyboardType value, bool isRt) {
+	String Input::value() const {
+		return String(codec_encode(kUTF8_Encoding, _value_u4.array().buffer()));
+	}
+
+	String Input::placeholder() const {
+		return String(codec_encode(kUTF8_Encoding, _placeholder_u4.array().buffer()));
+	}
+
+	void Input::set_keyboard_type(KeyboardType value) {
+		mark_style_flag(kKEYBOARD_TYPE_CssProp);
+		set_keyboard_type_rt(value);
+	}
+
+	void Input::set_keyboard_type_rt(KeyboardType value) {
 		if (value != _keyboard_type) {
 			_keyboard_type = value;
 			_this->setImeKeyboardAndOpen();
 		}
 	}
 
-	void Input::set_return_type(KeyboardReturnType value, bool isRt) {
+	void Input::set_return_type(KeyboardReturnType value) {
+		mark_style_flag(kKEYBOARD_RETURN_TYPE_CssProp);
+		set_return_type_rt(value);
+	}
+
+	void Input::set_return_type_rt(KeyboardReturnType value) {
 		if (value != _return_type) {
 			_return_type = value;
 			_this->setImeKeyboardAndOpen();
 		}
 	}
 
-	void Input::set_placeholder_u4(String4 value, bool isRt) {
-		_placeholder_u4 = value;
-		mark_layout(kLayout_Typesetting, isRt);
+	void Input::set_value_u4(String4 val) {
+		if (_value_u4 != val) {
+			mark_layout(kLayout_Typesetting);
+			_value_u4 = val;
+			set_max_length(_max_length);
+		}
 	}
 
-	void Input::set_placeholder_color(Color value, bool isRt) {
+	void Input::set_value_u4_rt(String4 val) {
+		// noop
+	}
+
+	void Input::set_value(String val) {
+		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+	}
+
+	void Input::set_value_rt(String val) {
+		// noop
+	}
+
+	void Input::set_placeholder(String val) {
+		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+	}
+
+	void Input::set_placeholder_rt(String val) {
+		set_placeholder_u4_rt(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+	}
+
+	void Input::set_placeholder_u4(String4 value) {
+		mark_style_flag(kPLACEHOLDER_CssProp);
+		_placeholder_u4 = value;
+		mark_layout(kLayout_Typesetting);
+	}
+
+	void Input::set_placeholder_u4_rt(String4 value) {
+		_placeholder_u4 = value;
+		mark_layout<true>(kLayout_Typesetting);
+	}
+
+	void Input::set_placeholder_color(Color value) {
+		mark_style_flag(kPLACEHOLDER_COLOR_CssProp);
+		if (value != _placeholder_color) {
+			mark_render();
+			_placeholder_color = value;
+		}
+	}
+
+	void Input::set_placeholder_color_rt(Color value) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Input::set_cursor_color(Color value, bool isRt) {
+	void Input::set_cursor_color(Color value) {
+		mark_style_flag(kCURSOR_COLOR_CssProp);
+		if (value != _cursor_color) {
+			mark_render();
+			_cursor_color = value;
+		}
+	}
+
+	void Input::set_cursor_color_rt(Color value) {
 		if (value != _cursor_color) {
 			_cursor_color = value;
-			mark(kLayout_None, isRt);
+			mark_render();
 		}
 	}
 
-	void Input::set_security(bool value, bool isRt) {
+	void Input::set_security(bool value) {
+		mark_style_flag(kSECURITY_CssProp);
+		if (_security != value) {
+			mark_layout(kLayout_Typesetting);
+			_security = value;
+		}
+	}
+
+	void Input::set_security_rt(bool value) {
 		if (_security != value) {
 			_security = value;
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 
-	void Input::set_readonly(bool value, bool isRt) {
-		if (_readonly != value) {
-			_readonly = value;
-			if (value && !isRt) {
+	void Input::set_readonly(bool val) {
+		mark_style_flag(kREADONLY_CssProp);
+		if (_readonly != val) {
+			if (val)
 				blur();
+			_readonly = val;
+		}
+	}
+
+	void Input::set_readonly_rt(bool val) {
+		if (_readonly != val) {
+			_readonly = val;
+			if (val && is_focus()) {
+				pre_render().post(Cb([](auto e) {
+					if (static_cast<Input*>(e.data)->_readonly)
+						static_cast<Input*>(e.data)->blur();
+				}), this);
 			}
 		}
 	}
 
-	void Input::set_max_length(uint32_t value, bool isRt) {
+	void Input::set_max_length(uint32_t value) {
+		mark_style_flag(kMAX_LENGTH_CssProp);
+		if (value) // check mx length
+			_async_call([](auto self, auto arg) { self->set_max_length_rt(arg.arg); }, this, value);
 		_max_length = value;
-		if (_max_length) { // check mx length
-			if (isRt) {
-				if (_value_u4.length() > _max_length) {
-					_value_u4 = _value_u4.substr(0, _max_length);
-					mark_layout(kLayout_Typesetting, true);
-				}
-			} else {
-				_async_call([](auto self, auto arg) {
-					if (self->_value_u4.length() > self->_max_length) {
-						self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
-						self->mark_layout(kLayout_Typesetting, true);
-					}
-				}, this, 0);
+	}
+
+	void Input::set_max_length_rt(uint32_t value) {
+		_max_length = value;
+		if (value) { // check mx length
+			if (_value_u4.length() > value) {
+				_value_u4 = _value_u4.substr(0, value);
+				mark_layout<true>(kLayout_Typesetting);
 			}
 		}
 	}

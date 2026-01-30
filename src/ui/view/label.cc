@@ -32,8 +32,8 @@
 #include "../screen.h"
 #include "../app.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
+#define _Parent(self) auto _parent = self->parent()
+#define _IfParent(self) _Parent(self); if (_parent)
 
 namespace qk {
 
@@ -55,10 +55,14 @@ namespace qk {
 	{
 	}
 
-	void Label::set_value(String val, bool isRt) {
+	void Label::set_value(String val) {
 		_value = val;
-		mark_layout(kLayout_Typesetting, isRt);
+		mark_layout(kLayout_Typesetting);
 		// constexpr size_t size = sizeof(Label) + sizeof(TextLinesCore);
+	}
+
+	void Label::set_value_rt(String val) {
+		// noop
 	}
 
 	View* Label::getViewForTextOptions() {
@@ -77,7 +81,7 @@ namespace qk {
 
 	void Label::layout_reverse(uint32_t _mark) {
 		if (_mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
-			_Parent();
+			_Parent(this);
 			if (_parent->is_text_container()) { // layout text in text container
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
 			} else {
@@ -107,7 +111,7 @@ namespace qk {
 			}
 			v = v->next();
 		}
-		mark(kVisible_Region, true);
+		mark<true>(kVisible_Region);
 	}
 
 	Vec2 Label::layout_size() {
@@ -122,20 +126,22 @@ namespace qk {
 		return _lines->max_height(); // Temporarily refuse to resize
 	}
 
-	void Label::set_align(Align val, bool isRt) {
+	void Label::set_align(Align val) {
+		mark_style_flag(kALIGN_CssProp);
+		if (_align != val) {
+			pre_render().async_call([](auto self, auto arg) {
+				_IfParent(self)
+				_parent->onChildLayoutChange(self, kChild_Layout_Align);
+			}, this, 0);
+			_align = val;
+		}
+	}
+
+	void Label::set_align_rt(Align val) {
 		if (_align != val) {
 			_align = val;
-			if (isRt) {
-				auto _parent = parent();
-				if (_parent)
-					_parent->onChildLayoutChange(this, kChild_Layout_Align);
-			} else {
-				pre_render().async_call([](auto self, auto arg) {
-					auto _parent = self->parent();
-					if (_parent)
-						_parent->onChildLayoutChange(self, kChild_Layout_Align);
-				}, this, 0);
-			}
+			_IfParent(this)
+			_parent->onChildLayoutChange(this, kChild_Layout_Align);
 		}
 	}
 
@@ -145,7 +151,7 @@ namespace qk {
 
 	void Label::set_layout_offset(Vec2 val) {
 		_lines->set_layout_offset(val);
-		mark(/*kTransform*/kVisible_Region, true);
+		mark<true>(/*kTransform*/kVisible_Region);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
@@ -164,9 +170,9 @@ namespace qk {
 
 	void Label::onActivate() {
 		if (level())
-			mark(kTransform, true); // mark recursive transform
+			mark<true>(kTransform); // mark recursive transform
 		_textFlags = 0xffffffff;
-		mark_layout(kText_Options, true);
+		mark_layout<true>(kText_Options);
 	}
 
 	TextOptions* Label::asTextOptions() {

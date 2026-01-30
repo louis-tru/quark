@@ -53,8 +53,8 @@ namespace qk {
 	void ActionCenter::addCSSTransition_rt(View *view, CStyleSheets *css) {
 		auto action = KeyframeAction::MakeSSTransition(view, css, css->time(), true);
 		action->retain(); // retain for center
-		action->play_rt();
-		_CSSTransitions_rt.get(uint64_t(view)).push(action);
+		action->play_rt(); // start action
+		_CSSTransitions_rt.get(uintptr_t(view)).push(action);
 	}
 
 	void ActionCenter::removeCSSTransition_rt(View *view) {

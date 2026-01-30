@@ -32,7 +32,7 @@ public:
 		ipaint.setImage(*img, {size*-0.5,size});
 		canvas->drawRect({size*-0.5,size}, paint);
 
-		mark(kLayout_None,true);
+		mark_render();
 	}
 };
 

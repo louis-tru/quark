@@ -113,7 +113,7 @@ public:
 
 		canvas->restore();
 
-		mark(kLayout_None,true);
+		mark_render();
 	}
 
 };

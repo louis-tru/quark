@@ -153,6 +153,7 @@ namespace qk {
 		uint32_t         _textFlags; // text props change flags
 		SecondOpts      *_second;
 
+		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class TextConfig;
 		friend class DefaultTextOptions;
 	};

@@ -161,7 +161,7 @@ namespace qk {
 				auto op = (m_to - m_from) * y + m_from;
 				if (op != m_host->_scrollbar_opacity) {
 					m_host->_scrollbar_opacity = op;
-					m_host->_host->mark(0, true);
+					m_host->_host->mark<true>(0);
 				}
 				//Qk_DLog("run, %f, %p", m_host->_scrollbar_opacity, this);
 			}
@@ -169,7 +169,7 @@ namespace qk {
 			virtual void end() {
 				//Qk_DLog("end, %f, %p", m_to, this, this);
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark(0, true);
+				m_host->_host->mark<true>(0);
 				next();
 				_inl(m_host)->termination_task(this);
 			}
@@ -177,7 +177,7 @@ namespace qk {
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
 				//Qk_DLog("immediate_end, %f, %p", m_to, this);
-				m_host->_host->mark(0, true);
+				m_host->_host->mark<true>(0);
 				_inl(m_host)->termination_task(this);
 			}
 
@@ -388,7 +388,7 @@ namespace qk {
 				_scroll = scroll;
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
-				_host->mark(kScrollMark, true); // mark
+				_host->mark<true>(kScrollMark); // mark
 
 				_host->pre_render().post(Cb([this, scroll](auto& e) {
 					Sp<UIEvent> evt = new UIEvent(_host);
@@ -418,7 +418,7 @@ namespace qk {
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
 						_scrollbar_opacity = 0;
-						_host->mark(0, true);
+						_host->mark<true>(0);
 					}
 				}
 			} else {
@@ -743,7 +743,7 @@ namespace qk {
 
 	void ScrollView::set_scrollbar(bool value) {
 		_scrollbar = value;
-		_host->mark(0, false);
+		_host->mark(0);
 	}
 
 	void ScrollView::set_resistance(float value) {
@@ -774,19 +774,37 @@ namespace qk {
 		_catch_position_y = value;
 	}
 
-	void ScrollView::set_scrollbar_color(Color value, bool isRt) {
+	void ScrollView::set_scrollbar_color(Color value) {
+		_host->mark_style_flag(kSCROLLBAR_COLOR_CssProp);
 		_scrollbar_color = value;
-		_host->mark(0, isRt);
+		_host->mark_render();
 	}
 
-	void ScrollView::set_scrollbar_width(float value, bool isRt) {
+	void ScrollView::set_scrollbar_color_rt(Color value) {
+		_scrollbar_color = value;
+		_host->mark_render();
+	}
+
+	void ScrollView::set_scrollbar_width(float value) {
+		_host->mark_style_flag(kSCROLLBAR_WIDTH_CssProp);
 		_scrollbar_width = Float32::max(1.0, value);
-		_host->mark(0, isRt);
+		_host->mark_render();
 	}
 
-	void ScrollView::set_scrollbar_margin(float value, bool isRt) {
+	void ScrollView::set_scrollbar_width_rt(float value) {
+		_scrollbar_width = Float32::max(1.0, value);
+		_host->mark_render();
+	}
+
+	void ScrollView::set_scrollbar_margin(float value) {
+		_host->mark_style_flag(kSCROLLBAR_MARGIN_CssProp);
 		_scrollbar_margin = Float32::max(1.0, value);
-		_host->mark(0, isRt);
+		_host->mark_render();
+	}
+
+	void ScrollView::set_scrollbar_margin_rt(float value) {
+		_scrollbar_margin = Float32::max(1.0, value);
+		_host->mark_render();
 	}
 
 	void ScrollView::set_scroll_duration(uint64_t value) {
@@ -816,11 +834,11 @@ namespace qk {
 	}
 
 	void ScrollView::set_scroll_left(float value) {
-		set_scroll({value, -_scroll.load().y()}, false);
+		set_scroll({value, -_scroll.load().y()});
 	}
 
 	void ScrollView::set_scroll_top(float value) {
-		set_scroll({-_scroll.load().x(), value}, false);
+		set_scroll({-_scroll.load().x(), value});
 	}
 
 	Vec2 ScrollView::scroll() const {
@@ -828,10 +846,8 @@ namespace qk {
 		return {-v[0],-v[1]};
 	}
 
-	void ScrollView::set_scroll(Vec2 value, bool isRt) {
-		if (isRt) {
-			_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll({-value.x(), -value.y()}));
-		} else if (_scroll_duration) {
+	void ScrollView::set_scroll(Vec2 value) {
+		if (_scroll_duration) {
 			scrollTo(value, _scroll_duration, _default_curve_Wt);
 		} else {
 			value = _this->get_valid_scroll(-value[0], -value[1]);
@@ -845,6 +861,10 @@ namespace qk {
 				}, _this, value);
 			}
 		}
+	}
+
+	void ScrollView::set_scroll_rt(Vec2 value) {
+		_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll({-value.x(), -value.y()}));
 	}
 
 	void ScrollView::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {
@@ -881,7 +901,7 @@ namespace qk {
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
 
-		_host->mark(kScrollMark, true);
+		_host->mark<true>(kScrollMark);
 	}
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------

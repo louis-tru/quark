@@ -171,7 +171,7 @@ namespace qk {
 		}
 	}
 
-	Window* Keyframe::getWindowForAsyncSet() {
+	Window* Keyframe::getWindow() const {
 		return _host ? _host->_window: nullptr;
 	}
 

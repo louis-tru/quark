@@ -71,7 +71,7 @@ export declare class Keyframe extends StyleSheets {
 	/** apply style to view */
 	apply(view: View): void;
 	/** fetch style from view */
-	fetch(view: View): void;
+	fetch(from: View): void;
 }
 
 /**
@@ -348,7 +348,7 @@ export function transition(
 	action.add(to); // add frame 1
 
 	if (keyFrom) {
-		keyFrom.fetch(view); // fetch(view)
+		keyFrom.fetch(view); // fetch props to keyFrom from view
 	}
 
 	view.action = action

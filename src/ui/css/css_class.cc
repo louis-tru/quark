@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+ #include "../ui.h"
 #include "./css.h"
 #include "../app.h"
 #include "../action/action.h"
@@ -35,163 +36,317 @@
 #include "../view/view.h"
 
 namespace qk {
+	/*
+	* This file implements the runtime CSS class resolution logic
+	* for a single View.
+	*
+	* Key responsibilities:
+	* - Maintain class name list (work thread)
+	* - Synchronize hashed class names to render thread
+	* - Resolve matching selectors from the global stylesheet tree
+	* - Apply style properties and transitions
+	* - Track selector propagation to descendant views
+	*
+	* IMPORTANT:
+	* - Selector trees (CStyleSheets / RootStyleSheets) are global and shared.
+	* - This class holds only per-View runtime state.
+	* - All selector matching is hash-based and performed on render thread.
+	*/
+
+	#define _IfHost(self, ...) auto _host = self->_host.load(); if (!_host) return __VA_ARGS__
 	#define _async_call _host->window()->pre_render().async_call
 
+	// Hash value for the reserved "undefined" class name.
+	// Used to ignore invalid or placeholder class tokens.
 	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
 
 	CStyleSheetsClass::CStyleSheetsClass(View *host)
-		: _state(kNormal_UIState)
-		, _setState(kNormal_UIState)
-		, _havePseudoType(false)
-		, _firstApply(true)
-		, _host(host)
-		, _parent(nullptr)
+		: _state(kNormal_UIState)     // currently applied pseudo state
+		, _setState(kNormal_UIState)  // requested pseudo state (pending)
+		, _havePseudoType(false)      // whether any matched selector has pseudo variants
+		, _firstApply(true)           // first-time style application flag
+		, _host(host)                 // owning view
+		, _parent(nullptr)            // parent runtime style context
 	{
 		Qk_ASSERT(host);
-		// sizeof(CStyleSheetsClass);
+	}
+
+	inline Set<View*>& CStyleSheetsClass::viewsSet(uint64_t hash) {
+		return _host.load()->window()->_viewsByClass[hash];
+	}
+
+	void CStyleSheetsClass::release() {
+		auto _host = this->host();
+		// Cleanup render thread mappings
+		_async_call([](auto self, auto arg) {
+			auto host = arg.arg;
+			auto &viewsByClass = host->window()->_viewsByClass;
+			for (auto &i: self->_nameHash_rt) {
+				viewsByClass[i.first].erase(host); // remove class mappings
+			}
+			self->_parent = nullptr;
+		}, this, _host);
+		this->_host.store(nullptr); // remove host reference
+		Object::release(); // continue release
+	}
+
+	void CStyleSheetsClass::destroy() {
+		auto app = shared_app();
+		if (app) {
+			Inl_Application(app)->add_delay_task(Cb([](auto e, Object *self) {
+				// To ensure safety and efficiency,
+				// it should be Completely destroyed in RT (render thread)
+				// However, since there is no window object available, delayed destruction is the only option.
+				static_cast<CStyleSheetsClass*>(self)->Object::destroy();
+			}, (Object*)this/* Avoid being re quoted */));
+		} else {
+			Object::destroy();
+		}
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
-		auto names = new Set<uint64_t>();
+		_IfHost(this);
+		// Collect unique hashed class names
+		Sp<Set<uint64_t>> hashs = new Set<uint64_t>();
+
+		// Update work-thread string set
 		_names.clear();
-		for ( auto &j: name ) {
+
+		for (auto &j: name) {
 			auto s = j.trim();
 			if (!s.is_empty()) {
 				auto hash = CSSCName(s).hashCode();
-				if (hash != UndefinedHashCode && names->add(hash)) {
+				// Filter out undefined and duplicate class names
+				if (hash != UndefinedHashCode && hashs->add(hash)) {
 					_names.add(s);
 				}
 			}
 		}
-		_async_call([](auto ctx, auto val) {
-			Sp<Set<uint64_t>> valp(val.arg);
-			ctx->_nameHash_rt = std::move(**valp);
-			ctx->updateClass_rt();
-		}, this, names);
+
+		// Synchronize hashed class names to render thread
+		_async_call([](auto self, auto val) {
+			Sp<Set<uint64_t>> valp(val.arg); // take ownership
+			_IfHost(self);
+			auto &viewsByClass = _host->window()->_viewsByClass;
+			for (auto &i: self->_nameHash_rt) {
+				viewsByClass[i.first].erase(_host); // remove old class mappings
+			}
+			for (auto &i: *val.arg) {
+				viewsByClass[i.first].add(_host); // add new class mappings
+			}
+			self->_nameHash_rt = std::move(*val.arg);
+			self->updateClass_rt(); // mark class change
+		}, this, hashs.collapse());
 	}
 
 	void CStyleSheetsClass::add(cString &name) {
+		_IfHost(this);
 		auto name_ = name.trim();
 		if (name_.is_empty()) return;
-		if (!_names.add(name_)) return;
-		_async_call([](auto ctx, auto hash) {
-			ctx->_nameHash_rt.add(hash.arg);
-			ctx->updateClass_rt();
+		if (!_names.add(name_)) return; // already exists
+
+		_async_call([](auto self, auto hash) {
+			_IfHost(self);
+			self->viewsSet(hash.arg).add(_host); // add new class mappings
+			self->_nameHash_rt.add(hash.arg);
+			self->updateClass_rt(); // trigger selector re-evaluation
 		}, this, CSSCName(name_).hashCode());
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
+		_IfHost(this);
 		auto name_ = name.trim();
 		if (name_.is_empty()) return;
-		if (!_names.erase(name_)) return;
-		_async_call([](auto ctx, auto hash) {
-			ctx->_nameHash_rt.erase(hash.arg);
-			ctx->updateClass_rt();
+		if (!_names.erase(name_)) return; // not present
+		_async_call([](auto self, auto hash) {
+			_IfHost(self);
+			self->viewsSet(hash.arg).erase(_host); // remove class mappings
+			self->_nameHash_rt.erase(hash.arg);
+			self->updateClass_rt(); // trigger selector re-evaluation
 		}, this, CSSCName(name_).hashCode());
 	}
 
 	bool CStyleSheetsClass::toggle(cString &name) {
+		_IfHost(this, false);
 		auto name_ = name.trim();
 		if (name_.is_empty()) return false;
 		if (_names.erase(name_)) { // removed
-			_async_call([](auto ctx, auto hash) {
-				ctx->_nameHash_rt.erase(hash.arg);
-				ctx->updateClass_rt();
+			_async_call([](auto self, auto hash) {
+				_IfHost(self);
+				self->viewsSet(hash.arg).erase(_host); // remove class mappings
+				self->_nameHash_rt.erase(hash.arg);
+				self->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
 			return false;
 		} else {
 			_names.add(name_); // add name
-			_async_call([](auto ctx, auto hash) {
-				ctx->_nameHash_rt.add(hash.arg);
-				ctx->updateClass_rt();
+			_async_call([](auto self, auto hash) {
+				_IfHost(self);
+				self->viewsSet(hash.arg).add(_host); // add new class mappings
+				self->_nameHash_rt.add(hash.arg);
+				self->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
 			return true;
 		}
 	}
 
 	void CStyleSheetsClass::clear() {
+		_IfHost(this);
 		if (_names.length() == 0) return;
 		_names.clear();
-		_async_call([](auto ctx, auto arg) {
-			ctx->_nameHash_rt.clear();
-			ctx->updateClass_rt();
+		_async_call([](auto self, auto arg) {
+			_IfHost(self);
+			auto &viewsByClass = _host->window()->_viewsByClass;
+			for (auto &i: self->_nameHash_rt) {
+				viewsByClass[i.first].erase(_host); // remove class mappings
+			}
+			self->_nameHash_rt.clear();
+			self->updateClass_rt();
 		}, this, 0);
 	}
 
 	void CStyleSheetsClass::updateClass_rt() {
-		_host->mark_layout(View::kClass_Change, true);
+		// Mark layout dirty due to class list change.
+		// Actual selector resolution happens during render/layout phase.
+		host()->mark_layout<true>(View::kClass_Change);
 	}
 
 	void CStyleSheetsClass::setState_rt(UIState state) {
-		if ( _setState != state ) {
+		if (_setState != state) {
 			_setState = state;
-			if ( _havePseudoType ) {
+
+			// Only trigger state change if any matched selector
+			// actually contains pseudo variants.
+			if (_havePseudoType) {
 				if (_setState == _state) {
-					// Delete change state tags to optimize performance
-					_host->unmark(View::kClass_State);
+					// State unchanged, remove dirty mark
+					host()->unmark(View::kClass_State);
 				} else {
-					_host->mark_layout(View::kClass_State, true);
+					// State changed, mark for selector re-evaluation
+					host()->mark_layout<true>(View::kClass_State);
 				}
 			}
 		}
 	}
 
-	bool CStyleSheetsClass::apply_rt(CStyleSheetsClass *parent, bool force) {
-		auto lastHash = _stylesForHaveSubstylesHash_rt.hashCode();
+	/**
+	 * Mark views that may be affected by class / propagating style changes.
+	 *
+	 * This method uses the Window-level reverse index (_viewsByClass)
+	 * to find candidate views that declare class names referenced by
+	 * the current propagating styles.
+	 *
+	 * Only a pre-filter is performed here:
+	 *  - No selector resolution
+	 *  - No hierarchy traversal
+	 *  - No style application
+	 *
+	 * The marked views will be re-evaluated later during the normal
+	 * render/layout update pass.
+	 *
+	 * @thread Rt
+	 */
+	void CStyleSheetsClass::markViewsForClassChange_rt() {
+		auto host = _host.load();
+		auto &_viewsByClass = host->window()->_viewsByClass;
+
+		if (host->_level == 0) return; // skip visible = false views
+
+		for (auto ss: _propagatingStyles_rt) {
+			Set<qk::View *> *views;
+			if (_viewsByClass.get(ss->_name.hashCode(), views)) {
+				for (auto &v: *views) {
+					auto view = v.first;
+					if (ss->_directChildOnly) {
+						if (host == view->parent()) {
+							view->mark_layout<true>(View::kClass_Change);
+						}
+					} else if (host->is_child_rt(view)) {
+						// descendant selector: mark any matching view in subtree
+						view->mark_layout<true>(View::kClass_Change);
+					}
+				}
+			}
+		}
+	}
+
+	void CStyleSheetsClass::apply_rt(CStyleSheetsClass *parent, bool alwaysApply, bool propagate) {
+		auto host = _host.load();
+		// Snapshot previous propagation state
+		auto lastHash = _propagatingStylesHash_rt.hashCode();
 		auto lastStylesHash = _stylesHash_rt.hashCode();
-		// clear status
+
+		// Reset runtime state for re-application
 		_stylesHash_rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
-		_state = _setState; // apply state
+		_state = _setState; // commit pseudo state
 
-		auto clearStatus = [this]() {
-			// clear transition first
-			_host->window()->actionCenter()->removeCSSTransition_rt(_host);
-			// reset styles for have substyles
-			_stylesForHaveSubstyles_rt.clear();
-			_stylesForHaveSubstylesHash_rt = Hash5381();
+		auto clearStatus = [this, host](bool propagate) {
+			// Clear all running CSS transitions for this view
+			host->window()->actionCenter()->removeCSSTransition_rt(host);
+
+			if (propagate) {
+				// Mark descendant views as needing style re-evaluation
+				markViewsForClassChange_rt();
+			}
+			// Reset propagation cache
+			_propagatingStyles_rt.clear();
+			_propagatingStylesHash_rt = Hash5381();
 		};
 
 		if (_nameHash_rt.length()) {
 			Array<CStyleSheets*> styles;
+
+			// Resolve matching selectors from parent propagation context
 			findSubstylesFromParent_rt(parent, &styles);
-			// apply styles if changed
-			if (lastStylesHash != _stylesHash_rt.hashCode() || force) {
-				clearStatus();
-				// apply styles
+
+			// Apply styles only if the resolved set changed
+			if (lastStylesHash != _stylesHash_rt.hashCode() || alwaysApply) {
+				clearStatus(propagate);
+
 				for (auto ss: styles) {
+					// Handle transition vs immediate apply
 					if (ss->_time && !_firstApply) {
-						_host->window()->actionCenter()->addCSSTransition_rt(_host, ss);
+						if (ss->itemsCount()) // has properties to apply
+							host->window()->actionCenter()->addCSSTransition_rt(host, ss);
 					} else {
-						ss->apply(_host, true);
+						ss->apply_with_priority(host);
 					}
+
+					// Cache styles that may propagate to children
 					if (ss->_substyles.length()) {
-						_stylesForHaveSubstyles_rt.push(ss);
-						_stylesForHaveSubstylesHash_rt.updateu64(uintptr_t(ss));
+						_propagatingStyles_rt.push(ss);
+						_propagatingStylesHash_rt.updateu64(uintptr_t(ss));
+					}
+					// Propagate class changes to potentially affected views.
+					// This only marks candidates via reverse lookup;
+					// actual style resolution happens later.
+					if (propagate) {
+						markViewsForClassChange_rt();
 					}
 				}
 			}
 		} else {
-			clearStatus();
+			// No class names → clear all styles and propagation
+			clearStatus(propagate);
 		}
 		_firstApply = false; // mark first apply false
-
-		// affects children CStyleSheetsClass
-		return _stylesForHaveSubstylesHash_rt.hashCode() != lastHash;
 	}
 
 	void CStyleSheetsClass::findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out) {
+		// Match descendant selectors against current class set
 		auto find = [](CStyleSheetsClass *self, CStyleSheets *ss, Array<CStyleSheets*> *out) {
 			for (auto &n: self->_nameHash_rt) {
-				qk::CStyleSheets *sss;
-				if (ss->_substyles.get(n.first, sss)) { // find substyle by class name hash
-					self->findStyle_rt(sss, out);
+				CStyleSheets *css;
+				// Match descendant selector: ".parent .child"
+				if (ss->_substyles.get(n.first, css)) { // find substyle by class name hash
+					self->findStyle_rt(css, out);
 				}
 			}
 		};
 		if (parent) {
-			Qk_ASSERT(parent->_stylesForHaveSubstyles_rt.length());
+			Qk_ASSERT(parent->_propagatingStyles_rt.length());
 			// find child substyles from parent class
 			/*{
 				'.parent': {...},
@@ -203,11 +358,25 @@ namespace qk {
 				<box class="child2">test b<box>
 			</box>
 			*/
+			// Recursively resolve descendant selectors from ancestor propagation contexts
+			// (".ancestor .child")
 			findSubstylesFromParent_rt(parent->_parent, out); // find styles from parent
-			for (auto ss: parent->_stylesForHaveSubstyles_rt) {
+
+			// Then match current level against parent's propagating styles
+			// to find direct child selectors.
+			// e.g.: ".parent > .child"
+			//
+			auto isDirectChild = parent->host() == _host.load()->parent();
+
+			// Match current level against parent's propagating styles
+			for (auto ss: parent->_propagatingStyles_rt) {
+				if (ss->_directChildOnly) {
+					if (!isDirectChild)	continue; // skip non-direct child
+				}
 				find(this, ss, out); // find sub styles from parent
 			}
 		} else {
+			// Root-level selector matching
 			find(this, RootStyleSheets::shared(), out); // find global root substyles
 		}
 	}
@@ -216,29 +385,29 @@ namespace qk {
 	/**
 	.a {
 		width: 100;
-		.a_a {
-			height: 110;
-			&:hover {
-				height: 170;
-			}
-		}
-		.a_b {
-			color: #f00;
-		}
-		&:hover {
-			width: 150;
-			.a_a {
-				height: 160;
-				// ------------------ error ------------------
-				&:hover {
-					height: 171;
-				}
-				// ------------------
-			}
-			.a_b {
-				color: #ff0;
-			}
-		}
+	}
+	.a .a_a {
+		height: 110;
+	}
+	.a .a_a:hover {
+		height: 170;
+	}
+	.a .a_b {
+		color: #f00;
+	}
+	.a:hover {
+		width: 150;
+	}
+	.a:hover .a_a {
+		height: 160;
+	}
+	// ------------------ error ------------------
+	.a:hover .a_a:hover {
+		height: 171;
+	}
+	// ------------------
+	.a:hover .a_b {
+		color: #ff0;
 	}
 	<box class="a">
 		<box class="a_a">test a<box>
@@ -247,6 +416,7 @@ namespace qk {
 	*/
 
 	void CStyleSheetsClass::findStyle_rt(CStyleSheets *css, Array<CStyleSheets*> *out) {
+		// Record matched selector node
 		out->push(css);
 		_stylesHash_rt.updateu64(uintptr_t(css));
 
@@ -254,28 +424,45 @@ namespace qk {
 		if (css->_havePseudoType) {
 			_havePseudoType = true;
 
-			CStyleSheets *css_pse = nullptr;
 			switch (_state) {
 				case kNone_UIState: break;
-				case kNormal_UIState: css_pse = css->_normal; break;
-				case kHover_UIState: css_pse = css->_hover; break;
-				case kActive_UIState: css_pse = css->_active; break;
+				case kNormal_UIState:
+					if (css->_normal) findStyle_rt(css->_normal, out);
+					break;
+				case kHover_UIState:
+					if (css->_hover) findStyle_rt(css->_hover, out);
+					break;
+				case kActive_UIState:
+					if (css->_active) findStyle_rt(css->_active, out);
+					break;
 			}
-			if (css_pse)
-				findStyle_rt(css_pse, out);
 		}
 
-		if (css->_extends.length()) { // find extend
+		// Match continuous (no-space) selector extension.
+		// `_ext` only stores the immediate next selector segment.
+		//
+		// Example:
+		//   .self.ext1.xxx.fdd
+		//
+		// At `.self` level:
+		//   _ext contains only "ext1"
+		//
+		// Deeper segments ("xxx", "fdd") are matched recursively
+		// through subsequent `findStyle_rt` calls.
+		//
+		// Therefore, this lookup checks only the next chained class,
+		// not the entire selector chain.
+		if (css->_ext.length()) { // find extend
 			 // more extend, optimize search
-			if (css->_extends.length() > _nameHash_rt.length()) {
-				for (auto &i: _nameHash_rt) { // test right extend
+			if (css->_ext.length() > _nameHash_rt.length()) {
+				for (auto &i: _nameHash_rt) { // test next extend
 					CStyleSheets *ss;
-					if (css->_extends.get(i.first, ss)) { // test ok
+					if (css->_ext.get(i.first, ss)) { // test ok
 						findStyle_rt(ss, out);
 					}
 				}
 			} else { // less extend, optimize search
-				for (auto &i: css->_extends) { // test right extend
+				for (auto &i: css->_ext) { // test next extend
 					if (_nameHash_rt.has(i.first)) { // test ok
 						findStyle_rt(i.second, out);
 					}
