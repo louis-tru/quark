@@ -81,25 +81,27 @@ namespace qk {
 
 	void Label::layout_reverse(uint32_t _mark) {
 		if (_mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
-			_Parent(this);
-			if (_parent->is_text_container()) { // layout text in text container
+			_IfParent(this) {
+				if (!_parent->is_text_container()) { // layout text in text container
+					// Qk_Log("Label::layout_reverse, %s", _value.c_str());
+					// layout text in non text container
+					auto &container = _parent->layout_container(); // use parent container
+					TextLines lines(text_align_value(), container.to_range(), container.float_x());
+					// lines.set_ignore_single_space_line(false); // keep single space line
+					layout_text(&lines, nullptr); // no text container, use nullptr
+					lines.finish();
+				}
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
-			} else {
-				// layout text in non text container
-				auto &container = _parent->layout_container(); // use parent container
-				TextLines lines(text_align_value(), container.to_range(), container.float_x());
-				lines.set_ignore_single_space_line(true);
-				layout_text(&lines, nullptr); // no text container, use nullptr
-				lines.finish();
+				unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
 			}
-			unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
 		}
 	}
 
-	void Label::layout_text(TextLines *lines, TextOptions* _) {
+	void Label::layout_text(TextLines *lines, TextOptions* baseOpts) {
 		_blob_visible.clear();
 		_blob.clear();
 		_lines = lines->core();
+		_visible_area = false;
 
 		String value(_value); // safe hold
 		TextBlobBuilder(lines, this, &_blob).make(value);
@@ -150,8 +152,31 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset(Vec2 val) {
-		_lines->set_layout_offset(val);
-		mark<true>(/*kTransform*/kVisible_Region);
+		// Qk_Log("Label::set_layout_offset, value=%s, x=%f, y=%f", _value.c_str(), val.x(), val.y());
+		_lines->set_layout_offset(val); // append line offset
+		// mark<true>(/*kTransform*/kVisible_Region);
+
+		// Set the layout offset of the non-label view within the text layout,
+		// such as image view, and set_layout_offset for it
+		set_layout_offset_non_label_child(val);
+	}
+
+	void Label::set_layout_offset_non_label_child(Vec2 val) {
+		auto v = first();
+		while(v) {
+			if (v->visible()) {
+				if (v->view_type() == kLabel_ViewType) {
+					// Set the layout offset of the non-label view within the text layout.
+					static_cast<Label*>(v)->set_layout_offset_non_label_child(val);
+				} else {
+					// other view, such as image view, set_layout_offset for it.
+					// Append the layout offset from old offset
+					v->set_layout_offset(v->layout_offset() + val);
+				}
+			}
+			v = v->next();
+		}
+		mark<true>(kVisible_Region);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
@@ -161,10 +186,12 @@ namespace qk {
 
 	void Label::solve_visible_area(const Mat &mat) {
 		if (_lines) {
-			if (!parent()->is_text_container()) // At Label::set_layout_offset_free(), new TextLines()
-				_lines->solve_visible_area(this, mat);
-			_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
-			_visible_area = _blob_visible.length();
+			_IfParent(this) {
+				if (!_parent->is_text_container()) // At Label::set_layout_offset_free(), new TextLines()
+					_lines->solve_visible_area(this, mat);
+				_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
+				_visible_area = _blob_visible.length() || first();
+			}
 		}
 	}
 

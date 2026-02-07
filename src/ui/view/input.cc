@@ -1004,6 +1004,8 @@ namespace qk {
 
 	void Input::input_marked(cString& text, int caret_pos) {
 		if ( _editing ) {
+			if (text.is_empty())
+				return input_unmark(text); // some IME send empty marked to cancel marked text
 			_this->input_marked_text(_this->delete_line_feed_format(text), caret_pos);
 			_this->_is_marked_text = true;
 			_this->trigger_Change();

@@ -102,6 +102,7 @@ namespace qk {
 		F(Wrap) \
 		F(WrapAlign) \
 		F(Align) \
+		F(BoxSizing) \
 		F(LayoutType) \
 		F(BoxSize) \
 		F(BoxOrigin) \

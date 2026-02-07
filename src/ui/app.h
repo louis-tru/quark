@@ -150,7 +150,7 @@ namespace qk {
 		static Application *_shared;   //! current shared application
 		List<Window*>  _windows; // window list
 		Mutex          _mutex, _delayTasksMutex;
-		uint32_t       _tick; // tick check id
+		uint32_t       _tick, _timer; // tick check id and delay tasks timer id
 		List<Pair<Cb, int>> _delayTasks; // delay tasks
 
 		Qk_DEFINE_INLINE_CLASS(Inl);

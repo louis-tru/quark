@@ -160,6 +160,13 @@ namespace qk {
 	};
 	typedef FillSizeKind BoxOriginKind;
 
+	// Box sizing
+	enum class BoxSizing: uint8_t {
+		ContentBox, /* Default, the width and height properties include only the content. */
+		PaddingBox, /* the width and height properties include the content and the padding. */
+		BorderBox, /* the width and height properties include the content, the padding, and the border. */
+	};
+
 	/**
 	 * @enum LayoutType
 	 * 

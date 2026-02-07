@@ -61,27 +61,28 @@ namespace qk {
 Range Container::to_range() const {
 		Vec2 origin(content), end(content);
 		if (state_x == kNone_FloatState) {
-			origin[0] = pre_width[0];
-			end[0] = pre_width[1];
+			origin[0] = pre_width_min;
+			end[0] = pre_width_max;
 		}
 		if (state_y == kNone_FloatState) {
-			origin[1] = pre_height[0];
-			end[1] = pre_height[1];
+			origin[1] = pre_height_min;
+			end[1] = pre_height_max;
 		}
 		return { origin,end };
 	}
 
 	float Container::clamp_width(float value) const {
-		return Float32::clamp(value, pre_width[0], pre_width[1]);
+		return Float32::clamp(value, pre_width_min, pre_width_max);
 	}
 
 	float Container::clamp_height(float value) const {
-		return Float32::clamp(value, pre_height[0], pre_height[1]);
+		return Float32::clamp(value, pre_height_min, pre_height_max);
 	}
 
 	bool Container::set_pre_width(Container::Pre pre) {
-		if (pre_width != pre.value || locked_x) {
-			pre_width = pre.value;
+		if (pre_width_min != pre.min || pre_width_max != pre.max || locked_x) {
+			pre_width_min = pre.min;
+			pre_width_max = pre.max;
 			state_x = pre.state;
 			locked_x = false; // clear locked
 			return true;
@@ -90,8 +91,9 @@ Range Container::to_range() const {
 	}
 
 	bool Container::set_pre_height(Container::Pre pre) {
-		if (pre_height != pre.value || locked_y) {
-			pre_height = pre.value;
+		if (pre_height_min != pre.min || pre_height_max != pre.max || locked_y) {
+			pre_height_min = pre.min;
+			pre_height_max = pre.max;
 			state_y = pre.state;
 			locked_y = false; // clear locked
 			return true;
@@ -417,7 +419,7 @@ Range Container::to_range() const {
 	}
 
 	static View::Container zeroContainer{
-		{}, {}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState, false, false
+		{}, {}, 0,0, 0,0, View::kFixed_FloatState, View::kFixed_FloatState, false, false
 	};
 
 	const View::Container& View::layout_container() {
@@ -892,7 +894,7 @@ Range Container::to_range() const {
 		_Cssclass();
 		if (_cssclass) { // Impact sub view
 			_cssclass->apply_rt(parent, alwaysApply, false);
-			if (_cssclass->haveSubstyles()) {
+			if (_cssclass->hasPropagatingStyles()) {
 				parent = _cssclass;
 			}
 		}
@@ -910,7 +912,7 @@ Range Container::to_range() const {
 		_Parent();
 		while (_parent) {
 			auto ss = _parent->_cssclass.load();
-			if (ss && ss->haveSubstyles()) {
+			if (ss && ss->hasPropagatingStyles()) {
 				return ss;
 			}
 			_parent = _parent->parent();

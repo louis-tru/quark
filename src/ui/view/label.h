@@ -50,7 +50,7 @@ namespace qk {
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextLines *lines, TextOptions* opts) override;
+		virtual void layout_text(TextLines *lines, TextOptions* baseOpts) override;
 		virtual void text_config(TextOptions* inherit) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
@@ -64,6 +64,7 @@ namespace qk {
 		virtual Align layout_align() override;
 		virtual bool is_text_container() const override;
 	private:
+		void set_layout_offset_non_label_child(Vec2 val);
 		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;

@@ -61,7 +61,7 @@ namespace qk {
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
-		, _tick(0)
+		, _tick(0), _timer(0)
 	{
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		check_is_first_loop();
@@ -76,23 +76,27 @@ namespace qk {
 		Inl_Application(this)->initPlatform();
 
 		static uint32_t ticks = 0;
-		struct Tick {
-			static void cb(Cb::Data& e, Application *self) {
+		struct Func {
+			static void tick(Cb::Data& e, Application *self) {
 				// static int64_t lastTime = 0;
+				// static int64_t count = 0;
 				// int64_t time = time_monotonic();
 				// int64_t diff = time - lastTime;
 				// lastTime = time;
-				// Qk_DLog("Tick delay: %lld ms", diff / 1000);
-				for (auto w: self->_windows)
-					w->pre_render().asyncCommit();
-				// execute delayed tasks every 5 ticks
-				if (++ticks % 5 == 0) {
-					ticks = 0;
-					Inl_Application(self)->resolve_delay_tasks(false);
+				// Qk_Log("Tick delay: %lld ms, count: %lld", diff / 1000, count++);
+				for (auto w: self->_windows) {
+					w->pre_render().asyncCommit(); // commit async cmd to ready
 				}
 			}
+			static void timer(Cb::Data& e, Application *self) {
+				Inl_Application(self)->resolve_delay_tasks(false);
+			}
 		};
-		_tick = _loop->tick(Cb(&Tick::cb, this), -1);
+
+		// start tick check
+		_tick = _loop->tick(Cb(&Func::tick, this), -1); // every loop tick
+		// start delay tasks timer
+		_timer = _loop->timer(Cb(&Func::timer, this), 5e3, -1); // 5 second timer
 	}
 
 	Application::~Application() {
@@ -107,8 +111,8 @@ namespace qk {
 		Inl_Application(this)->resolve_delay_tasks(true);
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
-	 	_loop->tick_stop(_tick);
-		_tick = 0;
+	 	_loop->tick_stop(_tick); // stop tick
+		_loop->timer_stop(_timer); // stop timer
 		_shared = nullptr;
 	}
 

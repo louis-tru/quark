@@ -74,7 +74,7 @@ namespace qk {
 
 			float main_max = 0;
 			float cross_total = 0;
-			float main_limit = is_horizontal ? _container.pre_width[1]: _container.pre_height[1];
+			float main_limit = is_horizontal ? _container.pre_width_max: _container.pre_height_max;
 
 			Array<Line> lines;
 			Array<FlexItem> _items; // temp items

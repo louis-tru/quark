@@ -160,6 +160,7 @@ namespace qk {
 	//_Define_Enum_transition(int)
 	_Define_Enum_transition(CascadeColor)
 	_Define_Enum_transition(Align)
+	_Define_Enum_transition(BoxSizing)
 	_Define_Enum_transition(LayoutType)
 	_Define_Enum_transition(Direction)
 	_Define_Enum_transition(ItemsAlign)

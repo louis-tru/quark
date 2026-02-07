@@ -52,8 +52,8 @@ namespace qk {
 			{(Func)static_cast<Type (View::*)()__Qk_Modifier_##__VA_ARGS__>(&View::Name),\
 				(Func)static_cast<void (View::*)(Type)>(&View::set_##Name##_rt)};
 
-	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
-		accessors[k##From##_ViewType].copy(k##Index##_CssProp, Count, accessors[k##Dest##_ViewType])
+	#define Qk_Copy_Accessor(From, Dest, Begin, Count) \
+		accessors[k##From##_ViewType].copy(k##Begin##_CssProp, Count, accessors[k##Dest##_ViewType])
 
 	struct Accessors {
 		void copy(uint32_t index, uint32_t count, Accessors &dest) {
@@ -65,7 +65,7 @@ namespace qk {
 		CssPropAccessor value[kEnum_Counts_CssProp] = {0};
 	};
 
-	auto size_Accessors = sizeof(Accessors);
+	// auto size_Accessors = sizeof(Accessors);
 	static Accessors *accessors = nullptr;
 
 	#define _Func_TextOptions_Props(_Func) \
@@ -175,6 +175,7 @@ namespace qk {
 			Qk_Set_Accessor(Box, CLIP, clip, bool);
 			Qk_Set_Accessor(Box, LAYOUT, layout, LayoutType);
 			Qk_Set_Accessor(Box, ALIGN, align, Align);
+			Qk_Set_Accessor(Box, BOX_SIZING, box_sizing, BoxSizing);
 			Qk_Set_Accessor(Box, WIDTH, width, BoxSize);
 			Qk_Set_Accessor(Box, HEIGHT, height, BoxSize);
 			Qk_Set_Accessor(Box, MIN_WIDTH, min_width, BoxSize);
@@ -215,18 +216,19 @@ namespace qk {
 			Qk_Set_Accessor(Box, BACKGROUND, background, BoxFilterPtr, NoConst);
 			Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow, BoxShadowPtr, NoConst);
 			Qk_Set_Accessor(Box, WEIGHT, weight, Vec2);
-			Qk_Copy_Accessor(Box, Flex, CLIP, 44); // copy box props to flex
-			Qk_Copy_Accessor(Box, Flow, CLIP, 44); // copy box props to flow
-			Qk_Copy_Accessor(Box, Image, CLIP, 44); // copy box props to image
-			Qk_Copy_Accessor(Box, Video, CLIP, 44); // copy box props to video
-			Qk_Copy_Accessor(Box, Input, CLIP, 44); // copy box props to input
-			Qk_Copy_Accessor(Box, Textarea, CLIP, 44); // copy box props to textarea
-			Qk_Copy_Accessor(Box, Scroll, CLIP, 44); // copy box props to scroll
-			Qk_Copy_Accessor(Box, Text, CLIP, 44); // copy box props to text
-			Qk_Copy_Accessor(Box, Button, CLIP, 44); // copy box props to button
-			Qk_Copy_Accessor(Box, Morph, CLIP, 44); // copy box props to matrix
-			Qk_Copy_Accessor(Box, World, CLIP, 44); // copy box props to world
-			Qk_Copy_Accessor(Box, Root, CLIP, 44); // copy box props to root
+			constexpr int BOX_CSS_COUNT = kWEIGHT_CssProp - kCLIP_CssProp + 1;
+			Qk_Copy_Accessor(Box, Flex, CLIP, BOX_CSS_COUNT); // copy box props to flex
+			Qk_Copy_Accessor(Box, Flow, CLIP, BOX_CSS_COUNT); // copy box props to flow
+			Qk_Copy_Accessor(Box, Image, CLIP, BOX_CSS_COUNT); // copy box props to image
+			Qk_Copy_Accessor(Box, Video, CLIP, BOX_CSS_COUNT); // copy box props to video
+			Qk_Copy_Accessor(Box, Input, CLIP, BOX_CSS_COUNT); // copy box props to input
+			Qk_Copy_Accessor(Box, Textarea, CLIP, BOX_CSS_COUNT); // copy box props to textarea
+			Qk_Copy_Accessor(Box, Scroll, CLIP, BOX_CSS_COUNT); // copy box props to scroll
+			Qk_Copy_Accessor(Box, Text, CLIP, BOX_CSS_COUNT); // copy box props to text
+			Qk_Copy_Accessor(Box, Button, CLIP, BOX_CSS_COUNT); // copy box props to button
+			Qk_Copy_Accessor(Box, Morph, CLIP, BOX_CSS_COUNT); // copy box props to matrix
+			Qk_Copy_Accessor(Box, World, CLIP, BOX_CSS_COUNT); // copy box props to world
+			Qk_Copy_Accessor(Box, Root, CLIP, BOX_CSS_COUNT); // copy box props to root
 			// Flex
 			Qk_Set_Accessor(Flex, DIRECTION, direction, Direction);
 			Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align, ItemsAlign);

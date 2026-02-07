@@ -317,7 +317,7 @@ namespace qk {
 		// This represents a selector separated by whitespace.
 		// Matching requires the target view to be a descendant
 		// (not necessarily direct child) of the current selector context.
-		CStyleSheetsDict _substyles;
+		CStyleSheetsDict _sub;
 
 		// Continuous (no-space) selector continuation.
 		// Stores only the immediate next class in a chained selector.
@@ -420,10 +420,10 @@ namespace qk {
 		inline cSet<String>& names() const { return _names; }
 
 		/**
-		 * @method haveSubstyles()
+		 * @method hasPropagatingStyles()
 		 * @thread Rt
 		*/
-		inline bool haveSubstyles() const {
+		inline bool hasPropagatingStyles() const {
 			return _propagatingStyles_rt.length();
 		}
 

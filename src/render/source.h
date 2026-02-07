@@ -44,6 +44,44 @@ namespace qk {
 
 	/**
 	 * @class ImageSource
+	 *
+	 * ImageSource represents a complete image resource lifecycle in Qk:
+	 *
+	 *   URI / Raw Pixels
+	 *        ↓
+	 *   Decode to pixel buffer
+	 *        ↓
+	 *   Optional premultiplied alpha conversion
+	 *        ↓
+	 *   Optional GPU texture upload
+	 *        ↓
+	 *   Notify all dependent views when ready
+	 *
+	 * This is NOT a simple image loader.
+	 * It is the bridge between:
+	 *   - CPU-side pixel data
+	 *   - GPU-side texture resources
+	 *   - View rendering pipeline
+	 *
+	 * Responsibilities:
+	 *  - Asynchronous image loading and decoding
+	 *  - Pixel format and premultiplied alpha handling
+	 *  - Optional GPU texture creation and mipmap generation
+	 *  - State change notification via event system
+	 *  - Safe sharing between multiple views through reference counting
+	 *
+	 * Threading model:
+	 *  - Can be created and assigned from any thread
+	 *  - Decoding and texture upload are handled internally
+	 *  - State changes are broadcast through Qk_Event(State)
+	 *
+	 * Typical usage:
+	 *  - Image views
+	 *  - Box background filters
+	 *  - Any renderable element requiring image data
+	 *
+	 * ImageSource is designed to be pooled, shared, and reused.
+	 * ImageSourceHold manages atomic ownership of it inside views.
 	 */
 	class Qk_EXPORT ImageSource: public Reference {
 		Qk_DEFINE_INLINE_CLASS(Inl);
@@ -70,29 +108,44 @@ namespace qk {
 		};
 
 		/**
-		 * @event onState
+		 * Represents loading and decoding state of the image.
+		 * These flags are used to notify dependent views when the image
+		 * becomes renderable or encounters errors.
+		 * 
+		 * @event State Fired when the state of the image source changes.
 		 */
 		Qk_Event(State, Event<ImageSource, State>, SharedMutex);
 
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
 		Qk_DEFINE_PROP_GET(State, state, Const);
-		Qk_DEFINE_PROP_GET(bool, premultipliedAlpha, Const);
-		Qk_DEFINE_PROPERTY(PremulFlags, premulFlags, Const);
+		Qk_DEFINE_PROP_GET(bool, premultipliedAlpha, Const); // is premultiplied alpha
+		Qk_DEFINE_PROPERTY(PremulFlags, premulFlags, Const); // default as kConvert_PremulFlags
 
-		// <FlowLayout>
-		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
-		// 	<Image src={new ImageSource('http://quarks.cc/res/test2.jpeg')} />
-		// 	<Image
-		// 		src='http://quarks.cc/res/test.jpeg'
-		// 		width={100} 
-		// 		height={100} margin={100} padding={100} 
-		// 		fill="#f00,rgba(0,0,0,1)" class="img1" style={{width:100, height: 100}}
-		// 	/>
-		// </FlowLayout>
+		/**
+		 * Create an ImageSource from URI.
+		 * Loading and decoding are performed asynchronously.
+		 * The returned object may not be immediately renderable.
+		 * 
+		 * @example
+		 * ```tsx
+		 * <box>
+		 * 	<image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
+		 * 	<image src={new ImageSource('http://quarks.cc/res/test2.jpeg')} />
+		 * 	<image src='http://quarks.cc/res/test.jpeg' width={100} height={100} />
+		 * </box>
+		 * ```
+		 * 
+		 * @param uri {cString&} image source URI
+		 * @param loop {RunLoop* = current_loop()} run loop for async load
+		 * @return {Sp<ImageSource>} image source smart pointer
+		 */
 		static Sp<ImageSource> Make(cString& uri, RunLoop *loop = current_loop());
 		/**
 		 * Create source and mark to gpu texture
+		 * @param pixels {Array<Pixel>&&} pixel array move
+		 * @param res {RenderResource* = nullptr} mark as texture if not null
+		 * @return {Sp<ImageSource>} image source smart pointer
 		*/
 		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *res = nullptr);
 		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *res = nullptr);
@@ -114,11 +167,13 @@ namespace qk {
 
 		/**
 		 *
-		 * mark as gpu texture and return success or failure
-		 *
-		 * @method markAsTexture()
+		 * Upload pixel data to GPU as texture.
+		 * After this call, the image becomes GPU-ready for rendering.
+		 * 
+		 * @param res {RenderResource* = nullptr} render resource pointer, default use shared render resource
+		 * @return {bool} return mark success or failure
 		 */
-		bool markAsTexture();
+		bool markAsTexture(RenderResource *res = nullptr);
 
 		/**
 		 * @method isLoaded() is ready draw image
@@ -170,7 +225,9 @@ namespace qk {
 		inline uint32_t count() const { return _pixels.length(); }
 
 		/**
-		 * @method convertToPremultipliedAlpha(pixels) convert pixels to premultiplied by alpha
+		 * Convert pixel array to premultiplied alpha format in-place.
+		 * Required for correct blending in the Qk rendering pipeline.
+		 *
 		 * @param pixels {Array<Pixel>&} pixel array reference and will be modified
 		 */
 		static void convertToPremultipliedAlpha(Array<Pixel> &pixels);
@@ -178,6 +235,7 @@ namespace qk {
 	private:
 		ImageSource(RenderResource *res, RunLoop *loop);
 		void decode(Buffer& data);
+		void afterDecode(Array<Pixel>& pixels, bool success);
 		void unloadInl(bool destroy);
 		void reloadTexture();
 		static bool toPremultipliedAlpha(Pixel &pixel);
@@ -199,16 +257,11 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(RunLoop*, loop);
 		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory size total
-		Qk_DEFINE_PROPERTY(bool, isMarkAsTexture, Const); // default as true
 
 		/**
 		 * @constructor
 		 */
 		ImageSourcePool(RunLoop *loop);
-
-		/**
-		 * @destructor
-		 */
 		~ImageSourcePool() override;
 
 		/**
@@ -251,23 +304,91 @@ namespace qk {
 	typedef ImageSourcePool ImagePool;
 
 	/**
-	* @class ImageSourceHold
-	*/
+	 * @class ImageSourceHold
+	 *
+	 * A thread-safe holder for ImageSource used by Views and renderable objects.
+	 *
+	 * Responsibilities:
+	 *  - Manage the lifetime of ImageSource with atomic exchange
+	 *  - Support setting image source from URI or directly from ImageSource
+	 *  - Integrate with ImageSourcePool for caching and reuse
+	 *  - Listen to ImageSource state changes (loading / ready / error)
+	 *  - Provide a stable abstraction for views to consume images safely
+	 *
+	 * Design notes:
+	 *  - ImageSource may be created, loaded, or swapped from any thread
+	 *  - All assignments are performed using atomic CAS to avoid locks
+	 *  - ImageSourceHold guarantees safe retain/release ordering during swaps
+	 *  - Used by ImageView, Box background, and other renderable components
+	 *
+	 * This class does NOT perform rendering.
+	 * It only manages the image source lifecycle and notifications.
+	 */
 	class Qk_EXPORT ImageSourceHold {
 	public:
 		ImageSourceHold();
 		~ImageSourceHold();
+
+		/**
+		 * Get the current image source URI.
+		 */
 		String src() const;
+
+		/**
+		 * Set image source from a URI string.
+		 *
+		 * Supported forms:
+		 *  - http / https / file paths (resolved via ImageSourcePool)
+		 *  - data URI (base64-encoded image)
+		 *
+		 * Data URI handling:
+		 *  - Parse mime type to determine image format
+		 *  - Slice base64 payload directly from the original buffer (no extra copy)
+		 *  - Decode base64 → binary → pixels
+		 *  - Convert pixels to premultiplied alpha (required by Qk renderer)
+		 *  - Create ImageSource from decoded pixels
+		 *
+		 * Non-data URIs are delegated to ImageSourcePool for caching and reuse.
+		 *
+		 * Failure cases:
+		 *  - Invalid data URI
+		 *  - Unsupported image format
+		 *
+		 * This method is thread-safe. ImageSource and ImageSourcePool
+		 * are designed for concurrent access.
+		 * 
+		 * @example
+		 *  img.src = 'http://quarks.cc/res/test.jpeg';
+		 *  img.src = 'file:///path/to/your/image.png';
+		 *  img.src = 'data:image/png;base64,iVBORw0KGgo...';
+		 *  img.src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...';
+		 *
+		 * @param val Source URI string
+		 * @return true if the source was successfully set, false on failure
+		 */
 		bool set_src(String val);
+
+		/**
+		 * Get the current image source.
+		 */
 		Sp<ImageSource> source();
+
+		/**
+		 * Set image source directly.
+		 */
 		bool set_source(Sp<ImageSource> val);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(ImageSource::State evt);
 		virtual ImagePool* imgPool();
+
+		// Atomic pointer to the active ImageSource
 		std::atomic<ImageSource*> _imageSource;
 	};
 
+	/**
+	 * get shared image source pool
+	*/
 	inline ImagePool* shared_imgPool() {
 		return ImageSourcePool::shared();
 	}

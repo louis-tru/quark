@@ -162,6 +162,8 @@ namespace qk {
 	}
 
 	void InputSink::input_marked(cString& text, int caret_pos) {
+		if (text.is_empty())
+			return input_unmark(text); // empty marked text means unmark
 		int safe_caret = caret_pos % (text.length() + 1);
 		// Android 兼容：负数表示从末尾算,裁剪到合法区间
 		if (safe_caret < 0) {

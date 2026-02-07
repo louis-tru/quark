@@ -50,6 +50,7 @@ namespace qk {
 	F(CLIP, bool, clip, Box) /* box */ \
 	F(LAYOUT, LayoutType, layout, Box) \
 	F(ALIGN, Align, align, Box) \
+	F(BOX_SIZING, BoxSizing, box_sizing, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \
 	F(MIN_WIDTH, BoxSize, min_width, Box) \

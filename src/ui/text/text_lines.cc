@@ -127,6 +127,8 @@ namespace qk {
 			line.baseline += off.y();
 		}
 		_min_origin = offset.x();
+
+		// Qk_Log("_min_origin %f", _min_origin);
 	}
 
 	TextLines::TextLines(TextAlign text_align, Range limit_range, bool host_float_x)

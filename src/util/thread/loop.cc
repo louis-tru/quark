@@ -32,7 +32,7 @@
 
 namespace qk {
 	RunLoop        *__first_loop = nullptr;
-	Array<RunLoop*> __loops;
+	Array<RunLoop*> *__loops = nullptr;
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 	public:
@@ -131,12 +131,15 @@ namespace qk {
 						*inOut = loop = new RunLoop(uv_loop_new());
 					}
 				} else {
-					for (auto i: __loops) {
+					if (!__loops) {
+						__loops = new Array<RunLoop*>();
+					}
+					for (auto i: *__loops) {
 						if (!i->_thread)
 							loop = i; break;
 					}
 					if (!loop) {
-						__loops.push((
+						__loops->push((
 							loop = new RunLoop(__first_loop ? uv_loop_new(): uv_default_loop())
 						));
 					}

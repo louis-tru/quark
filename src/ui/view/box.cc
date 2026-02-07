@@ -45,6 +45,7 @@ namespace qk {
 		: _clip(false)
 		, _layout(LayoutType::Normal) // default normal layout
 		, _align(Align::Normal)
+		, _box_sizing(BoxSizing::ContentBox)
 		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
 		, _margin_top(0), _margin_right(0)
@@ -55,12 +56,13 @@ namespace qk {
 		, _border_bottom_right_radius(0), _border_bottom_left_radius(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
+		, _container({{},{},0,Float32::limit_max,0,Float32::limit_max,kNone_FloatState,kNone_FloatState,false,false})
 		, _background(nullptr)
 		, _box_shadow(nullptr)
 		, _border(nullptr)
 	{
 		// Qk_DLog("Box, %d", sizeof(Box));
+		// sizeof(BoxSize[4]);
 	}
 
 	Box::~Box() {
@@ -105,6 +107,21 @@ namespace qk {
 		if (_clip != val) {
 			_clip = val;
 			mark_render();
+		}
+	}
+
+	void Box::set_box_sizing(BoxSizing box_sizing) {
+		mark_style_flag(kBOX_SIZING_CssProp);
+		if (_box_sizing != box_sizing) {
+			mark_layout(kLayout_Size_ALL);
+			_box_sizing = box_sizing;
+		}
+	}
+
+	void Box::set_box_sizing_rt(BoxSizing box_sizing) {
+		if (_box_sizing != box_sizing) {
+			_box_sizing = box_sizing;
+			mark_layout<true>(kLayout_Size_ALL);
 		}
 	}
 

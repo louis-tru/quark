@@ -104,6 +104,7 @@ export declare abstract class StyleSheets {
 	clip?: boolean; //!< view clip children
 	layout?: types.LayoutTypeIn; //!< view layout type
 	align?: types.AlignIn; //!<
+	boxSizing?: types.BoxSizingIn; //!< box sizing model
 	width?: types.BoxSizeIn; //!<
 	height?: types.BoxSizeIn; //!<
 	minWidth?: types.BoxSizeIn; //!<

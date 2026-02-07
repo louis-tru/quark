@@ -45,11 +45,11 @@ namespace qk {
 		return Iterator(_ptr.val + 1); // begin from index 1
 	}
 
-	void PreRender::LevelMarks::clear() {
+	inline void PreRender::LevelMarks::clear() {
 		_ptr.extra = 1;
 	}
 
-	void PreRender::LevelMarks::pop(uint32_t count) {
+	inline void PreRender::LevelMarks::pop(uint32_t count) {
 		Qk_ASSERT_GT(_ptr.extra, count);
 		_ptr.extra -= count;
 	}
@@ -75,10 +75,8 @@ namespace qk {
 		Qk_ASSERT_NE(level, 0);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
-		// if (last != view) {
 		arr[view->_mark_index] = last;
 		last->_mark_index = view->_mark_index;
-		// }
 		arr.pop(1);
 		view->_mark_index = 0;
 		_mark_total--;

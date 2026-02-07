@@ -44,6 +44,7 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, bool, clip, clip);
 			Js_MixObject_Accessor(Box, LayoutType, layout, layout);
 			Js_MixObject_Accessor(Box, Align, align, align);
+			Js_MixObject_Accessor(Box, BoxSizing, box_sizing, boxSizing);
 			Js_MixObject_Accessor(Box, BoxSize, width, width);
 			Js_MixObject_Accessor(Box, BoxSize, height, height);
 			Js_MixObject_Accessor(Box, BoxSize, min_width, minWidth);

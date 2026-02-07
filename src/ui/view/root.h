@@ -48,7 +48,6 @@ namespace qk {
 		void apply_class_all(); // apply class for all subviews
 	private:
 		Root(Window *win);
-		void reload_rt(); // @thread Rt
 		friend class Window;
 	};
 

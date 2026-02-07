@@ -223,6 +223,13 @@ namespace qk {
 		_debugMode = v;
 	}
 
+	void Window::reload_root_rt() {
+		// set render thread id avoid assert fail when call root mark_layout in reload
+		_renderThreadId = thread_self_id();
+		// The root view needs to be marked with a layout change when the window size changes.
+		_root->mark_layout<true>(View::kLayout_Inner_Width | View::kLayout_Inner_Height);
+	}
+
 	void Window::reload(bool isRt) { // Lock before calling
 		Vec2 size = surfaceSize();
 		float width = size.x();
@@ -261,12 +268,10 @@ namespace qk {
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
 		if (isRt) {
-			// set render thread id avoid assert fail
-			_renderThreadId = thread_self_id();
-			_root->reload_rt();
+			reload_root_rt();
 		} else {
 			_preRender.async_call([](auto self, auto arg) {
-				self->_root->reload_rt();
+				self->reload_root_rt();
 			}, this, 0);
 		}
 
@@ -291,7 +296,7 @@ namespace qk {
 				_defaultScale = defaultScale;
 				reload(true);
 			} else {
-				_root->reload_rt();
+				reload_root_rt();
 			}
 		}
 	}

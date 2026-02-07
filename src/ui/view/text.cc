@@ -97,7 +97,7 @@ namespace qk {
 	}
 
 	bool Text::is_text_container() const {
-		return _layout != LayoutType::Free && _layout != LayoutType::Float;
+		return _layout == LayoutType::Normal || _layout == LayoutType::Text;
 	}
 
 	void Text::solve_visible_area(const Mat &mat) {

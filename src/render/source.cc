@@ -31,12 +31,16 @@
 #include "./source.h"
 #include "../util/fs.h"
 #include "./codec/codec.h"
+#include "../util/codec.h"
 #include "./render.h"
 #define Qk_ARM_NEON Qk_ARCH_ARM64
 #if Qk_ARM_NEON
 #include <arm_neon.h>
 #endif
 #include "../util/thread/inl.h"
+
+// Define to use mark as texture when load image source
+constexpr bool kUseMarkAsTexture = true;
 
 namespace qk {
 	// -------------------- I m a g e . S o u r c e --------------------
@@ -96,6 +100,10 @@ namespace qk {
 		Sp<ImageSource> img = new ImageSource(res, nullptr);
 		if (pixels.length()) {
 			img->_info = pixels[0];
+			img->_premultipliedAlpha =
+				img->_info.alphaType() == kPremul_AlphaType ||
+				// kOpaque_AlphaType also as premultiplied, because alpha is 1.0
+				img->_info.alphaType() == kOpaque_AlphaType;
 			if (pixels[0].length()) {
 				img->_state = kSTATE_LOAD_COMPLETE;
 				img->_pixels = std::move(pixels);
@@ -123,15 +131,15 @@ namespace qk {
 		unloadInl(true);
 	}
 
-	bool ImageSource::markAsTexture() {
+	bool ImageSource::markAsTexture(RenderResource *res) {
 		if (_res)
-			return true;
-		_res = getSharedRenderResource();
+			return true; // already as texture
+		_res = res ? res : getSharedRenderResource();
 
 		if (!_res) {
 			return false;
 		}
-		if (_pixels.length()) {
+		if (_pixels.length() && _pixels[0].length()) {
 			reloadTexture();
 		}
 		return true;
@@ -176,33 +184,9 @@ namespace qk {
 	void ImageSource::decode(Buffer& data) {
 		struct Running: Cb::Core {
 			void call(Data& evt) override { // to call from mt
-				auto self = source.get();
-				if (self->_state & kSTATE_LOADING) {
-					if (completed) { // decode image complete
-						self->_onState.lock(); // lock, safe assign `_pixels`
-						self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
-						for (auto &pix: pixels) {
-							if (pix.alphaType() == kUnpremul_AlphaType) {
-								if (self->_premulFlags == kConvert_PremulFlags)
-									ImageSource::toPremultipliedAlpha(pix);
-								else if (self->_premulFlags == kOnlyMark_PremulFlags)
-									pix._alphaType = kPremul_AlphaType; // mark as premultiplied
-							}
-						}
-						self->_info = pixels[0];
-						self->_premultipliedAlpha =
-							self->_info.alphaType() == kPremul_AlphaType ||
-							self->_info.alphaType() == kOpaque_AlphaType; // kOpaque_AlphaType also as premultiplied
-						self->_pixels = std::move(pixels);
-						self->_onState.unlock();
-
-						if (self->_res) {
-							self->reloadTexture();
-						}
-					} else { // decode fail
-						self->_state = State((self->_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
-					}
-					self->Qk_Trigger(State, self->_state);
+				if (source->_state & kSTATE_LOADING) {
+					source->afterDecode(pixels, completed); // to main thread
+					source->Qk_Trigger(State, source->_state);
 				}
 			}
 			void decode() {
@@ -221,13 +205,43 @@ namespace qk {
 		New<Running>()->run(this, data);
 	}
 
+	void ImageSource::afterDecode(Array<Pixel>& pixels, bool success) {
+		auto self = this;
+		if (success) { // decode image complete
+			// AutoSharedMutexExclusive ame(_onState);
+			self->_onState.lock(); // lock, safe assign `_pixels`
+			self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
+			for (auto &pix: pixels) {
+				if (pix.alphaType() == kUnpremul_AlphaType) {
+					if (self->_premulFlags == kConvert_PremulFlags)
+						ImageSource::toPremultipliedAlpha(pix);
+					else if (self->_premulFlags == kOnlyMark_PremulFlags)
+						pix._alphaType = kPremul_AlphaType; // mark as premultiplied
+				}
+			}
+			self->_info = pixels[0];
+			self->_premultipliedAlpha =
+				self->_info.alphaType() == kPremul_AlphaType ||
+				// kOpaque_AlphaType also as premultiplied, because alpha is 1.0
+				self->_info.alphaType() == kOpaque_AlphaType;
+			self->_pixels = std::move(pixels);
+			self->_onState.unlock();
+
+			if (self->_res) {
+				self->reloadTexture();
+			}
+		} else { // decode fail
+			self->_state = State((self->_state | kSTATE_DECODE_ERROR) & ~kSTATE_LOADING);
+		}
+	}
+
 	void ImageSource::reloadTexture() {
 		// set gpu texture, Must be processed in the rendering thread
 		struct Running: Cb::Core {
 			Running(ImageSource* s): source(s) {
 			}
 			void call(Data& evt) override {
-				AutoSharedMutexExclusive ame(source.get()->_onState);
+				AutoSharedMutexExclusive ame(source->_onState);
 				auto self = source.get();
 				auto &pixels = self->_pixels;
 				if (!pixels.length() || !pixels[0].length())
@@ -512,7 +526,7 @@ namespace qk {
 		}
 	}
 
-	ImageSourcePool::ImageSourcePool(RunLoop *loop): _loop(loop), _isMarkAsTexture(true) {
+	ImageSourcePool::ImageSourcePool(RunLoop *loop): _loop(loop) {
 		Qk_CHECK(loop, "Create the ImageSourcePool fail, Haven't param RunLoop");
 	}
 
@@ -525,9 +539,10 @@ namespace qk {
 	}
 
 	ImageSource* ImageSourcePool::get(cString& uri) {
-		AutoMutexExclusive local(_Mutex);
 		String _uri = fs_reader()->format(uri);
 		uint64_t id = _uri.hashCode();
+
+		AutoMutexExclusive local(_Mutex);
 
 		// find image source by path
 		auto it = _sources.find(id);
@@ -535,7 +550,7 @@ namespace qk {
 			return it->second.source.get();
 		}
 		auto source = ImageSource::Make(_uri, _loop);
-		if (_isMarkAsTexture)
+		if (kUseMarkAsTexture)
 			source->markAsTexture();
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
@@ -587,16 +602,8 @@ namespace qk {
 		}
 	}
 
-	static std::mutex _si_mutex;
-	static ImagePool* _shared_imagePool = nullptr;
-
 	ImagePool* ImageSourcePool::shared() {
-		if (!_shared_imagePool) {
-			ScopeLock scope(_si_mutex);
-			if (!_shared_imagePool) {
-				_shared_imagePool = new ImagePool(first_loop());
-			}
-		}
+		static ImagePool* _shared_imagePool = new ImagePool(first_loop());
 		return _shared_imagePool;
 	}
 
@@ -622,12 +629,42 @@ namespace qk {
 		return _imageSource.load(std::memory_order_acquire);
 	}
 
-	bool ImageSourceHold::set_src(String value) {
+	bool ImageSourceHold::set_src(String val) {
+		if (val.starts_with("data:image")) {
+			// data:image/png;base64,
+			// data:image/svg+xml;base64,
+			int base64Idx = val.last_index_of(";base64,", 32);
+			if (base64Idx == -1) {
+				Qk_Warn("Invalid data URI: %s", val.substr(0, 32).c_str());
+				return set_source(nullptr); // invalid data uri
+			}
+			auto extname = String('.') + val.substring(11, base64Idx); // extname
+			auto imgFormat = img_format_from(extname);
+
+			if (imgFormat == kUnknown_ImageFormat) {
+				Qk_Warn("Unsupported image format in data URI: %s", val.substr(0, 32).c_str());
+				return set_source(nullptr); // unsupported image format
+			}
+			// Avoid copy string data
+			auto weakBuf = val.array(); // convert to weak buffer and hold data
+			auto& buf = weakBuf.buffer(); // get const buffer
+			auto sliceBuf = buf.slice(base64Idx + 8); // after ;base64,
+			auto binData = codec_decode_to_ucs1(kBase64_Encoding, sliceBuf.buffer());
+			Array<Pixel> pixels; // decoded pixels
+			img_decode(binData, &pixels, imgFormat); // decode image from binary data
+			ImageSource::convertToPremultipliedAlpha(pixels); // convert to premultiplied alpha
+			auto res = kUseMarkAsTexture ? getSharedRenderResource(): nullptr;
+			auto src = ImageSource::Make(std::move(pixels), res);
+			return set_source(src);
+		}
 		auto pool = imgPool();
 		if (pool) {
-			return set_source(pool->get(value));
+			return set_source(pool->get(val));
 		} else {
-			return set_source(*ImageSource::Make(value));
+			auto src = ImageSource::Make(val);
+			if (kUseMarkAsTexture)
+				src->markAsTexture(); // mark as texture
+			return set_source(src);
 		}
 	}
 

@@ -79,15 +79,15 @@ namespace qk {
 					content[0] = _container.clamp_width(w * window()->atomPixel());
 					content[1] = _container.clamp_height(h * window()->atomPixel());
 				} else { // no wrap y and rawp x
-					content[1] = _container.pre_height[0];
+					content[1] = _container.pre_height_min;
 					content[0] = _container.clamp_width(w * content[1] / h);
 				}
 			} else if (_container.float_y()) { // x is wrap and y is no wrap
-				content[0] = _container.pre_width[0];
+				content[0] = _container.pre_width_min;
 				content[1] = _container.clamp_height(h * content[0] / w);
 			} else { // all of both are no wrap
-				content[0] = _container.pre_width[0];
-				content[1] = _container.pre_height[0];
+				content[0] = _container.pre_width_min;
+				content[1] = _container.pre_height_min;
 			}
 
 			if (_container.content[0] != content[0]) {
@@ -101,8 +101,8 @@ namespace qk {
 
 			_container.state_x = _container.state_y = kFixed_FloatState;
 			_container.content = content;
-			_container.pre_width = content[0];
-			_container.pre_height = content[1];
+			_container.pre_width_min = _container.pre_width_max = content[0];
+			_container.pre_height_min = _container.pre_height_max = content[1];
 		}
 	
 		return change_mark;

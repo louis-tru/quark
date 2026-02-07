@@ -263,6 +263,18 @@ export enum Align {
 	RightBottom, //!<
 };
 
+
+/** 
+ * @enum BoxSizing
+ * 
+ * The box sizing of the View
+*/
+export enum BoxSizing {
+	ContentBox, //!< The width and height properties include only the content. Border and padding are not included.
+	PaddingBox, //!< The width and height properties include the content and padding. Border is not included.
+	BorderBox, //!< The width and height properties include the content, padding, and border.
+}
+
 /**
  * @enum BoxSizeKind
  * 
@@ -277,7 +289,7 @@ export enum BoxSizeKind {
 	// Pt,    /* pt, Points, pt = px * window.defaultScale */
 	// Px,   /* px, Pixel */
 	Ratio,   /* value % */
-	Minus,   /* (parent-value) value ! */
+	Minus,   /* (parent-value) p-value */
 };
 
 /**
@@ -525,6 +537,10 @@ export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign;
 "rightTop"|"leftMiddle"|"centerMiddle"|"rightMiddle"|"leftBottom"|"centerBottom"|"rightBottom"|Align
  */
 export type AlignIn = Uncapitalize<keyof typeof Align> | Align;
+/**
+ * @type BoxSizingIn:"contentBox"|"paddingBox"|"borderBox"|BoxSizing
+ */
+export type BoxSizingIn = Uncapitalize<keyof typeof BoxSizing> | BoxSizing;
 /**
  * @type LayoutTypeIn:"normal"|"float"|"free"|"text"|"flex"|"flow"|LayoutType
 */
@@ -1330,6 +1346,8 @@ type BoxFilterInStr = `image(${string})`|`radial(${string})`|`linear(${string})`
  * ```
  * image(res/image.png, auto 100%, x=start, y=20%, repeat)
  * 
+ * image(res/image.png, auto, repeatX, x=center, y=end)
+ * 
  * radial(#ff00ff 0%, #ff0 50%, #00f 100%)
  * 
  * linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)
@@ -1854,6 +1872,11 @@ export function parseWrapAlign(val: WrapAlignIn, msg?: string): WrapAlign { //!<
 export function parseAlign(val: AlignIn, msg?: string): Align { //!<
 	return typeof val === 'string' ?
 		Align[toCapitalize(val)] || 0 : val in Align ? val: 0;
+}
+
+export function parseBoxSizing(val: BoxSizingIn, msg?: string): BoxSizing { //!<
+	return typeof val === 'string' ?
+		BoxSizing[toCapitalize(val)] || 0 : val in BoxSizing ? val: 0;
 }
 
 export function parseLayoutType(val: LayoutTypeIn, msg?: string): LayoutType { //!<
@@ -2404,6 +2427,7 @@ export function parseFontFamily(val: FontFamilyIn, msg?: string): FontFamily { /
 
 const parseBoxFilterReference = [
 	'image(res/image.png, auto 100%, x=start, y=20%, repeat)',
+	'image(res/image.png, auto, repeatX, x=center, y=end)',
 	'radial(#ff00ff 0%, #ff0 50%, #00f 100%)',
 	'linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)',
 	// shadow(1, 1, 2, #ff00ff)

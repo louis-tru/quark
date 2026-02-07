@@ -84,6 +84,7 @@ namespace qk {
 			for (auto &i: self->_nameHash_rt) {
 				viewsByClass[i.first].erase(host); // remove class mappings
 			}
+			self->_nameHash_rt.clear();
 			self->_parent = nullptr;
 		}, this, _host);
 		this->_host.store(nullptr); // remove host reference
@@ -94,6 +95,8 @@ namespace qk {
 		auto app = shared_app();
 		if (app) {
 			Inl_Application(app)->add_delay_task(Cb([](auto e, Object *self) {
+				Qk_ASSERT_EQ(static_cast<CStyleSheetsClass*>(self)->_nameHash_rt.length(), 0,
+					"CStyleSheetsClass must be destroyed in the render thread to ensure safety and efficiency.");
 				// To ensure safety and efficiency,
 				// it should be Completely destroyed in RT (render thread)
 				// However, since there is no window object available, delayed destruction is the only option.
@@ -250,23 +253,37 @@ namespace qk {
 		auto host = _host.load();
 		auto &_viewsByClass = host->window()->_viewsByClass;
 
-		if (host->_level == 0) return; // skip visible = false views
+		if (_propagatingStyles_rt.length() == 0)
+			return; // no propagating styles
+		if (host->_level == 0)
+			return; // skip visible = false views
 
-		for (auto ss: _propagatingStyles_rt) {
+		for (auto propagating: _propagatingStyles_rt) {
 			Set<qk::View *> *views;
-			if (_viewsByClass.get(ss->_name.hashCode(), views)) {
-				for (auto &v: *views) {
-					auto view = v.first;
-					if (ss->_directChildOnly) {
-						if (host == view->parent()) {
+
+			//if (CSSCName("ace_multiselect").hashCode() == propagating->_name.hashCode()) {
+			//	Qk_DLog("ace_multiselect, %lu", CSSCName("ace_multiselect").hashCode());
+			//}
+
+			Qk_ASSERT(propagating->_sub.length(), "propagating style must have substyles");
+
+			for (auto it : propagating->_sub) {
+				if (_viewsByClass.get(it.second->_name.hashCode(), views)) {
+					for (auto &v: *views) {
+						auto view = v.first;
+						if (it.second->_directChildOnly) {
+							if (host == view->parent()) {
+								// Qk_Log("mark direct child view %p for class change", view);
+								view->mark_layout<true>(View::kClass_Change);
+							}
+						} else if (host->is_child_rt(view)) {
+							// Qk_Log("mark descendant view %p for class change", view);
+							// descendant selector: mark any matching view in subtree
 							view->mark_layout<true>(View::kClass_Change);
 						}
-					} else if (host->is_child_rt(view)) {
-						// descendant selector: mark any matching view in subtree
-						view->mark_layout<true>(View::kClass_Change);
-					}
+					} // for views
 				}
-			}
+			} // for propagating->_sub
 		}
 	}
 
@@ -315,7 +332,7 @@ namespace qk {
 					}
 
 					// Cache styles that may propagate to children
-					if (ss->_substyles.length()) {
+					if (ss->_haveSubstyles) {
 						_propagatingStyles_rt.push(ss);
 						_propagatingStylesHash_rt.updateu64(uintptr_t(ss));
 					}
@@ -340,7 +357,7 @@ namespace qk {
 			for (auto &n: self->_nameHash_rt) {
 				CStyleSheets *css;
 				// Match descendant selector: ".parent .child"
-				if (ss->_substyles.get(n.first, css)) { // find substyle by class name hash
+				if (ss->_sub.get(n.first, css)) { // find substyle by class name hash
 					self->findStyle_rt(css, out);
 				}
 			}

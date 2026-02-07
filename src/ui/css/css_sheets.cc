@@ -198,7 +198,7 @@ namespace qk {
 
 	CStyleSheets::~CStyleSheets() {
 		// Release descendant selector nodes
-		for ( auto i : _substyles )
+		for ( auto i : _sub )
 			Release(i.second);
 
 		// Release continuous selector nodes
@@ -223,8 +223,8 @@ namespace qk {
 	* - Does NOT search `_next` (continuous selectors).
 	*/
 	cCStyleSheets* CStyleSheets::find(cCSSCName &name) const {
-		auto i = _substyles.find(name.hashCode());
-		return i == _substyles.end() ? nullptr : i->second;
+		auto i = _sub.find(name.hashCode());
+		return i == _sub.end() ? nullptr : i->second;
 	}
 	
 
@@ -238,7 +238,7 @@ namespace qk {
 	* @param directChildOnly Whether this selector is for direct child only
 	*
 	* Selector examples:
-	*   ".a .b"      → isExt = false (use _substyles)
+	*   ".a .b"      → isExt = false (use _sub)
 	*   ".a.b"       → isExt = true  (use _ext)
 	*   ".a:hover"   → state != kNone_UIState
 	*/
@@ -246,7 +246,7 @@ namespace qk {
 		if (isExt)
 			directChildOnly = false; // continuous selector cannot be direct-child-only
 		CStyleSheets *ss;
-		CStyleSheetsDict &from = isExt ? _ext : _substyles;
+		CStyleSheetsDict &from = isExt ? _ext : _sub;
 
 		// Find or create base selector node
 		if (!from.get(name.hashCode(), ss)) {
@@ -254,7 +254,7 @@ namespace qk {
 				return nullptr;
 
 			if (_state && isExt) {
-				Qk_Warn("Invalid selector: pseudo state must be the last suffix; cannot chain \".%s\" after :%s",
+				Qk_Warn("Invalid CSS selector: pseudo state must be the last suffix; cannot chain \".%s\" after :%s",
 					*name.name(), getUIStateName(_state).c_str());
 				return nullptr;
 			}
@@ -266,11 +266,11 @@ namespace qk {
 			ss = new CStyleSheets(name, isExt ? _parent : this, kNone_UIState, directChildOnly);
 			from[name.hashCode()] = ss;
 
-			_haveSubstyles = _substyles.length();
+			_haveSubstyles = _sub.length();
 		}
 
 		if (directChildOnly != ss->_directChildOnly) {
-			Qk_Warn("Selector conflict: \"%s\" cannot be used as both a "
+			Qk_Warn("Invalid CSS Selector conflict: \"%s\" cannot be used as both a "
 				"descendant selector and a direct-child selector", *name.name());
 			return nullptr;
 		}
@@ -281,7 +281,7 @@ namespace qk {
 
 		// Illegal: pseudo selector cannot have sub-pseudo selectors
 		if (ss->_state) {
-			Qk_Warn("Invalid selector: pseudo selector \"%s\" cannot have sub-pseudo selectors",
+			Qk_Warn("Invalid CSS selector: pseudo selector \"%s\" cannot have sub-pseudo selectors",
 				*name.name());
 			return nullptr;
 		}
@@ -361,7 +361,7 @@ namespace qk {
 		bool directChildOnly = false;
 
 		auto invalid = [](cString& e) {
-			Qk_Warn("Invalid css name \"%s\"", *e);
+			Qk_Warn("Invalid CSS name \"%s\"", *e);
 			return (CStyleSheets*)nullptr;
 		};
 

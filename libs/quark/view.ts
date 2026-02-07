@@ -531,6 +531,9 @@ export declare class Box extends View {
 	/** Alignment of this box inside its parent. */
 	align: types.Align;
 
+	/** Box sizing model for width/height calculations. */
+	boxSizing: types.BoxSizing;
+
 	/** Declared width (can be absolute, auto, percent, etc.). */
 	width: types.BoxSize;
 	/** Declared height. */
@@ -1879,6 +1882,7 @@ declare global {
 			clip?: boolean;
 			layout?: types.LayoutTypeIn;
 			align?: types.AlignIn;
+			boxSizing?: types.BoxSizingIn;
 			width?: types.BoxSizeIn;
 			height?: types.BoxSizeIn;
 			minWidth?: types.BoxSizeIn;

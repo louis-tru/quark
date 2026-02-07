@@ -106,13 +106,13 @@ namespace qk {
 		// container size
 		struct Container {
 			struct Pre {
-				Vec2    value;
+				float   min, max;
 				uint8_t state; // At type of FloatState
 			};
 			Vec2 content; // final content size
 			Vec2 content_diff_before_locking; // final content size diff before locking
-			Vec2 pre_width; // 0: min, 1:max
-			Vec2 pre_height; // The y-axis content size range
+			float pre_width_min, pre_width_max; // min, max
+			float pre_height_min, pre_height_max; // The y-axis content size range
 			/*
 			* The wrap equal false means indicate that the size is unknown,
 			* indicates that the size changes with the size of the sub view, and the content is wrapped
@@ -176,8 +176,7 @@ namespace qk {
 		 *
 		 * When a style property is set directly via code, the corresponding flag
 		 * is set here, marking that property as having the highest priority.
-		 * Properties marked by these flags will NOT be overridden by CSS or
-		 * other style sources.
+		 * Properties marked by these flags will NOT be overridden by CSS styles.
 		 *
 		 * Default: 0 (no properties locked by code)
 		 */
@@ -423,6 +422,15 @@ namespace qk {
 		 */
 		inline bool has_style_flag(CssProp prop) const {
 			return (_style_flags[prop / 32] & (1u << (prop % 32))) != 0;
+		}
+
+		/**
+		 * Mark a style flag without bounds checking.
+		 * Caller MUST guarantee `prop` is valid, or memory corruption may occur.
+		 * Use `set_style_flag()` for safe paths.
+		 */
+		inline void mark_style_flag(CssProp prop) {
+			_style_flags[prop / 32] |= (1u << (prop % 32));
 		}
 
 		/**
@@ -759,25 +767,6 @@ namespace qk {
 		 * Similar to mark(), this method provides a single API for both
 		 * main-thread (MT) and render-thread (RT) usage, with behavior
 		 * determined at compile time.
-		 *
-		 * Template parameter:
-		 *   - isRT = false (default):
-		 *       Called from the main thread. The layout mark is enqueued
-		 *       and executed asynchronously on the render thread.
-		 *
-		 *   - isRT = true:
-		 *       Called from the render thread. The layout mark is applied
-		 *       immediately and the view is pushed into the pre-render
-		 *       layout queue if necessary.
-		 *
-		 * Thread safety:
-		 *   - MT calls are validated with Qk_Assert_FirstThread().
-		 *   - RT calls are validated with Qk_Assert_ReaderThread().
-		 *
-		 * Design notes:
-		 *   - Layout invalidation is centralized on the render thread.
-		 *   - The template-based split ensures zero runtime overhead
-		 *     while preserving clear thread semantics.
 		 */
 		template<bool isRT = false>
 		inline void mark_layout(uint32_t mark) {
@@ -800,11 +789,6 @@ namespace qk {
 		 *   - This method can be called from any thread.
 		 */
 		inline void mark_render() { pre_render()._is_render = true; }
-
-		// Set the style flag of the specified CSS property (inline version).
-		inline void mark_style_flag(CssProp prop) {
-			_style_flags[prop / 32] |= (1u << (prop % 32));
-		}
 
 	protected:
 		/**

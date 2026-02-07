@@ -90,6 +90,8 @@ namespace qk {
 		auto pFloat = pContainer.float_x();
 		auto state = pContainer.state_x;
 
+		#define is_PreWidth1_Ne_Max_Float() (pContainer.pre_width_max != Max_Float)
+
 		static auto computeMatch = [](Box* self, float pSi) {
 			float val = pSi - self->_margin_left 
 				-self->_margin_right - self->_padding_left - self->_padding_right;
@@ -98,24 +100,42 @@ namespace qk {
 			return Qk_Max(val,0);
 		};
 
-		#define is_PreWidth1_Ne_Max_Float() (pContainer.pre_width[1] != Max_Float)
+		static auto adjust = [](Box* self, float value) {
+			switch (self->_box_sizing) {
+				case BoxSizing::ContentBox:
+					return value;
+				case BoxSizing::PaddingBox:
+					value -= self->_padding_left + self->_padding_right;
+					break;
+				case BoxSizing::BorderBox:
+					value -= self->_padding_left + self->_padding_right;
+					_IfBorderV(self)
+						value -= _border->width[1] + _border->width[3]; // left + right
+					break;
+			}
+			return value;
+		};
+
+		static auto adjust_non_negative = [](Box* self, float value) {
+			return Float32::max(adjust(self, value), 0);
+		};
 
 		switch (_min_width.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				state = kNone_FloatState;
 				break;
-			case BoxSizeKind::Value: /* 明确值 value rem */
+			case BoxSizeKind::Value: /* 明确值 value */
 				state = kFixed_FloatState;
-				min = max = _min_width.value; // explicit value
+				min = max = adjust_non_negative(this, _min_width.value); // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (pFloat) { // wrap
-					if (pContainer.pre_width[0]) {
-						min = computeMatch(this, pContainer.pre_width[0]);
+					if (pContainer.pre_width_min) {
+						min = computeMatch(this, pContainer.pre_width_min);
 					}
 					if (is_PreWidth1_Ne_Max_Float()) {
-						max = computeMatch(this, pContainer.pre_width[1]);
+						max = computeMatch(this, pContainer.pre_width_max);
 					}
 				} else {
 					min = max = computeMatch(this, size);
@@ -123,58 +143,58 @@ namespace qk {
 				break;
 			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (pFloat) {
-					if (pContainer.pre_width[0]) {
-						min = Float32::max(pContainer.pre_width[0] * _min_width.value, 0);
+					if (pContainer.pre_width_min) {
+						min = adjust_non_negative(this, pContainer.pre_width_min * _min_width.value);
 					}
 					if (is_PreWidth1_Ne_Max_Float()) {
-						max = Float32::max(pContainer.pre_width[1] * _min_width.value, 0);
+						max = adjust_non_negative(this, pContainer.pre_width_max * _min_width.value);
 					}
 				} else {
-					min = max = Float32::max(size * _min_width.value, 0);
+					min = max = adjust_non_negative(this, size * _min_width.value);
 				}
 				break;
-			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
+			case BoxSizeKind::Minus: /* 减法 p-value */
 				if (pFloat) { // compute min and max
-					if (pContainer.pre_width[0]) {
-						min = Float32::max(pContainer.pre_width[0] - _min_width.value, 0);
+					if (pContainer.pre_width_min) {
+						min = adjust_non_negative(this, pContainer.pre_width_min - _min_width.value);
 					}
 					if (is_PreWidth1_Ne_Max_Float()) {
-						max = Float32::max(pContainer.pre_width[1] - _min_width.value, 0);
+						max = adjust_non_negative(this, pContainer.pre_width_max - _min_width.value);
 					}
 				} else {
-					min = max = Float32::max(size - _min_width.value, 0);
+					min = max = adjust_non_negative(this, size - _min_width.value);
 				}
 				break;
 		}
 
 		switch (_max_width.kind) {
 			case BoxSizeKind::None:
-				return {{min, max}, state};
+				return {min, max, state};
 			case BoxSizeKind::Auto:
-				return {{min, Max_Float}, kNone_FloatState};
+				return {min, Max_Float, kNone_FloatState};
 			case BoxSizeKind::Value:
-				max = _max_width.value;
+				max = adjust(this, _max_width.value);
 				break;
 			case BoxSizeKind::Match: {
 				if (!pFloat) {
 					max = computeMatch(this, size);
 				} else if (is_PreWidth1_Ne_Max_Float()) {
-					max = computeMatch(this, pContainer.pre_width[1]);
+					max = computeMatch(this, pContainer.pre_width_max);
 				}
 				break;
 			}
 			case BoxSizeKind::Ratio:
 				if (!pFloat) {
-					max = size * _max_width.value;
+					max = adjust(this, size * _max_width.value);
 				} else if (is_PreWidth1_Ne_Max_Float()) {
-					max = pContainer.pre_width[1] * _max_width.value;
+					max = adjust(this, pContainer.pre_width_max * _max_width.value);
 				}
 				break;
 			case BoxSizeKind::Minus:
 				if (!pFloat) {
-					max = size - _max_width.value;
+					max = adjust(this, size - _max_width.value);
 				} else if (is_PreWidth1_Ne_Max_Float()) {
-					max = pContainer.pre_width[1] - _max_width.value;
+					max = adjust(this, pContainer.pre_width_max - _max_width.value);
 				}
 				break;
 		}
@@ -182,7 +202,7 @@ namespace qk {
 		if (max < min) {
 			max = min;
 		}
-		return {{min, max},kNone_FloatState};
+		return {min, max, kNone_FloatState};
 	}
 
 	Pre Box::solve_layout_content_pre_height(const Container &pContainer) {
@@ -190,6 +210,8 @@ namespace qk {
 		float min = 0, max = Max_Float;
 		auto pFloat = pContainer.float_y();
 		auto state = pContainer.state_y;
+
+		#define is_PreHeight1_Ne_Max_Float() (pContainer.pre_height_max != Max_Float)
 
 		static auto computeMatch = [](Box* self, float pSi) {
 			float val = pSi - self->_margin_top
@@ -199,7 +221,25 @@ namespace qk {
 			return Qk_Max(val,0);
 		};
 
-		#define is_PreHeight1_Ne_Max_Float() (pContainer.pre_height[1] != Max_Float)
+		static auto adjust = [](Box* self, float value) {
+			switch (self->_box_sizing) {
+				case BoxSizing::ContentBox:
+					return value;
+				case BoxSizing::PaddingBox:
+					value -= self->_padding_top + self->_padding_bottom;
+					break;
+				case BoxSizing::BorderBox:
+					value -= self->_padding_top + self->_padding_bottom;
+					_IfBorderV(self)
+						value -= _border->width[0] + _border->width[2]; // top + bottom
+					break;
+			}
+			return value;
+		};
+
+		static auto adjust_non_negative = [](Box* self, float value) {
+			return Float32::max(adjust(self, value), 0);
+		};
 
 		switch (_min_height.kind) {
 			default: /* None default wrap content */
@@ -208,15 +248,15 @@ namespace qk {
 				break;
 			case BoxSizeKind::Value: /* 明确值 value rem */
 				state = kFixed_FloatState;
-				min = max = _min_height.value; // explicit value
+				min = max = adjust_non_negative(this, _min_height.value); // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (pFloat) { // wrap
-					if (pContainer.pre_height[0]) {
-						min = computeMatch(this, pContainer.pre_height[0]);
+					if (pContainer.pre_height_min) {
+						min = computeMatch(this, pContainer.pre_height_min);
 					}
 					if (is_PreHeight1_Ne_Max_Float()) {
-						max = computeMatch(this, pContainer.pre_height[1]);
+						max = computeMatch(this, pContainer.pre_height_max);
 					}
 				} else {
 					min = max = computeMatch(this, size);
@@ -224,57 +264,57 @@ namespace qk {
 				break;
 			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (pFloat) {
-					if (pContainer.pre_height[0]) {
-						min = Float32::max(pContainer.pre_height[0] * _min_height.value, 0);
+					if (pContainer.pre_height_min) {
+						min = adjust_non_negative(this, pContainer.pre_height_min * _min_height.value);
 					}
 					if (is_PreHeight1_Ne_Max_Float()) {
-						max = Float32::max(pContainer.pre_height[1] * _min_height.value, 0);
+						max = adjust_non_negative(this, pContainer.pre_height_max * _min_height.value);
 					}
 				} else {
-					min = max = Float32::max(size * _min_height.value, 0);
+					min = max = adjust_non_negative(this, size * _min_height.value);
 				}
 				break;
-			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
+			case BoxSizeKind::Minus: /* 减法 p-value */
 				if (pFloat) { // compute min and max
-					if (pContainer.pre_height[0]) {
-						min = Float32::max(pContainer.pre_height[0] - _min_height.value, 0);
+					if (pContainer.pre_height_min) {
+						min = adjust_non_negative(this, pContainer.pre_height_min - _min_height.value);
 					}
 					if (is_PreHeight1_Ne_Max_Float()) {
-						max = Float32::max(pContainer.pre_height[1] - _min_height.value, 0);
+						max = adjust_non_negative(this, pContainer.pre_height_max - _min_height.value);
 					}
 				} else {
-					min = max = Float32::max(size - _min_height.value, 0);
+					min = max = adjust_non_negative(this, size - _min_height.value);
 				}
 				break;
 		}
 
 		switch (_max_height.kind) {
 			case BoxSizeKind::None:
-				return {{min, max}, state};
+				return {min, max, state};
 			case BoxSizeKind::Auto:
-				return {{min, Max_Float}, kNone_FloatState};
+				return {min, Max_Float, kNone_FloatState};
 			case BoxSizeKind::Value:
-				max = _max_height.value;
+				max = adjust(this, _max_height.value);
 				break;
 			case BoxSizeKind::Match:
 				if (!pFloat) {
 					max = computeMatch(this, size);
 				} else if (is_PreHeight1_Ne_Max_Float()) {
-					max = computeMatch(this, pContainer.pre_height[1]);
+					max = computeMatch(this, pContainer.pre_height_max);
 				}
 				break;
 			case BoxSizeKind::Ratio:
 				if (!pFloat) {
-					max = size * _max_height.value;
+					max = adjust(this, size * _max_height.value);
 				} else if (is_PreHeight1_Ne_Max_Float()) {
-					max = pContainer.pre_height[1] * _max_height.value;
+					max = adjust(this, pContainer.pre_height_max * _max_height.value);
 				}
 				break;
 			case BoxSizeKind::Minus:
 				if (!pFloat) {
-					max = size - _max_height.value;
+					max = adjust(this, size - _max_height.value);
 				} else if (is_PreHeight1_Ne_Max_Float()) {
-					max = pContainer.pre_height[1] - _max_height.value;
+					max = adjust(this, pContainer.pre_height_max - _max_height.value);
 				}
 				break;
 		}
@@ -282,7 +322,7 @@ namespace qk {
 		if (max < min) {
 			max = min;
 		}
-		return {{min, max},kNone_FloatState};
+		return {min, max, kNone_FloatState};
 	}
 
 	uint32_t Box::solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) {
@@ -291,7 +331,7 @@ namespace qk {
 		if (mark & kLayout_Inner_Width) {
 			if (_container.set_pre_width(solve_layout_content_pre_width(pContainer))) {
 				if (_container.state_x) { // fixed width
-					_container.content[0] = _container.pre_width[0];
+					_container.content[0] = _container.pre_width_min;
 					_container.content_diff_before_locking[0] = 0;
 					mark |= kLayout_Outside_Width;
 				}
@@ -302,7 +342,7 @@ namespace qk {
 		if (mark & kLayout_Inner_Height) {
 			if (_container.set_pre_height(solve_layout_content_pre_height(pContainer))) {
 				if (_container.state_y) { // fixed height
-					_container.content[1] = _container.pre_height[0];
+					_container.content[1] = _container.pre_height_min;
 					_container.content_diff_before_locking[1] = 0;
 					mark |= kLayout_Outside_Height;
 				}
@@ -449,7 +489,7 @@ namespace qk {
 		auto v = first();
 		if (v) {
 			if ( _container.float_x() ) { // float width
-				float limitX = _container.pre_width[1];
+				float limitX = _container.pre_width_max;
 				float float_x = 0;
 				cur_x = 0;
 				do {

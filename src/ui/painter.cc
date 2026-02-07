@@ -317,8 +317,7 @@ namespace qk {
 		auto src = fill->source();
 		if (!src || !src->load())
 			return;
-
-		src->markAsTexture();
+		// src->markAsTexture();
 
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = v->_client_size;
@@ -361,13 +360,12 @@ namespace qk {
 		auto rect = inside->rect;
 
 		auto clip = [](Painter *self, Box *v, Vec2 a, Vec2 &b) {
-			auto a0 = a.x(), a1 = a.x() + a.y();
+			auto a0 = a.x(), a1 = a0 + a.y();
 			if (a.y() < 0)
 				std::swap(a0, a1);
-			if (v->_aa) {
-				a0 += self->_AAShrink * 0.5f;
-				a1 -= self->_AAShrink;
-			}
+			// if (v->_aa) {
+			// 	a0 += self->_AAShrink * 0.5f; a1 -= self->_AAShrink;
+			// }
 			// clip rect
 			auto max = std::min(a1, b.x() + b.y());
 			auto min = std::max(a0, b.x());
@@ -409,7 +407,7 @@ namespace qk {
 			try_clipX:
 				if (!inside->rrectMask) {
 					Vec2 out{rect.begin.x(), rect.size.x()};
-					if (clip(this, v, {y,h}, out)) // clip x
+					if (clip(this, v, {x,w}, out)) // clip x
 						return;
 					inside = &_cache->getRectPath({{out.x(), rect.begin.y()}, {out.y(), rect.size.y()}});
 				}
@@ -772,6 +770,7 @@ namespace qk {
 
 		auto src = source();
 		if (src && src->load()) {
+			// src->markAsTexture();
 			draw->getInsideRectPath(this);
 			Paint paint;
 			PaintImage img;
