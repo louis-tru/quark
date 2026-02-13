@@ -212,7 +212,7 @@ namespace qk {
 		void onFocus_for_render_t() {
 		if (!_readonly) {
 				_editing = true;
-				_cursor_twinkle_status = 0;
+				_cursor_twinkle_status = true;
 				_flag = kFlag_Normal;
 				mark<true>(kInput_Status);
 				window()->pre_render().addtask(this);
@@ -558,7 +558,7 @@ namespace qk {
 				set_task_timeout(window()->time() + 700000); // 700ms
 			}
 			window()->dispatch()->setImeKeyboardCanBackspace(input_can_backspace(), input_can_delete());
-			_cursor_twinkle_status = 1;
+			_cursor_twinkle_status = true;
 		}
 
 		// ============================================================================

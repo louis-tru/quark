@@ -9,7 +9,7 @@ in        lowp vec2    coords;
 void main() {
 	fragColor = texture(image, coords) * color;
 
-	// fragColor *= 1.0 - abs(aafuzz); // aalpha
+	// fragColor.a *= 1.0 - abs(aafuzz); // aalpha
 	fragColor *= 1.0 - abs(aafuzz); // premultiplied alpha
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP

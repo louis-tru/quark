@@ -61,12 +61,14 @@ namespace qk {
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
+		, _clipboard(nullptr)
 		, _tick(0), _timer(0)
 	{
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		check_is_first_loop();
 		view_prop_acc_init();
 		_shared = this;
+		_clipboard = new Clipboard();
 		_screen = new Screen(this); // strong ref
 		_fontPool = shared_fontPool();
 		_imgPool = shared_imgPool();
@@ -94,7 +96,7 @@ namespace qk {
 		};
 
 		// start tick check
-		_tick = _loop->tick(Cb(&Func::tick, this), -1); // every loop tick
+		_tick = _loop->tick_prepare(Cb(&Func::tick, this), -1); // every loop tick
 		// start delay tasks timer
 		_timer = _loop->timer(Cb(&Func::timer, this), 5e3, -1); // 5 second timer
 	}
@@ -111,6 +113,7 @@ namespace qk {
 		Inl_Application(this)->resolve_delay_tasks(true);
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
+		Releasep(_clipboard);
 	 	_loop->tick_stop(_tick); // stop tick
 		_loop->timer_stop(_timer); // stop timer
 		_shared = nullptr;

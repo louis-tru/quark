@@ -682,13 +682,13 @@ namespace qk {
 		void handle_MouseWheel(UIEvent& e) {
 			auto &evt = static_cast<MouseEvent&>(e);
 			_async_call([](auto self, auto arg) {
-				Vec2 v0 = self->_scroll.load() + (arg.arg * 10);
+				Vec2 v0 = self->_scroll.load() - (arg.arg * 1);
 				Vec2 v = self->get_catch_valid_scroll(v0);
 				if ( v != self->_scroll ) {
 					self->scroll_to_valid_scroll(v, 0);
 					self->register_task(new ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
 				}
-			}, this, evt.position());
+			}, this, evt.delta());
 		}
 
 	};
@@ -855,7 +855,7 @@ namespace qk {
 				_scroll = value;
 				_host->_async_call([](auto self, auto arg) {
 					self->set_scroll_and_trigger_event(
-						self->get_catch_valid_scroll({-arg.arg.x(), -arg.arg.y()}),
+						self->get_catch_valid_scroll({arg.arg.x(), arg.arg.y()}),
 						true
 					);
 				}, _this, value);

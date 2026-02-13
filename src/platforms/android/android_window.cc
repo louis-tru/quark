@@ -271,7 +271,7 @@ namespace qk {
 		}
 	};
 
-	void post_messate_main(Cb cb, bool sync) {
+	void post_message_main(Cb cb, bool sync) {
 		Qk_ASSERT_NE(swm, nullptr);
 		if (swm->main_thread_id == thread_self_id()) {
 			cb->resolve();
@@ -404,7 +404,7 @@ namespace qk {
 	}
 
 	void Window::openImpl(Options &opts) {
-		post_messate_main(Cb([&](auto e) {
+		post_message_main(Cb([&](auto e) {
 			_impl = swm;
 			set_backgroundColor(opts.backgroundColor);
 			activate();
@@ -412,7 +412,7 @@ namespace qk {
 	}
 
 	void Window::beforeClose() {
-		post_messate_main(Cb([this](auto e) {
+		post_message_main(Cb([this](auto e) {
 			Qk_ASSERT_NE(_impl, nullptr);
 			swm->windowExit();
 			swm->_active = nullptr;
@@ -485,12 +485,12 @@ namespace qk {
 		auto awin = _host->activeWindow();
 		if (awin == this) return;
 
-		post_messate_main(Cb([awin](auto e) {
+		post_message_main(Cb([awin](auto e) {
 			swm->windowExit();
 			swm->_active = nullptr;
 		}, awin), false);
 
-		post_messate_main(Cb([this](auto e) {
+		post_message_main(Cb([this](auto e) {
 			swm->_active = this;
 			swm->windowEnter();
 		}, this), false);
@@ -502,7 +502,7 @@ namespace qk {
 	}
 
 	void Window::pending() {
-		post_messate_main(Cb([](auto e) {
+		post_message_main(Cb([](auto e) {
 			ANativeActivity_finish(swm->_activity);
 		}), false);
 	}

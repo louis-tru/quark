@@ -40,7 +40,7 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 
 Qk_TEST_Func(loop) {
 	auto loop = RunLoop::current();
-	auto tick = loop->tick(Cb([](auto&e){
+	auto tick = loop->tick_idle(Cb([](auto&e){
 		Qk_Log("loop->tick");
 	}), -1); // keep loop
 

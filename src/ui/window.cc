@@ -40,7 +40,7 @@
 #include "../util/thread/inl.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
-# define PRINT_RENDER_FRAME_TIME 0
+# define PRINT_RENDER_FRAME_TIME DEBUG
 #endif
 
 namespace qk {
@@ -323,6 +323,10 @@ namespace qk {
 		_time = time;
 		_renderThreadId = thread_self_id(); // set render thread id
 
+#if PRINT_RENDER_FRAME_TIME
+		int64_t st = time_microsecond();
+#endif
+
 		if (!_preRender.solve(time, deltaTime)) {
 			solveNextFrame();
 			return false;
@@ -363,13 +367,10 @@ namespace qk {
 
 		solveNextFrame(); // solve frame
 
-#if DEBUG && PRINT_RENDER_FRAME_TIME
-		int64_t st = time_micro();
-#endif
 		_render->getCanvas()->swapBuffer();
 
-#if DEBUG && PRINT_RENDER_FRAME_TIME
-		int64_t ts2 = (time_micro() - st) / 1e3;
+#if PRINT_RENDER_FRAME_TIME
+		int64_t ts2 = (time_microsecond() - st) / 1e3;
 		if (ts2 > 16) {
 			Qk_Log("Window swapBuffer time: %ld -------------- ", ts2);
 		} else {

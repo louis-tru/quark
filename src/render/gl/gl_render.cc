@@ -201,7 +201,7 @@ namespace qk {
 			case PaintImage::kDecal_TileMode: // no repeat
 #ifdef GL_CLAMP_TO_BORDER
 				glSamplerParameteri(sampler, wrapdir, GL_CLAMP_TO_BORDER);
-				//constexpr float black[4] = {0,0,0,0}; // system default value the Zero
+				//constexpr float black[4] = {0,1,0,0}; // system default value the Zero
 				//glSamplerParameterfv(sampler, GL_TEXTURE_BORDER_COLOR, black);
 #else
 				glSamplerParameteri(sampler, wrapdir, GL_CLAMP_TO_EDGE);

@@ -36,6 +36,7 @@
 #include "../util/thread.h"
 #include "../render/pixel.h"
 #include "./types.h"
+#include "./clipboard.h"
 
 #define Qk_Main() \
 	int __qk_main_func__(int, char**); \
@@ -76,6 +77,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font families manage
 		Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
 		Qk_DEFINE_PROP_GET(Window*, activeWindow); //! current active window
+		Qk_DEFINE_PROP_GET(Clipboard*, clipboard); //! system clipboard
 		//! Resource memory limit, cannot be less than 64MB, the default is 512MB.
 		Qk_DEFINE_PROPERTY(uint64_t, maxResourceMemoryLimit, Const);
 		Qk_DEFINE_ACCE_GET(cList<Window*>&, windows, Const); //! all window list

@@ -126,6 +126,31 @@ namespace qk { namespace js {
 		return true;
 	}
 
+	struct MixClipboard: MixObject {
+		typedef Clipboard Type;
+
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Clipboard, 0, { Js_Throw("Access forbidden."); });
+			
+			Js_Class_Method(getText, {
+				Js_Return( self->get_text() );
+			});
+
+			Js_Class_Method(setText, {
+				Js_Parse_Args(String, 0, "text = %s");
+				self->set_text(arg0);
+			});
+
+			Js_Class_Method(hasText, {
+				Js_ReturnBool( self->has_text() );
+			});
+
+			Js_Class_Method(clear, {
+				self->clear();
+			});
+		}
+	};
+
 	struct MixNativeApplication: MixObject {
 		typedef Application Type;
 
@@ -203,6 +228,10 @@ namespace qk { namespace js {
 
 			Js_Class_Accessor_Get(activeWindow, {
 				Js_Return( self->activeWindow() );
+			});
+
+			Js_Class_Accessor_Get(clipboard, {
+				Js_Return( self->clipboard() );
 			});
 
 			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
@@ -286,6 +315,7 @@ namespace qk { namespace js {
 			worker->bindingModule("_types");
 			worker->bindingModule("_event");
 			MixNativeApplication::binding(exports, worker);
+			MixClipboard::binding(exports, worker);
 			binding_screen(exports, worker);
 			binding_window(exports, worker);
 			binding_view(exports, worker);

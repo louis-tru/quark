@@ -535,7 +535,7 @@ void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 
 void EventDispatch::cancelImeMarked() {
 	auto delegate = window()->impl()->delegate();
-	post_messate_main(Cb([delegate](auto e) {
+	post_message_main(Cb([delegate](auto e) {
 		[delegate.ime cancel_marked];
 	}), false);
 }

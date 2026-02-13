@@ -574,7 +574,7 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardAndOpen(KeyboardOptions opts) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl, opts](auto e) {
+		post_message_main(Cb([impl, opts](auto e) {
 			auto ime = static_cast<LinuxIMEHelperImpl*>(impl->ime());
 			ime->set_keyboard_type(opts.keyboard_type);
 			ime->set_keyboard_return_type(opts.return_type);
@@ -588,14 +588,14 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardClose() {
 		auto impl = window()->impl();
-		post_messate_main(Cb([=](auto e) {
+		post_message_main(Cb([=](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->close();
 		}));
 	}
 
 	void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl, can_backspace, can_delete](auto e) {
+		post_message_main(Cb([impl, can_backspace, can_delete](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->
 				set_keyboard_can_backspace(can_backspace, can_delete);
 		}));
@@ -603,14 +603,14 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl, rect](auto e) {
+		post_message_main(Cb([impl, rect](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->set_spot_rect(rect);
 		}));
 	}
 
 	void EventDispatch::cancelImeMarked() {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl](auto e) {
+		post_message_main(Cb([impl](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->cancel_marked();
 		}));
 	}

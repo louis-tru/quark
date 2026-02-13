@@ -277,7 +277,7 @@ namespace qk
 	}
 
 	// sync to x11 main message loop
-	void post_messate_main(Cb cb, bool sync) {
+	void post_message_main(Cb cb, bool sync) {
 		Qk_ASSERT(mainLooper);
 		if (main_thread_id == thread_self_id()) {
 			cb->resolve();

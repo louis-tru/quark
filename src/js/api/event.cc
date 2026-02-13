@@ -146,6 +146,7 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(MouseEvent, Vec2, position, position);
 			Js_MixObject_Acce_Get(MouseEvent, Vec2, delta, delta);
 			Js_MixObject_Acce_Get(MouseEvent, uint32_t, level, level);
+			Js_MixObject_Acce_Get(MouseEvent, int, delta_mode, deltaMode);
 			cls->exports("MouseEvent", exports);
 		}
 	};

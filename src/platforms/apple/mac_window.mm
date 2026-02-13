@@ -248,12 +248,17 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 }
 
 - (void)scrollWheel:(NSEvent *)e{
-	// Qk_DLog("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
-	KeyboardCode code = e.deltaX != 0 ?
-		e.deltaX > 0 ? KEYCODE_MOUSE_WHEEL_RIGHT: KEYCODE_MOUSE_WHEEL_LEFT:
-		e.deltaY > 0 ? KEYCODE_MOUSE_WHEEL_UP: KEYCODE_MOUSE_WHEEL_DOWN;
-	Vec2 delta(e.deltaX, e.deltaY);
-	_qkwin->dispatch()->onMousepress(code, true, &delta);
+	// Qk_Log("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f, scrollingDelta: %f %f", e.type,
+	// 	e.modifierFlags, e.deltaX,e.deltaY, e.scrollingDeltaX, e.scrollingDeltaY);
+	float dx = e.hasPreciseScrollingDeltas ? e.scrollingDeltaX : e.scrollingDeltaX * 10.0;
+	float dy = e.hasPreciseScrollingDeltas ? e.scrollingDeltaY : e.scrollingDeltaY * 10.0;
+	Vec2 delta(-dx, -dy);
+	MouseEvent::WheelDeltaMode mode =
+		e.hasPreciseScrollingDeltas ? MouseEvent::kPixel : MouseEvent::kLine;
+	KeyboardCode code = delta.y() != 0 ?
+		delta.y() > 0 ? KEYCODE_MOUSE_WHEEL_UP: KEYCODE_MOUSE_WHEEL_DOWN:
+		delta.x() > 0 ? KEYCODE_MOUSE_WHEEL_RIGHT: KEYCODE_MOUSE_WHEEL_LEFT;
+	_qkwin->dispatch()->onMousepress(code, true, &delta, mode);
 }
 
 - (void)_keyDown:(NSEvent *)e {
@@ -346,7 +351,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 @end
 
 void Window::openImpl(Options &opts) {
-	post_messate_main(Cb([&opts,this](auto e) {
+	post_message_main(Cb([&opts,this](auto e) {
 		auto impl = [[QkWindowDelegate alloc]
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl);
@@ -358,7 +363,7 @@ void Window::openImpl(Options &opts) {
 }
 
 void Window::closeImpl() {
-	post_messate_main(Cb([this](auto e) {
+	post_message_main(Cb([this](auto e) {
 		Qk_ASSERT_NE(_impl, nullptr);
 		if (_impl && !_impl->delegate().isClose) {
 			[_impl->delegate().uiwin close]; /* close platform window */
@@ -383,7 +388,7 @@ void Window::afterDisplay() {
 }
 
 void Window::set_backgroundColor(Color val) {
-	post_messate_main(Cb([this,val](auto e) {
+	post_message_main(Cb([this,val](auto e) {
 		if (!_impl)
 			return;
 		auto color = val.to_color4f();
@@ -394,7 +399,7 @@ void Window::set_backgroundColor(Color val) {
 }
 
 void Window::activate() {
-	post_messate_main(Cb([this](auto e) {
+	post_message_main(Cb([this](auto e) {
 		if (!_impl)
 			return;
 		[_impl->delegate().uiwin makeKeyAndOrderFront:nil];
@@ -407,7 +412,7 @@ void Window::pending() {
 }
 
 void Window::setFullscreen(bool fullscreen) {
-	post_messate_main(Cb([this,fullscreen](auto e) {
+	post_message_main(Cb([this,fullscreen](auto e) {
 		if (!_impl) return;
 		auto uiwin = _impl->delegate().uiwin;
 		auto screenSize = uiwin.screen.frame.size;

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,45 +25,69 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __quark_platforms_linux__linux_app__
-#define __quark_platforms_linux__linux_app__
-
-#include <X11/Xlib.h>
-#include "../../util/cb.h"
-
-typedef Window XWindow;
-typedef Display XDisplay;
+#import "../../ui/clipboard.h"
+#import "./apple_app.h"
+#import "../../ui/app.h"
+#if Qk_MacOS
+#define UIPasteboard NSPasteboard
+#endif
 
 namespace qk {
-	class Window;
-	class WindowImpl;
 
-	class LinuxIMEHelper {
-	public:
-		static LinuxIMEHelper* Make(WindowImpl* impl,
-			int inputStyle = XIMPreeditPosition);
-		virtual ~LinuxIMEHelper() = 0;
-		virtual void key_press(XKeyPressedEvent *event) = 0;
-		virtual void focus_in() = 0;
-		virtual void focus_out() = 0;
-	};
-
-	class WindowImpl: public SafeFlag {
-	public:
-		Qk_DEFINE_PROP_GET(Window*, win, Protected);
-		Qk_DEFINE_PROP_GET(XWindow, xwin, Protected);
-		Qk_DEFINE_PROP_GET(XDisplay*, xdpy, Protected);
-		Qk_DEFINE_PROP_GET(LinuxIMEHelper*, ime, Protected);
-	};
-
-	XDisplay* openXDisplay(); // open default xdisplay
-	float dpiForXDisplay(); // get dpi for default xdisplay
-	void post_message_main(Cb cb, bool sync = false); // sync to x11 main message loop
-}
-
+	String Clipboard::get_text() {
+		@autoreleasepool {
+			UIPasteboard *pb = [UIPasteboard generalPasteboard];
+#if Qk_MacOS
+			NSString *str = [pb stringForType:NSPasteboardTypeString];
+	#else
+			NSString *str = pb.string;
 #endif
+			if (!str)
+				return String();
+			return String([str UTF8String]);
+		}
+	}
+
+	void Clipboard::set_text(cString& text) {
+		@autoreleasepool {
+			post_message_main(Cb([text](auto e) {
+				UIPasteboard *pb = [UIPasteboard generalPasteboard];
+				NSString *ns = [NSString stringWithUTF8String:text.c_str()];
+#if Qk_MacOS
+				[pb clearContents];
+				[pb setString:ns forType:NSPasteboardTypeString];
+	#else
+				pb.string = ns;
+#endif
+			}), true);
+		}
+	}
+
+	bool Clipboard::has_text() {
+		@autoreleasepool {
+			UIPasteboard *pb = [UIPasteboard generalPasteboard];
+#if Qk_MacOS
+			NSString *str = [pb stringForType:NSPasteboardTypeString];
+	#else
+			NSString *str = pb.string;
+#endif
+			return str != nil;
+		}
+	}
+
+	void Clipboard::clear() {
+		@autoreleasepool {
+			post_message_main(Cb([](auto e) {
+				UIPasteboard *pb = [UIPasteboard generalPasteboard];
+#if Qk_MacOS
+				[pb clearContents];
+#else
+				pb.string = @"";
+#endif
+			}), true);
+		}
+	}
+}

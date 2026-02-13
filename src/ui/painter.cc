@@ -350,6 +350,7 @@ namespace qk {
 		paint.fill.color = _color;
 		paint.fill.image = &img;
 		paint.antiAlias = v->_aa;
+		//paint.blendMode = kSrcOver_BlendMode;
 
 		if (!src->premultipliedAlpha()) {
 			paint.blendMode = kSrcOver_BlendMode;
@@ -403,6 +404,7 @@ namespace qk {
 				break;
 			case Repeat::RepeatY:
 				img.tileModeX = PaintImage::kDecal_TileMode;
+				//img.tileModeX = PaintImage::kClamp_TileMode;
 				img.tileModeY = PaintImage::kRepeat_TileMode;
 			try_clipX:
 				if (!inside->rrectMask) {

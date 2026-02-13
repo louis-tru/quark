@@ -111,6 +111,36 @@ namespace qk {
 	class Qk_EXPORT RunLoop: public Object, public PostMessage {
 		Qk_DISABLE_COPY(RunLoop);
 	public:
+
+		/**
+		 * Tick execution phase in the event loop.
+		 *
+		 * These phases correspond to libuv watcher stages and define
+		 * WHEN the tick callback is invoked within each loop iteration.
+		 */
+		enum TickPhase {
+			/**
+			 * Earliest stage of the loop iteration.
+			 * Runs before prepare and before any potential I/O blocking.
+			 * Suitable for low-latency tasks, nextTick-style scheduling,
+			 * and lightweight UI state updates.
+			*/
+			kIdle,
+			/**
+			 * Runs right before uv__io_poll().
+			 * This is the last safe point before the loop may block waiting
+			 * for I/O. Ideal for batching, committing deferred work,
+			 * and preparing state for the next frame.
+			*/
+			kPrepare,
+			/**
+			 * Runs after uv__io_poll().
+			 * Used for post-I/O processing and callbacks that should
+			 * execute after system events are handled.
+			*/
+			kCheck,
+		};
+
 		/**
 		 * @class PostSyncData
 		*/
@@ -169,9 +199,42 @@ namespace qk {
 		void work_cancel(uint32_t id);
 
 		/**
-		 * @method tick() tick check, repeat < 0 the always repeating
-		*/
-		uint32_t tick(Cb cb, int64_t repeat = 0);
+		 * @method tick(cb, phase, repeat)
+		 *
+		 * Register a recurring callback bound to a specific run loop phase.
+		 *
+		 * The callback will be executed periodically while the loop is running,
+		 * at the selected execution stage within each iteration.
+		 *
+		 * @param cb      Callback to invoke.
+		 * @param phase   Execution phase in the event loop:
+		 *                - kIdle    : earliest stage, before prepare (low-latency tasks / nextTick-like)
+		 *                - kPrepare : right before io_poll (final pre-block stage, commit work)
+		 *                - kCheck   : after io_poll (post-I/O stage)
+		 *
+		 * @param repeat  Repeat interval in loop ticks:
+		 *                - repeat < 0 : always repeat every loop iteration
+		 *                - repeat = 0 : run once
+		 *                - repeat > 0 : run every N loop iterations
+		 *
+		 * @return        Tick handle ID. Can be used with tick_stop() to cancel.
+		 */
+		uint32_t tick(Cb cb, TickPhase phase = kIdle, int64_t repeat = 0);
+
+		/**
+		 *  Shortcut: register a tick in the idle phase (lowest latency, nextTick-like behavior)
+		 */
+		uint32_t tick_idle(Cb cb, int64_t repeat = 0) { return tick(cb, kIdle, repeat); }
+
+		/**
+		 *  Shortcut: register a tick in the check phase (after I/O events)
+		 */
+		uint32_t tick_check(Cb cb, int64_t repeat = 0) { return tick(cb, kCheck, repeat); }
+
+		/**
+		 * Shortcut: register a tick in the prepare phase (last stage before I/O blocking)
+		 */
+		uint32_t tick_prepare(Cb cb, int64_t repeat = 0) { return tick(cb, kPrepare, repeat); }
 
 		/**
 		 * @method tick_stop tick stop

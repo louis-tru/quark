@@ -267,7 +267,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 @end
 
 void Window::openImpl(Options &opts) {
-	post_messate_main(Cb([&opts,this](auto e) {
+	post_message_main(Cb([&opts,this](auto e) {
 		auto impl = [[QkWindowDelegate alloc]
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl); // Retain
@@ -278,7 +278,7 @@ void Window::openImpl(Options &opts) {
 }
 
 void Window::closeImpl() {
-	post_messate_main(Cb([this](auto e) {
+	post_message_main(Cb([this](auto e) {
 		Qk_ASSERT_NE(_impl, nullptr);
 		CFBridgingRelease(_impl);
 		_impl = nullptr;
@@ -290,7 +290,7 @@ void Window::closeImpl() {
 void Window::beforeClose() {}
 
 void Window::set_backgroundColor(Color val) {
-	post_messate_main(Cb([this,val](auto e) {
+	post_message_main(Cb([this,val](auto e) {
 		if (!_impl) return;
 		auto color = val.to_color4f();
 		_impl->delegate().view.backgroundColor = [
@@ -304,7 +304,7 @@ void Window::activate() {
 	auto awin = _host->activeWindow();
 	if (awin == this) return;
 
-	post_messate_main(Cb([this](auto e) {
+	post_message_main(Cb([this](auto e) {
 		if (!_impl) return;
 		[_impl->delegate().uiwin makeKeyAndVisible];
 	}, this), false);

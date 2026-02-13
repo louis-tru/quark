@@ -60,6 +60,7 @@ namespace qk {
 
 	struct RunLoop::check_t: CallbackCore<Object> {
 		RunLoop* host;
+		TickPhase phase;
 		uint32_t id;
 		int64_t repeatCount;
 		Cb cb;

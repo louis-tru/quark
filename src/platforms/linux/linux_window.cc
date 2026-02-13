@@ -366,7 +366,7 @@ namespace qk {
 	};
 
 	void Window::openImpl(Options &opts) {
-		post_messate_main(Cb([&opts,this](auto e) {
+		post_message_main(Cb([&opts,this](auto e) {
 			Qk_ASSERT_EQ(_impl, nullptr);
 			_impl = new WindowPlatform(this, opts);
 			_backgroundColor = opts.backgroundColor;
@@ -378,7 +378,7 @@ namespace qk {
 	}
 
 	void Window::closeImpl() {
-		post_messate_main(Cb([this](auto e) {
+		post_message_main(Cb([this](auto e) {
 			Qk_ASSERT_NE(_impl, nullptr);
 			delete _platform(_impl);
 			_impl = nullptr;
@@ -390,7 +390,7 @@ namespace qk {
 	void Window::beforeClose() {}
 
 	void Window::set_backgroundColor(Color val) {
-		post_messate_main(Cb([this, val](auto e) {
+		post_message_main(Cb([this, val](auto e) {
 			if (!_impl) return;
 			_platform(_impl)->setBackgroundColor(val);
 		}, this), false);
@@ -398,7 +398,7 @@ namespace qk {
 	}
 
 	void Window::activate() {
-		post_messate_main(Cb([this](auto e) {
+		post_message_main(Cb([this](auto e) {
 			if (!_impl) return;
 			XMapWindow(_platform(_impl)->xdpy(), _platform(_impl)->xwin());
 		}, this), false);
@@ -422,7 +422,7 @@ namespace qk {
 	}
 
 	void Window::setFullscreen(bool fullscreen) {
-		post_messate_main(Cb([this, fullscreen](auto e) {
+		post_message_main(Cb([this, fullscreen](auto e) {
 			if (!_impl) return;
 			_platform(_impl)->setFullscreen(fullscreen);
 		}, this), false);
@@ -439,7 +439,7 @@ namespace qk {
 		}
 		cursor = current_cursor == CursorStyle::Normal ? current_cursor_base: current_cursor;
 
-		post_messate_main(Cb([this, cursor](auto e) {
+		post_message_main(Cb([this, cursor](auto e) {
 			if (!_impl) return;
 			_platform(_impl)->setCursor(cursor);
 		}, this), false);

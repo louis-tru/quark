@@ -268,6 +268,7 @@
 					'platforms/apple/apple_app.h',
 					'platforms/apple/apple_keyboard.mm',
 					'platforms/apple/apple_os.mm',
+					'platforms/apple/apple_clipboard.mm',
 					'render/codec/codec_apple.mm',
 					'render/apple/apple_render.h',
 					'render/apple/apple_render.mm',

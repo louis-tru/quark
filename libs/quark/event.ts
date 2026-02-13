@@ -132,12 +132,12 @@ export declare class KeyEvent extends UIEvent {
  * The type or device that triggers the click event, such as using a touch screen or a mouse
 */
 export enum ClickType {
-	/** touchscreen */
-	Touch = 1,
-	/** Press Enter on the keyboard or press OK on the remote control */
-	Keyboard,
 	/** mouse */
 	Mouse,
+	/** touchscreen */
+	Touch,
+	/** Press Enter on the keyboard or press OK on the remote control */
+	Keyboard,
 };
 
 /**
@@ -156,6 +156,30 @@ export declare class ClickEvent extends KeyEvent {
 }
 
 /**
+ * Describes the semantic unit of a mouse wheel delta.
+ *
+ * Different input devices report scroll deltas in fundamentally different ways:
+ *
+ * - Line:
+ *   Discrete, step-based scrolling typically produced by a physical mouse wheel.
+ *   Each event represents one logical "notch" (line step), not a precise distance.
+ *   The actual pixel movement should be determined by the application
+ *   (e.g. multiply by line height or a fixed step size).
+ *
+ * - Pixel:
+ *   Continuous, high-precision scrolling produced by devices like trackpads.
+ *   The delta represents a true pixel-based movement and can be applied
+ *   directly for smooth, inertial scrolling.
+ *
+ * This distinction allows scroll views or editors to interpret the same input
+ * differently, providing consistent behavior across mice and touchpads.
+ */
+export enum WheelDeltaMode {
+	Line,   // discrete wheel step (mouse)
+	Pixel   // precise pixel delta (trackpad)
+};
+
+/**
  * @class MouseEvent
  * @extends UIEvent
 */
@@ -166,6 +190,8 @@ export declare class MouseEvent extends KeyEvent {
 	readonly delta: Vec2;
 	/** The current view level under the mouse cursor */ 
 	readonly level: Uint;
+	/** The unit of the wheel delta, either in lines or pixels */
+	readonly deltaMode: WheelDeltaMode;
 }
 
 /**

@@ -199,10 +199,10 @@ namespace qk {
 		), _position(position), _multi_count(count), _type(type)
 	{}
 
-	MouseEvent::MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardCode keycode,
+	MouseEvent::MouseEvent(View* origin, Vec2 pos, Vec2 delta, WheelDeltaMode mode, KeyboardCode keycode,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
 		: KeyEvent(origin, keycode, keycode, 0, kSTANDARD_LOCATION, shift, ctrl, alt, command, caps_lock, 0, 0, 0
-		), _position(pos), _delta(delta), _level(origin->level())
+		), _position(pos), _delta(delta), _level(origin->level()), _delta_mode(mode)
 	{}
 
 	Sp<ClickEvent> NewClick(View* view, Vec2 pos,
@@ -216,10 +216,10 @@ namespace qk {
 		);
 	}
 
-	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, Vec2 delta, KeyboardCode keycode) {
+	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, Vec2 delta, KeyboardCode keycode, MouseEvent::WheelDeltaMode mode = MouseEvent::kPixel) {
 		auto dispatch = view->window()->dispatch();
 		auto keyboard = dispatch->keyboard();
-		return NewEvent<MouseEvent>(view, pos, delta, keycode,
+		return NewEvent<MouseEvent>(view, pos, delta, mode, keycode,
 			keyboard->shift(),
 			keyboard->ctrl(), keyboard->alt(),
 			keyboard->command(), keyboard->caps_lock()
@@ -780,7 +780,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardCode code, bool isDown, const Vec2 *val) {
+	void EventDispatch::onMousepress(KeyboardCode code, bool isDown, const Vec2 *val, MouseEvent::WheelDeltaMode mode) {
 		Vec2 deltaDefault;
 		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
@@ -798,26 +798,22 @@ namespace qk {
 				break;
 			}
 			case KEYCODE_MOUSE_WHEEL_UP:
-				deltaDefault = Vec2(0, 10); goto whell;
+				deltaDefault = Vec2(0, 50); goto wheel;
 			case KEYCODE_MOUSE_WHEEL_DOWN:
-				deltaDefault = Vec2(0, -10); goto whell;
+				deltaDefault = Vec2(0, -50); goto wheel;
 			case KEYCODE_MOUSE_WHEEL_LEFT:
-				deltaDefault = Vec2(10, 0); goto whell;
+				deltaDefault = Vec2(50, 0); goto wheel;
 			case KEYCODE_MOUSE_WHEEL_RIGHT:
-				// TODO future: maybe support WheelSource marker
-				// enum WheelSource {
-				// 	Mouse,      // 离散滚轮
-				// 	Touchpad,   // 连续触控板
-				// 	Unknown
-				// }
-				deltaDefault = Vec2(-10, 0); whell:
+				deltaDefault = Vec2(-50, 0);
+			wheel:
 				if (isDown) {
-					auto delta = val ? *val: deltaDefault; // use default 10 units delta if not provided
+					auto delta = val ? *val: deltaDefault; // use default 50 units delta if not provided
+					//auto delta = deltaDefault;
 					auto pos = _mouse->position(); // last mouse pos
 					_loop->post(Cb([=](auto e) {
 						auto v = _mouse->view();
 						if (v)
-							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, pos, delta, code));
+							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, pos, delta, code, mode));
 					}));
 				}
 				break;

@@ -114,8 +114,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(int64_t, timestamp, Const); // Unit milliseconds
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
-		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
-		inline void cancel_bubble() { return_value &= ~kBubble_ReturnValueMask; }
+		inline void cancel_default() { return_value &= (~kDefault_ReturnValueMask); }
+		inline void cancel_bubble() { return_value &= (~kBubble_ReturnValueMask); }
 		void release() override;
 	};
 
@@ -162,7 +162,7 @@ namespace qk {
 	class Qk_EXPORT ClickEvent: public KeyEvent {
 	public:
 		enum Type {
-			kTouch = 1, kKeyboard, kMouse
+			kMouse, kTouch, kKeyboard
 		};
 		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count, KeyboardCode keycode,
 			bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
@@ -177,11 +177,16 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, Vec2 pos, Vec2 delta, KeyboardCode keycode,
+		enum WheelDeltaMode {
+			kLine,   // discrete wheel step (mouse)
+			kPixel   // precise pixel delta (trackpad)
+		};
+		MouseEvent(View* origin, Vec2 pos, Vec2 delta, WheelDeltaMode mode, KeyboardCode keycode,
 				bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
 		Qk_DEFINE_PROP_GET(Vec2, delta, Const); // mouse wheel delta only
 		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
+		Qk_DEFINE_PROP_GET(WheelDeltaMode, delta_mode, Const);
 	};
 
 	/**
@@ -251,7 +256,8 @@ namespace qk {
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
-		void onMousepress(KeyboardCode key, bool isDown, const Vec2 *vec);
+		void onMousepress(KeyboardCode key, bool isDown, const Vec2 *vec,
+				MouseEvent::WheelDeltaMode mode = MouseEvent::kLine);
 		// ime
 		void onImeDelete(int count);
 		void onImeInsert(cString& text);

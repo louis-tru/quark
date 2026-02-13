@@ -213,16 +213,40 @@ namespace qk {
 	void RunLoop::check_t::call(Data &e) {
 		host->_check.set(id, this); // hold on _check.set
 		retain(); // retain for _check.set
-		Qk_ASSERT_EQ(0, uv_check_init(host->_uv_loop, &uv_check));
-		Qk_ASSERT_EQ(0, uv_check_start(&uv_check, [](uv_check_t *h) {
-			auto self = (check_t*)(h->data);
-			self->cb->resolve();
-			if (self->repeatCount == 0) {
-				self->stop_check();
-			} else if (self->repeatCount > 0) {
-				self->repeatCount--;
-			}
-		}));
+
+		struct Func {
+			static void cb(uv_handle_t *h) {
+				auto self = (check_t*)(h->data);
+				self->cb->resolve();
+				if (self->repeatCount == 0) {
+					self->stop_check();
+				} else if (self->repeatCount > 0) {
+					self->repeatCount--;
+				}
+			};
+		};
+
+		static_assert(
+			sizeof(uv_idle_t) == sizeof(uv_prepare_t) &&
+			sizeof(uv_prepare_t) == sizeof(uv_check_t),
+			"uv_idle_t, uv_prepare_t and uv_check_t must have the same size"
+		);
+
+		switch(phase) {
+			case kIdle:
+				Qk_ASSERT_EQ(0, uv_idle_init(host->_uv_loop, (uv_idle_t*)&uv_check));
+				Qk_ASSERT_EQ(0, uv_idle_start((uv_idle_t*)&uv_check, (uv_idle_cb)&Func::cb));
+				break;
+			case kPrepare:
+				Qk_ASSERT_EQ(0, uv_prepare_init(host->_uv_loop, (uv_prepare_t*)&uv_check));
+				Qk_ASSERT_EQ(0, uv_prepare_start((uv_prepare_t*)&uv_check, (uv_prepare_cb)&Func::cb));
+				break;
+			case kCheck:
+				Qk_ASSERT_EQ(0, uv_check_init(host->_uv_loop, &uv_check));
+				Qk_ASSERT_EQ(0, uv_check_start(&uv_check, (uv_check_cb)&Func::cb));
+			break;
+			default: Qk_Fatal("Invalid tick phase");
+		}
 	}
 
 	void RunLoop::check_t::stop_check() {
@@ -367,7 +391,7 @@ namespace qk {
 		}
 	}
 
-	uint32_t RunLoop::tick(Cb cb, int64_t repeat) {
+	uint32_t RunLoop::tick(Cb cb, TickPhase phase, int64_t repeat) {
 		auto isSelfThread = thread_self_id() == _tid;
 		if (!isSelfThread && repeat == 0) { // Once on an external thread
 			_this->post(cb);
@@ -375,6 +399,7 @@ namespace qk {
 		}
 		auto check = new check_t;
 		check->host = this;
+		check->phase = phase;
 		check->id = getId32();
 		check->repeatCount = repeat;
 		check->cb = cb;

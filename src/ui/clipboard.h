@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,45 +25,60 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
+#ifndef __quark__ui__clipboard__
+#define __quark__ui__clipboard__
 
-#ifndef __quark_platforms_linux__linux_app__
-#define __quark_platforms_linux__linux_app__
-
-#include <X11/Xlib.h>
-#include "../../util/cb.h"
-
-typedef Window XWindow;
-typedef Display XDisplay;
+#include "../util/util.h"
 
 namespace qk {
-	class Window;
-	class WindowImpl;
-
-	class LinuxIMEHelper {
+	/**
+	 * @class Clipboard
+	 * @brief System clipboard access (text-only).
+	 *
+	 * Provides minimal cross-platform access to the OS clipboard for plain text.
+	 * All write operations are marshalled onto the system main thread internally.
+	 *
+	 * Notes:
+	 * - Only UTF-8 text is supported for now.
+	 * - Binary/RTF/image formats are intentionally not handled at this stage.
+	 * - On iOS, reading the clipboard may trigger the system privacy notice
+	 *   when the content originates from another app.
+	 */
+	Qk_EXPORT class Clipboard: public Object {
 	public:
-		static LinuxIMEHelper* Make(WindowImpl* impl,
-			int inputStyle = XIMPreeditPosition);
-		virtual ~LinuxIMEHelper() = 0;
-		virtual void key_press(XKeyPressedEvent *event) = 0;
-		virtual void focus_in() = 0;
-		virtual void focus_out() = 0;
-	};
+		/**
+		 * @brief Read current text from the system clipboard.
+		 * @return Clipboard text as UTF-8 string. Returns empty string if no text exists.
+		 *
+		 * This is a direct read from the system clipboard.
+		 */
+		String get_text();
 
-	class WindowImpl: public SafeFlag {
-	public:
-		Qk_DEFINE_PROP_GET(Window*, win, Protected);
-		Qk_DEFINE_PROP_GET(XWindow, xwin, Protected);
-		Qk_DEFINE_PROP_GET(XDisplay*, xdpy, Protected);
-		Qk_DEFINE_PROP_GET(LinuxIMEHelper*, ime, Protected);
-	};
+		/**
+		 * @brief Write text into the system clipboard.
+		 * @param text UTF-8 text to store.
+		 *
+		 * This call is internally forwarded to the system main thread
+		 * to ensure platform safety.
+		 */
+		void set_text(cString& text);
 
-	XDisplay* openXDisplay(); // open default xdisplay
-	float dpiForXDisplay(); // get dpi for default xdisplay
-	void post_message_main(Cb cb, bool sync = false); // sync to x11 main message loop
+		/**
+		 * @brief Check whether the clipboard currently contains text.
+		 * @return true if text content is available.
+		 */
+		bool has_text();
+
+		/**
+		 * @brief Clear clipboard contents.
+		 *
+		 * Internally dispatched to the system main thread.
+		 */
+		void clear();
+	};
 }
 
 #endif

@@ -53,7 +53,7 @@ namespace qk {
 	public:
 		virtual UIView* surfaceView() = 0;
 	};
-	void post_messate_main(Cb cb, bool sync);
+	void post_message_main(Cb cb, bool sync);
 }
 
 #endif
