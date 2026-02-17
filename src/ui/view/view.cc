@@ -548,7 +548,7 @@ Range Container::to_range() const {
 	}
 
 	bool View::is_focus() const {
-		return _window->dispatch()->activeView() == this;
+		return _window->activeView() == this;
 	}
 
 	Array<String> View::classNames() const {

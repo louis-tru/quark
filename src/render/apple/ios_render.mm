@@ -68,17 +68,23 @@ public:
 		lock();
 		if (_view) {
 			[_view stopDisplay]; // thread task must be forced to end
+			_view = nil;
 		}
 		unlock();
 
 		GLRender::release(); // Destroy the pre object first
 
-		GLuint fbo = _fbo_0, rbo = _rbo_0;
-		_fbo_0 = _rbo_0 = 0;
+		GLuint
+			fbo = _fbo_0,
+			rbo = _rbo_0;
+		_fbo_0 = _rbo_0 = 0; // clear
 		post_message(Cb([fbo,rbo](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteRenderbuffers(1, &rbo);
 		}));
+
+		_ctx = nil;
+		_layer = nil;
 
 		Object::release(); // final destruction
 	}
@@ -96,7 +102,9 @@ public:
 	}
 
 	void post_message(Cb cb) override {
-		post_message_main(cb, false);
+		if (_ctx) { // render is not released
+			post_message_main(cb, false);
+		}
 	}
 
 	Vec2 getSurfaceSize() override {
@@ -210,6 +218,8 @@ namespace qk {
 
 	static IosGLRender* g_sharedRenderResource = nullptr;
 
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
+
 	RenderResource* getSharedRenderResource() {
 		return g_sharedRenderResource;
 	}
@@ -229,12 +239,15 @@ namespace qk {
 		// disable multithreaded for iOS
 		ctx.multiThreaded = NO;
 
+		// allocate render backend storage
+		auto mem = acquireRenderBackendStorage(typeid(IosGLRender).hash_code(), sizeof(IosGLRender));
 		// iOS only create one window and one drawing context
 		// so we use a render backend as shared render resource
-		g_sharedRenderResource = new IosGLRender(opts, ctx);
+		g_sharedRenderResource = new(mem) IosGLRender(opts, ctx);
 
 		g_sharedRenderResource->post_message(Cb([ctx](auto e) {
-			// set current context in render thread
+			// Ensure the GL context is current on the render thread.
+			// (Context binding is thread-local on iOS)
 			[EAGLContext setCurrentContext:ctx];
 		}));
 

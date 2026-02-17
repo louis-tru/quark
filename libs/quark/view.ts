@@ -1665,6 +1665,57 @@ export interface ScrollView extends Box {
 	 * Abort any running scroll animation / momentum.
 	 */
 	terminate(): void;
+
+	/**
+	 * Begin a drag interaction.
+	 *
+	 * Should be called when pointer/touch press starts.
+	 * The position must be in the same coordinate space for all subsequent drag() calls.
+	 *
+	 * This will:
+	 *  - Stop any ongoing momentum/animation
+	 *  - Start tracking movement
+	 *  - Prepare velocity calculation
+	 */
+	beginDrag(pos: Vec2): void;
+
+	/**
+	 * Continue dragging.
+	 *
+	 * Should be called on every pointer/touch move after beginDrag().
+	 * The position must be absolute and continuous (not delta).
+	 *
+	 * Scroll offset will be updated based on the movement distance
+	 * between this position and the previous one.
+	 */
+	drag(pos: Vec2): void;
+
+	/**
+	 * End the drag interaction.
+	 *
+	 * Should be called when pointer/touch is released.
+	 * This will:
+	 *  - Compute drag velocity
+	 *  - Start momentum scrolling if enabled
+	 *  - Apply snap/catch logic if configured
+	 */
+	endDrag(): void;
+
+	/**
+	 * Apply wheel/trackpad scrolling.
+	 *
+	 * Delta is a scroll distance in pixels:
+	 *   delta.y > 0 → scroll down
+	 *   delta.y < 0 → scroll up
+	 *
+	 * Typically called from:
+	 *  - Mouse wheel
+	 *  - Trackpad scroll
+	 *  - Keyboard-triggered scroll simulation
+	 *
+	 * This does not start a drag session and can be used independently.
+	 */
+	wheel(delta: Vec2): void;
 }
 
 /**
@@ -1701,6 +1752,10 @@ export declare class Textarea extends Input implements ScrollView {
 
 	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
+	beginDrag(pos: Vec2): void;
+	drag(pos: Vec2): void;
+	endDrag(): void;
+	wheel(delta: Vec2): void;
 }
 
 /**
@@ -1737,6 +1792,11 @@ export declare class Scroll extends Box implements ScrollView {
 
 	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
+	terminate(): void;
+	beginDrag(pos: Vec2): void;
+	drag(pos: Vec2): void;
+	endDrag(): void;
+	wheel(delta: Vec2): void;
 }
 
 /**

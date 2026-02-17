@@ -123,7 +123,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_PROP_GET(int64_t, time, Const); //!< current window render time in milliseconds
-		Qk_DEFINE_PROPERTY(bool, debugMode, Const); //! debug mode
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
 		Qk_DEFINE_ACCE_GET(View*, activeView); //! focus active view
@@ -134,6 +133,9 @@ namespace qk {
 		 * returns surface only display region and size
 		 */
 		Qk_DEFINE_ACCE_GET(Vec2, surfaceSize, Const);
+
+		// debug mode, if true, will show some debug info such as fps
+		Qk_DEFINE_PROPERTY(bool, debugMode, Const);
 
 		/**
 		 * @static
@@ -223,6 +225,7 @@ namespace qk {
 		void afterDisplay();
 		bool tryClose(); // destroy window and protform window
 		void reload_root_rt();
+		static void flushAsyncCall(); // flush all asynchronous calls for all windows, used when app destroyed
 
 		/**
 		 * Create an application object before creating a window
@@ -253,6 +256,7 @@ namespace qk {
 		friend class WindowImpl;
 		friend class UILock;
 		friend class CStyleSheetsClass;
+		friend class Application;
 	};
 
 }

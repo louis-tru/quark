@@ -120,9 +120,13 @@ namespace qk {
 	};
 
 	bool View::focus() {
-		if ( is_focus() ) return true;
-
 		auto dispatch = _window->dispatch();
+		if (!dispatch)
+			return false; // No dispatch, window already closed
+
+		if ( is_focus() )
+			return true; // Already focused
+
 		auto old = dispatch->activeView();
 
 		if ( !dispatch->setActiveView(this) ) {

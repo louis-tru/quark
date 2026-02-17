@@ -60,6 +60,8 @@ namespace qk {
 	// Used to ignore invalid or placeholder class tokens.
 	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
 
+	static int test_int = 0;
+
 	CStyleSheetsClass::CStyleSheetsClass(View *host)
 		: _state(kNormal_UIState)     // currently applied pseudo state
 		, _setState(kNormal_UIState)  // requested pseudo state (pending)

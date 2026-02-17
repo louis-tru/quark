@@ -87,6 +87,30 @@ namespace qk { namespace js {
 			Js_UISelf(ScrollView);
 			self->terminate();
 		});
+
+		Js_Class_Method(beginDrag, {
+			Js_UISelf(ScrollView);
+			Js_Parse_Args(Vec2, 0, "pos = %s");
+			self->begin_drag(arg0);
+		});
+
+		Js_Class_Method(drag, {
+			Js_UISelf(ScrollView);
+			Js_Parse_Args(Vec2, 0, "pos = %s");
+			self->drag(arg0);
+		});
+
+		Js_Class_Method(endDrag, {
+			Js_UISelf(ScrollView);
+			Js_Parse_Args(Vec2, 0, "pos = %s");
+			self->end_drag(arg0);
+		});
+
+		Js_Class_Method(wheel, {
+			Js_UISelf(ScrollView);
+			Js_Parse_Args(Vec2, 0, "delta = %s");
+			self->wheel(arg0);
+		});
 	}
 
 	class MixScroll: public MixViewObject {

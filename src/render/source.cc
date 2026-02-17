@@ -304,10 +304,8 @@ namespace qk {
 
 			if (destroy) {
 				auto res = _res;
-				auto tex = new Array<const TexStat*>(std::move(_tex));
-				_res->post_message(Cb([res,tex](auto e) { // to call from Rt
-					deleteTextures(res, *tex);
-					Release(tex);
+				_res->post_message(Cb([res,tex = std::move(_tex)](auto e) { // to call from Rt
+					deleteTextures(res, tex);
 				}));
 			}
 		}

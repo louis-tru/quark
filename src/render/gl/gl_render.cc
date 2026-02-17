@@ -478,6 +478,8 @@ namespace qk {
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepthf(0.0f); // set depth clear value to -1.0
+
+		// sizeof(GLSLShaders);
 	}
 
 	GLRender::~GLRender() {
@@ -541,12 +543,17 @@ namespace qk {
 	}
 
 	bool GLRender::newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
-		return gl_new_texture(pix, levels, out, genMipmap);
+		if (_canvas) 
+			return gl_new_texture(pix, levels, out, genMipmap);
+		else
+			return false; // Render is release, do not create new texture
 	}
 
 	void GLRender::deleteTexture(TexStat *tex) {
-		glDeleteTextures(1, &tex->id);
-		delete tex;
+		if (_canvas) { // Render is not release, delete texture
+			glDeleteTextures(1, &tex->id);
+			delete tex;
+		}
 	}
 
 	void GLRender::gl_set_blend_mode(BlendMode mode) {

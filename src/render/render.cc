@@ -55,8 +55,59 @@ namespace qk {
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
 	}
 
+	void RenderBackend::destroy() {
+		Qk_CHECK(_canvas == nullptr);
+		_delegate = nullptr;
+		// NOTE:
+		// This does NOT free the RenderBackend memory.
+		// Instances are kept in the resident pool and reused via placement new.
+		// After release(), the backend becomes a passive shell: it may still receive
+		// post_message() calls, but no rendering work or resource operations are performed.
+	}
+
 	void RenderBackend::activate(bool isActive) {
 		_isActive = isActive;
+	}
+
+	// Resident pool for RenderBackend storage blocks.
+	// RenderBackend instances are never deleted; memory is kept for the entire
+	// process lifetime and reused to avoid use-after-free from delayed async
+	// callbacks or weak references.
+	static Array<RenderBackend*>* residentPool = nullptr;
+
+	// alloc RenderBackend memory from resident pool or allocate new memory if no reusable block is available
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size) {
+		// Must be called from the main/UI thread.
+		// RenderBackend storage management is not thread-safe and is only expected
+		// to occur during window/render initialization.
+		check_is_first_loop();
+
+		// Lazily initialize the resident pool.
+		if (!residentPool) {
+			residentPool = new Array<RenderBackend*>();
+		}
+
+		RenderBackend* mem = nullptr;
+
+		// Find a reusable backend of the same concrete type.
+		// A backend is considered free when it is not attached to a Canvas.
+		for (auto r : *residentPool) {
+			if (!r->_canvas && typeid(*r).hash_code() == typeHash) {
+				mem = r;
+				break;
+			}
+		}
+
+		// If none found, allocate a new resident memory block.
+		if (!mem) {
+			mem = (RenderBackend*)Object::operator new(size);
+			residentPool->push(mem);
+		}
+
+		// Mark as in-use with a temporary non-null canvas flag.
+		// The real Canvas will be assigned later in the constructor.
+		mem->_canvas = (Canvas*)1;
+		return mem;
 	}
 
 	Render* make_metal_render(Render::Options opts);
@@ -80,6 +131,7 @@ namespace qk {
 		Qk_CHECK(r, "Create render object fail");
 
 		r->_delegate = delegate;
+
 		return r;
 	}
 }

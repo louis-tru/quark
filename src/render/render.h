@@ -84,6 +84,9 @@ namespace qk {
 		*/
 		virtual RenderSurface* surface() = 0;
 
+		// Override Object
+		virtual void destroy() override;
+
 	protected:
 		RenderBackend(Options opts);
 
@@ -98,6 +101,8 @@ namespace qk {
 		Delegate     *_delegate;
 		Vec2         _surfaceSize; // current surface size
 		bool         _isActive;
+
+		friend void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 	};
 
 	typedef RenderBackend Render;

@@ -44,6 +44,7 @@ namespace qk {
 	static auto _run_main_wait = new CondMutex;
 
 	void view_prop_acc_init();
+	cArray<Window*>* getWindowResidentPool();
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
@@ -109,6 +110,13 @@ namespace qk {
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
+
+		// Flush all pending asynchronous calls for every resident window.
+		// This is required during application shutdown to ensure that no
+		// delayed callbacks are left referencing logically destroyed windows
+		// or released UI objects.
+		Window::flushAsyncCall();
+
 		_activeWindow =  nullptr;
 		Inl_Application(this)->resolve_delay_tasks(true);
 		Releasep(_defaultTextOptions);

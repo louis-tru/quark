@@ -65,7 +65,7 @@ namespace qk {
 		_isMsaa = _window->render()->options().msaaSample;
 		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
-		_delayCmdsStack.push(DelayCmdMap(
+		_delayCmdsStack.push_back(DelayCmdMap(
 			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
 		));
 	}
@@ -708,14 +708,15 @@ namespace qk {
 		_canvas->save();
 		_canvas->clipPathv(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
 		_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
-		_delayCmds = &_delayCmdsStack.push(DelayCmdMap(
+		_delayCmdsStack.push_back(DelayCmdMap(
 			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
 		));
+		_delayCmds = &_delayCmdsStack.back();
 		if (cb)
 			cb(this, v);
 		visitView(v); // draw children views
 		flushDelayDrawCommands();
-		_delayCmdsStack.pop();
+		_delayCmdsStack.pop_back();
 		_delayCmds = &_delayCmdsStack.back();
 		_window->clipRestore();
 		_canvas->restore(); // cancel clip

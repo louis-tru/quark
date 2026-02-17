@@ -63,6 +63,7 @@ namespace qk { namespace js {
 					(reinterpret_cast<MixObject*>(obj) - 1)->setWeak();
 				}, obj));
 			} else { // worker is invalid, directly destroy
+				mix->~MixObject(); // clear handle and class
 				obj->destroy();
 			}
 		} else {

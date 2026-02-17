@@ -234,6 +234,8 @@ namespace qk {
 		}
 
 		void post_message(Cb cb) override {
+			if (!_context)
+				return; // Render is release, do not post message
 			if (isRenderThread()) {
 				lock();
 				cb->resolve();
@@ -386,6 +388,8 @@ namespace qk {
 
 	static LinuxRenderResource* g_sharedRenderResource = nullptr;
 
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
+
 	RenderResource* getSharedRenderResource() {
 		return g_sharedRenderResource;
 	}
@@ -411,7 +415,8 @@ namespace qk {
 		if ( ctx ) {
 			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
 			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
-			r = new LinuxGLRender(opts, dpy, cfg, ctx);
+			auto mem = acquireRenderBackendStorage(typeid(LinuxGLRender).hash_code(), sizeof(LinuxGLRender));
+			r = new (mem) LinuxGLRender(opts, dpy, cfg, ctx);
 			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 		}
 

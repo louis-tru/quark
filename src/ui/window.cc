@@ -40,11 +40,16 @@
 #include "../util/thread/inl.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
-# define PRINT_RENDER_FRAME_TIME DEBUG
+# define PRINT_RENDER_FRAME_TIME 0
 #endif
 
 namespace qk {
-	static Array<Window*> memberRecycle;
+	// global windows cache, for reuse window memory
+	static Array<Window*>* residentPool = nullptr;
+
+	cArray<Window*>* getWindowResidentPool() {
+		return residentPool;
+	}
 
 	UILock::UILock(Window *win): _win(win), _lock(true) {
 		win->_renderMutex.lock();
@@ -105,8 +110,7 @@ namespace qk {
 		_root->set_background_color(_backgroundColor);
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
-		_root->focus();  // set focus
-		// sizeof(Window);
+		_root->focus();  // set focus to root view
 	}
 
 	FontPool* Window::fontPool() {
@@ -118,25 +122,38 @@ namespace qk {
 	}
 
 	View* Window::activeView() {
-		return _dispatch->activeView();
+		return _dispatch ? _dispatch->activeView() : nullptr;
 	}
 
 	Window* Window::Make(Options opts) {
-		if (memberRecycle.length()) {
-			auto win = memberRecycle.back();
-			memberRecycle.pop();
-			return new (win) Window(opts);
-		} else {
-			return new Window(opts);
+		if (!residentPool) { 
+			// Lazy init global resident window pool.
+			// Windows are never deleted. Memory blocks are reused across lifetimes.
+			residentPool = new Array<Window*>();
 		}
+		// Try to reuse an inactive window instance.
+		// A window is considered recyclable when it is detached from render.
+		for (auto win: *residentPool) {
+			if (!win->_render) {
+				// Reconstruct the object in-place using placement new.
+				// The memory is persistent; only the object state is rebuilt.
+				return new (win) Window(opts);
+			}
+		}
+
+		// No reusable instance available, allocate a new persistent window.
+		return residentPool->push(new Window(opts));
 	}
 
 	void Window::destroy() {
 		Qk_CHECK(_render == nullptr);
-		// noop, Reserve memory to avoid accidental references to it by subsequent objects
-		// and add memory to cache for reuse
-		memberRecycle.push(this);
-		this->~Window(); // Only call destructor, do not call free memory
+		// NOTE:
+		// This does NOT free the Window memory.
+		//
+		// Window instances are persistent and reused via residentPool.
+		// destroy() only marks the object as inactive and ready for recycling.
+		//
+		// The actual memory block remains alive for the lifetime of the process.
 	}
 
 	void Window::close() {
@@ -175,7 +192,7 @@ namespace qk {
 		_preRender.clearTasks(); // clear tasks
 		// ------------------------
 		lock.unlock(); // Avoid deadlocks with rendering threads
-		Releasep(_render); // delete obj and stop render draw thread
+		Releasep(_render); // release render backend
 		_viewsByClass.clear(); // clear css class views map
 		lock.lock(); // relock
 		_renderThreadId = ThreadID(); // reset render thread id
@@ -183,6 +200,18 @@ namespace qk {
 
 		closeImpl(); // close platform window
 		return true;
+	}
+
+	// Flush all pending asynchronous calls for every resident window.
+	// This is required during application shutdown to ensure that no
+	// delayed callbacks are left referencing logically destroyed windows
+	// or released UI objects.
+	void Window::flushAsyncCall() {
+		if (residentPool) {
+			for (auto win : *residentPool) {
+				win->_preRender.flushAsyncCall();
+			}
+		}
 	}
 
 	Vec2 Window::surfaceSize() const {

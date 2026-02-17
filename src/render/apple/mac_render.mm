@@ -71,6 +71,7 @@ public:
 		lock();
 		if (_view) {
 			[_view stopDisplay]; // thread task must be forced to end
+			_view = nil;
 		}
 		unlock();
 
@@ -88,6 +89,7 @@ public:
 		_mutexMsg.unlock();
 
 		//CFBridgingRelease((__bridge void*)_ctx);
+		_ctx = nil;
 		Object::release(); // final destruction
 	}
 
@@ -113,6 +115,8 @@ public:
 	}
 
 	void post_message(Cb cb) override {
+		if (!_ctx)
+			return; // render is released
 		if (_view && isRenderThread()) {
 			cb->resolve();
 		} else if (!_view.isRun) {
@@ -240,7 +244,7 @@ static CVReturn displayLinkCallback(
 	CVDisplayLinkStop(_displayLink);
 	_displayLink = nil;
 	_isRun = false;
-	_ctx = nil;
+	self.ctx = nil; // clear ctx
 }
 
 @end
@@ -257,6 +261,9 @@ namespace qk {
 		}
 	};
 
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
+
+	// A shared render resource for all render instances, used to share GL resources like textures, buffers, etc.
 	static MacRenderResource* g_sharedRenderResource = nullptr;
 
 	RenderResource* getSharedRenderResource() {
@@ -320,7 +327,10 @@ namespace qk {
 		CGLLockContext(ctx.CGLContextObj);
 		[ctx makeCurrentContext];
 		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
-		auto render = new MacGLRender(opts,ctx);
+
+		auto mem = acquireRenderBackendStorage(typeid(MacGLRender).hash_code(), sizeof(MacGLRender));
+		auto render = new(mem) MacGLRender(opts,ctx);
+
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 

@@ -603,92 +603,52 @@ namespace qk {
 		// ------------------------------------------------------------------------
 
 		void handle_TouchStart(UIEvent& e) {
-			auto evt = static_cast<TouchEvent*>(&e);
-			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
-			_async_call([](auto ctx, auto arg) {
-				Sp<TouchEvent::TouchPoint> handle(arg.arg);
-				if ( !ctx->_action_id ) {
-					ctx->_action_id = arg.arg->id;
-					ctx->move_start(arg.arg->position);
-				}
-			}, this, args);
+			if ( !_action_id ) {
+				auto& pos = static_cast<TouchEvent*>(&e)->changed_touches()[0];
+				_action_id = pos.id;
+				begin_drag(pos.position);
+			}
 		}
 
 		void handle_TouchMove(UIEvent& e) {
 			if (_action_id && e.is_default()) {
-				auto evt = static_cast<TouchEvent*>(&e);
-				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-				_async_call([](auto ctx, auto arg) {
-					Sp<Array<TouchEvent::TouchPoint>> handle(arg.arg);
-					if ( ctx->_action_id ) {
-						for ( auto &i : *arg.arg ) {
-							if (i.id == ctx->_action_id) {
-								ctx->move(i.position);
-								break;
-							}
-						}
+				for (auto &i : static_cast<TouchEvent*>(&e)->changed_touches()) {
+					if (i.id == _action_id) {
+						drag(i.position);
+						break;
 					}
-				}, this, args);
+				}
 			}
 		}
 
 		void handle_TouchEnd(UIEvent& e) {
-			auto evt = static_cast<TouchEvent*>(&e);
-			auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-			_async_call([](auto ctx, auto arg) {
-				if ( ctx->_action_id ) {
-					for ( auto &i: *arg.arg ) {
-						if (i.id == ctx->_action_id) {
-							ctx->move_end(i.position);
-							ctx->_action_id = 0;
-							break;
-						}
+			if (_action_id) {
+				for ( auto &i: static_cast<TouchEvent*>(&e)->changed_touches() ) {
+					if (i.id == _action_id) {
+						_action_id = 0;
+						end_drag(i.position);
+						break;
 					}
 				}
-			}, this, args);
+			}
 		}
 
 		void handle_MouseDown(UIEvent& e) {
-			auto evt = static_cast<MouseEvent*>(&e);
-			_async_call([](auto ctx, auto arg) {
-				if ( !ctx->_action_id ) {
-					ctx->_action_id = 1;
-					ctx->move_start(arg.arg);
-				}
-			}, this, evt->position());
+			begin_drag(static_cast<MouseEvent*>(&e)->position());
 		}
 
 		void handle_MouseMove(UIEvent& e) {
-			if (_action_id && e.is_default()) {
-				auto evt = static_cast<MouseEvent*>(&e);
-				_async_call([](auto ctx, auto arg) {
-					if ( ctx->_action_id ) {
-						ctx->move(arg.arg);
-					}
-				}, this, evt->position());
+			if (e.is_default()) {
+				drag(static_cast<MouseEvent*>(&e)->position());
 			}
 		}
 
 		void handle_MouseUp(UIEvent& e) {
-			auto evt = static_cast<MouseEvent*>(&e);
-			_async_call([](auto ctx, auto arg) {
-				if ( ctx->_action_id ) {
-					ctx->move_end(arg.arg);
-					ctx->_action_id = 0;
-				}
-			}, this, evt->position());
+			end_drag(static_cast<MouseEvent*>(&e)->position());
 		}
 
 		void handle_MouseWheel(UIEvent& e) {
-			auto &evt = static_cast<MouseEvent&>(e);
-			_async_call([](auto self, auto arg) {
-				Vec2 v0 = self->_scroll.load() - (arg.arg * 1);
-				Vec2 v = self->get_catch_valid_scroll(v0);
-				if ( v != self->_scroll ) {
-					self->scroll_to_valid_scroll(v, 0);
-					self->register_task(new ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
-				}
-			}, this, evt.delta());
+			wheel(static_cast<MouseEvent&>(e).delta());
 		}
 
 	};
@@ -739,6 +699,35 @@ namespace qk {
 
 	ScrollView::~ScrollView() {
 		_this->termination_all_task_rt();
+	}
+
+	void ScrollView::begin_drag(Vec2 pos) {
+		_host->_async_call([](auto self, auto arg) {
+			self->move_start(arg.arg);
+		}, _this, pos);
+	}
+
+	void ScrollView::drag(Vec2 pos) {
+		_host->_async_call([](auto self, auto arg) {
+			self->move(arg.arg);
+		}, _this, pos);
+	}
+
+	void ScrollView::end_drag(Vec2 pos) {
+		_host->_async_call([](auto self, auto arg) {
+			self->move_end(arg.arg);
+		}, _this, pos);
+	}
+
+	void ScrollView::wheel(Vec2 delta) {
+		_host->_async_call([](auto self, auto arg) {
+			Vec2 v0 = self->_scroll.load() - arg.arg;
+			Vec2 v = self->get_catch_valid_scroll(v0);
+			if ( v != self->_scroll ) {
+				self->scroll_to_valid_scroll(v, 0);
+				self->register_task(new Inl::ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
+			}
+		}, _this, delta);
 	}
 
 	void ScrollView::set_scrollbar(bool value) {

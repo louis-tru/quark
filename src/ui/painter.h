@@ -39,6 +39,7 @@
 #include "./filter.h"
 #include "./text/text_blob.h"
 #include <map>
+#include <deque>
 
 namespace qk {
 	class Box;
@@ -133,7 +134,7 @@ namespace qk {
 			uint32_t, DelayCmd, std::less<uint32_t>, STLAllocator<DelayCmdKV>
 		> DelayCmdMap;
 		DelayCmdMap *_delayCmds;
-		Array<DelayCmdMap> _delayCmdsStack;
+		std::deque<DelayCmdMap> _delayCmdsStack;
 
 		friend class Spine;
 		friend class Root;
