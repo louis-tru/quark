@@ -106,11 +106,11 @@ namespace qk {
 		void trigger_UIStateChange(UIStateEvent &evt) {
 			bubble_trigger(UIEvent_UIStateChange, evt);
 			if ( evt.is_default() ) {
-				pre_render().async_call([](auto self, auto arg) {
+				async_call([](auto self, auto arg) {
 					do {
 						auto ss = self->_cssclass.load();
 						if (ss)
-							ss->setState_rt(arg.arg);
+							ss->setState_rt(arg);
 						self = self->parent();
 					} while(self);
 				}, (View*)this, evt.state());

@@ -1404,13 +1404,13 @@ export declare class BoxShadow extends BoxFilter {
 
 /**
  * @example
- *```
+ * ```
  * 10 10 2 #ff00aa
  * 
  * ['10 10 2 #ff00aa']
  * 
  * 10 10 2 rgba(255,255,0,1)
- *```
+ * ```
  */
 export type BoxShadowIn = ShadowIn | ShadowIn[] | BoxShadow;
 

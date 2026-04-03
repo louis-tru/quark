@@ -541,9 +541,9 @@ namespace qk {
 				view->mark_layout<true>(View::kText_Options);
 			} else {
 				struct Data { uint32_t mark, flag; };
-				view->pre_render().async_call([](auto self, auto arg) {
+				view->async_call([](auto self, auto arg) {
 					auto view = self->getViewForTextOptions();
-					self->_textFlags |= arg.arg.flag;
+					self->_textFlags |= arg.flag;
 					view->template mark_layout<true>(View::kText_Options);
 				}, this, Data{mark,flag});
 			}

@@ -296,14 +296,14 @@ createCss({
 		width: 100,
 	},
 	'.a:normal .b': {
-		time: 500,  // 设置一个过渡时间
+		time: 500, // Set a transition time
 		textColor: '#000',
 	},
 	'.a:hover .b': {
 		time: 500,
 		textColor: '#f00',
 	},
-	'.a:action .b:action': { // 这条规则无效，伪类不能存在子伪类
+	'.a:action .b:action': { // This rule is invalid; pseudo-classes cannot have sub-pseudo-classes.
 		time: 500,
 		textColor: '#f0f',
 	}, 

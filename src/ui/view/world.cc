@@ -92,8 +92,8 @@ namespace qk {
 	void World::set_playing(bool value) {
 		if (_playing != value) {
 			_playing = value;
-			pre_render().async_call([](auto self, auto arg) {
-				if (arg.arg) {
+			async_call([](auto self, auto arg) {
+				if (arg) {
 					self->pre_render().addtask(self); // add task
 				} else {
 					self->pre_render().untask(self); // remove task

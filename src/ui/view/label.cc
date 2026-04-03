@@ -131,7 +131,7 @@ namespace qk {
 	void Label::set_align(Align val) {
 		mark_style_flag(kALIGN_CssProp);
 		if (_align != val) {
-			pre_render().async_call([](auto self, auto arg) {
+			async_call([](auto self, auto arg) {
 				_IfParent(self)
 				_parent->onChildLayoutChange(self, kChild_Layout_Align);
 			}, this, 0);

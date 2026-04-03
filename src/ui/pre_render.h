@@ -93,7 +93,7 @@ namespace qk {
 			Self *self;
 			Arg   arg;
 			inline Self* operator->() { return self; }
-			typedef void (*Exec)(Self*, AsyncCall&);
+			typedef void (*Exec)(Self*, Arg&);
 		};
 
 		/**

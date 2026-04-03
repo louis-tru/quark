@@ -51,6 +51,7 @@
 #define _Parent() auto _parent = this->parent()
 #define _IfParent() _Parent(); if (_parent)
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -129,6 +130,13 @@ Range Container::to_range() const {
 		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
 
+	View* View::init(Window* win) {
+		Qk_ASSERT(win);
+		_window = win;
+		_accessor = get_props_accessor(view_type(), kCOLOR_CssProp);
+		return this;
+	}
+
 	void View::destroy() {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
@@ -137,7 +145,7 @@ Range Container::to_range() const {
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 
-		pre_render().async_call([](auto self, auto arg) {
+		async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency,
 			// it should be Completely destroyed in RT (render thread)
 			auto center = self->_window->actionCenter();
@@ -160,55 +168,60 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	void View::set_receive(bool val) {
-		mark_style_flag(kRECEIVE_CssProp);
-		_receive = val;
+	float View::opacity() const {
+		return _color.to_float_alpha();
 	}
 
-	void View::set_receive_rt(bool val) {
+	// =========================================================================
+	void View::set_receive(bool val) {
 		_receive = val;
 	}
 
 	void View::set_aa(bool val) {
-		mark_style_flag(kAA_CssProp);
 		_aa = val;
+	}
+
+	void View::set_cursor(CursorStyle val) {
+		_cursor = val;
+	}
+
+	void View::set_z_index(uint32_t val) {
+		_async_call({ self->set_z_index_rt(arg); }, val);
+	}
+
+	void View::set_visible(bool val) {
+		_async_call({ self->set_visible_rt(arg); }, val);
+	}
+
+	void View::set_opacity(float val) {
+		_async_call({ self->set_opacity_rt(arg); }, val);
+	}
+
+	void View::set_color(Color val) {
+		_async_call({ self->set_color_rt(arg); }, val);
+	}
+
+	void View::set_cascade_color(CascadeColor val) {
+		_async_call({ self->set_cascade_color_rt(arg); }, val);
+	}
+
+	// =========================================================================
+	void View::set_receive_rt(bool val) {
+		_receive = val;
 	}
 
 	void View::set_aa_rt(bool val) {
 		_aa = val;
 	}
 
-	void View::set_cursor(CursorStyle val) {
-		mark_style_flag(kCURSOR_CssProp);
-		_cursor = val;
-	}
-
 	void View::set_cursor_rt(CursorStyle val) {
 		_cursor = val;
 	}
 
-	void View::set_z_index(uint32_t val) {
-		mark_style_flag(kZ_INDEX_CssProp);
-		if (_z_index != val) {
-			mark_render();
-			_z_index = val;
-		}
-	}
-
 	void View::set_z_index_rt(uint32_t val) {
 		if (_z_index != val) {
-			mark_render();
 			_z_index = val;
-		}
-	}
-
-	void View::set_visible(bool val) {
-		mark_style_flag(kVISIBLE_CssProp);
-		if (_visible != val) {
-			pre_render().async_call([](auto self, auto arg) {
-				self->set_visible_rt_(arg.arg);
-			}, this, val);
-			_visible = val;
+			mark_render();
 		}
 	}
 
@@ -216,19 +229,6 @@ Range Container::to_range() const {
 		if (_visible != val) {
 			_visible = val;
 			set_visible_rt_(val);
-		}
-	}
-
-	float View::opacity() const {
-		return _color.to_float_alpha();
-	}
-
-	void View::set_opacity(float val) {
-		mark_style_flag(kOPACITY_CssProp);
-		uint8_t alpha8 = val * 255;
-		if (_color.a() != alpha8) {
-			mark_render();
-			_color.set_a(alpha8);
 		}
 	}
 
@@ -240,26 +240,10 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::set_color(Color val) {
-		mark_style_flag(kCOLOR_CssProp);
-		if (_color != val) {
-			mark_render();
-			_color = val;
-		}
-	}
-
 	void View::set_color_rt(Color val) {
 		if (_color != val) {
 			_color = val;
 			mark_render();
-		}
-	}
-
-	void View::set_cascade_color(CascadeColor val) {
-		mark_style_flag(kCASCADE_COLOR_CssProp);
-		if (_cascade_color != val) {
-			mark_render();
-			_cascade_color = val;
 		}
 	}
 
@@ -492,8 +476,8 @@ Range Container::to_range() const {
 	}
 
 	void View::mark_layout_(uint32_t mark) {
-		pre_render().async_call([](auto self, auto arg) {
-			self->_mark_value |= arg.arg;
+		async_call([](auto self, auto arg) {
+			self->_mark_value |= arg;
 			if (self->_mark_index == 0) {
 				if (self->_level) {
 					self->pre_render().mark_layout(self, self->_level); // push to pre render
@@ -513,8 +497,8 @@ Range Container::to_range() const {
 
 	void View::mark_(uint32_t mark) {
 		if (mark) {
-			pre_render().async_call([](auto self, auto arg) {
-				self->_mark_value |= arg.arg;
+			async_call([](auto self, auto arg) {
+				self->_mark_value |= arg;
 				self->pre_render()._is_render = true;
 			}, this, mark);
 		} else {
@@ -716,10 +700,10 @@ Range Container::to_range() const {
 			blur();
 			clear_link(false);
 			set_action(nullptr); // Delete action
-			pre_render().async_call([](auto self, auto arg) {
+			async_call([](auto self, auto arg) {
 				if (self->_level) {
-					if (arg.arg) { // notice parent view
-						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
+					if (arg) { // notice parent view
+						arg->onChildLayoutChange(self, kChild_Layout_Visible);
 					}
 					self->clear_level_rt();
 				}
@@ -755,9 +739,9 @@ Range Container::to_range() const {
 				_next->_prev = _prev;
 			}
 			if (notice) {
-				pre_render().async_call([](auto self, auto arg) {
+				async_call([](auto self, auto arg) {
 					if (self->_level)
-						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
+						arg->onChildLayoutChange(self, kChild_Layout_Visible);
 				}, this, _parent);
 			}
 		}
@@ -784,9 +768,9 @@ Range Container::to_range() const {
 				retain(); // link to parent and retain ref
 			}
 			// to Rt, set level
-			pre_render().async_call([](auto self, auto arg) {
-				if ( arg.arg ) { // notice old parent
-					arg.arg->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
+			async_call([](auto self, auto arg) {
+				if ( arg ) { // notice old parent
+					arg->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
 				}
 				auto _parent = self->parent();
 				if (_parent) {
@@ -930,15 +914,9 @@ Range Container::to_range() const {
 		return CursorStyle::Normal;
 	}
 
-	View* View::init(Window* win) {
-		Qk_ASSERT(win);
-		_window = win;
-		_accessor = get_props_accessor(view_type(), kCOLOR_CssProp);
-		return this;
-	}
-
 	void Br::layout_text(TextLines *lines, TextOptions* opts) {
 		lines->finish_text_blob_pre(); // finish previous blob
 		lines->push(opts); // push new line
 	}
+
 }

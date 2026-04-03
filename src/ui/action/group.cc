@@ -79,8 +79,8 @@ namespace qk {
 		};
 		_actions.add(child);
 		_async_call([](auto self, auto arg) {
-			arg.arg->child->_id_rt = self->_actions_rt.insert(arg.arg->after, arg.arg->child);
-			free(arg.arg);
+			arg->child->_id_rt = self->_actions_rt.insert(arg->after, arg->child);
+			free(arg);
 		}, this, new InsertArg{after,child});
 	}
 
@@ -103,8 +103,8 @@ namespace qk {
 		Qk_ASSERT(id != _actions_rt.end());
 		// _async_call([](auto self, auto arg) {
 		_window->pre_render().async_call([](auto self, auto arg) {
-			self->_actions_rt.erase( arg.arg );
-			(*arg.arg)->_id_rt = nullId;
+			self->_actions_rt.erase( arg );
+			(*arg)->_id_rt = nullId;
 		}, this, id);
 		auto act = *id;
 		_actions.erase( act );
@@ -116,10 +116,10 @@ namespace qk {
 	void SequenceAction::removeChild(Id id) {
 		Qk_ASSERT(id != _actions_rt.end());
 		_async_call([](auto self, auto arg) {
-			if ( self->_play_rt == arg.arg )
+			if ( self->_play_rt == arg )
 				self->_play_rt = nullId;
-			self->_actions_rt.erase( arg.arg );
-			(*arg.arg)->_id_rt = nullId;
+			self->_actions_rt.erase( arg );
+			(*arg)->_id_rt = nullId;
 		}, this, id);
 		auto act = *id;
 		_actions.erase( act );

@@ -109,8 +109,8 @@ namespace qk {
 		if (isRt) {
 			SetFrames_rt::call(action, to);
 		} else {
-			view->pre_render().async_call([](auto self, auto arg) {
-				SetFrames_rt::call(self, arg.arg);
+			view->async_call([](auto self, auto arg) {
+				SetFrames_rt::call(self, arg);
 			}, action, to);
 		}
 
@@ -146,7 +146,7 @@ namespace qk {
 			SetFrames_rt::call(this, frame);
 		} else {
 			_async_call([](auto self, auto arg) {
-				SetFrames_rt::call(self, arg.arg);
+				SetFrames_rt::call(self, arg);
 			}, this, frame);
 		}
 
@@ -162,7 +162,7 @@ namespace qk {
 		if (css) {
 			auto f = unsafe_add(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
 			_async_call([](auto f, auto arg) {
-				for (auto &i: arg.arg->_props)
+				for (auto &i: arg->_props)
 					f->_props.set(i.first, i.second->copy());
 			}, f, css);
 			return f;

@@ -113,7 +113,7 @@ namespace qk {
 				if (win) {
 					win->pre_render().async_call([](auto self, auto arg) {
 						for ( auto i: self->_props ) {
-							i.second->apply(arg.arg);
+							i.second->apply(arg);
 						}
 					}, const_cast<StyleSheets*>(this), view);
 				}
@@ -140,7 +140,7 @@ namespace qk {
 			if (win) {
 				win->pre_render().async_call([](auto self, auto arg) {
 					for ( auto i: self->_props ) {
-						i.second->fetch(arg.arg);
+						i.second->fetch(arg);
 					}
 				}, this, view);
 			}

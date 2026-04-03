@@ -81,7 +81,7 @@ namespace qk {
 		auto _host = this->host();
 		// Cleanup render thread mappings
 		_async_call([](auto self, auto arg) {
-			auto host = arg.arg;
+			auto host = arg;
 			auto &viewsByClass = host->window()->_viewsByClass;
 			for (auto &i: self->_nameHash_rt) {
 				viewsByClass[i.first].erase(host); // remove class mappings
@@ -130,16 +130,16 @@ namespace qk {
 
 		// Synchronize hashed class names to render thread
 		_async_call([](auto self, auto val) {
-			Sp<Set<uint64_t>> valp(val.arg); // take ownership
+			Sp<Set<uint64_t>> valp(val); // take ownership
 			_IfHost(self);
 			auto &viewsByClass = _host->window()->_viewsByClass;
 			for (auto &i: self->_nameHash_rt) {
 				viewsByClass[i.first].erase(_host); // remove old class mappings
 			}
-			for (auto &i: *val.arg) {
+			for (auto &i: *val) {
 				viewsByClass[i.first].add(_host); // add new class mappings
 			}
-			self->_nameHash_rt = std::move(*val.arg);
+			self->_nameHash_rt = std::move(*val);
 			self->updateClass_rt(); // mark class change
 		}, this, hashs.collapse());
 	}
@@ -152,8 +152,8 @@ namespace qk {
 
 		_async_call([](auto self, auto hash) {
 			_IfHost(self);
-			self->viewsSet(hash.arg).add(_host); // add new class mappings
-			self->_nameHash_rt.add(hash.arg);
+			self->viewsSet(hash).add(_host); // add new class mappings
+			self->_nameHash_rt.add(hash);
 			self->updateClass_rt(); // trigger selector re-evaluation
 		}, this, CSSCName(name_).hashCode());
 	}
@@ -165,8 +165,8 @@ namespace qk {
 		if (!_names.erase(name_)) return; // not present
 		_async_call([](auto self, auto hash) {
 			_IfHost(self);
-			self->viewsSet(hash.arg).erase(_host); // remove class mappings
-			self->_nameHash_rt.erase(hash.arg);
+			self->viewsSet(hash).erase(_host); // remove class mappings
+			self->_nameHash_rt.erase(hash);
 			self->updateClass_rt(); // trigger selector re-evaluation
 		}, this, CSSCName(name_).hashCode());
 	}
@@ -178,8 +178,8 @@ namespace qk {
 		if (_names.erase(name_)) { // removed
 			_async_call([](auto self, auto hash) {
 				_IfHost(self);
-				self->viewsSet(hash.arg).erase(_host); // remove class mappings
-				self->_nameHash_rt.erase(hash.arg);
+				self->viewsSet(hash).erase(_host); // remove class mappings
+				self->_nameHash_rt.erase(hash);
 				self->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
 			return false;
@@ -187,8 +187,8 @@ namespace qk {
 			_names.add(name_); // add name
 			_async_call([](auto self, auto hash) {
 				_IfHost(self);
-				self->viewsSet(hash.arg).add(_host); // add new class mappings
-				self->_nameHash_rt.add(hash.arg);
+				self->viewsSet(hash).add(_host); // add new class mappings
+				self->_nameHash_rt.add(hash);
 				self->updateClass_rt();
 			}, this, CSSCName(name_).hashCode());
 			return true;

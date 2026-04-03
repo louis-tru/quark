@@ -88,7 +88,7 @@ namespace qk {
 		}
 
 		_async_call([](auto self, auto arg) {
-			Release(arg.arg); // safe release old pts
+			Release(arg); // safe release old pts
 			self->template mark<true>(kTransform); // mark to update
 		}, this, oldPts);
 	}
@@ -472,11 +472,11 @@ namespace qk {
 		_followTarget = nullptr; // clear follow target
 		struct Arg { Vec2 target; bool immediately; };
 		_async_call([](auto self, auto arg) {
-			Sp<Arg> self_sp(arg.arg); // rtti delete arg
-			if (arg.arg->immediately) {
-				self->set_translate_rt(arg.arg->target); // set position immediately
+			Sp<Arg> self_sp(arg); // rtti delete arg
+			if (arg->immediately) {
+				self->set_translate_rt(arg->target); // set position immediately
 			}
-			self->_target = arg.arg->target; // set target position again
+			self->_target = arg->target; // set target position again
 			if (!self->_moving) {
 				self->_moving = true;
 				onAgentMovement(self, AgentMovementEvent::Started);
@@ -550,8 +550,8 @@ namespace qk {
 
 		_async_call([](auto self, auto arg) {
 			auto waypoints = self->_waypoints.load();
-			if (waypoints && arg.arg < waypoints->ptsLen()) {
-				self->_currentWaypoint = arg.arg; // set current waypoint again
+			if (waypoints && arg < waypoints->ptsLen()) {
+				self->_currentWaypoint = arg; // set current waypoint again
 			}
 		}, this, nearest.segIndex + 1);
 	}

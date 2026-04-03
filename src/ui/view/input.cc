@@ -101,39 +101,39 @@ namespace qk {
 		void onTouchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg, true); }, this, arg);
 		}
 
 		void onTouchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg); }, this, arg);
 		}
 
 		void onTouchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg); }, this, arg);
 		}
 
 		void onMousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, false); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg, false); }, this, arg);
 		}
 
 		void onMousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg); }, this, arg);
 		}
 
 		void onMouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg); }, this, arg);
 		}
 
 		void onClick(UIEvent& evt) {
@@ -148,7 +148,7 @@ namespace qk {
 			_async_call([](auto self, auto arg) {
 				if ( self->_editing ) {
 					self->setImeKeyboardAndOpen();
-					self->find_cursor(arg.arg);
+					self->find_cursor(arg);
 				} else {
 					if ( self->_flag == kFlag_Disable_Click_Focus ) { // 禁用点击聚焦
 						self->_flag = kFlag_Normal;
@@ -157,7 +157,7 @@ namespace qk {
 							// request focus again in render thread
 							self->pre_render().post(Cb([self](auto &e) { self->focus(); }), self);
 						self->onFocus_for_render_t();
-						self->find_cursor(arg.arg);
+						self->find_cursor(arg);
 					}
 				}
 			}, this, e->position());
@@ -171,7 +171,7 @@ namespace qk {
 				}
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
 					auto line_height = ctx->_lines->line(0).end_y;
-					switch ( arg.arg ) {
+					switch ( arg ) {
 						case KEYCODE_LEFT:
 							ctx->_cursor_index = Int32::max(0, ctx->_cursor_index - 1);
 							break;
@@ -1222,7 +1222,7 @@ namespace qk {
 	void Input::set_max_length(uint32_t value) {
 		mark_style_flag(kMAX_LENGTH_CssProp);
 		if (value) // check mx length
-			_async_call([](auto self, auto arg) { self->set_max_length_rt(arg.arg); }, this, value);
+			_async_call([](auto self, auto arg) { self->set_max_length_rt(arg); }, this, value);
 		_max_length = value;
 	}
 

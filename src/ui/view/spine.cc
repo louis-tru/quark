@@ -59,7 +59,7 @@ namespace qk {
 	{}
 
 	void Spine::SkeletonWrapper::destroy() {
-		_host->pre_render().async_call([](auto self, auto arg) {
+		_host->async_call([](auto self, auto arg) {
 			self->Object::destroy(); // safe destroy on render thread
 		}, this, 0);
 	}

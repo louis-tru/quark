@@ -751,8 +751,8 @@ namespace qk {
 		 *     thread to maintain a single-writer model.
 		 */
 		template<bool isRT = false>
-		inline void mark(uint32_t mark) {
-			if (isRT) {
+		inline void mark(uint32_t mark, bool orIsRt = false) {
+			if (isRT || orIsRt) {
 				Qk_Assert_ReaderThread("View::mark can only be called on the render thread");
 				mark_rt_(mark);
 			} else {
@@ -769,8 +769,8 @@ namespace qk {
 		 * determined at compile time.
 		 */
 		template<bool isRT = false>
-		inline void mark_layout(uint32_t mark) {
-			if (isRT) {
+		inline void mark_layout(uint32_t mark, bool orIsRt = false) {
+			if (isRT || orIsRt) {
 				Qk_Assert_ReaderThread("View::mark_layout can only be called on the render thread");
 				mark_layout_rt_(mark);
 			} else {
@@ -789,6 +789,14 @@ namespace qk {
 		 *   - This method can be called from any thread.
 		 */
 		inline void mark_render() { pre_render()._is_render = true; }
+
+		/**
+		 * Shortcut call to async_call() for dispatching asynchronous tasks to the render thread.
+		*/
+		template<typename Self = View, typename Arg = uint64_t>
+		inline void async_call(typename PreRender::AsyncCall<Self,Arg>::Exec ex, Self *self, Arg arg) {
+			pre_render().async_call(ex, self, arg);
+		}
 
 	protected:
 		/**

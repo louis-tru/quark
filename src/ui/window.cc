@@ -154,6 +154,10 @@ namespace qk {
 		// destroy() only marks the object as inactive and ready for recycling.
 		//
 		// The actual memory block remains alive for the lifetime of the process.
+
+		// Check async call is empty before destroy, avoid call after destroy
+		// Qk_CHECK(_preRender._asyncCall.length() == 0);
+		// Qk_CHECK(_preRender._asyncCommit.length() == 0);
 	}
 
 	void Window::close() {

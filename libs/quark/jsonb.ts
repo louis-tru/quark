@@ -459,9 +459,11 @@ export default {
 	 * @param obj:any - The object to convert.
 	 * @return {Buffer} - The binary representation of the object.
 	 * @example
+	 * ```ts
 	 * const jsonb = require('quark/jsonb');
 	 * const binaryData = jsonb.binaryify({ key: 'value' });
 	 * console.log(binaryData); // Outputs the binary data.
+	 * ```
 	 * @throws {Error} - If the object cannot be serialized.
 	*/
 	binaryify,
@@ -472,9 +474,11 @@ export default {
 	 * @param buf:Uint8Array - The binary data to parse.
 	 * @return {any} - The parsed JSON object.
 	 * @example
+	 * ```ts
 	 * const jsonb = require('quark/jsonb');
 	 * const jsonData = jsonb.parse(binaryData);
 	 * console.log(jsonData); // Outputs the original JSON object.
+	 * ```
 	 * @throws {Error} - If the buffer cannot be parsed.
 	*/
 	parse,

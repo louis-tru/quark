@@ -66,7 +66,6 @@ namespace qk {
 
 	template<typename T>
 	inline T transition_value(T v1, T v2, float y) {
-		//Qk_DLog("transition_value, %d, %d, %f", v1, v2, y);
 		return v1 + (v2 - v1) * y;
 	}
 
@@ -280,7 +279,7 @@ namespace qk {
 			auto win = getWindow();
 			if (win) {
 				win->pre_render().async_call([](auto self, auto arg) {
-					self->set(key, arg.arg);
+					self->set(key, arg);
 				}, this, value);
 			} else {
 				set(key, value);
@@ -291,8 +290,8 @@ namespace qk {
 			auto win = getWindow();
 			if (win) {
 				win->pre_render().async_call([](auto self, auto arg) {
-					Sp<T> h(arg.arg);
-					self->set(key, *arg.arg);
+					Sp<T> h(arg);
+					self->set(key, *arg);
 				}, this, new T(value));
 			} else {
 				set(key, value);
@@ -310,6 +309,34 @@ namespace qk {
 	template<CssProp key>
 	void SetProp<Curve>::asyncSet(Curve value) {
 		asyncSetLarge<key>(value);
+	}
+
+	template<>
+	template<>
+	void SetProp<Border>::asyncSet<kBORDER_TOP_CssProp>(Border val) {
+		set_border_top_width(val.width);
+		set_border_top_color(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<Border>::asyncSet<kBORDER_RIGHT_CssProp>(Border val) {
+		set_border_right_width(val.width);
+		set_border_right_color(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<Border>::asyncSet<kBORDER_BOTTOM_CssProp>(Border val) {
+		set_border_bottom_width(val.width);
+		set_border_bottom_color(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<Border>::asyncSet<kBORDER_LEFT_CssProp>(Border val) {
+		set_border_left_width(val.width);
+		set_border_left_color(val.color);
 	}
 
 	template<>
@@ -442,34 +469,6 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<Border>::asyncSet<kBORDER_TOP_CssProp>(Border val) {
-		set_border_top_width(val.width);
-		set_border_top_color(val.color);
-	}
-
-	template<>
-	template<>
-	void SetProp<Border>::asyncSet<kBORDER_RIGHT_CssProp>(Border val) {
-		set_border_right_width(val.width);
-		set_border_right_color(val.color);
-	}
-
-	template<>
-	template<>
-	void SetProp<Border>::asyncSet<kBORDER_BOTTOM_CssProp>(Border val) {
-		set_border_bottom_width(val.width);
-		set_border_bottom_color(val.color);
-	}
-
-	template<>
-	template<>
-	void SetProp<Border>::asyncSet<kBORDER_LEFT_CssProp>(Border val) {
-		set_border_left_width(val.width);
-		set_border_left_color(val.color);
-	}
-
-	template<>
-	template<>
 	void SetProp<ArrayFloat>::asyncSet<kBORDER_WIDTH_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
@@ -593,8 +592,8 @@ namespace qk {
 			if (win) {
 				Retain(value); // retain the object before calling
 				win->pre_render().async_call([](auto self, auto arg) {
-					self->set(key, arg.arg, true);
-					Release(arg.arg);
+					self->set(key, arg, true);
+					Release(arg);
 				}, this, value);
 			} else {
 				set(key, value, false);

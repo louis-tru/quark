@@ -140,7 +140,7 @@ namespace qk {
 	}
 
 	void Action::seek(uint32_t time) {
-		_async_call([](auto self, auto arg) { self->seek_rt(arg.arg); }, this, time);
+		_async_call([](auto self, auto arg) { self->seek_rt(arg); }, this, time);
 	}
 
 	void Action::play() {

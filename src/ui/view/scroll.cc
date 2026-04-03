@@ -703,25 +703,25 @@ namespace qk {
 
 	void ScrollView::begin_drag(Vec2 pos) {
 		_host->_async_call([](auto self, auto arg) {
-			self->move_start(arg.arg);
+			self->move_start(arg);
 		}, _this, pos);
 	}
 
 	void ScrollView::drag(Vec2 pos) {
 		_host->_async_call([](auto self, auto arg) {
-			self->move(arg.arg);
+			self->move(arg);
 		}, _this, pos);
 	}
 
 	void ScrollView::end_drag(Vec2 pos) {
 		_host->_async_call([](auto self, auto arg) {
-			self->move_end(arg.arg);
+			self->move_end(arg);
 		}, _this, pos);
 	}
 
 	void ScrollView::wheel(Vec2 delta) {
 		_host->_async_call([](auto self, auto arg) {
-			Vec2 v0 = self->_scroll.load() - arg.arg;
+			Vec2 v0 = self->_scroll.load() - arg;
 			Vec2 v = self->get_catch_valid_scroll(v0);
 			if ( v != self->_scroll ) {
 				self->scroll_to_valid_scroll(v, 0);
@@ -844,7 +844,7 @@ namespace qk {
 				_scroll = value;
 				_host->_async_call([](auto self, auto arg) {
 					self->set_scroll_and_trigger_event(
-						self->get_catch_valid_scroll({arg.arg.x(), arg.arg.y()}),
+						self->get_catch_valid_scroll({arg.x(), arg.y()}),
 						true
 					);
 				}, _this, value);
@@ -859,11 +859,11 @@ namespace qk {
 	void ScrollView::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {
 		struct Args { Vec2 value; uint64_t duration; Curve curve; };
 		_host->_async_call([](auto self, auto val) {
-			Vec2 v = self->get_catch_valid_scroll({-val.arg->value.x(), -val.arg->value.y()});
+			Vec2 v = self->get_catch_valid_scroll({-val->value.x(), -val->value.y()});
 			if ( v != self->_scroll ) {
-				self->scroll_to_valid_scroll(v, val.arg->duration, val.arg->curve);
+				self->scroll_to_valid_scroll(v, val->duration, val->curve);
 			}
-			delete val.arg;
+			delete val;
 		}, _this, new Args{value,duration,curve});
 	}
 

@@ -85,7 +85,7 @@ namespace qk {
 	}
 
 	void Root::apply_class_all() {
-		pre_render().async_call([](auto self, auto arg) {
+		async_call([](auto self, auto arg) {
 			self->apply_class_recursive_rt(nullptr, true);
 		}, this, 0);
 	}
