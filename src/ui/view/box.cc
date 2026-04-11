@@ -191,553 +191,616 @@ namespace qk {
 
 	// =========================================================================
 	void Box::set_layout(LayoutType val) {
+		mark_style_flag(kLAYOUT_CssProp); // mark layout style flag
 		// To avoid in-frame jitter,
 		// all layout and rendering-related data attributes must be modified on the rendering thread,
 		// and after calling the `async_call` method,
 		// all modifications will be submitted to the rendering thread at the end of the main thread's tick.
-		_async_call({ self->set_layout_rt(arg); }, val);
+		_async_call({ self->set_layout_direct(arg, true); }, val);
 	}
 
 	// is clip box display range
 	void Box::set_clip(bool val) {
-		_async_call({ self->set_clip_rt(arg); }, val);
+		mark_style_flag(kCLIP_CssProp);
+		_async_call({ self->set_clip_direct(arg, true); }, val);
 	}
 
 	void Box::set_box_sizing(BoxSizing box_sizing) {
-		_async_call({ self->set_box_sizing_rt(arg); }, box_sizing);
+		mark_style_flag(kBOX_SIZING_CssProp);
+		_async_call({ self->set_box_sizing_direct(arg, true); }, box_sizing);
 	}
 
 	void Box::set_width(BoxSize val) {
-		_async_call({ self->set_width_rt(arg); }, val);
+		mark_style_flag(kWIDTH_CssProp);
+		_async_call({ self->set_width_direct(arg, true); }, val);
 	}
 
 	void Box::set_height(BoxSize val) {
-		_async_call({ self->set_height_rt(arg); }, val);
-	}
-
-	void Box::set_max_width(BoxSize val) {
-		_async_call({ self->set_max_width_rt(arg); }, val);
-	}
-
-	void Box::set_max_height(BoxSize val) {
-		_async_call({ self->set_max_height_rt(arg); }, val);
+		mark_style_flag(kHEIGHT_CssProp);
+		_async_call({ self->set_height_direct(arg, true); }, val);
 	}
 
 	void Box::set_min_width(BoxSize val) {
-		set_width(val);
+		mark_style_flag(kMIN_WIDTH_CssProp); // mark min-width style flag together
+		set_width(val); // min-width is alias of width
 	}
 
 	void Box::set_min_height(BoxSize val) {
-		set_height(val);
+		mark_style_flag(kMIN_HEIGHT_CssProp); // mark min-height style flag together
+		set_height(val); // min-height is alias of height
+	}
+
+	void Box::set_max_width(BoxSize val) {
+		mark_style_flag(kMAX_WIDTH_CssProp);
+		_async_call({ self->set_max_width_direct(arg, true); }, val);
+	}
+
+	void Box::set_max_height(BoxSize val) {
+		mark_style_flag(kMAX_HEIGHT_CssProp);
+		_async_call({ self->set_max_height_direct(arg, true); }, val);
 	}
 
 	void Box::set_margin(ArrayFloat val) {
+		// mark margin top/right/bottom/left style flags
+		_style_flags[kMARGIN_TOP_CssProp / 32] |= (0b1111 << kMARGIN_TOP_CssProp);
 		_async_call({
 			Sp<ArrayFloat> handle(arg); // auto release
-			self->set_margin_rt(std::move(*arg));
+			self->set_margin_direct(std::move(*arg), true);
 		}, new ArrayFloat(std::move(val)));
 	}
 
 	void Box::set_margin_left(float val) {
-		_async_call({ self->set_margin_left_rt(arg); }, val);
+		mark_style_flag(kMARGIN_LEFT_CssProp);
+		_async_call({ self->set_margin_left_direct(arg, true); }, val);
 	}
 
 	void Box::set_margin_top(float val) { // margin
-		_async_call({ self->set_margin_top_rt(arg); }, val);
+		mark_style_flag(kMARGIN_TOP_CssProp);
+		_async_call({ self->set_margin_top_direct(arg, true); }, val);
 	}
 
 	void Box::set_margin_right(float val) {
-		_async_call({ self->set_margin_right_rt(arg); }, val);
+		mark_style_flag(kMARGIN_RIGHT_CssProp);
+		_async_call({ self->set_margin_right_direct(arg, true); }, val);
 	}
 
 	void Box::set_margin_bottom(float val) {
-		_async_call({ self->set_margin_bottom_rt(arg); }, val);
+		mark_style_flag(kMARGIN_BOTTOM_CssProp);
+		_async_call({ self->set_margin_bottom_direct(arg, true); }, val);
 	}
 
 	void Box::set_padding(ArrayFloat val) {
+		// mark padding top/right/bottom/left style flags
+		_style_flags[kPADDING_TOP_CssProp / 32] |= (0b1111 << kPADDING_TOP_CssProp);
 		_async_call({
 			Sp<ArrayFloat> handle(arg); // auto release
-			self->set_padding_rt(std::move(*arg));
+			self->set_padding_direct(std::move(*arg), true);
 		}, new ArrayFloat(std::move(val)));
 	}
 
 	void Box::set_padding_top(float val) { // padding
-		_async_call({ self->set_padding_top_rt(arg); }, val);
+		mark_style_flag(kPADDING_TOP_CssProp);
+		_async_call({ self->set_padding_top_direct(arg, true); }, val);
 	}
 
 	void Box::set_padding_left(float val) {
-		_async_call({ self->set_padding_left_rt(arg); }, val);
+		mark_style_flag(kPADDING_LEFT_CssProp);
+		_async_call({ self->set_padding_left_direct(arg, true); }, val);
 	}
 
 	void Box::set_padding_right(float val) {
-		_async_call({ self->set_padding_right_rt(arg); }, val);
+		mark_style_flag(kPADDING_RIGHT_CssProp);
+		_async_call({ self->set_padding_right_direct(arg, true); }, val);
 	}
 
 	void Box::set_padding_bottom(float val) {
-		_async_call({ self->set_padding_bottom_rt(arg); }, val);
+		mark_style_flag(kPADDING_BOTTOM_CssProp);
+		_async_call({ self->set_padding_bottom_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_radius(ArrayFloat val) {
+		// mark border radius top-left/top-right/bottom-right style flags
+		_style_flags[kBORDER_TOP_LEFT_RADIUS_CssProp / 32] |= (0b111 << kBORDER_TOP_LEFT_RADIUS_CssProp);
+		// mark border radius bottom-left style flag
+		_style_flags[kBORDER_BOTTOM_LEFT_RADIUS_CssProp / 32] |= (0b1 << (kBORDER_BOTTOM_LEFT_RADIUS_CssProp % 32));
 		_async_call({
 			Sp<ArrayFloat> handle(arg); // auto release
-			self->set_border_radius_rt(std::move(*arg));
+			self->set_border_radius_direct(std::move(*arg), true);
 		}, new ArrayFloat(std::move(val)));
 	}
 
 	void Box::set_border_top_left_radius(float val) {
-		_async_call({ self->set_border_top_left_radius_rt(arg); }, val);
+		mark_style_flag(kBORDER_TOP_LEFT_RADIUS_CssProp);
+		_async_call({ self->set_border_top_left_radius_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_top_right_radius(float val) {
-		_async_call({ self->set_border_top_right_radius_rt(arg); }, val);
+		mark_style_flag(kBORDER_TOP_RIGHT_RADIUS_CssProp);
+		_async_call({ self->set_border_top_right_radius_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_bottom_right_radius(float val) {
-		_async_call({ self->set_border_bottom_right_radius_rt(arg); }, val);
+		mark_style_flag(kBORDER_BOTTOM_RIGHT_RADIUS_CssProp);
+		_async_call({ self->set_border_bottom_right_radius_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_bottom_left_radius(float val) {
-		_async_call({ self->set_border_bottom_left_radius_rt(arg); }, val);
+		mark_style_flag(kBORDER_BOTTOM_LEFT_RADIUS_CssProp);
+		_async_call({ self->set_border_bottom_left_radius_direct(arg, true); }, val);
 	}
 
 	void Box::set_border(ArrayBorder val) {
+		// mark border top/right/bottom/left style flags
+		// include border width and color
+		_style_flags[kBORDER_TOP_COLOR_CssProp / 32] |= (0b11111111 << (kBORDER_TOP_COLOR_CssProp % 32));
 		_async_call({
 			Sp<ArrayBorder> handle(arg); // auto release
-			self->set_border_rt(std::move(*arg));
+			self->set_border_direct(std::move(*arg), true);
 		}, new ArrayBorder(std::move(val)));
 	}
 
 	void Box::set_border_top(Border border) {
-		_async_call({ self->set_border_top_rt(arg); }, border);
+		mark_style_flag(kBORDER_TOP_COLOR_CssProp);
+		mark_style_flag(kBORDER_TOP_WIDTH_CssProp);
+		_async_call({ self->set_border_top_direct(arg, true); }, border);
 	}
 
 	void Box::set_border_right(Border border) {
-		_async_call({ self->set_border_right_rt(arg); }, border);
+		mark_style_flag(kBORDER_RIGHT_COLOR_CssProp);
+		mark_style_flag(kBORDER_RIGHT_WIDTH_CssProp);
+		_async_call({ self->set_border_right_direct(arg, true); }, border);
 	}
 
 	void Box::set_border_bottom(Border border) {
-		_async_call({ self->set_border_bottom_rt(arg); }, border);
+		mark_style_flag(kBORDER_BOTTOM_COLOR_CssProp);
+		mark_style_flag(kBORDER_BOTTOM_WIDTH_CssProp);
+		_async_call({ self->set_border_bottom_direct(arg, true); }, border);
 	}
 
 	void Box::set_border_left(Border border) {
-		_async_call({ self->set_border_left_rt(arg); }, border);
+		mark_style_flag(kBORDER_LEFT_COLOR_CssProp);
+		mark_style_flag(kBORDER_LEFT_WIDTH_CssProp);
+		_async_call({ self->set_border_left_direct(arg, true); }, border);
 	}
 
 	void Box::set_border_width(ArrayFloat val) {
+		// mark border width top/right/bottom/left style flags
+		_style_flags[kBORDER_TOP_WIDTH_CssProp / 32] |= (0b1111 << (kBORDER_TOP_WIDTH_CssProp % 32));
 		_async_call({
 			Sp<ArrayFloat> handle(arg); // auto release
-			self->set_border_width_rt(std::move(*arg));
+			self->set_border_width_direct(std::move(*arg), true);
 		}, new ArrayFloat(std::move(val)));
 	}
 
 	void Box::set_border_color(ArrayColor val) {
+		// mark border color top/right/bottom/left style flags
+		_style_flags[kBORDER_TOP_COLOR_CssProp / 32] |= (0b1111 << (kBORDER_TOP_COLOR_CssProp % 32));
 		_async_call({
 			Sp<ArrayColor> handle(arg); // auto release
-			self->set_border_color_rt(std::move(*arg));
+			self->set_border_color_direct(std::move(*arg), true);
 		}, new ArrayColor(std::move(val)));
 	}
 
 	void Box::set_border_top_color(Color val) {
-		_async_call({ self->set_border_top_color_rt(arg); }, val);
+		mark_style_flag(kBORDER_TOP_COLOR_CssProp);
+		_async_call({ self->set_border_top_color_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_right_color(Color val) {
-		_async_call({ self->set_border_right_color_rt(arg); }, val);
+		mark_style_flag(kBORDER_RIGHT_COLOR_CssProp);
+		_async_call({ self->set_border_right_color_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_bottom_color(Color val) {
-		_async_call({ self->set_border_bottom_color_rt(arg); }, val);
+		mark_style_flag(kBORDER_BOTTOM_COLOR_CssProp);
+		_async_call({ self->set_border_bottom_color_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_left_color(Color val) {
-		_async_call({ self->set_border_left_color_rt(arg); }, val);
+		mark_style_flag(kBORDER_LEFT_COLOR_CssProp);
+		_async_call({ self->set_border_left_color_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_top_width(float val) {
-		_async_call({ self->set_border_top_width_rt(arg); }, val);
+		mark_style_flag(kBORDER_TOP_WIDTH_CssProp);
+		_async_call({ self->set_border_top_width_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_right_width(float val) {
-		_async_call({ self->set_border_right_width_rt(arg); }, val);
+		mark_style_flag(kBORDER_RIGHT_WIDTH_CssProp);
+		_async_call({ self->set_border_right_width_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_bottom_width(float val) {
-		_async_call({ self->set_border_bottom_width_rt(arg); }, val);
+		mark_style_flag(kBORDER_BOTTOM_WIDTH_CssProp);
+		_async_call({ self->set_border_bottom_width_direct(arg, true); }, val);
 	}
 
 	void Box::set_border_left_width(float val) {
-		_async_call({ self->set_border_left_width_rt(arg); }, val);
+		mark_style_flag(kBORDER_LEFT_WIDTH_CssProp);
+		_async_call({ self->set_border_left_width_direct(arg, true); }, val);
 	}
 
 	void Box::set_background_color(Color color) {
-		_async_call({ self->set_background_color_rt(arg); }, color);
+		mark_style_flag(kBACKGROUND_COLOR_CssProp);
+		_async_call({ self->set_background_color_direct(arg, true); }, color);
 	}
 
 	void Box::set_background(BoxFilter* val) {
-		BoxFilter::assign_atomic(_background, val, this);
-		// _async_call({ self->set_background_rt(arg); }, val);
+		mark_style_flag(kBACKGROUND_CssProp);
+		Retain(val); // Retain before async call to ensure the object is not released before the async call is executed
+		_async_call({
+			self->set_background_direct(arg, true);
+			Release(arg); // Release after async call to ensure the object is released after the async call is executed
+		}, val);
 	}
 
 	void Box::set_box_shadow(BoxShadow* val) {
-		BoxFilter::assign_atomic(reinterpret_cast<std::atomic<BoxFilter*>&>(_box_shadow), val, this);
-		// _async_call({ self->set_box_shadow_rt(arg); }, val);
+		mark_style_flag(kBOX_SHADOW_CssProp);
+		Retain(val);
+		_async_call({
+			self->set_box_shadow_direct(arg, true);
+			Release(arg);
+		}, val);
 	}
 
 	void Box::set_align(Align align) {
-		_async_call({ self->set_align_rt(arg); }, align);
+		mark_style_flag(kALIGN_CssProp);
+		_async_call({ self->set_align_direct(arg, true); }, align);
 	}
 
 	void Box::set_weight(Vec2 weight) {
-		_async_call({ self->set_weight_rt(arg); }, weight);
+		mark_style_flag(kWEIGHT_CssProp);
+		_async_call({ self->set_weight_direct(arg, true); }, weight);
 	}
 
 	// =========================================================================
 
-	void Box::set_clip_rt(bool val) {
+	void Box::set_clip_direct(bool val, bool isRT) {
 		if (_clip != val) {
 			_clip = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_layout_rt(LayoutType val) {
+	void Box::set_layout_direct(LayoutType val, bool isRT) {
 		if (_layout != val) {
 			_layout = val;
-			mark_layout<true>(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 		}
 	}
 
-	void Box::set_box_sizing_rt(BoxSizing val) {
+	void Box::set_box_sizing_direct(BoxSizing val, bool isRT) {
 		if (_box_sizing != val) {
 			_box_sizing = val;
-			mark_layout<true>(kLayout_Size_ALL);
+			mark_layout(kLayout_Size_ALL, isRT);
 		}
 	}
 
-	void Box::set_width_rt(BoxSize val) {
+	void Box::set_width_direct(BoxSize val, bool isRT) {
 		if (_min_width != val) {
 			_min_width = val;
-			mark_layout<true>(kLayout_Inner_Width);
+			mark_layout(kLayout_Inner_Width, isRT);
 		}
 	}
 
-	void Box::set_height_rt(BoxSize val) {
+	void Box::set_height_direct(BoxSize val, bool isRT) {
 		if (_min_height != val) {
 			_min_height = val;
-			mark_layout<true>(kLayout_Inner_Height);
+			mark_layout(kLayout_Inner_Height, isRT);
 		}
 	}
 
-	void Box::set_min_width_rt(BoxSize val) {
-		set_width_rt(val);
+	void Box::set_min_width_direct(BoxSize val, bool isRT) {
+		set_width_direct(val, isRT); // min-width is alias of width
 	}
 
-	void Box::set_min_height_rt(BoxSize val) {
-		set_height_rt(val);
+	void Box::set_min_height_direct(BoxSize val, bool isRT) {
+		set_height_direct(val, isRT); // min-height is alias of height
 	}
 
-	void Box::set_max_width_rt(BoxSize val) {
+	void Box::set_max_width_direct(BoxSize val, bool isRT) {
 		if (_max_width != val) {
 			_max_width = val;
-			mark_layout<true>(kLayout_Inner_Width);
+			mark_layout(kLayout_Inner_Width, isRT);
 		}
 	}
 
-	void Box::set_max_height_rt(BoxSize val) {
+	void Box::set_max_height_direct(BoxSize val, bool isRT) {
 		if (_max_height != val) {
 			_max_height = val;
-			mark_layout<true>(kLayout_Inner_Height);
+			mark_layout(kLayout_Inner_Height, isRT);
 		}
 	}
 
-	void Box::set_margin_rt(ArrayFloat val) {
+	void Box::set_margin_direct(ArrayFloat val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_margin_left_rt(val[0]);
-				set_margin_top_rt(val[0]);
-				set_margin_right_rt(val[0]);
-				set_margin_bottom_rt(val[0]);
+				set_margin_left_direct(val[0], isRT);
+				set_margin_top_direct(val[0], isRT);
+				set_margin_right_direct(val[0], isRT);
+				set_margin_bottom_direct(val[0], isRT);
 				break;
 			case 2:
-				set_margin_top_rt(val[0]);
-				set_margin_bottom_rt(val[0]);
-				set_margin_left_rt(val[1]);
-				set_margin_right_rt(val[1]);
+				set_margin_top_direct(val[0], isRT);
+				set_margin_bottom_direct(val[0], isRT);
+				set_margin_left_direct(val[1], isRT);
+				set_margin_right_direct(val[1], isRT);
 				break;
 			case 3:
-				set_margin_top_rt(val[0]);
-				set_margin_left_rt(val[1]);
-				set_margin_right_rt(val[1]);
-				set_margin_bottom_rt(val[2]);
+				set_margin_top_direct(val[0], isRT);
+				set_margin_left_direct(val[1], isRT);
+				set_margin_right_direct(val[1], isRT);
+				set_margin_bottom_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_margin_top_rt(val[0]);
-				set_margin_right_rt(val[1]);
-				set_margin_bottom_rt(val[2]);
-				set_margin_left_rt(val[3]);
+				set_margin_top_direct(val[0], isRT);
+				set_margin_right_direct(val[1], isRT);
+				set_margin_bottom_direct(val[2], isRT);
+				set_margin_left_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_margin_top_rt(float val) { // margin
+	void Box::set_margin_top_direct(float val, bool isRT) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
-			mark_layout<true>(kLayout_Size_Height | kTransform);
+			mark_layout(kLayout_Size_Height | kTransform, isRT);
 		}
 	}
 
-	void Box::set_margin_left_rt(float val) {
+	void Box::set_margin_left_direct(float val, bool isRT) {
 		if (_margin_left != val) {
 			_margin_left = val;
-			mark_layout<true>(kLayout_Size_Width | kTransform);
+			mark_layout(kLayout_Size_Width | kTransform, isRT);
 		}
 	}
 
-	void Box::set_margin_right_rt(float val) {
+	void Box::set_margin_right_direct(float val, bool isRT) {
 		if (_margin_right != val) {
 			_margin_right = val;
-			mark_layout<true>(kLayout_Size_Width);
+			mark_layout(kLayout_Size_Width, isRT);
 		}
 	}
 
-	void Box::set_margin_bottom_rt(float val) {
+	void Box::set_margin_bottom_direct(float val, bool isRT) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
-			mark_layout<true>(kLayout_Size_Height);
+			mark_layout(kLayout_Size_Height, isRT);
 		}
 	}
 
-	void Box::set_padding_rt(ArrayFloat val) {
+	void Box::set_padding_direct(ArrayFloat val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_padding_left_rt(val[0]);
-				set_padding_top_rt(val[0]);
-				set_padding_right_rt(val[0]);
-				set_padding_bottom_rt(val[0]);
+				set_padding_left_direct(val[0], isRT);
+				set_padding_top_direct(val[0], isRT);
+				set_padding_right_direct(val[0], isRT);
+				set_padding_bottom_direct(val[0], isRT);
 				break;
 			case 2:
-				set_padding_top_rt(val[0]);
-				set_padding_bottom_rt(val[0]);
-				set_padding_left_rt(val[1]);
-				set_padding_right_rt(val[1]);
+				set_padding_top_direct(val[0], isRT);
+				set_padding_bottom_direct(val[0], isRT);
+				set_padding_left_direct(val[1], isRT);
+				set_padding_right_direct(val[1], isRT);
 				break;
 			case 3:
-				set_padding_top_rt(val[0]);
-				set_padding_left_rt(val[1]);
-				set_padding_right_rt(val[1]);
-				set_padding_bottom_rt(val[2]);
+				set_padding_top_direct(val[0], isRT);
+				set_padding_left_direct(val[1], isRT);
+				set_padding_right_direct(val[1], isRT);
+				set_padding_bottom_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_padding_top_rt(val[0]);
-				set_padding_right_rt(val[1]);
-				set_padding_bottom_rt(val[2]);
-				set_padding_left_rt(val[3]);
+				set_padding_top_direct(val[0], isRT);
+				set_padding_right_direct(val[1], isRT);
+				set_padding_bottom_direct(val[2], isRT);
+				set_padding_left_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_padding_top_rt(float val) {
+	void Box::set_padding_top_direct(float val, bool isRT) {
 		if (_padding_top != val) {
 			_padding_top = val;
 			// may affect the inside content height,
 			// so mark kLayout_Inner_Height with kLayout_Outside_Width together
-			mark_layout<true>(kLayout_Size_Height);
+			mark_layout(kLayout_Size_Height, isRT);
 		}
 	}
 
-	void Box::set_padding_left_rt(float val) {
+	void Box::set_padding_left_direct(float val, bool isRT) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			mark_layout<true>(kLayout_Size_Width);
+			mark_layout(kLayout_Size_Width, isRT);
 		}
 	}
 
-	void Box::set_padding_right_rt(float val) {
+	void Box::set_padding_right_direct(float val, bool isRT) {
 		if (_padding_right != val) {
 			_padding_right = val;
-			mark_layout<true>(kLayout_Size_Width);
+			mark_layout(kLayout_Size_Width, isRT);
 		}
 	}
 
-	void Box::set_padding_bottom_rt(float val) {
+	void Box::set_padding_bottom_direct(float val, bool isRT) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
-			mark_layout<true>(kLayout_Size_Height);
+			mark_layout(kLayout_Size_Height, isRT);
 		}
 	}
 
-	void Box::set_border_radius_rt(ArrayFloat val) {
+	void Box::set_border_radius_direct(ArrayFloat val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_left_radius_rt(val[0]);
-				set_border_top_right_radius_rt(val[0]);
-				set_border_bottom_right_radius_rt(val[0]);
-				set_border_bottom_left_radius_rt(val[0]);
+				set_border_top_left_radius_direct(val[0], isRT);
+				set_border_top_right_radius_direct(val[0], isRT);
+				set_border_bottom_right_radius_direct(val[0], isRT);
+				set_border_bottom_left_radius_direct(val[0], isRT);
 				break;
 			case 2:
-				set_border_top_left_radius_rt(val[0]);
-				set_border_top_right_radius_rt(val[0]);
-				set_border_bottom_right_radius_rt(val[1]);
-				set_border_bottom_left_radius_rt(val[1]);
+				set_border_top_left_radius_direct(val[0], isRT);
+				set_border_top_right_radius_direct(val[0], isRT);
+				set_border_bottom_right_radius_direct(val[1], isRT);
+				set_border_bottom_left_radius_direct(val[1], isRT);
 				break;
 			case 3:
-				set_border_top_left_radius_rt(val[0]);
-				set_border_top_right_radius_rt(val[1]);
-				set_border_bottom_right_radius_rt(val[2]);
-				set_border_bottom_left_radius_rt(val[2]);
+				set_border_top_left_radius_direct(val[0], isRT);
+				set_border_top_right_radius_direct(val[1], isRT);
+				set_border_bottom_right_radius_direct(val[2], isRT);
+				set_border_bottom_left_radius_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_border_top_left_radius_rt(val[0]);
-				set_border_top_right_radius_rt(val[1]);
-				set_border_bottom_right_radius_rt(val[2]);
-				set_border_bottom_left_radius_rt(val[3]);
+				set_border_top_left_radius_direct(val[0], isRT);
+				set_border_top_right_radius_direct(val[1], isRT);
+				set_border_bottom_right_radius_direct(val[2], isRT);
+				set_border_bottom_left_radius_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_border_top_left_radius_rt(float val) {
+	void Box::set_border_top_left_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_top_left_radius != val) {
 			_border_top_left_radius = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_border_top_right_radius_rt(float val) {
+	void Box::set_border_top_right_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_top_right_radius != val) {
 			_border_top_right_radius = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_border_bottom_right_radius_rt(float val) {
+	void Box::set_border_bottom_right_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_bottom_right_radius != val) {
 			_border_bottom_right_radius = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_border_bottom_left_radius_rt(float val) {
+	void Box::set_border_bottom_left_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_bottom_left_radius != val) {
 			_border_bottom_left_radius = val;
 			mark_render();
 		}
 	}
 
-	void Box::set_border_rt(ArrayBorder val) {
+	void Box::set_border_direct(ArrayBorder val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_rt(val[0]);
-				set_border_right_rt(val[0]);
-				set_border_bottom_rt(val[0]);
-				set_border_left_rt(val[0]);
+				set_border_top_direct(val[0], isRT);
+				set_border_right_direct(val[0], isRT);
+				set_border_bottom_direct(val[0], isRT);
+				set_border_left_direct(val[0], isRT);
 				break;
 			case 2:
-				set_border_top_rt(val[0]);
-				set_border_bottom_rt(val[0]);
-				set_border_left_rt(val[1]);
-				set_border_right_rt(val[1]);
+				set_border_top_direct(val[0], isRT);
+				set_border_bottom_direct(val[0], isRT);
+				set_border_left_direct(val[1], isRT);
+				set_border_right_direct(val[1], isRT);
 				break;
 			case 3:
-				set_border_top_rt(val[0]);
-				set_border_left_rt(val[1]);
-				set_border_right_rt(val[1]);
-				set_border_bottom_rt(val[2]);
+				set_border_top_direct(val[0], isRT);
+				set_border_left_direct(val[1], isRT);
+				set_border_right_direct(val[1], isRT);
+				set_border_bottom_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_border_top_rt(val[0]);
-				set_border_right_rt(val[1]);
-				set_border_bottom_rt(val[2]);
-				set_border_left_rt(val[3]);
+				set_border_top_direct(val[0], isRT);
+				set_border_right_direct(val[1], isRT);
+				set_border_bottom_direct(val[2], isRT);
+				set_border_left_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_border_top_rt(Border border) {
-		set_border_top_width_rt(border.width);
-		set_border_top_color_rt(border.color);
+	void Box::set_border_top_direct(Border border, bool isRT) {
+		set_border_top_width_direct(border.width, isRT);
+		set_border_top_color_direct(border.color, isRT);
 	}
 
-	void Box::set_border_right_rt(Border border) {
-		set_border_right_width_rt(border.width);
-		set_border_right_color_rt(border.color);
+	void Box::set_border_right_direct(Border border, bool isRT) {
+		set_border_right_width_direct(border.width, isRT);
+		set_border_right_color_direct(border.color, isRT);
 	}
 
-	void Box::set_border_bottom_rt(Border border) {
-		set_border_bottom_width_rt(border.width);
-		set_border_bottom_color_rt(border.color);
+	void Box::set_border_bottom_direct(Border border, bool isRT) {
+		set_border_bottom_width_direct(border.width, isRT);
+		set_border_bottom_color_direct(border.color, isRT);
 	}
 
-	void Box::set_border_left_rt(Border border) {
-		set_border_left_width_rt(border.width);
-		set_border_left_color_rt(border.color);
+	void Box::set_border_left_direct(Border border, bool isRT) {
+		set_border_left_width_direct(border.width, isRT);
+		set_border_left_color_direct(border.color, isRT);
 	}
 
-	void Box::set_border_width_rt(ArrayFloat val) {
+	void Box::set_border_width_direct(ArrayFloat val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_width_rt(val[0]);
-				set_border_right_width_rt(val[0]);
-				set_border_bottom_width_rt(val[0]);
-				set_border_left_width_rt(val[0]);
+				set_border_top_width_direct(val[0], isRT);
+				set_border_right_width_direct(val[0], isRT);
+				set_border_bottom_width_direct(val[0], isRT);
+				set_border_left_width_direct(val[0], isRT);
 				break;
 			case 2:
-				set_border_top_width_rt(val[0]);
-				set_border_bottom_width_rt(val[0]);
-				set_border_left_width_rt(val[1]);
-				set_border_right_width_rt(val[1]);
+				set_border_top_width_direct(val[0], isRT);
+				set_border_bottom_width_direct(val[0], isRT);
+				set_border_left_width_direct(val[1], isRT);
+				set_border_right_width_direct(val[1], isRT);
 				break;
 			case 3:
-				set_border_top_width_rt(val[0]);
-				set_border_left_width_rt(val[1]);
-				set_border_right_width_rt(val[1]);
-				set_border_bottom_width_rt(val[2]);
+				set_border_top_width_direct(val[0], isRT);
+				set_border_left_width_direct(val[1], isRT);
+				set_border_right_width_direct(val[1], isRT);
+				set_border_bottom_width_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_border_top_width_rt(val[0]);
-				set_border_right_width_rt(val[1]);
-				set_border_bottom_width_rt(val[2]);
-				set_border_left_width_rt(val[3]);
+				set_border_top_width_direct(val[0], isRT);
+				set_border_right_width_direct(val[1], isRT);
+				set_border_bottom_width_direct(val[2], isRT);
+				set_border_left_width_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	void Box::set_border_color_rt(ArrayColor val) {
+	void Box::set_border_color_direct(ArrayColor val, bool isRT) {
 		switch (val.length()) {
 			case 1:
-				set_border_top_color_rt(val[0]);
-				set_border_right_color_rt(val[0]);
-				set_border_bottom_color_rt(val[0]);
-				set_border_left_color_rt(val[0]);
+				set_border_top_color_direct(val[0], isRT);
+				set_border_right_color_direct(val[0], isRT);
+				set_border_bottom_color_direct(val[0], isRT);
+				set_border_left_color_direct(val[0], isRT);
 				break;
 			case 2:
-				set_border_top_color_rt(val[0]);
-				set_border_bottom_color_rt(val[0]);
-				set_border_left_color_rt(val[1]);
-				set_border_right_color_rt(val[1]);
+				set_border_top_color_direct(val[0], isRT);
+				set_border_bottom_color_direct(val[0], isRT);
+				set_border_left_color_direct(val[1], isRT);
+				set_border_right_color_direct(val[1], isRT);
 				break;
 			case 3:
-				set_border_top_color_rt(val[0]);
-				set_border_left_color_rt(val[1]);
-				set_border_right_color_rt(val[1]);
-				set_border_bottom_color_rt(val[2]);
+				set_border_top_color_direct(val[0], isRT);
+				set_border_left_color_direct(val[1], isRT);
+				set_border_right_color_direct(val[1], isRT);
+				set_border_bottom_color_direct(val[2], isRT);
 				break;
 			case 4: // 4
-				set_border_top_color_rt(val[0]);
-				set_border_right_color_rt(val[1]);
-				set_border_bottom_color_rt(val[2]);
-				set_border_left_color_rt(val[3]);
+				set_border_top_color_direct(val[0], isRT);
+				set_border_right_color_direct(val[1], isRT);
+				set_border_bottom_color_direct(val[2], isRT);
+				set_border_left_color_direct(val[3], isRT);
 				break;
 			default: break;
 		}
 	}
 
-	struct SetBorder: public Box {
-		#define _BorderAlloc() auto _border = static_cast<SetBorder*>(this)->alloc()
+	struct BorderAlloc: Box {
+		#define _BorderAlloc() auto _border = static_cast<BorderAlloc*>(this)->alloc()
 		BorderInl* alloc() {
 			BorderInl* border = _border.load(std::memory_order_acquire);
 			if (Qk_UNLIKELY(!border)) {
@@ -762,7 +825,7 @@ namespace qk {
 		}
 	};
 
-	void Box::set_border_top_color_rt(Color val) {
+	void Box::set_border_top_color_direct(Color val, bool isRT) {
 		_BorderAlloc();
 		if (_border->color[0] != val) {
 			_border->color[0] = val;
@@ -770,7 +833,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_right_color_rt(Color val) {
+	void Box::set_border_right_color_direct(Color val, bool isRT) {
 		_BorderAlloc();
 		if (_border->color[1] != val) {
 			_border->color[1] = val;
@@ -778,7 +841,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_bottom_color_rt(Color val) {
+	void Box::set_border_bottom_color_direct(Color val, bool isRT) {
 		_BorderAlloc();
 		if (_border->color[2] != val) {
 			_border->color[2] = val;
@@ -786,7 +849,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_left_color_rt(Color val) {
+	void Box::set_border_left_color_direct(Color val, bool isRT) {
 		_BorderAlloc();
 		if (_border->color[3] != val) {
 			_border->color[3] = val;
@@ -794,43 +857,43 @@ namespace qk {
 		}
 	}
 
-	void Box::set_border_top_width_rt(float val) {
+	void Box::set_border_top_width_direct(float val, bool isRT) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
-			mark_layout<true>(kLayout_Size_Height);
+			mark_layout(kLayout_Size_Height, isRT);
 		}
 	}
 
-	void Box::set_border_right_width_rt(float val) {
+	void Box::set_border_right_width_direct(float val, bool isRT) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
-			mark_layout<true>(kLayout_Size_Width);
+			mark_layout(kLayout_Size_Width, isRT);
 		}
 	}
 
-	void Box::set_border_bottom_width_rt(float val) {
+	void Box::set_border_bottom_width_direct(float val, bool isRT) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
-			mark_layout<true>(kLayout_Size_Height);
+			mark_layout(kLayout_Size_Height, isRT);
 		}
 	}
 
-	void Box::set_border_left_width_rt(float val) {
+	void Box::set_border_left_width_direct(float val, bool isRT) {
 		_BorderAlloc();
 		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
-			mark_layout<true>(kLayout_Size_Width);
+			mark_layout(kLayout_Size_Width, isRT);
 		}
 	}
 
-	void Box::set_background_color_rt(Color color) {
+	void Box::set_background_color_direct(Color color, bool isRT) {
 		if (_background_color != color) {
 			_background_color = color;
 			mark_render();
@@ -841,11 +904,11 @@ namespace qk {
 		return _container.content;
 	}
 
-	void Box::set_background_rt(BoxFilter* val) {
+	void Box::set_background_direct(BoxFilter* val, bool isRT) {
 		BoxFilter::assign_atomic(_background, val, this);
 	}
 
-	void Box::set_box_shadow_rt(BoxShadow* val) {
+	void Box::set_box_shadow_direct(BoxShadow* val, bool isRT) {
 		BoxFilter::assign_atomic(reinterpret_cast<std::atomic<BoxFilter*>&>(_box_shadow), val, this);
 	}
 
@@ -943,17 +1006,25 @@ namespace qk {
 			_parent->onChildLayoutChange(self, arg);
 	}
 
-	void Box::set_align_rt(Align align) {
+	void Box::set_align_direct(Align align, bool isRT) {
 		if (_align != align) {
 			_align = align;
-			call_onChildLayoutChange(this, kChild_Layout_Align);
+			if (isRT) {
+				call_onChildLayoutChange(this, kChild_Layout_Align);
+			} else {
+				_async_call({ call_onChildLayoutChange(self, kChild_Layout_Align); }, 0);
+			}
 		}
 	}
 
-	void Box::set_weight_rt(Vec2 weight) {
+	void Box::set_weight_direct(Vec2 weight, bool isRT) {
 		if (_weight != weight) {
 			_weight = weight;
-			call_onChildLayoutChange(this, kChild_Layout_Weight);
+			if (isRT) {
+				call_onChildLayoutChange(this, kChild_Layout_Weight);
+			} else {
+				_async_call({ call_onChildLayoutChange(self, kChild_Layout_Weight); }, 0);
+			}
 		}
 	}
 

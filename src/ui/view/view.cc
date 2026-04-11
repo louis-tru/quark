@@ -126,6 +126,7 @@ Range Container::to_range() const {
 		, _visible_area(false)
 		, _receive(true)
 		, _aa(true)
+		, _hasParent(false)
 	{
 		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
@@ -174,65 +175,77 @@ Range Container::to_range() const {
 
 	// =========================================================================
 	void View::set_receive(bool val) {
+		mark_style_flag(kRECEIVE_CssProp);
 		_receive = val;
 	}
 
 	void View::set_aa(bool val) {
+		mark_style_flag(kAA_CssProp);
 		_aa = val;
 	}
 
 	void View::set_cursor(CursorStyle val) {
+		mark_style_flag(kCURSOR_CssProp);
 		_cursor = val;
 	}
 
 	void View::set_z_index(uint32_t val) {
-		_async_call({ self->set_z_index_rt(arg); }, val);
+		mark_style_flag(kZ_INDEX_CssProp);
+		_async_call({ self->set_z_index_direct(arg, true); }, val);
 	}
 
 	void View::set_visible(bool val) {
-		_async_call({ self->set_visible_rt(arg); }, val);
+		mark_style_flag(kVISIBLE_CssProp);
+		_async_call({ self->set_visible_direct(arg, true); }, val);
 	}
 
 	void View::set_opacity(float val) {
-		_async_call({ self->set_opacity_rt(arg); }, val);
+		mark_style_flag(kOPACITY_CssProp);
+		_async_call({ self->set_opacity_direct(arg, true); }, val);
 	}
 
 	void View::set_color(Color val) {
-		_async_call({ self->set_color_rt(arg); }, val);
+		mark_style_flag(kCOLOR_CssProp);
+		_async_call({ self->set_color_direct(arg, true); }, val);
 	}
 
 	void View::set_cascade_color(CascadeColor val) {
-		_async_call({ self->set_cascade_color_rt(arg); }, val);
+		mark_style_flag(kCASCADE_COLOR_CssProp);
+		_async_call({ self->set_cascade_color_direct(arg, true); }, val);
 	}
 
 	// =========================================================================
-	void View::set_receive_rt(bool val) {
+	void View::set_receive_direct(bool val, bool isRT) {
 		_receive = val;
 	}
 
-	void View::set_aa_rt(bool val) {
+	void View::set_aa_direct(bool val, bool isRT) {
 		_aa = val;
 	}
 
-	void View::set_cursor_rt(CursorStyle val) {
+	void View::set_cursor_direct(CursorStyle val, bool isRT) {
 		_cursor = val;
 	}
 
-	void View::set_z_index_rt(uint32_t val) {
+	void View::set_z_index_direct(uint32_t val, bool isRT) {
 		if (_z_index != val) {
 			_z_index = val;
 			mark_render();
 		}
 	}
 
-	void View::set_visible_rt(bool val) {
+	void View::set_visible_direct(bool val, bool isRT) {
 		if (_visible != val) {
 			_visible = val;
-			set_visible_rt_(val);
+			if (isRT) {
+				set_visible_rt(val);
+			} else {
+				_async_call({ self->set_visible_rt(arg); }, val);
+			}
 		}
 	}
 
-	void View::set_opacity_rt(float val) {
+	void View::set_opacity_direct(float val, bool isRT) {
 		uint8_t alpha8 = val * 255;
 		if (_color.a() != alpha8) {
 			_color.set_a(alpha8);
@@ -240,14 +253,14 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::set_color_rt(Color val) {
+	void View::set_color_direct(Color val, bool isRT) {
 		if (_color != val) {
 			_color = val;
 			mark_render();
 		}
 	}
 
-	void View::set_cascade_color_rt(CascadeColor val) {
+	void View::set_cascade_color_direct(CascadeColor val, bool isRT) {
 		if (_cascade_color != val) {
 			_cascade_color = val;
 			mark_render(); // mark reader only
@@ -698,8 +711,8 @@ Range Container::to_range() const {
 	void View::remove() {
 		if (_parent) {
 			blur();
-			clear_link(false);
 			set_action(nullptr); // Delete action
+			clear_link(false);
 			async_call([](auto self, auto arg) {
 				if (self->_level) {
 					if (arg) { // notice parent view
@@ -798,7 +811,7 @@ Range Container::to_range() const {
 
 	// --------------------------------------------------------------------------------------
 
-	void View::set_visible_rt_(bool visible) {
+	void View::set_visible_rt(bool visible) {
 		_Parent();
 		auto level =
 			_parent && _parent->_level         ? _parent->_level + 1:

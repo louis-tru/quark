@@ -186,16 +186,16 @@ namespace qk {
 	struct PropImpl: Property {
 		inline PropImpl(CssProp prop, T value): _prop(prop), _value(value) {}
 		void apply(View *view) override {
-			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T, bool))(view->accessor() + _prop)->set;
 			if (set) {
-				(view->*set)(_value);
+				(view->*set)(_value, true);
 			}
 		}
 		void apply_with_priority(View *view) override {
-			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T, bool))(view->accessor() + _prop)->set;
 			if (set) {
 				if (!view->has_style_flag(_prop))
-					(view->*set)(_value);
+					(view->*set)(_value, true);
 			}
 		}
 		void fetch(View *view) override {
@@ -205,9 +205,9 @@ namespace qk {
 		}
 		void transition(View *view, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
-			auto set = (void (View::*)(T))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
 			if (set) {
-				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y));
+				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y), true);
 			}
 		}
 		Property* copy() override {
@@ -228,16 +228,16 @@ namespace qk {
 			Release(_value);
 		}
 		void apply(View *view) override {
-			auto set = (void (View::*)(T*))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T*, bool))(view->accessor() + _prop)->set;
 			if (set) {
-				(view->*set)(_value);
+				(view->*set)(_value, true);
 			}
 		}
 		void apply_with_priority(View *view) override {
-			auto set = (void (View::*)(T*))(view->accessor() + _prop)->set;
+			auto set = (void (View::*)(T*, bool))(view->accessor() + _prop)->set;
 			if (set) {
 				if (!view->has_style_flag(_prop)) {
-					(view->*set)(_value);
+					(view->*set)(_value, true);
 				}
 			}
 		}

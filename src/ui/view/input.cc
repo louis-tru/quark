@@ -37,7 +37,7 @@
 
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
-#define _async_call window()->pre_render().async_call
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -101,39 +101,39 @@ namespace qk {
 		void onTouchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg, true); }, this, arg);
+			_async_call({ self->start_action(arg, true); }, arg);
 		}
 
 		void onTouchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg); }, this, arg);
+			_async_call({ self->move_action(arg); }, arg);
 		}
 
 		void onTouchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			auto arg = e->changed_touches()[0].position;
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg); }, this, arg);
+			_async_call({ self->end_action(arg); }, arg);
 		}
 
 		void onMousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg, false); }, this, arg);
+			_async_call({ self->start_action(arg, false); }, arg);
 		}
 
 		void onMousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg); }, this, arg);
+			_async_call({ self->move_action(arg); }, arg);
 		}
 
 		void onMouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			auto arg = e->position();
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg); }, this, arg);
+			_async_call({ self->end_action(arg); }, arg);
 		}
 
 		void onClick(UIEvent& evt) {
@@ -145,7 +145,7 @@ namespace qk {
 				focus();
 			}
 
-			_async_call([](auto self, auto arg) {
+			_async_call({
 				if ( self->_editing ) {
 					self->setImeKeyboardAndOpen();
 					self->find_cursor(arg);
@@ -160,12 +160,13 @@ namespace qk {
 						self->find_cursor(arg);
 					}
 				}
-			}, this, e->position());
+			}, e->position());
 		}
 
 		void onKeydown(UIEvent& evt) {
 			// Qk_DLog("Input::onKeydown");
-			_async_call([](auto ctx, auto arg) {
+			_async_call({
+				auto ctx = self;
 				if (!ctx->_marked_text.is_empty()) {
 					return; // When there is marked text, ignore arrow key operations and use IME processing.
 				}
@@ -206,7 +207,7 @@ namespace qk {
 					ctx->reset_cursor_twinkle_task_timeout();
 					ctx->template mark<true>(kInput_Status);
 				}
-			}, this, static_cast<KeyEvent*>(&evt)->keycode());
+			}, static_cast<KeyEvent*>(&evt)->keycode());
 		}
 
 		void onFocus_for_render_t() {
@@ -220,7 +221,7 @@ namespace qk {
 		}
 
 		void onFocus(UIEvent& evt) {
-			_async_call([](auto ctx, auto args) { ctx->onFocus_for_render_t(); }, this, 0);
+			_async_call({ self->onFocus_for_render_t(); }, 0);
 		}
 
 		void onBlur(UIEvent& evt) {
@@ -240,12 +241,12 @@ namespace qk {
 						if ( !try_retain_rt() )
 							return;
 						window()->loop()->timer(Cb([this](auto &e) { // delay call
-							_async_call([](auto ctx, auto arg) {
-								if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
-									ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
-									ctx->find_cursor(ctx->_point);
+							_async_call({
+								if ( self->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
+									self->_flag = kFlag_Find_Cursor; // 激活光标定位
+									self->find_cursor(self->_point);
 								}
-							}, this, 0);
+							}, 0);
 							release(); // it must be release here @ if ( !try_retain_rt() )
 						}), 1e3); // 1 second
 					} else { // 立即激活
@@ -676,9 +677,9 @@ namespace qk {
 		if (_editing) {
 			window()->dispatch()->cancelImeMarked(); // first cancel marked from IME
 			if (_is_marked_text) {
-				_async_call([](auto ctx, auto arg) {
-					ctx->input_unmark(String()); // then unmark marked text for reader thread
-				}, this, 0);
+				_async_call({
+					self->input_unmark(String()); // then unmark marked text for reader thread
+				}, 0);
 			}
 		}
 	}
@@ -1052,17 +1053,17 @@ namespace qk {
 
 	void Input::input_close() {
 		if ( _editing ) {
-			_async_call([](auto ctx, auto args) {
-				if (ctx->_editing == false) return;
-				ctx->_editing = false;
-				ctx->_flag = kFlag_Normal;
-				if (ctx->_is_marked_text) {
-					ctx->input_unmark(ctx->marked_text());
+			_async_call({
+				if (self->_editing == false) return;
+				self->_editing = false;
+				self->_flag = kFlag_Normal;
+				if (self->_is_marked_text) {
+					self->input_unmark(self->marked_text());
 				} else {
-					ctx->template mark<true>(kInput_Status);
+					self->template mark<true>(kInput_Status);
 				}
-				ctx->window()->pre_render().untask(ctx);
-			}, _this, 0);
+				self->window()->pre_render().untask(self);
+			}, 0);
 		}
 	}
 
@@ -1092,29 +1093,82 @@ namespace qk {
 
 	void Input::set_keyboard_type(KeyboardType value) {
 		mark_style_flag(kKEYBOARD_TYPE_CssProp);
-		set_keyboard_type_rt(value);
+		_async_call({ self->set_keyboard_type_direct(arg, true); }, value);
 	}
 
-	void Input::set_keyboard_type_rt(KeyboardType value) {
+	void Input::set_return_type(KeyboardReturnType value) {
+		mark_style_flag(kKEYBOARD_RETURN_TYPE_CssProp);
+		_async_call({ self->set_return_type_direct(arg, true); }, value);
+	}
+
+	void Input::set_value(String val) {
+		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+	}
+
+	void Input::set_value_u4(String4 val) {
+		_async_call({
+			Sp<String4> handle(arg);
+			self->set_value_u4_direct(*arg, true);
+		}, new String4(val));
+	}
+
+	void Input::set_placeholder(String val) {
+		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+	}
+
+	void Input::set_placeholder_u4(String4 val) {
+		mark_style_flag(kPLACEHOLDER_CssProp);
+		_async_call({
+			Sp<String4> handle(arg);
+			self->set_placeholder_u4_direct(*arg, true);
+		}, new String4(val));
+	}
+
+	void Input::set_placeholder_color(Color value) {
+		mark_style_flag(kPLACEHOLDER_COLOR_CssProp);
+		_async_call({ self->set_placeholder_color_direct(arg, true); }, value);
+	}
+
+	void Input::set_cursor_color(Color value) {
+		mark_style_flag(kCURSOR_COLOR_CssProp);
+		_async_call({ self->set_cursor_color_direct(arg, true); }, value);
+	}
+
+	void Input::set_security(bool value) {
+		mark_style_flag(kSECURITY_CssProp);
+		_async_call({ self->set_security_direct(arg, true); }, value);
+	}
+
+	void Input::set_readonly(bool val) {
+		mark_style_flag(kREADONLY_CssProp);
+		_async_call({ self->set_readonly_direct(arg, true); }, val);
+	}
+
+	void Input::set_max_length(uint32_t value) {
+		mark_style_flag(kMAX_LENGTH_CssProp);
+		_async_call({ self->set_max_length_direct(arg, true); }, value);
+	}
+
+	// ==================================================================
+	void Input::set_keyboard_type_direct(KeyboardType value, bool isRT) {
 		if (value != _keyboard_type) {
 			_keyboard_type = value;
 			_this->setImeKeyboardAndOpen();
 		}
 	}
 
-	void Input::set_return_type(KeyboardReturnType value) {
-		mark_style_flag(kKEYBOARD_RETURN_TYPE_CssProp);
-		set_return_type_rt(value);
-	}
-
-	void Input::set_return_type_rt(KeyboardReturnType value) {
+	void Input::set_return_type_direct(KeyboardReturnType value, bool isRT) {
 		if (value != _return_type) {
 			_return_type = value;
 			_this->setImeKeyboardAndOpen();
 		}
 	}
 
-	void Input::set_value_u4(String4 val) {
+	void Input::set_value_direct(String val, bool isRT) {
+		set_value_u4_direct(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRT);
+	}
+
+	void Input::set_value_u4_direct(String4 val, bool isRT) {
 		if (_value_u4 != val) {
 			mark_layout(kLayout_Typesetting);
 			_value_u4 = val;
@@ -1122,116 +1176,58 @@ namespace qk {
 		}
 	}
 
-	void Input::set_value_u4_rt(String4 val) {
-		// noop
+	void Input::set_placeholder_direct(String val, bool isRT) {
+		set_placeholder_u4_direct(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRT);
 	}
 
-	void Input::set_value(String val) {
-		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
-	}
-
-	void Input::set_value_rt(String val) {
-		// noop
-	}
-
-	void Input::set_placeholder(String val) {
-		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
-	}
-
-	void Input::set_placeholder_rt(String val) {
-		set_placeholder_u4_rt(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
-	}
-
-	void Input::set_placeholder_u4(String4 value) {
-		mark_style_flag(kPLACEHOLDER_CssProp);
+	void Input::set_placeholder_u4_direct(String4 value, bool isRT) {
 		_placeholder_u4 = value;
-		mark_layout(kLayout_Typesetting);
+		mark_layout(kLayout_Typesetting, isRT);
 	}
 
-	void Input::set_placeholder_u4_rt(String4 value) {
-		_placeholder_u4 = value;
-		mark_layout<true>(kLayout_Typesetting);
-	}
-
-	void Input::set_placeholder_color(Color value) {
-		mark_style_flag(kPLACEHOLDER_COLOR_CssProp);
-		if (value != _placeholder_color) {
-			mark_render();
-			_placeholder_color = value;
-		}
-	}
-
-	void Input::set_placeholder_color_rt(Color value) {
+	void Input::set_placeholder_color_direct(Color value, bool isRT) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
 			mark_render();
 		}
 	}
 
-	void Input::set_cursor_color(Color value) {
-		mark_style_flag(kCURSOR_COLOR_CssProp);
-		if (value != _cursor_color) {
-			mark_render();
-			_cursor_color = value;
-		}
-	}
-
-	void Input::set_cursor_color_rt(Color value) {
+	void Input::set_cursor_color_direct(Color value, bool isRT) {
 		if (value != _cursor_color) {
 			_cursor_color = value;
 			mark_render();
 		}
 	}
 
-	void Input::set_security(bool value) {
-		mark_style_flag(kSECURITY_CssProp);
-		if (_security != value) {
-			mark_layout(kLayout_Typesetting);
-			_security = value;
-		}
-	}
-
-	void Input::set_security_rt(bool value) {
+	void Input::set_security_direct(bool value, bool isRT) {
 		if (_security != value) {
 			_security = value;
-			mark_layout<true>(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 		}
 	}
 
-	void Input::set_readonly(bool val) {
-		mark_style_flag(kREADONLY_CssProp);
-		if (_readonly != val) {
-			if (val)
-				blur();
-			_readonly = val;
-		}
-	}
-
-	void Input::set_readonly_rt(bool val) {
+	void Input::set_readonly_direct(bool val, bool isRT) {
 		if (_readonly != val) {
 			_readonly = val;
 			if (val && is_focus()) {
+				if (isRT) {
 				pre_render().post(Cb([](auto e) {
 					if (static_cast<Input*>(e.data)->_readonly)
 						static_cast<Input*>(e.data)->blur();
 				}), this);
+				} else {
+					blur();
+				}
 			}
 		}
 	}
 
-	void Input::set_max_length(uint32_t value) {
-		mark_style_flag(kMAX_LENGTH_CssProp);
-		if (value) // check mx length
-			_async_call([](auto self, auto arg) { self->set_max_length_rt(arg); }, this, value);
-		_max_length = value;
-	}
-
-	void Input::set_max_length_rt(uint32_t value) {
+	void Input::set_max_length_direct(uint32_t value, bool isRT) {
 		_max_length = value;
 		if (value) { // check mx length
 			if (_value_u4.length() > value) {
 				_value_u4 = _value_u4.substr(0, value);
-				mark_layout<true>(kLayout_Typesetting);
+				mark_layout(kLayout_Typesetting, isRT);
 			}
 		}
 	}

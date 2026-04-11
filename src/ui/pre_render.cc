@@ -54,6 +54,10 @@ namespace qk {
 		_ptr.extra -= count;
 	}
 
+	inline void PreRender::AsyncCmds::clear() {
+		_ptr.extra = 0; // Clear the command count only, keep the allocated memory for reuse
+	}
+
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
@@ -134,22 +138,38 @@ namespace qk {
 	}
 
 	void PreRender::asyncCommit() {
-		if (_asyncCall.length()) {
-			// Qk_DLog("PreRender::asyncCommit() called with %u async calls", _asyncCall.length());
+		if (_asyncWrite.length()) {
 			_asyncCommitMutex.lock();
-			_asyncCommit.concat(std::move(_asyncCall));
+			if (_asyncReady.length() == 0) {
+				// 🚀 最快路径：直接交换指针（零拷贝）
+				_asyncReady.swap(_asyncWrite);
+			} else {
+				// 📦 fallback：拼接（只发生在 RT 还没消费完时）
+				_asyncReady.concat(_asyncWrite);
+				// 🔥 关键：只清长度，不释放 capacity
+				_asyncWrite.clear(); // keep capacity, reset length only
+			}
+			Qk_ASSERT_EQ(_asyncWrite.length(), 0); // 确保写入队列已清空
 			_asyncCommitMutex.unlock();
 		}
 	}
 
 	void PreRender::solveAsyncCall() {
-		if (_asyncCommit.length()) {
+		if (_asyncReady.length()) {
+
+			constexpr int a = sizeof(AsyncCall<>) * 16384; // 1MB batch size
+
 			_asyncCommitMutex.lock();
-			auto calls(std::move(_asyncCommit));
+			// 🚀 直接交换到本地执行队列
+			_asyncExec.swap(_asyncReady);
 			_asyncCommitMutex.unlock();
-			for (auto &i: calls) {
+
+			// 🔥 执行（无锁）
+			for (auto &i: _asyncExec) {
 				((AsyncCall<>::Exec)i.exec)(i.self, i.arg); // exec async call
 			}
+			// 🧹 清空但不释放
+			_asyncExec.clear();
 		}
 	}
 

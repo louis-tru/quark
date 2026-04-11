@@ -104,7 +104,7 @@ namespace qk {
 		template<typename Self = View, typename Arg = uint64_t>
 		inline void async_call(typename AsyncCall<Self,Arg>::Exec ex, Self *self, Arg arg) {
 			static_assert(sizeof(Arg) <= sizeof(uint64_t), "");
-			_asyncCall.push({(void*)ex,self,*(uint64_t*)&arg});
+			_asyncWrite.push({(void*)ex,self,*(uint64_t*)&arg});
 		}
 
 		/**
@@ -167,13 +167,15 @@ namespace qk {
 			void clear();
 			void pop(uint32_t count);
 		};
+		struct AsyncCmds: Array<AsyncCall<>> {
+			void clear();
+		};
 
 		Window *_window;
 		int32_t _mark_total;
 		List<Task*> _tasks;
 		Array<LevelMarks> _marks; // marked view layout
-		Array<AsyncCall<>> _asyncCall;
-		Array<AsyncCall<>> _asyncCommit;
+		AsyncCmds _asyncWrite, _asyncReady, _asyncExec;
 		Mutex _asyncCommitMutex;
 		bool _is_render; // next frame render
 		friend class Application;

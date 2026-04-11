@@ -47,14 +47,15 @@ namespace qk {
 
 	void Image::set_src(String val) {
 		mark_style_flag(kSRC_CssProp);
-		if (ImageSourceHold::set_src(val)) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height);
-		}
+		async_call([](auto self, auto arg) {
+			Sp<String> handle(arg);
+			self->set_src_direct(*arg, true);
+		}, this, new String(val));
 	}
 
-	void Image::set_src_rt(String val) {
+	void Image::set_src_direct(String val, bool isRT) {
 		if (ImageSourceHold::set_src(val)) {
-			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, isRT);
 		}
 	}
 

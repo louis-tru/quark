@@ -37,7 +37,7 @@
 #include "../geometry.h"
 
 #define _IfAct(...)  auto act = _keyAction; if (!act) return __VA_ARGS__
-#define _async_call pre_render().async_call
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -70,46 +70,51 @@ namespace qk {
 
 	void Sprite::set_width(float val) {
 		mark_style_flag(kWIDTH_CssProp);
-		if (_width != val) {
-			// mark(kTransform, isRt);
-			mark_layout(kLayout_Typesetting | kTransform);
-			_width = val;
-		}
-	}
-
-	void Sprite::set_width_rt(float val) {
-		if (_width != val) {
-			_width = val;
-			mark_layout<true>(kLayout_Typesetting | kTransform);
-		}
+		_async_call({ self->set_width_direct(arg, true); }, val);
 	}
 
 	void Sprite::set_height(float val) {
 		mark_style_flag(kHEIGHT_CssProp);
-		if (_height != val) {
-			// mark(kTransform, isRt);
-			mark_layout(kLayout_Typesetting | kTransform);
-			_height = val;
-		}
-	}
-
-	void Sprite::set_height_rt(float val) {
-		if (_height != val) {
-			_height = val;
-			mark_layout<true>(kLayout_Typesetting | kTransform);
-		}
+		_async_call({ self->set_height_direct(arg, true); }, val);
 	}
 
 	void Sprite::set_frame(uint16_t val) {
 		mark_style_flag(kFRAME_CssProp);
 		if (_frame != val) {
-			mark_render();
 			_frame = val;
+			mark_render();
 			getKeyAction()->seek(val * 1e3); // Seek to frame in milliseconds
 		}
 	}
 
-	void Sprite::set_frame_rt(uint16_t val) {
+	void Sprite::set_direction(Direction val) {
+		mark_style_flag(kDIRECTION_CssProp);
+		_async_call({ self->set_direction_direct(arg, true); }, val);
+	}
+
+	void Sprite::set_src(String val) {
+		mark_style_flag(kSRC_CssProp);
+		_async_call({
+			Sp<String> handle(arg);
+			self->set_src_direct(*arg, true);
+		}, new String(val));
+	}
+
+	void Sprite::set_width_direct(float val, bool isRT) {
+		if (_width != val) {
+			_width = val;
+			mark_layout(kLayout_Typesetting | kTransform, isRT);
+		}
+	}
+
+	void Sprite::set_height_direct(float val, bool isRT) {
+		if (_height != val) {
+			_height = val;
+			mark_layout(kLayout_Typesetting | kTransform, isRT);
+		}
+	}
+
+	void Sprite::set_frame_direct(uint16_t val, bool isRT) {
 		if (_frame != val) {
 			_frame = val;
 			mark_render();
@@ -123,7 +128,7 @@ namespace qk {
 				_frame = _frames - 1;
 			}
 			getKeyAction(); // ensure action created
-			_async_call([](auto self, auto arg) {
+			_async_call({
 				auto action = self->_keyAction;
 				auto frames = self->_frames;
 				if (action->length() != frames + 1) {
@@ -134,7 +139,7 @@ namespace qk {
 						}
 					}
 				}
-			}, this, 0);
+			}, 0);
 		}
 	}
 
@@ -168,15 +173,7 @@ namespace qk {
 		getKeyAction()->set_speed(Qk_Min(60, val)); // Use speed as fsp
 	}
 
-	void Sprite::set_direction(Direction val) {
-		mark_style_flag(kDIRECTION_CssProp);
-		if (_direction != val) {
-			mark_render();
-			_direction = val;
-		}
-	}
-
-	void Sprite::set_direction_rt(Direction val) {
+	void Sprite::set_direction_direct(Direction val, bool isRT) {
 		if (_direction != val) {
 			_direction = val;
 			mark_render();
@@ -187,14 +184,7 @@ namespace qk {
 		return ImageSourceHold::src();
 	}
 
-	void Sprite::set_src(String val) {
-		mark_style_flag(kSRC_CssProp);
-		if (ImageSourceHold::set_src(val)) {
-			mark_render();
-		}
-	}
-
-	void Sprite::set_src_rt(String val) {
+	void Sprite::set_src_direct(String val, bool isRT) {
 		if (ImageSourceHold::set_src(val)) {
 			mark_render();
 		}

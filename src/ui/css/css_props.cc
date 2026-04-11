@@ -50,7 +50,7 @@ namespace qk {
 	#define Qk_Set_Accessor(View, Prop, Name, Type, ...) \
 		accessors[k##View##_ViewType].value[k##Prop##_CssProp] =\
 			{(Func)static_cast<Type (View::*)()__Qk_Modifier_##__VA_ARGS__>(&View::Name),\
-				(Func)static_cast<void (View::*)(Type)>(&View::set_##Name##_rt)};
+				(Func)static_cast<void (View::*)(Type,bool)>(&View::set_##Name##_direct)};
 
 	#define Qk_Copy_Accessor(From, Dest, Begin, Count) \
 		accessors[k##From##_ViewType].copy(k##Begin##_CssProp, Count, accessors[k##Dest##_ViewType])
@@ -108,7 +108,7 @@ namespace qk {
 		struct Text: View {
 			#define _Func(Type, Name) \
 				Type Name() const { return const_cast<Text*>(this)->asTextOptions()->Name(); } \
-				void set_##Name##_rt(Type v) { asTextOptions()->set_##Name##_rt(v); }
+				void set_##Name##_direct(Type v, bool isRT) { asTextOptions()->set_##Name##_direct(v, isRT); }
 			_Func_TextOptions_Props(_Func)
 			#undef _Func
 			#undef _Func_TextOptions_Props
@@ -117,7 +117,7 @@ namespace qk {
 		struct Scroll: View {
 			#define _Func(Type, Name) \
 				Type Name() const { return const_cast<Scroll*>(this)->asScrollView()->Name(); } \
-				void set_##Name##_rt(Type v) { asScrollView()->set_##Name##_rt(v); }
+				void set_##Name##_direct(Type v, bool isRT) { asScrollView()->set_##Name##_direct(v, isRT); }
 			_Func_ScrollView_Props(_Func)
 			#undef _Func
 			#undef _Func_ScrollView_Props
@@ -126,7 +126,7 @@ namespace qk {
 		struct Morph: View {
 			#define _Func(Type, Name) \
 				Type Name() const { return const_cast<Morph*>(this)->asMorphView()->Name(); } \
-				void set_##Name##_rt(Type v) { asMorphView()->set_##Name##_rt(v); }
+				void set_##Name##_direct(Type v, bool isRT) { asMorphView()->set_##Name##_direct(v, isRT); }
 			_Func_MorphView_Props(_Func)
 			#undef _Func
 			#undef _Func_MorphView_Props
@@ -134,9 +134,9 @@ namespace qk {
 
 		struct Sprite: qk::Sprite {
 			BoxSize width() const { return BoxSize{qk::Sprite::width(), BoxSizeKind::Value}; }
-			void set_width_rt(BoxSize v) { qk::Sprite::set_width_rt(v.value); }
+			void set_width_direct(BoxSize v, bool isRT) { qk::Sprite::set_width_direct(v.value, isRT); }
 			BoxSize height() const { return BoxSize{qk::Sprite::height(), BoxSizeKind::Value}; }
-			void set_height_rt(BoxSize v) { qk::Sprite::set_height_rt(v.value); }
+			void set_height_direct(BoxSize v, bool isRT) { qk::Sprite::set_height_direct(v.value, isRT); }
 		};
 
 		void view_prop_acc_init() {

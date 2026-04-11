@@ -30,6 +30,8 @@
 
 #include "./flow.h"
 
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
+
 namespace qk {
 	constexpr float EPSILON = 1e-3f;
 
@@ -224,31 +226,25 @@ namespace qk {
 
 	void Flow::set_wrap(Wrap wrap) {
 		mark_style_flag(kWRAP_CssProp);
-		if (wrap != _wrap) {
-			mark_layout(kLayout_Typesetting);
-			_wrap = wrap;
-		}
+		_async_call({ self->set_wrap_direct(arg, true); }, wrap);
 	}
 
 	void Flow::set_wrap_align(WrapAlign align) {
 		mark_style_flag(kWRAP_ALIGN_CssProp);
-		if (align != _wrap_align) {
-			mark_layout(kLayout_Typesetting);
-			_wrap_align = align;
-		}
+		_async_call({ self->set_wrap_align_direct(arg, true); }, align);
 	}
 
-	void Flow::set_wrap_rt(Wrap wrap) {
+	void Flow::set_wrap_direct(Wrap wrap, bool isRT) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark_layout<true>(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 		}
 	}
 
-	void Flow::set_wrap_align_rt(WrapAlign align) {
+	void Flow::set_wrap_align_direct(WrapAlign align, bool isRT) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			mark_layout<true>(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 		}
 	}
 

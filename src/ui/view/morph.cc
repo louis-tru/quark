@@ -33,6 +33,7 @@
 #define _Parent() auto _parent = this->parent()
 #define _IfParent() _Parent(); if (_parent)
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+#define _async_call(block, param) _host->async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -45,146 +46,8 @@ namespace qk {
 	{
 	}
 
-	/**
-		* Set the matrix `translate` properties of the view object
-		*/
-	void MorphView::set_translate(Vec2 val) {
-		_host->mark_style_flag(kX_CssProp);
-		_host->mark_style_flag(kY_CssProp);
-		if (_translate != val) {
-			_host->mark(View::kTransform); // mark transform
-			_translate = val;
-		}
-	}
-
-	void MorphView::set_translate_rt(Vec2 val) {
-		if (_translate != val) {
-			_translate = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
-	}
-
-	/**
-		* Set the matrix `scale` properties of the view object
-		*/
-	void MorphView::set_scale(Vec2 val) {
-		_host->mark_style_flag(kSCALE_X_CssProp);
-		_host->mark_style_flag(kSCALE_Y_CssProp);
-		if (_scale != val) {
-			_host->mark(View::kTransform); // mark transform
-			_scale = val;
-		}
-	}
-
-	void MorphView::set_scale_rt(Vec2 val) {
-		if (_scale != val) {
-			_scale = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
-	}
-
-	/**
-		* Set the matrix `skew` properties of the view object
-		*/
-	void MorphView::set_skew(Vec2 val) {
-		_host->mark_style_flag(kSKEW_X_CssProp);
-		_host->mark_style_flag(kSKEW_Y_CssProp);
-		if (_skew != val) {
-			_host->mark(View::kTransform); // mark transform
-			_skew = val;
-		}
-	}
-
-	void MorphView::set_skew_rt(Vec2 val) {
-		if (_skew != val) {
-			_skew = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
-	}
-
-	/**
-		* Set the z-axis  matrix `rotate` properties of the view object
-		*/
-	void MorphView::set_rotate_z(float val) {
-		_host->mark_style_flag(kROTATE_Z_CssProp);
-		val *= Qk_PI_RATIO_180;
-		if (_rotate_z != val) {
-			_host->mark(View::kTransform); // mark transform
-			_rotate_z = val;
-		}
-	}
-
-	void MorphView::set_rotate_z_rt(float val) {
-		val *= Qk_PI_RATIO_180;
-		if (_rotate_z != val) {
-			_rotate_z = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
-	}
-
-	/**
-	 * Returns the matrix origin of the view object
-	*/
-	void MorphView::set_origin_x(BoxOrigin val) {
-		_host->mark_style_flag(kORIGIN_X_CssProp);
-		if (_origin_x != val) {
-			_host->mark(View::kTransform);
-			_origin_x = val;
-		}
-	}
-
-	void MorphView::set_origin_x_rt(BoxOrigin val) {
-		if (_origin_x != val) {
-			_origin_x = val;
-			_host->mark<true>(View::kTransform);
-		}
-	}
-
-	void MorphView::set_origin_y(BoxOrigin val) {
-		_host->mark_style_flag(kORIGIN_Y_CssProp);
-		if (_origin_y != val) {
-			_host->mark(View::kTransform);
-			_origin_y = val;
-		}
-	}
-
-	void MorphView::set_origin_y_rt(BoxOrigin val) {
-		if (_origin_y != val) {
-			_origin_y = val;
-			_host->mark<true>(View::kTransform);
-		}
-	}
-
 	ArrayOrigin MorphView::origin() const {
 		return ArrayOrigin{_origin_x, _origin_y};
-	}
-
-	void MorphView::set_origin(ArrayOrigin val) {
-		switch (val.length()) {
-			case 1:
-				set_origin_x(val[0]);
-				set_origin_y(val[0]);
-				break;
-			case 2:
-				set_origin_x(val[0]);
-				set_origin_y(val[1]);
-				break;
-			default: break;
-		}
-	}
-
-	void MorphView::set_origin_rt(ArrayOrigin val) {
-		switch (val.length()) {
-			case 1:
-				set_origin_x_rt(val[0]);
-				set_origin_y_rt(val[0]);
-				break;
-			case 2:
-				set_origin_x_rt(val[0]);
-				set_origin_y_rt(val[1]);
-				break;
-			default: break;
-		}
 	}
 
 	/**
@@ -217,22 +80,78 @@ namespace qk {
 		*/
 	float MorphView::skew_y() const { return _skew[1]; }
 
+	// ====================================================
+
+	/**
+		* Set the matrix `translate` properties of the view object
+		*/
+	void MorphView::set_translate(Vec2 val) {
+		// mark style flag for translate
+		_host->_style_flags[kTRANSLATE_CssProp / 32] |= (0b1 << (kTRANSLATE_CssProp % 32));
+		// mark style flag for x and y
+		_host->_style_flags[kX_CssProp / 32] |= (0b11 << (kX_CssProp % 32));
+		_async_call({ self->set_translate_direct(arg, true); }, val);
+	}
+
+	/**
+		* Set the matrix `scale` properties of the view object
+		*/
+	void MorphView::set_scale(Vec2 val) {
+		// mark style flag for scale
+		_host->_style_flags[kSCALE_CssProp / 32] |= (0b1 << (kSCALE_CssProp % 32));
+		// mark style flag for scale_x and scale_y
+		_host->_style_flags[kSCALE_X_CssProp / 32] |= (0b11 << (kSCALE_X_CssProp % 32));
+		_async_call({ self->set_scale_direct(arg, true); }, val);
+	}
+
+	/**
+		* Set the matrix `skew` properties of the view object
+		*/
+	void MorphView::set_skew(Vec2 val) {
+		// mark style flag for skew
+		_host->_style_flags[kSKEW_CssProp / 32] |= (0b1 << (kSKEW_CssProp % 32));
+		// mark style flag for skew_x and skew_y
+		_host->_style_flags[kSKEW_X_CssProp / 32] |= (0b11 << (kSKEW_X_CssProp % 32));
+		_async_call({ self->set_skew_direct(arg, true); }, val);
+	}
+
+	/**
+		* Set the z-axis  matrix `rotate` properties of the view object
+		*/
+	void MorphView::set_rotate_z(float val) {
+		// mark style flag for rotate_z
+		_host->mark_style_flag(kROTATE_Z_CssProp);
+		_async_call({ self->set_rotate_z_direct(arg, true); }, val);
+	}
+
+	/**
+	 * Returns the matrix origin of the view object
+	*/
+	void MorphView::set_origin_x(BoxOrigin val) {
+		_host->mark_style_flag(kORIGIN_X_CssProp);
+		_async_call({ self->set_origin_x_direct(arg, true); }, val);
+	}
+
+	void MorphView::set_origin_y(BoxOrigin val) {
+		_host->mark_style_flag(kORIGIN_Y_CssProp);
+		_async_call({ self->set_origin_y_direct(arg, true); }, val);
+	}
+
+	void MorphView::set_origin(ArrayOrigin val) {
+		// mark style flag for origin_x and origin_y
+		_host->_style_flags[kORIGIN_X_CssProp / 32] |= (0b11 << (kORIGIN_X_CssProp % 32));
+		_async_call({
+			Sp<ArrayOrigin> handle(arg);
+			self->set_origin_direct(*arg, true);
+		}, new ArrayOrigin(val));
+	}
+
 	/**
 		* Setting x-axis matrix displacement for the view
 		*/
 	void MorphView::set_x(float val) {
 		_host->mark_style_flag(kX_CssProp);
-		if (_translate[0] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_translate[0] = val;
-		}
-	}
-
-	void MorphView::set_x_rt(float val) {
-		if (_translate[0] != val) {
-			_translate[0] = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
+		_async_call({ self->set_x_direct(arg, true); }, val);
 	}
 
 	/**
@@ -240,17 +159,7 @@ namespace qk {
 		*/
 	void MorphView::set_y(float val) {
 		_host->mark_style_flag(kY_CssProp);
-		if (_translate[1] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_translate[1] = val;
-		}
-	}
-
-	void MorphView::set_y_rt(float val) {
-		if (_translate[1] != val) {
-			_translate[1] = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
+		_async_call({ self->set_y_direct(arg, true); }, val);
 	}
 
 	/**
@@ -258,17 +167,7 @@ namespace qk {
 		*/
 	void MorphView::set_scale_x(float val) {
 		_host->mark_style_flag(kSCALE_X_CssProp);
-		if (_scale[0] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_scale[0] = val;
-		}
-	}
-
-	void MorphView::set_scale_x_rt(float val) {
-		if (_scale[0] != val) {
-			_scale[0] = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
+		_async_call({ self->set_scale_x_direct(arg, true); }, val);
 	}
 
 	/**
@@ -276,17 +175,7 @@ namespace qk {
 		*/
 	void MorphView::set_scale_y(float val) {
 		_host->mark_style_flag(kSCALE_Y_CssProp);
-		if (_scale[1] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_scale[1] = val;
-		}
-	}
-
-		void MorphView::set_scale_y_rt(float val) {
-		if (_scale[1] != val) {
-			_scale[1] = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
+		_async_call({ self->set_scale_y_direct(arg, true); }, val);
 	}
 
 	/**
@@ -294,17 +183,7 @@ namespace qk {
 		*/
 	void MorphView::set_skew_x(float val) {
 		_host->mark_style_flag(kSKEW_X_CssProp);
-		if (_skew[0] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_skew[0] = val;
-		}
-	}
-
-	void MorphView::set_skew_x_rt(float val) {
-		if (_skew[0] != val) {
-			_skew[0] = val;
-			_host->mark<true>(View::kTransform); // mark transform
-		}
+		_async_call({ self->set_skew_x_direct(arg, true); }, val);
 	}
 
 	/**
@@ -312,16 +191,107 @@ namespace qk {
 		*/
 	void MorphView::set_skew_y(float val) {
 		_host->mark_style_flag(kSKEW_Y_CssProp);
-		if (_skew[1] != val) {
-			_host->mark(View::kTransform); // mark transform
-			_skew[1] = val;
+		_async_call({ self->set_skew_y_direct(arg, true); }, val);
+	}
+
+	// ====================================================
+
+	void MorphView::set_translate_direct(Vec2 val, bool isRT) {
+		if (_translate != val) {
+			_translate = val;
+			_host->mark(View::kTransform, isRT); // mark transform
 		}
 	}
 
-	void MorphView::set_skew_y_rt(float val) {
+	void MorphView::set_scale_direct(Vec2 val, bool isRT) {
+		if (_scale != val) {
+			_scale = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_skew_direct(Vec2 val, bool isRT) {
+		if (_skew != val) {
+			_skew = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_rotate_z_direct(float val, bool isRT) {
+		val *= Qk_PI_RATIO_180;
+		if (_rotate_z != val) {
+			_rotate_z = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_origin_x_direct(BoxOrigin val, bool isRT) {
+		if (_origin_x != val) {
+			_origin_x = val;
+			_host->mark(View::kTransform, isRT);
+		}
+	}
+
+	void MorphView::set_origin_y_direct(BoxOrigin val, bool isRT) {
+		if (_origin_y != val) {
+			_origin_y = val;
+			_host->mark(View::kTransform, isRT);
+		}
+	}
+
+	void MorphView::set_origin_direct(ArrayOrigin val, bool isRT) {
+		switch (val.length()) {
+			case 1:
+				set_origin_x_direct(val[0], isRT);
+				set_origin_y_direct(val[0], isRT);
+				break;
+			case 2:
+				set_origin_x_direct(val[0], isRT);
+				set_origin_y_direct(val[1], isRT);
+				break;
+			default: break;
+		}
+	}
+
+	void MorphView::set_x_direct(float val, bool isRT) {
+		if (_translate[0] != val) {
+			_translate[0] = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_y_direct(float val, bool isRT) {
+		if (_translate[1] != val) {
+			_translate[1] = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_scale_x_direct(float val, bool isRT) {
+		if (_scale[0] != val) {
+			_scale[0] = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_scale_y_direct(float val, bool isRT) {
+		if (_scale[1] != val) {
+			_scale[1] = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_skew_x_direct(float val, bool isRT) {
+		if (_skew[0] != val) {
+			_skew[0] = val;
+			_host->mark(View::kTransform, isRT); // mark transform
+		}
+	}
+
+	void MorphView::set_skew_y_direct(float val, bool isRT) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
-			_host->mark<true>(View::kTransform); // mark transform
+			_host->mark(View::kTransform, isRT); // mark transform
 		}
 	}
 

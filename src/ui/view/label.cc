@@ -34,6 +34,7 @@
 
 #define _Parent(self) auto _parent = self->parent()
 #define _IfParent(self) _Parent(self); if (_parent)
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -56,13 +57,21 @@ namespace qk {
 	}
 
 	void Label::set_value(String val) {
-		_value = val;
-		mark_layout(kLayout_Typesetting);
-		// constexpr size_t size = sizeof(Label) + sizeof(TextLinesCore);
+		_async_call({
+			Sp<String> handle(arg);
+			self->set_value_direct(*arg, true);
+		}, new String(val));
 	}
 
-	void Label::set_value_rt(String val) {
-		// noop
+	void Label::set_align(Align val) {
+		mark_style_flag(kALIGN_CssProp);
+		_async_call({ self->set_align_direct(arg, true); }, val);
+	}
+
+	void Label::set_value_direct(String val, bool isRT) {
+		_value = val;
+		mark_layout(kLayout_Typesetting, isRT);
+		// constexpr size_t size = sizeof(Label) + sizeof(TextLinesCore);
 	}
 
 	View* Label::getViewForTextOptions() {
@@ -128,22 +137,18 @@ namespace qk {
 		return _lines->max_height(); // Temporarily refuse to resize
 	}
 
-	void Label::set_align(Align val) {
-		mark_style_flag(kALIGN_CssProp);
-		if (_align != val) {
-			async_call([](auto self, auto arg) {
-				_IfParent(self)
-				_parent->onChildLayoutChange(self, kChild_Layout_Align);
-			}, this, 0);
-			_align = val;
-		}
-	}
-
-	void Label::set_align_rt(Align val) {
+	void Label::set_align_direct(Align val, bool isRT) {
 		if (_align != val) {
 			_align = val;
-			_IfParent(this)
-			_parent->onChildLayoutChange(this, kChild_Layout_Align);
+			if (isRT) {
+				_IfParent(this)
+				_parent->onChildLayoutChange(this, kChild_Layout_Align);
+			} else {
+				_async_call({
+					_IfParent(self)
+					_parent->onChildLayoutChange(self, kChild_Layout_Align);
+				}, 0);
+			}
 		}
 	}
 

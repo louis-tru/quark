@@ -285,6 +285,11 @@ namespace qk {
 		*/
 		Qk_DEFINE_ACCESSOR(bool, is_focus, Const);
 
+		/*
+		* Whether the marker is held by the parent view
+		*/
+		private: bool _hasParent;
+
 		/**
 		 * Get class names array
 		*/
@@ -810,7 +815,7 @@ namespace qk {
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(bool notice); // Cleaning up associated view information
-		void set_visible_rt_(bool visible);
+		void set_visible_rt(bool visible);
 		void set_level_rt(uint32_t level); // settings depth
 		void clear_level_rt(); //  clear view depth rt
 		void apply_class_rt(CStyleSheetsClass* parent); // apply class for self
@@ -829,6 +834,7 @@ namespace qk {
 		friend class Root;
 		friend class TextOptions;
 		friend class CStyleSheetsClass;
+		friend class MorphView;
 	};
 
 	/**

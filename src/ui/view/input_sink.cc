@@ -29,8 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./input.h"
-// #include "../app.h"
 #include "../window.h"
+
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
 
@@ -74,23 +75,17 @@ namespace qk {
 
 	void InputSink::set_readonly(bool val) {
 		mark_style_flag(kREADONLY_CssProp);
-		if (_readonly != val) {
-			if (val && is_focus())
-				blur();
-			_readonly = val;
-		}
+		_async_call({ self->set_readonly_direct(arg, true); }, val);
 	}
 
-	void InputSink::set_readonly_rt(bool val) {
-		if (_readonly != val) {
-			_readonly = val;
-			if (val && is_focus()) {
-				pre_render().post(Cb([](auto e) {
-					if (static_cast<InputSink*>(e.data)->_readonly)
-						static_cast<InputSink*>(e.data)->blur();
-				}), this);
-			}
-		}
+	void InputSink::set_keyboard_type(KeyboardType value) {
+		mark_style_flag(kKEYBOARD_TYPE_CssProp);
+		_async_call({ self->set_keyboard_type_direct(arg, true); }, value);
+	}
+
+	void InputSink::set_return_type(KeyboardReturnType value) {
+		mark_style_flag(kKEYBOARD_RETURN_TYPE_CssProp);
+		_async_call({ self->set_return_type_direct(arg, true); }, value);
 	}
 
 	void InputSink::set_spot_rect(Rect val) {
@@ -100,30 +95,30 @@ namespace qk {
 		}
 	}
 
-	void InputSink::set_keyboard_type(KeyboardType value) {
-		mark_style_flag(kKEYBOARD_TYPE_CssProp);
+	void InputSink::set_readonly_direct(bool val, bool isRT) {
+		if (_readonly != val) {
+			_readonly = val;
+			if (val && is_focus()) {
+				if (isRT) {
+					pre_render().post(Cb([](auto e) {
+						if (static_cast<InputSink*>(e.data)->_readonly)
+							static_cast<InputSink*>(e.data)->blur();
+					}), this);
+				} else {
+					blur();
+				}
+			}
+		}
+	}
+
+	void InputSink::set_keyboard_type_direct(KeyboardType value, bool isRT) {
 		if (value != _keyboard_type) {
 			_keyboard_type = value;
 			setImeKeyboardAndOpen(this);
 		}
 	}
 
-	void InputSink::set_keyboard_type_rt(KeyboardType value) {
-		if (value != _keyboard_type) {
-			_keyboard_type = value;
-			setImeKeyboardAndOpen(this);
-		}
-	}
-
-	void InputSink::set_return_type(KeyboardReturnType value) {
-		mark_style_flag(kKEYBOARD_RETURN_TYPE_CssProp);
-		if (value != _return_type) {
-			_return_type = value;
-			setImeKeyboardAndOpen(this);
-		}
-	}
-
-	void InputSink::set_return_type_rt(KeyboardReturnType value) {
+	void InputSink::set_return_type_direct(KeyboardReturnType value, bool isRT) {
 		if (value != _return_type) {
 			_return_type = value;
 			setImeKeyboardAndOpen(this);

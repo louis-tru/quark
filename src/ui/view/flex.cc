@@ -30,6 +30,8 @@
 
 #include "./flex.h"
 
+#define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
+
 namespace qk {
 	constexpr float EPSILON = 1e-3f;
 
@@ -267,48 +269,39 @@ namespace qk {
 
 	void Flex::set_direction(Direction val) {
 		mark_style_flag(kDIRECTION_CssProp);
-		if (val != _direction) {
-			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
-			mark_layout(kLayout_Typesetting | kLayout_Child_Size);
-			_direction = val;
-		}
-	}
-
-	void Flex::set_direction_rt(Direction val) {
-		if (val != _direction) {
-			_direction = val;
-			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
-			mark_layout<true>(kLayout_Typesetting | kLayout_Child_Size);
-		}
+		_async_call({ self->set_direction_direct(arg, true); }, val);
 	}
 
 	void Flex::set_items_align(ItemsAlign align) {
 		mark_style_flag(kITEMS_ALIGN_CssProp);
-		if (align != _items_align) {
-			mark_layout(kLayout_Typesetting);
-			_items_align = align;
-		}
+		_async_call({ self->set_items_align_direct(arg, true); }, align);
 	}
 
-	void Flex::set_items_align_rt(ItemsAlign align) {
-		if (align != _items_align) {
-			_items_align = align;
-			mark_layout<true>(kLayout_Typesetting);
-		}
-	}
 
 	void Flex::set_cross_align(CrossAlign align) {
 		mark_style_flag(kCROSS_ALIGN_CssProp);
-		if (align != _cross_align) {
-			mark_layout(kLayout_Typesetting);
-			_cross_align = align;
+		_async_call({ self->set_cross_align_direct(arg, true); }, align);
+	}
+
+	void Flex::set_direction_direct(Direction val, bool isRT) {
+		if (val != _direction) {
+			_direction = val;
+			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
+			mark_layout(kLayout_Typesetting | kLayout_Child_Size, isRT);
 		}
 	}
 
-	void Flex::set_cross_align_rt(CrossAlign align) {
+	void Flex::set_items_align_direct(ItemsAlign align, bool isRT) {
+		if (align != _items_align) {
+			_items_align = align;
+			mark_layout(kLayout_Typesetting, isRT);
+		}
+	}
+
+	void Flex::set_cross_align_direct(CrossAlign align, bool isRT) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark_layout<true>(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 		}
 	}
 

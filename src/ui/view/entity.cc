@@ -474,7 +474,7 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			Sp<Arg> self_sp(arg); // rtti delete arg
 			if (arg->immediately) {
-				self->set_translate_rt(arg->target); // set position immediately
+				self->set_translate_direct(arg->target, true); // set position immediately
 			}
 			self->_target = arg->target; // set target position again
 			if (!self->_moving) {

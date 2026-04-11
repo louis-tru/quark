@@ -216,6 +216,11 @@ namespace qk {
 		Array& reverse();
 
 		/**
+		 * @method swap() swap data with another array
+		 */
+		void swap(Array& arr) noexcept { std::swap(_ptr, arr._ptr); }
+
+		/**
 		 * @method allocator() get allocator
 		 */
 		inline const A* allocator() const { return _ptr.allocator; }

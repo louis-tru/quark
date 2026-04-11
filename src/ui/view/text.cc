@@ -37,8 +37,15 @@
 namespace qk {
 
 	void Text::set_value(String val) {
+		async_call([](auto self, auto arg) {
+			Sp<String> handle(arg);
+			self->set_value_direct(*arg, true);
+		}, this, new String(val));
+	}
+
+	void Text::set_value_direct(String val, bool isRT) {
 		_value = val;
-		mark_layout(kLayout_Typesetting);
+		mark_layout(kLayout_Typesetting, isRT);
 	}
 
 	void Text::text_config(TextOptions* inherit) {

@@ -132,9 +132,9 @@ namespace qk {
 		virtual View* getViewForTextOptions();
 
 		/**
-		 * @method initSecondOpts
+		 * @method getSecondOpts
 		*/
-		void initSecondOpts();
+		SecondOpts* getSecondOpts();
 
 		/**
 		 * @method inherit_text_config

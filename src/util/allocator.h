@@ -76,16 +76,16 @@ namespace qk {
 			}
 
 			/// Free the memory and reset pointer to null.
-			void free() { allocator->free(val), val = 0, capacity = 0; }
+			inline void free() { allocator->free(val), val = 0, capacity = 0; }
 
 			/// Resize the memory buffer.
-			void resize(uint32_t size) { allocator->resize(this, size); }
+			inline void resize(uint32_t size) { allocator->resize(this, size); }
 
 			/// Extend the buffer by additional elements.
-			void extend(uint32_t size) { allocator->extend(this, size); }
+			inline void extend(uint32_t size) { allocator->extend(this, size); }
 
 			/// Shrink the buffer capacity.
-			void shrink(uint32_t size) { allocator->shrink(this, size); }
+			inline void shrink(uint32_t size) { allocator->shrink(this, size); }
 
 			A       *allocator; ///< Allocator instance.
 			T       *val;       ///< Allocated pointer.

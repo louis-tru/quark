@@ -47,10 +47,14 @@ namespace qk {
 		Player::set_src(value);
 	}
 
-	void Video::set_src_rt(String value) {
-		pre_render().post(Cb([this, value](auto e) {
+	void Video::set_src_direct(String value, bool isRT) {
+		if (isRT) {
+			pre_render().post(Cb([this, value](auto e) {
+				Player::set_src(value);
+			}), this);
+		} else {
 			Player::set_src(value);
-		}), this);
+		}
 	}
 
 	void Video::lock() {
