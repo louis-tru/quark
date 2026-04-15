@@ -83,7 +83,6 @@
 
 namespace qk {
 	class View;
-	class View;
 	class KeyframeAction;
 	class Window;
 

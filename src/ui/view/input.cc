@@ -1188,14 +1188,14 @@ namespace qk {
 	void Input::set_placeholder_color_direct(Color value, bool isRT) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void Input::set_cursor_color_direct(Color value, bool isRT) {
 		if (value != _cursor_color) {
 			_cursor_color = value;
-			mark_render();
+			mark_rerender();
 		}
 	}
 

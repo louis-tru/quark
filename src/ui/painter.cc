@@ -655,7 +655,7 @@ namespace qk {
 	//////////////////////////////////////////////////////////
 
 	void Painter::visitView(View *view) {
-		auto v = view->_first.load(std::memory_order_acquire);
+		auto v = view->_first_rt;
 		if (!v) return;
 		auto lastColor = _color; // save parent color
 		auto lastMarkRecursive = _mark_recursive; // save parent recursive mark
@@ -686,14 +686,14 @@ namespace qk {
 					}
 				}
 			}
-			v = v->_next.load(std::memory_order_acquire);
+			v = v->_next_rt;
 		} while(v);
 		_color = lastColor; // restore parent color
 		_mark_recursive = lastMarkRecursive; // restore parent recursive mark
 	}
 
 	void Painter::visitView(View* v, cMat* mat) {
-		if (v->_first.load(std::memory_order_relaxed)) {
+		if (v->_first_rt) {
 			auto lastMatrix = _matrix;
 			set_matrix(mat);
 			visitView(v);
@@ -724,7 +724,7 @@ namespace qk {
 
 	void Painter::visitBox(Box *v) {
 		if (v->_clip) {
-			if (v->_first.load())
+			if (v->_first_rt)
 				visitAndClipBox(v, nullptr);
 		} else {
 			visitView(v);
@@ -818,7 +818,7 @@ namespace qk {
 		auto drawText = _blob_visible.length() != 0;
 
 		if (clip()) {
-			if (drawText || first()) {
+			if (drawText || first_rt()) {
 				painter->visitAndClipBox(this, drawText ? [](Painter *painter, Box *v) {
 					auto self = static_cast<Text*>(v);
 					painter->drawTextBlob(self,

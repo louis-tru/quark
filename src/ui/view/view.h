@@ -48,6 +48,51 @@
 
 namespace qk {
 	/**
+	 * Thread annotation rules:
+	 *
+	 * Fields:
+	 *
+	 *   Default      - Mt/w, Any/r
+	 *                  Written on the main thread. Other threads may read, but the value
+	 *                  may be transient and no stable snapshot is guaranteed.
+	 *
+	 *   Mt/rw        - Read/write only on the main thread.
+	 *
+	 *   Rt/rw        - Read/write only on the render thread.
+	 *
+	 *   Rt/w, Any/r  - Written on the render thread. Other threads may read transient values,
+	 *                  but no stable snapshot is guaranteed.
+	 *
+	 *   Mt/w, Rt/r   - Written on the main thread and consumed on the render thread.
+	 *
+	 *   Any/r        - Immutable after initialization and readable from any thread.
+	 *
+	 *
+	 * Functions:
+	 *
+	 *   Default      - Mt
+	 *                  Functions without explicit annotation must be called on the main thread.
+	 *
+	 *   @thread Rt   - Callable only on the render thread.
+	 *
+	 *   @thread Any  - Callable from any thread (must satisfy the corresponding data access rules).
+	 */
+
+	/**
+	 * Applies to properties defined via Qk_DEFINE_VIEW_PROPERTY
+	 * and Qk_DEFINE_VIEW_PROPERTY_Atomic.
+	 *
+	 * Readable on any thread.
+	 *
+	 * Default writes are scheduled to the render thread via set_xxx().
+	 *
+	 * Direct writes are allowed on both the main thread and render thread
+	 * via set_xxx_direct().
+	 *
+	 * No stable cross-thread snapshot is guaranteed.
+	 */
+
+	/**
 		* View node base type,
 		* Provide APIs that do not use security locks on worker and rendering threads,
 		* When setting properties on the main thread and calculating view results on the rendering thread, 
@@ -131,40 +176,82 @@ namespace qk {
 			inline bool float_y() const { return state_y == kNone_FloatState; }
 		};
 
+		/**
+		 * Main-thread view tree structure.
+		 *
+		 * @prop parent, prev, next, first, last
+		 * @thread Mt/rw
+		 *
+		 * These pointers define the logical view hierarchy on the main thread.
+		 * All structural mutations (append/remove/set_parent) must be performed
+		 * on the main thread only.
+		 *
+		 * The render thread maintains its own mirrored tree. Do not access or
+		 * modify this tree from the render thread.
+		 *
+		 * Note:
+		 *   This tree is the source of truth for ownership, lifecycle, and
+		 *   parent-child relationships.
+		 */
+		Qk_DEFINE_PROP_GET(View*, parent);
+		Qk_DEFINE_PROP_GET(View*, prev);
+		Qk_DEFINE_PROP_GET(View*, next);
+		Qk_DEFINE_PROP_GET(View*, first);
+		Qk_DEFINE_PROP_GET(View*, last);
+
+		/**
+		 * Render-thread view tree structure.
+		 *
+		 * @prop parent_rt, prev_rt, next_rt, first_rt, last_rt
+		 * @thread Rt/rw
+		 *
+		 * This tree is maintained on the render thread and is used for layout,
+		 * drawing, and hit-testing.
+		 *
+		 * It is a filtered/mirrored subset of the main-thread view tree, and is
+		 * asynchronously synchronized from it.
+		 *
+		 * Only views participating in rendering are included in this tree.
+		 *
+		 * Do not access or modify this tree from the main thread.
+		 */
+		Qk_DEFINE_PROP_GET(View*, parent_rt);
+		Qk_DEFINE_PROP_GET(View*, prev_rt);
+		Qk_DEFINE_PROP_GET(View*, next_rt);
+		Qk_DEFINE_PROP_GET(View*, first_rt);
+		Qk_DEFINE_PROP_GET(View*, last_rt);
+
 		// CStyleSheetsClass fields pointer
+		// @thread Mt/w,Any/r
 		private: std::atomic<CStyleSheetsClass*> _cssclass;
 
 		/**
 		 * @prop style sheets class object
+		 * @thread Mt
 		*/
 		Qk_DEFINE_ACCE_GET(CStyleSheetsClass*, cssclass);
 
 		/**
-		 * @prop parent view
-		*/
-		Qk_DEFINE_PROP_GET_Atomic(View*, parent);
-		Qk_DEFINE_PROP_GET_Atomic(View*, prev);
-		Qk_DEFINE_PROP_GET_Atomic(View*, next);
-		Qk_DEFINE_PROP_GET_Atomic(View*, first);
-		Qk_DEFINE_PROP_GET_Atomic(View*, last);
-
-		/**
 		* @prop window
+		* @thread Any/r
 		*/
 		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/**
 		 * the objects that automatically adjust view properties
+		 * @thread Mt/rw
 		*/
 		Qk_DEFINE_PROPERTY(Action*, action) throw(Error);
 
 		/**
 		 * @prop props accessor
+		 * @thread Any/r
 		*/
 		Qk_DEFINE_PROP_GET(CssPropAccessor*, accessor);
 
 		/**
 		 * @prop matrix
+		 * @thread Mt/r
 		*/
 		Qk_DEFINE_ACCE_GET(MorphView*, morph_view);
 
@@ -179,12 +266,13 @@ namespace qk {
 		 * Properties marked by these flags will NOT be overridden by CSS styles.
 		 *
 		 * Default: 0 (no properties locked by code)
+		 * @thread Mt/w,Any/r
 		 */
 		protected: uint32_t _style_flags[4];
 
 		/**
 		* @prop mark_value
-		* @thread Rt
+		* @thread Rt/rw
 		*
 		* The marked view will be updated before starting frame drawing.
 		* During operation, view local attributes may be updated frequently or the view may rarely change.
@@ -200,13 +288,13 @@ namespace qk {
 		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the view hierarchy.
 		* 
 		* @prop mark_index
-		* @thread Rt
+		* @thread Rt/rw
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, mark_index, Const);
 
 		/**
 		* @prop level
-		* @thread Rt
+		* @thread Rt/w,Any/r
 		*
 		* The depth of the layout in the UI tree, 0 indicates that it has not yet been added to the UI view tree.
 		* 
@@ -219,7 +307,7 @@ namespace qk {
 		 * View at the final position on the screen (parent.matrix * (offset + offset_inside))
 		 *
 		 * @prop position
-		 * @thread Rt
+		 * @thread Rt/w
 		 */
 		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
 
@@ -266,6 +354,7 @@ namespace qk {
 		/**
 		 * 这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		 * This value represents whether the view is visible in the current display area, which is mostly the screen
+		 * @thread Rt/w,Any/r
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_area, ProtectedConst);
 
@@ -282,16 +371,13 @@ namespace qk {
 
 		/**
 		 * keyboard focus view
+		 * @thread Mt/rw
 		*/
 		Qk_DEFINE_ACCESSOR(bool, is_focus, Const);
 
-		/*
-		* Whether the marker is held by the parent view
-		*/
-		private: bool _hasParent;
-
 		/**
 		 * Get class names array
+		 * @thread Mt/r
 		*/
 		Qk_DEFINE_ACCE_GET(Array<String>, classNames, Const);
 
@@ -424,6 +510,8 @@ namespace qk {
 		 *
 		 * @param prop {CssProp} The CSS property to check.
 		 * @return {bool} `true` if the property has its style flag set, `false` otherwise.
+		 * 
+		 * @thread Any
 		 */
 		inline bool has_style_flag(CssProp prop) const {
 			return (_style_flags[prop / 32] & (1u << (prop % 32))) != 0;
@@ -461,76 +549,83 @@ namespace qk {
 
 		/**
 		 * Returns as text input object
+		 * @thread Any
 		*/
 		virtual TextInput* asTextInput();
 
 		/**
 		 * Returns as matrix
+		 * @thread Any
 		*/
 		virtual MorphView* asMorphView();
 
 		/**
 		 * Returns as ScrollView
+		 * @thread Any
 		*/
 		virtual ScrollView* asScrollView();
 
 		/**
 		 * Returns as textOptions
+		 * @thread Any
 		*/
 		virtual TextOptions* asTextOptions();
 
 		/**
 		 * Returns as button
+		 * @thread Any
 		*/
 		virtual Button* asButton();
 
 		/**
 		 * Returns as entity
+		 * @thread Any
 		*/
 		virtual Entity* asEntity();
 
 		/**
-		 * Returns as agent
-		*/
-		virtual Agent* asAgent();
-
-		/**
 		 * Can it be the focus
+		 * @thread Any
 		 */
 		virtual bool can_become_focus();
 
 		/**
 		 * is clip render the view
+		 * @thread Any
 		 */
 		virtual bool is_clip();
 
 		/**
 			* Layout weight (such as representing the size grow/shrink of the layout in a flex layout)
+			* @thread Any
 			*/
 		virtual Vec2 layout_weight();
 
 		/**
 			* Layout alignment (nine grid)
+			* @thread Any
 			*/
 		virtual Align layout_align();
 
 		/**
 		 * Returns view type
+		 * @thread Any
 		*/
 		virtual ViewType view_type() const;
 
 		/**
 		 * Returns whether the view is a text layout container
+		 * @thread Any
 		*/
 		virtual bool is_text_container() const;
 
 		/**
-			* 
-			* Relative to the parent view (layout_offset) to start offset
-			* 
-			* @method layout_offset()
-			* @thread Rt
-			*/
+		 *
+		 * Relative to the parent view (layout_offset) to start offset
+		 * 
+		 * @method layout_offset()
+		 * @thread Rt/w,Any/r
+		 */
 		virtual Vec2 layout_offset();
 
 		/**
@@ -538,7 +633,7 @@ namespace qk {
 			* Returns the size of view object (if is box view the: size=margin+border+padding+content)
 			*
 			* @method layout_size()
-			* @thread Rt
+			* @thread Rt/w,Any/r
 			*/
 		virtual Vec2 layout_size();
 
@@ -546,6 +641,7 @@ namespace qk {
 		 * Returns the container size of view object, Includes size/max/min/wrap at ContainerSize
 		 * 
 		 * @method layout_container()
+		 * @thread Rt
 		*/
 		virtual const Container& layout_container();
 
@@ -665,14 +761,14 @@ namespace qk {
 		 * Returns view client rect, for: (box = content + padding + border)
 		 * 
 		 * @method client_size()
-		 * @thread Rt
+		 * @thread Rt/w,Any/r
 		*/
 		virtual Vec2 client_size();
 
 		/**
 		 * Returns the client region of the view, which includes content, padding, and border.
 		 * @method client_region()
-		 * @thread Rt
+		 * @thread Rt/w,Any/r
 		*/
 		virtual Region client_region();
 
@@ -703,32 +799,39 @@ namespace qk {
 		virtual void draw(Painter *render);
 
 		/**
-			* @method unmark(mark)
-			* @thread Rt
-			*/
-		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
-			_mark_value &= (~mark);
-		}
-
-		/**
 		 * Safely use and hold view objects in rendering thread,
 		 * Because view objects may be destroyed at any time on the main thread
 		 * @method try_retain_rt() Returns safe self hold
+		 * @thread Rt
 		*/
 		View* try_retain_rt();
-
-		/**
-		 * @method pre_render()
-		*/
-		inline PreRender& pre_render() {
-			return _window->pre_render();
-		}
 
 		/**
 		 * get closest text options from parent view
 		 * @method get_closest_text_options
 		*/
 		TextOptions* get_closest_text_options();
+
+		/**
+		 * @method pre_render()
+		 * @thread Any
+		*/
+		inline PreRender& pre_render() {
+			return _window->pre_render();
+		}
+
+		/**
+		 * Mark the view as needing to be rendered only.
+		 *
+		 * It indicates that the view's visual appearance has changed and requires
+		 * a redraw in the next rendering pass.
+		 *
+		 * Thread safety:
+		 *   - This method can be called from any thread.
+		 * 
+		 * @thread Any
+		 */
+		inline void mark_rerender() { _window->pre_render()._rerender = true; }
 
 		/**
 		 * Mark the view as needing a render/update pass.
@@ -754,6 +857,8 @@ namespace qk {
 		 *     parameter, avoiding runtime branches or boolean flags.
 		 *   - All observable state changes ultimately occur on the render
 		 *     thread to maintain a single-writer model.
+		 *   - The `orIsRt` parameter allows for an additional runtime override to treat the call as RT, 
+		 *     but its use should be limited to special cases where the caller cannot be easily categorized as MT or RT at compile time.
 		 */
 		template<bool isRT = false>
 		inline void mark(uint32_t mark, bool orIsRt = false) {
@@ -785,36 +890,38 @@ namespace qk {
 		}
 
 		/**
-		 * Mark the view as needing to be rendered only.
-		 *
-		 * It indicates that the view's visual appearance has changed and requires
-		 * a redraw in the next rendering pass.
-		 *
-		 * Thread safety:
-		 *   - This method can be called from any thread.
-		 */
-		inline void mark_render() { pre_render()._is_render = true; }
+			* @method unmark(mark)
+			* @thread Rt
+			*/
+		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
+			_mark_value &= (~mark);
+		}
 
 		/**
 		 * Shortcut call to async_call() for dispatching asynchronous tasks to the render thread.
+		 * @thread Mt
 		*/
 		template<typename Self = View, typename Arg = uint64_t>
 		inline void async_call(typename PreRender::AsyncCall<Self,Arg>::Exec ex, Self *self, Arg arg) {
-			pre_render().async_call(ex, self, arg);
+			_window->pre_render().async_call(ex, self, arg);
 		}
 
 	protected:
 		/**
 		 * Compute the view is visible in the screen or the clipped region
+		 * @thread Rt
 		*/
 		bool compute_visible_area(const Mat &mat, Vec2 bounds[4]);
 
 		View(); // @constructor
-		virtual View* init(Window* win);
+		virtual
+		View* init(Window* win);
 
 	private:
+		void clear_link(); // Cleaning up associated view information
+		void clear_link_rt();
 		void set_parent(View *parent); // setting parent view
-		void clear_link(bool notice); // Cleaning up associated view information
+		void set_parent_rt(View *parent);
 		void set_visible_rt(bool visible);
 		void set_level_rt(uint32_t level); // settings depth
 		void clear_level_rt(); //  clear view depth rt

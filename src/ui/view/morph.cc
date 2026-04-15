@@ -30,9 +30,6 @@
 
 #include "./morph.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 #define _async_call(block, param) _host->async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {

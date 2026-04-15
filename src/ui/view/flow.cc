@@ -68,7 +68,7 @@ namespace qk {
 			return is_horizontal ? cont.clamp_height(v): cont.clamp_width(v);
 		};
 
-		auto v = first();
+		auto v = first_rt();
 		if (v) {
 			bool is_float_main = is_horizontal ? _container.float_x(): _container.float_y();
 			bool is_float_cross = is_horizontal ? _container.float_y(): _container.float_x();
@@ -110,7 +110,7 @@ namespace qk {
 					}
 					_items.push({ size, weight, v, crossAlign, crossAlign == CrossAlign::Both });
 				}
-				v = v->next();
+				v = v->next_rt();
 			} while(v);
 
 			if (_items.length()) { // last items

@@ -156,7 +156,7 @@ namespace qk {
 				if (e.data() & (ImageSource::kSTATE_LOAD_COMPLETE | ImageSource::kSTATE_LOAD_ERROR)) {
 					if (e.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 						if (win->root())
-							win->pre_render().mark_render(); // mark rerender
+							win->pre_render().mark_rerender(); // mark rerender
 					}
 					e.off(); // off current listeners
 				}
@@ -340,7 +340,7 @@ namespace qk {
 			drawTriangles(painter, cmdTriangles, lastEx);
 		}
 	 	debugDraw(painter); // draw debug bounds
-		if (first()) {
+		if (first_rt()) {
 			painter->set_matrix(&matrix());
 			painter->visitView(this);
 		}

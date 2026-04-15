@@ -478,11 +478,6 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 */
 	asEntity(): Entity | null;
 
-	/**
-	 * Cast helper: return this view as an Agent if it is one, otherwise null.
-	 */
-	asAgent(): Agent | null;
-
 	/** Check if this view has a given CSS class name. */
 	hasClass(name: string): boolean;
 
@@ -802,6 +797,11 @@ export declare class Entity extends View implements MorphView {
 	 * Examples: circle radius, polygon points, etc.
 	 */
 	bounds: types.Bounds;
+
+	/**
+	 * Cast helper: return this view as an Agent if it is one, otherwise null.
+	 */
+	asAgent(): Agent | null;
 
 	/**
 	 * Whether this entity participates in the world as a detectable/collidable object.

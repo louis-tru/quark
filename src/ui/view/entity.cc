@@ -241,6 +241,10 @@ namespace qk {
 		return kEntity_ViewType;
 	}
 
+	Agent* Entity::asAgent() {
+		return nullptr;
+	}
+
 	Entity* Entity::asEntity() {
 		return this;
 	}
@@ -252,7 +256,7 @@ namespace qk {
 	void Entity::debugDraw(Painter *painter) {
 		if (!window()->debugMode())
 			return;
-		auto _parent = parent();
+		auto _parent = parent_rt();
 		if (_parent && _parent->view_type() == kWorld_ViewType) {
 			auto lastMatrix = painter->matrix();
 			auto canvas = painter->canvas();

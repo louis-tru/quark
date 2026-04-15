@@ -48,18 +48,24 @@
 #define _isRt (!RunLoop::is_first())
 #define _Cssclass() auto _cssclass = this->_cssclass.load()
 #define _IfCssclass() _Cssclass(); if (_cssclass)
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 #define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
+
+	static bool check_loop_ref(View *self, View *parent) {
+		while (parent) {
+			if (self == parent)
+				return true;
+			parent = parent->parent();
+		}
+		return false;
+	}
 
 	CssPropAccessor* get_props_accessor(ViewType type, CssProp prop);
 
 	typedef View::Container Container;
 
-Range Container::to_range() const {
+	Range Container::to_range() const {
 		Vec2 origin(content), end(content);
 		if (state_x == kNone_FloatState) {
 			origin[0] = pre_width_min;
@@ -107,14 +113,15 @@ Range Container::to_range() const {
 	}
 
 	View::View()
-		: _cssclass(nullptr)
-		, _style_flags{0}
-		, _parent(nullptr)
-		, _prev(nullptr), _next(nullptr)
-		, _first(nullptr), _last(nullptr)
+		: _parent(nullptr), _prev(nullptr)
+		, _next(nullptr), _first(nullptr), _last(nullptr)
+		, _parent_rt(nullptr), _prev_rt(nullptr)
+		, _next_rt(nullptr), _first_rt(nullptr), _last_rt(nullptr)
+		, _cssclass(nullptr)
 		, _window(nullptr)
 		, _action(nullptr)
 		, _accessor(nullptr)
+		, _style_flags{0}
 		, _mark_value(kLayout_None)
 		, _mark_index(0)
 		, _level(0)
@@ -126,7 +133,6 @@ Range Container::to_range() const {
 		, _visible_area(false)
 		, _receive(true)
 		, _aa(true)
-		, _hasParent(false)
 	{
 		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
@@ -230,7 +236,7 @@ Range Container::to_range() const {
 	void View::set_z_index_direct(uint32_t val, bool isRT) {
 		if (_z_index != val) {
 			_z_index = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -249,21 +255,21 @@ Range Container::to_range() const {
 		uint8_t alpha8 = val * 255;
 		if (_color.a() != alpha8) {
 			_color.set_a(alpha8);
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void View::set_color_direct(Color val, bool isRT) {
 		if (_color != val) {
 			_color = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void View::set_cascade_color_direct(CascadeColor val, bool isRT) {
 		if (_cascade_color != val) {
 			_cascade_color = val;
-			mark_render(); // mark reader only
+			mark_rerender(); // mark reader only
 		}
 	}
 
@@ -381,16 +387,14 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	Agent* View::asAgent() {
-		return nullptr;
-	}
-
 	TextOptions* View::asTextOptions() {
 		return nullptr;
 	}
 
 	TextOptions* View::get_closest_text_options() {
-		_CheckParent(shared_app()->defaultTextOptions());
+		auto _parent = _parent_rt;
+		if (!_parent)
+			return shared_app()->defaultTextOptions();
 		auto opts = _parent->asTextOptions();
 		return opts ? opts : _parent->get_closest_text_options();
 	}
@@ -450,10 +454,10 @@ Range Container::to_range() const {
 
 	void View::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto v = first();
+			auto v = _first_rt;
 			while (v) {
 				v->set_layout_offset_free(Vec2()); // lazy view
-				v = v->next();
+				v = v->_next_rt;
 			}
 			unmark(kLayout_Typesetting);
 		}
@@ -465,11 +469,11 @@ Range Container::to_range() const {
 
 	void View::text_config(TextOptions* opts) {
 		// Forward to subviews
-		auto v = first();
+		auto v = _first_rt;
 		while (v) {
 			if (v->visible())
 				v->text_config(opts); // config subview
-			v = v->next();
+			v = v->_next_rt;
 		}
 	}
 
@@ -478,9 +482,7 @@ Range Container::to_range() const {
 			// Optimize mark value @ mark_layout<true>(kLayout_Typesetting)
 			_mark_value |= kLayout_Typesetting;
 			if (_mark_index == 0 && _level) {
-				if (_level) {
-					pre_render().mark_layout(this, _level); // push to pre render
-				}
+				pre_render().mark_layout(this, _level); // push to pre render
 			}
 		}
 	}
@@ -488,15 +490,21 @@ Range Container::to_range() const {
 	void View::onActivate() {
 	}
 
+	void View::mark_(uint32_t mark) {
+		if (mark) {
+			_async_call({ self->mark_rt_(arg); }, mark);
+		} else {
+			pre_render()._rerender = true;
+		}
+	}
+
 	void View::mark_layout_(uint32_t mark) {
-		async_call([](auto self, auto arg) {
-			self->_mark_value |= arg;
-			if (self->_mark_index == 0) {
-				if (self->_level) {
-					self->pre_render().mark_layout(self, self->_level); // push to pre render
-				}
-			}
-		}, this, mark);
+		_async_call({ self->mark_layout_rt_(arg); }, mark);
+	}
+
+	void View::mark_rt_(uint32_t mark) {
+		_mark_value |= mark;
+		pre_render()._rerender = true;
 	}
 
 	void View::mark_layout_rt_(uint32_t mark) {
@@ -506,22 +514,6 @@ Range Container::to_range() const {
 				pre_render().mark_layout(this, _level); // push to pre render
 			}
 		}
-	}
-
-	void View::mark_(uint32_t mark) {
-		if (mark) {
-			async_call([](auto self, auto arg) {
-				self->_mark_value |= arg;
-				self->pre_render()._is_render = true;
-			}, this, mark);
-		} else {
-			pre_render()._is_render = true;
-		}
-	}
-
-	void View::mark_rt_(uint32_t mark) {
-		_mark_value |= mark;
-		pre_render()._is_render = true;
 	}
 
 	bool View::is_clip() {
@@ -537,11 +529,10 @@ Range Container::to_range() const {
 	}
 
 	void View::set_is_focus(bool value) {
-		if ( value ) {
+		if ( value )
 			focus();
-		} else {
+		else
 			blur();
-		}
 	}
 
 	bool View::is_focus() const {
@@ -596,11 +587,11 @@ Range Container::to_range() const {
 	// NOTE: _level is only reliable on the render thread.
 	// This method must not be called from the work thread.
 	bool View::is_child_rt(View *child) {
-		auto v = child->parent();
+		auto v = child->_parent_rt;
 		while (v && v->_level >= _level) { // only check views in the same or higher level
 			if ( v == this )
 				return true;
-			v = v->parent();
+			v = v->_parent_rt;
 		}
 		return false;
 	}
@@ -610,11 +601,11 @@ Range Container::to_range() const {
 	// where render-thread structural data may be stale.
 	bool View::is_child(View *child) {
 		if ( child ) {
-			auto v = child->parent();
+			auto v = child->_parent;
 			while (v) {
 				if ( v == this )
 					return true;
-				v = v->parent();
+				v = v->_parent;
 			}
 		}
 		return false;
@@ -622,15 +613,15 @@ Range Container::to_range() const {
 
 	void View::before(View *view) {
 		if (view == this) return;
-		_IfParent() {
+		auto _parent = this->_parent;
+		if (_parent) {
 			if (view->_parent == _parent) {
 				if (view->_next == this)
 					return; // already before
-				view->clear_link(true);  // clear link
+				view->clear_link();  // clear link
 			} else {
 				view->set_parent(_parent);
 			}
-			auto _prev = this->prev();
 			if (_prev) {
 				_prev->_next = view;
 			} else { // There are no brothers on top
@@ -639,20 +630,39 @@ Range Container::to_range() const {
 			view->_prev = _prev;
 			view->_next = this;
 			this->_prev = view;
+
+			async_call([](auto self, auto view) {
+				auto _parent = self->_parent_rt;
+				Qk_ASSERT(_parent, "View::before, parent_rt should not be null");
+				if (self == view->_parent_rt) {
+					view->clear_link_rt();
+				} else {
+					view->set_parent_rt(_parent);
+				}
+				auto _prev = self->_prev_rt;
+				if (_prev) {
+					_prev->_next_rt = view;
+				} else { // There are no brothers on top
+					_parent->_first_rt = view;
+				}
+				view->_prev_rt = _prev;
+				view->_next_rt = self;
+				self->_prev_rt = view;
+			}, this, view);
 		}
 	}
 
 	void View::after(View *view) {
 		if (view == this) return;
-		_IfParent() {
+		auto _parent = this->_parent;
+		if (_parent) {
 			if (view->_parent == _parent) {
 				if (view->_prev == this)
 					return; // already after
-				view->clear_link(true); // clear link
+				view->clear_link(); // clear link
 			} else {
 				view->set_parent(_parent);
 			}
-			auto _next = this->next();
 			if (_next) {
 				_next->_prev = view;
 			} else { // There are no brothers below
@@ -661,6 +671,25 @@ Range Container::to_range() const {
 			view->_prev = this;
 			view->_next = _next;
 			this->_next = view;
+
+			async_call([](auto self, auto view) {
+				auto _parent = self->_parent_rt;
+				Qk_ASSERT(_parent, "View::after, parent_rt should not be null");
+				if (self == view->_parent_rt) {
+					view->clear_link_rt();
+				} else {
+					view->set_parent_rt(_parent);
+				}
+				auto _next = self->_next_rt;
+				if (_next) {
+					_next->_prev_rt = view;
+				} else { // There are no brothers below
+					_parent->_last_rt = view;
+				}
+				view->_prev_rt = self;
+				view->_next_rt = _next;
+				self->_next_rt = view;
+			}, this, view);
 		}
 	}
 
@@ -668,11 +697,10 @@ Range Container::to_range() const {
 		if (this == child->_parent) {
 			if (_first == child)
 				return; // already first
-			child->clear_link(true);
+			child->clear_link();
 		} else {
 			child->set_parent(this);
 		}
-		auto _first = this->first();
 		if (_first) {
 			child->_prev = nullptr;
 			child->_next = _first;
@@ -684,17 +712,36 @@ Range Container::to_range() const {
 			this->_first = child;
 			this->_last = child;
 		}
+
+		async_call([](auto self, auto child) {
+			if (self == child->_parent_rt) {
+				child->clear_link_rt();
+			} else {
+				child->set_parent_rt(self);
+			}
+			auto _first = self->_first_rt;
+			if (_first) {
+				child->_prev_rt = nullptr;
+				child->_next_rt = _first;
+				_first->_prev_rt = child;
+				self->_first_rt = child;
+			} else { // There are currently no sub views available yet
+				child->_prev_rt = nullptr;
+				child->_next_rt = nullptr;
+				self->_first_rt = child;
+				self->_last_rt = child;
+			}
+		}, this, child);
 	}
 
 	void View::append(View *child) {
 		if (this == child->_parent) {
 			if (_last == child)
 				return; // already last
-			child->clear_link(true);
+			child->clear_link();
 		} else {
 			child->set_parent(this);
 		}
-		auto _last = this->last();
 		if (_last) {
 			child->_prev = _last;
 			child->_next = nullptr;
@@ -706,113 +753,139 @@ Range Container::to_range() const {
 			this->_first = child;
 			this->_last = child;
 		}
+
+		async_call([](auto self, auto child) {
+			if (self == child->_parent_rt) {
+				child->clear_link_rt();
+			} else {
+				child->set_parent_rt(self);
+			}
+			auto _last = self->_last_rt;
+			if (_last) {
+				child->_prev_rt = _last;
+				child->_next_rt = nullptr;
+				_last->_next_rt = child;
+				self->_last_rt = child;
+			} else { // There are currently no sub views available yet
+				child->_prev_rt = nullptr;
+				child->_next_rt = nullptr;
+				self->_first_rt = child;
+				self->_last_rt = child;
+			}
+		}, this, child);
 	}
 
 	void View::remove() {
 		if (_parent) {
 			blur();
 			set_action(nullptr); // Delete action
-			clear_link(false);
-			async_call([](auto self, auto arg) {
-				if (self->_level) {
-					if (arg) { // notice parent view
-						arg->onChildLayoutChange(self, kChild_Layout_Visible);
-					}
-					self->clear_level_rt();
-				}
-			}, this, _parent.load());
+			clear_link();
 			_parent = nullptr;
 			release(); // Disconnect from parent view strong reference
+			async_call([](auto self, auto arg) {
+				self->clear_link_rt();
+				self->_parent_rt = nullptr;
+				if (self->_level) {
+					self->clear_level_rt();
+				}
+			}, this, 0);
 		}
 	}
 
 	void View::remove_all_child() {
-		auto _first = this->first();
+		auto _first = this->_first;
 		while (_first) {
 			_first->remove_all_child();
 			_first->remove();
-			_first = this->first();
+			_first = this->_first;
 		}
 	}
 
-	void View::clear_link(bool notice) { // Cleaning up associated view information
-		_IfParent() {
-			auto _prev = this->prev();
-			auto _next = this->next();
-			/* Currently the first sub view */
-			if (_parent->_first == this) {
-				_parent->_first = _next;
-			} else {
-				_prev->_next = _next;
-			}
-			/* Currently the last sub view */
-			if (_parent->_last == this) {
-				_parent->_last = _prev;
-			} else {
-				_next->_prev = _prev;
-			}
-			if (notice) {
-				async_call([](auto self, auto arg) {
-					if (self->_level)
-						arg->onChildLayoutChange(self, kChild_Layout_Visible);
-				}, this, _parent);
-			}
+	void View::clear_link() { // Cleaning up associated view information
+		auto _parent = this->_parent;
+		auto _prev = this->_prev;
+		auto _next = this->_next;
+		/* Currently the first sub view */
+		if (_parent->_first == this) {
+			_parent->_first = _next;
+		} else {
+			_prev->_next = _next;
+		}
+		/* Currently the last sub view */
+		if (_parent->_last == this) {
+			_parent->_last = _prev;
+		} else {
+			_next->_prev = _prev;
 		}
 	}
 
-	static bool check_loop_ref(View *self, View *parent) {
-		while (parent) {
-			if (self == parent) {
-				return true;
-			}
-			parent = parent->parent();
+	void View::clear_link_rt() {
+		auto _parent = this->_parent_rt;
+		auto _prev = this->_prev_rt;
+		auto _next = this->_next_rt;
+		/* Currently the first sub view */
+		if (_parent->_first_rt == this) {
+			_parent->_first_rt = _next;
+		} else {
+			_prev->_next_rt = _next;
 		}
-		return false;
+		/* Currently the last sub view */
+		if (_parent->_last_rt == this) {
+			_parent->_last_rt = _prev;
+		} else {
+			_next->_prev_rt = _prev;
+		}
+		_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
 	}
 
 	void View::set_parent(View *parent) {
 		Qk_CHECK(_window == parent->_window, "window no match, parent->_window no equal _window");
 		Qk_CHECK(!check_loop_ref(this, parent), "View::set_parent(parent), loop ref error");
-		_Parent();
+		auto _parent = this->_parent; // old parent
 		if (parent != _parent) {
 			Qk_CHECK(_window->root() != this, "root view not allow set parent"); // check
-			clear_link(false);
-			if ( !_parent ) {
+			if (_parent) {
+				clear_link(); // clear link from old parent
+			} else { // Only when there is no parent
 				retain(); // link to parent and retain ref
 			}
-			// to Rt, set level
-			async_call([](auto self, auto arg) {
-				if ( arg ) { // notice old parent
-					arg->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
-				}
-				auto _parent = self->parent();
-				if (_parent) {
-					auto level = _parent->_level;
-					if (self->_visible && level) {
-						if (self->_level != ++level)
-							self->set_level_rt(level);
-					} else {
-						if (self->_level)
-							self->clear_level_rt();
-					}
-					_parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice new parent view
-				}
-				self->template mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // mark view size, reset view size
-
-				auto _cssclass = self->_cssclass.load();
-				if (_cssclass) {
-					_cssclass->updateClass_rt();
-				}
-				self->onActivate();
-			}, this, _parent);
 			this->_parent = parent;
+		}
+	}
+
+	void View::set_parent_rt(View *parent) {
+		auto _parent = this->_parent_rt;
+		if (_parent != parent) {
+			if (_parent) {
+				clear_link_rt();
+			}
+			this->_parent_rt = parent; // set new parent
+			if ( _parent ) { // notice old parent
+				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
+			}
+			auto level = parent->_level;
+			if (_visible && level) {
+				if (_level != ++level)
+					set_level_rt(level);
+			} else {
+				if (_level)
+					clear_level_rt();
+			}
+			parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice new parent view
+			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // mark view size, reset view size
+
+			auto cssclass = _cssclass.load();
+			if (cssclass) {
+				cssclass->updateClass_rt();
+			}
+			onActivate();
 		}
 	}
 
 	// --------------------------------------------------------------------------------------
 
 	void View::set_visible_rt(bool visible) {
-		_Parent();
+		auto _parent = this->_parent_rt;
 		auto level =
 			_parent && _parent->_level         ? _parent->_level + 1:
 			visible && _window->root() == this ? 1: 0;
@@ -846,10 +919,10 @@ Range Container::to_range() const {
 			_level = level++;
 			onActivate();
 
-			auto v = first();
+			auto v = _first_rt;
 			while ( v ) {
 				v->set_level_rt(level);
-				v = v->next();
+				v = v->_next_rt;
 			}
 		} else {
 			if ( _level )
@@ -870,10 +943,10 @@ Range Container::to_range() const {
 		}
 		_level = 0;
 		onActivate();
-		auto v = first();
+		auto v = _first_rt;
 		while ( v ) {
 			v->clear_level_rt();
-			v = v->next();
+			v = v->_next_rt;
 		}
 	}
 
@@ -896,23 +969,23 @@ Range Container::to_range() const {
 			}
 		}
 		if (_visible) { // apply all sub views if visible
-			auto v = first();
+			auto v = _first_rt;
 			while (v) {
 				v->apply_class_recursive_rt(parent, alwaysApply);
-				v = v->next();
+				v = v->_next_rt;
 			}
 		}
 		unmark(kClass_All);
 	}
 
 	CStyleSheetsClass* View::parent_cssclass_rt() {
-		_Parent();
+		auto _parent = _parent_rt;
 		while (_parent) {
 			auto ss = _parent->_cssclass.load();
 			if (ss && ss->hasPropagatingStyles()) {
 				return ss;
 			}
-			_parent = _parent->parent();
+			_parent = _parent->_parent_rt;
 		}
 		return nullptr;
 	}
@@ -922,7 +995,7 @@ Range Container::to_range() const {
 		do {
 			if (v->_cursor != CursorStyle::Normal)
 				return v->_cursor;
-			v = v->parent();
+			v = v->_parent;
 		} while (v);
 		return CursorStyle::Normal;
 	}

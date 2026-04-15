@@ -138,10 +138,11 @@ namespace qk {
 		auto entity = child->asEntity();
 		if (entity) {
 			auto other = entity->asAgent();
-			if (other && (!child->parent() || !child->visible())) { // removed from world or invisible
-				auto v = first();
+			if (other && (!child->parent_rt() || !child->visible())) { // removed from world or invisible
+				auto v = first_rt();
 				while (v) {
-					auto agent = v->asAgent();
+					auto entity = v->asEntity();
+					auto agent = entity ? entity->asAgent() : nullptr;
 					if (agent && agent != other) {
 						// Remove from discovery set if no longer visible
 						if (agent->_discoverys_rt.erase(other)) { // erase success
@@ -154,10 +155,10 @@ namespace qk {
 							onAgentMovement(agent, AgentMovementEvent::Cancelled);
 						}
 					}
-					v = v->next();
+					v = v->next_rt();
 				}
 			}
-			if (child->parent()) { // add to world
+			if (child->parent_rt()) { // add to world
 				_entities.set(entity, other != nullptr);
 				entity->retain(); // retain for world
 			} else { // remove from world

@@ -32,8 +32,6 @@
 #include "../screen.h"
 #include "../app.h"
 
-#define _Parent(self) auto _parent = self->parent()
-#define _IfParent(self) _Parent(self); if (_parent)
 #define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
 
 namespace qk {
@@ -90,19 +88,18 @@ namespace qk {
 
 	void Label::layout_reverse(uint32_t _mark) {
 		if (_mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
-			_IfParent(this) {
-				if (!_parent->is_text_container()) { // layout text in text container
-					// Qk_Log("Label::layout_reverse, %s", _value.c_str());
-					// layout text in non text container
-					auto &container = _parent->layout_container(); // use parent container
-					TextLines lines(text_align_value(), container.to_range(), container.float_x());
-					// lines.set_ignore_single_space_line(false); // keep single space line
-					layout_text(&lines, nullptr); // no text container, use nullptr
-					lines.finish();
-				}
-				_parent->onChildLayoutChange(this, kChild_Layout_Text);
-				unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
+			auto _parent = parent_rt();
+			if (!_parent->is_text_container()) { // layout text in text container
+				// Qk_Log("Label::layout_reverse, %s", _value.c_str());
+				// layout text in non text container
+				auto &container = _parent->layout_container(); // use parent container
+				TextLines lines(text_align_value(), container.to_range(), container.float_x());
+				// lines.set_ignore_single_space_line(false); // keep single space line
+				layout_text(&lines, nullptr); // no text container, use nullptr
+				lines.finish();
 			}
+			_parent->onChildLayoutChange(this, kChild_Layout_Text);
+			unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
 		}
 	}
 
@@ -115,12 +112,12 @@ namespace qk {
 		String value(_value); // safe hold
 		TextBlobBuilder(lines, this, &_blob).make(value);
 
-		auto v = first();
+		auto v = first_rt();
 		while(v) {
 			if (v->visible()) {
 				v->layout_text(lines, this);
 			}
-			v = v->next();
+			v = v->next_rt();
 		}
 		mark<true>(kVisible_Region);
 	}
@@ -140,6 +137,7 @@ namespace qk {
 	void Label::set_align_direct(Align val, bool isRT) {
 		if (_align != val) {
 			_align = val;
+			#define _IfParent(self) auto _parent = self->parent_rt(); if (_parent)
 			if (isRT) {
 				_IfParent(this)
 				_parent->onChildLayoutChange(this, kChild_Layout_Align);
@@ -167,7 +165,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset_non_label_child(Vec2 val) {
-		auto v = first();
+		auto v = first_rt();
 		while(v) {
 			if (v->visible()) {
 				if (v->view_type() == kLabel_ViewType) {
@@ -179,7 +177,7 @@ namespace qk {
 					v->set_layout_offset(v->layout_offset() + val);
 				}
 			}
-			v = v->next();
+			v = v->next_rt();
 		}
 		mark<true>(kVisible_Region);
 	}
@@ -191,12 +189,11 @@ namespace qk {
 
 	void Label::solve_visible_area(const Mat &mat) {
 		if (_lines) {
-			_IfParent(this) {
-				if (!_parent->is_text_container()) // At Label::set_layout_offset_free(), new TextLines()
-					_lines->solve_visible_area(this, mat);
-				_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
-				_visible_area = _blob_visible.length() || first();
-			}
+			auto _parent = parent_rt();
+			if (!_parent->is_text_container()) // At Label::set_layout_offset_free(), new TextLines()
+				_lines->solve_visible_area(this, mat);
+			_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
+			_visible_area = _blob_visible.length() || first_rt();
 		}
 	}
 

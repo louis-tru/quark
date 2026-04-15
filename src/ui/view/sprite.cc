@@ -82,7 +82,7 @@ namespace qk {
 		mark_style_flag(kFRAME_CssProp);
 		if (_frame != val) {
 			_frame = val;
-			mark_render();
+			mark_rerender();
 			getKeyAction()->seek(val * 1e3); // Seek to frame in milliseconds
 		}
 	}
@@ -117,7 +117,7 @@ namespace qk {
 	void Sprite::set_frame_direct(uint16_t val, bool isRT) {
 		if (_frame != val) {
 			_frame = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -176,7 +176,7 @@ namespace qk {
 	void Sprite::set_direction_direct(Direction val, bool isRT) {
 		if (_direction != val) {
 			_direction = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -186,7 +186,7 @@ namespace qk {
 
 	void Sprite::set_src_direct(String val, bool isRT) {
 		if (ImageSourceHold::set_src(val)) {
-			mark_render();
+			mark_rerender();
 		}
 	}
 

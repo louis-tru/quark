@@ -524,11 +524,11 @@ namespace qk {
 		inherit_text_config(_inherit); // settings and inherit options
 		// pass text options to subview
 		if (_textFlags) {
-			auto v = host->first();
+			auto v = host->_first_rt;
 			while (v) {
 				if (v->visible())
 					v->text_config(this); // config subview
-				v = v->next();
+				v = v->_next_rt;
 			}
 			if (_textFlags & kLayout_Typesetting_Mask_TextOpt) {
 				host->_mark_value |= View::kLayout_Typesetting; // mark typesetting

@@ -274,7 +274,7 @@ namespace qk {
 					for (auto &v: *views) {
 						auto view = v.first;
 						if (it.second->_directChildOnly) {
-							if (host == view->parent()) {
+							if (host == view->_parent_rt) {
 								// Qk_Log("mark direct child view %p for class change", view);
 								view->mark_layout<true>(View::kClass_Change);
 							}
@@ -385,7 +385,7 @@ namespace qk {
 			// to find direct child selectors.
 			// e.g.: ".parent > .child"
 			//
-			auto isDirectChild = parent->host() == _host.load()->parent();
+			auto isDirectChild = parent->host() == _host.load()->_parent_rt;
 
 			// Match current level against parent's propagating styles
 			for (auto ss: parent->_propagatingStyles_rt) {

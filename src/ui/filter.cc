@@ -100,7 +100,7 @@ namespace qk {
 	static void mark(BoxFilter *self) {
 		auto view = self->view();
 		if (view)
-			view->mark_render();
+			view->mark_rerender();
 	}
 
 	BoxFilter* BoxFilter::link(const std::initializer_list<BoxFilter*>& list) {
@@ -164,7 +164,7 @@ namespace qk {
 			left_ = nullptr; // set left_ to nullptr
 		}
 		if (view) {
-			view->mark_render();
+			view->mark_rerender();
 		}
 		return true;
 	}
@@ -209,7 +209,7 @@ namespace qk {
 			}
 		}
 		if (view) {
-			view->mark_render();
+			view->mark_rerender();
 		}
 		return true;
 	}
@@ -372,7 +372,7 @@ namespace qk {
 			} else if (shared_app()) {
 				// notice all windows render
 				for (auto w: shared_app()->windows()) {
-					w->pre_render().mark_render();
+					w->pre_render().mark_rerender();
 				}
 			}
 		}

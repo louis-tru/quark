@@ -90,7 +90,7 @@ public:
 		//canvas->drawPath(circle, paint);
 		canvas->restore();
 
-		mark_render();
+		mark_rerender();
 	}
 };
 

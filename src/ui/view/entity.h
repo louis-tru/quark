@@ -158,6 +158,11 @@ namespace qk {
 		Entity* asEntity() override;
 		/** @override Cast to MorphView. */
 		MorphView* asMorphView() override;
+		/**
+		 * Returns as agent
+		 * @thread Any
+		*/
+		virtual Agent* asAgent();
 
 		/** @override Return offset used in layout calculations. */
 		Vec2 layout_offset_inside() override;

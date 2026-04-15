@@ -33,9 +33,6 @@
 #include "../window.h"
 #include "../geometry.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
 #define _async_call(block, param) async_call([](auto self, auto arg) block, this, param)
@@ -459,7 +456,7 @@ namespace qk {
 	void Box::set_clip_direct(bool val, bool isRT) {
 		if (_clip != val) {
 			_clip = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -664,28 +661,28 @@ namespace qk {
 	void Box::set_border_top_left_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_top_left_radius != val) {
 			_border_top_left_radius = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void Box::set_border_top_right_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_top_right_radius != val) {
 			_border_top_right_radius = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void Box::set_border_bottom_right_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_bottom_right_radius != val) {
 			_border_bottom_right_radius = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
 	void Box::set_border_bottom_left_radius_direct(float val, bool isRT) {
 		if (val >= 0.0 && _border_bottom_left_radius != val) {
 			_border_bottom_left_radius = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -829,7 +826,7 @@ namespace qk {
 		_BorderAlloc();
 		if (_border->color[0] != val) {
 			_border->color[0] = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -837,7 +834,7 @@ namespace qk {
 		_BorderAlloc();
 		if (_border->color[1] != val) {
 			_border->color[1] = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -845,7 +842,7 @@ namespace qk {
 		_BorderAlloc();
 		if (_border->color[2] != val) {
 			_border->color[2] = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -853,7 +850,7 @@ namespace qk {
 		_BorderAlloc();
 		if (_border->color[3] != val) {
 			_border->color[3] = val;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -896,7 +893,7 @@ namespace qk {
 	void Box::set_background_color_direct(Color color, bool isRT) {
 		if (_background_color != color) {
 			_background_color = color;
-			mark_render();
+			mark_rerender();
 		}
 	}
 
@@ -938,9 +935,7 @@ namespace qk {
 		}
 
 		if (change) {
-			_IfParent() {
-				_parent->onChildLayoutChange(this, kChild_Layout_Size);
-			}
+			parent_rt()->onChildLayoutChange(this, kChild_Layout_Size);
 			mark<true>(kVisible_Region);
 		}
 	}
@@ -1001,7 +996,7 @@ namespace qk {
 	}
 
 	static void call_onChildLayoutChange(Box* self, Box::ChildLayoutChangeMark arg) {
-		auto _parent = self->parent();
+		auto _parent = self->parent_rt();
 		if (_parent)
 			_parent->onChildLayoutChange(self, arg);
 	}

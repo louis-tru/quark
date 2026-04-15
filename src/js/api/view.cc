@@ -132,7 +132,6 @@ namespace qk { namespace js {
 			Js_Class_Method(asScrollView, { Js_Return(self->asScrollView() ? self: nullptr); });
 			Js_Class_Method(asButton, { Js_Return(self->asButton()); });
 			Js_Class_Method(asEntity, { Js_Return(self->asEntity()); });
-			Js_Class_Method(asAgent, { Js_Return(self->asAgent()); });
 			Js_Class_Method(focus, { Js_ReturnBool(self->focus()); });
 			Js_Class_Method(blur, { Js_ReturnBool(self->blur()); });
 

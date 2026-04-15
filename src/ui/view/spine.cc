@@ -300,7 +300,7 @@ namespace qk {
 
 	static void stateListener(AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *e) {
 		auto self = ((Spine*)state->getRendererObject());
-		if (!self->parent()) return; // View destroyed
+		if (!self->parent_rt()) return; // View destroyed
 		auto trackIndex = entry->getTrackIndex();
 		String animationName = CastStr(entry->getAnimation()->getName());
 		auto trackTime = entry->getTrackTime();

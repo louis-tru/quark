@@ -111,7 +111,7 @@ namespace qk {
 						auto ss = self->_cssclass.load();
 						if (ss)
 							ss->setState_rt(arg);
-						self = self->parent();
+						self = self->_parent_rt;
 					} while(self);
 				}, (View*)this, evt.state());
 
@@ -458,7 +458,7 @@ namespace qk {
 	void EventDispatch::touchstart(View *view, List<TouchPoint> &in) {
 		if ( view->_visible && in.length() ) {
 			if ( view->_visible_area ) {
-				if ( view->last() && view->is_clip() ) {
+				if ( view->_last_rt && view->is_clip() ) {
 					List<TouchPoint> clipIn;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -469,10 +469,10 @@ namespace qk {
 							i++;
 						}
 					}
-					auto v = view->last();
+					auto v = view->_last_rt;
 					while( v && clipIn.length() ) {
 						touchstart(v, clipIn);
-						v = v->prev();
+						v = v->_prev_rt;
 					}
 					touchstart_consume(view, clipIn);
 
@@ -480,10 +480,10 @@ namespace qk {
 						in.splice(in.end(), clipIn);
 					}
 				} else {
-					auto v = view->last();
+					auto v = view->_last_rt;
 					while( v && in.length() ) {
 						touchstart(v, in);
-						v = v->prev();
+						v = v->_prev_rt;
 					}
 					touchstart_consume(view, in);
 				}
@@ -640,7 +640,7 @@ namespace qk {
 
 	View* EventDispatch::find_receive_view_exec(View* view, Vec2 pos) {
 		if ( view->visible() && view->visible_area() ) {
-			auto v = view->last();
+			auto v = view->_last_rt;
 			if (v && view->is_clip() ) {
 				if (view->overlap_test(pos)) {
 					while (v) {
@@ -648,7 +648,7 @@ namespace qk {
 						if (r) {
 							return r;
 						}
-						v = v->prev();
+						v = v->_prev_rt;
 					}
 					if (view->_receive) {
 						return view;
@@ -660,7 +660,7 @@ namespace qk {
 					if (r) {
 						return r;
 					}
-					v = v->prev();
+					v = v->_prev_rt;
 				}
 				if (view->_receive && view->overlap_test(pos)) {
 					return view;

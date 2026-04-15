@@ -44,6 +44,7 @@ namespace qk { namespace js {
 			inheritMorphView(cls, worker);
 			Js_MixObject_Accessor(Entity, Bounds, bounds, bounds);
 			Js_MixObject_Accessor(Entity, bool, participate, participate);
+			Js_Class_Method(asAgent, { Js_Return(self->asAgent()); });
 			cls->exports("Entity", exports);
 		}
 	};

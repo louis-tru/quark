@@ -113,7 +113,7 @@ public:
 
 		canvas->restore();
 
-		mark_render();
+		mark_rerender();
 	}
 
 };

@@ -33,8 +33,6 @@
 #include "../text/text_opts.h"
 #include <limits>
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 #define _BorderV(self) auto _border = self->_border.load()
 #define _IfBorderV(self) _BorderV(self); if (_border)
@@ -48,7 +46,7 @@ namespace qk {
 
 	Vec2 free_typesetting(View* view, const View::Container &container) {
 		auto cur = container.content;
-		auto v = view->first();
+		auto v = view->first_rt();
 		if (v) {
 			if (container.float_x() || container.float_y()) { // float width
 				Vec2 maxSize;
@@ -60,7 +58,7 @@ namespace qk {
 						if (size[1] > maxSize[1])
 							maxSize[1] = size[1];
 					}
-					v = v->next();
+					v = v->next_rt();
 				} while(v);
 				if (container.float_x())
 					cur[0] = container.clamp_width(maxSize[0]);
@@ -68,11 +66,11 @@ namespace qk {
 					cur[1] = container.clamp_height(maxSize[1]);
 			}
 
-			auto v = view->first();
+			auto v = view->first_rt();
 			do { // lazy free layout
 				if (v->visible())
 					v->set_layout_offset_free(cur); // free layout
-				v = v->next();
+				v = v->next_rt();
 			} while(v);
 		} else {
 			if (container.float_x())
@@ -356,38 +354,37 @@ namespace qk {
 	void Box::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_ALL | kLayout_Child_Size/* | kStyle_Class*/)) {
 			uint32_t change_mark = kLayout_None;
-			_IfParent() {
-				change_mark = solve_layout_content_size_pre(mark, _parent->layout_container());
+			auto _parent = parent_rt();
+			change_mark = solve_layout_content_size_pre(mark, _parent->layout_container());
 
-				uint32_t child_layout_change_mark = kLayout_None;
+			uint32_t child_layout_change_mark = kLayout_None;
 
-				if (mark & kLayout_Outside_Width) {
-					_client_size[0] = _padding_left + _padding_right + _container.content[0];
-					_IfBorder() {
-						_client_size[0] += _border->width[3] + _border->width[1]; // left + right
-					}
-					float x = _margin_left + _margin_right + _client_size[0];
-					if (_layout_size[0] != x) {
-						_layout_size[0] = x;
-						child_layout_change_mark = kChild_Layout_Size;
-					}
+			if (mark & kLayout_Outside_Width) {
+				_client_size[0] = _padding_left + _padding_right + _container.content[0];
+				_IfBorder() {
+					_client_size[0] += _border->width[3] + _border->width[1]; // left + right
 				}
-
-				if (mark & kLayout_Outside_Height) {
-					_client_size[1] = _padding_top + _padding_bottom + _container.content[1];
-					_IfBorder() {
-						_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
-					}
-					float y = _margin_top + _margin_bottom + _client_size[1];
-					if (_layout_size[1] != y) {
-						_layout_size[1] = y;
-						child_layout_change_mark = kChild_Layout_Size;
-					}
+				float x = _margin_left + _margin_right + _client_size[0];
+				if (_layout_size[0] != x) {
+					_layout_size[0] = x;
+					child_layout_change_mark = kChild_Layout_Size;
 				}
-				// Notify the parent view that the subview layout has changed,
-				// maybe typesetting again and setting new layout offset.
-				_parent->onChildLayoutChange(this, child_layout_change_mark);
 			}
+
+			if (mark & kLayout_Outside_Height) {
+				_client_size[1] = _padding_top + _padding_bottom + _container.content[1];
+				_IfBorder() {
+					_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
+				}
+				float y = _margin_top + _margin_bottom + _client_size[1];
+				if (_layout_size[1] != y) {
+					_layout_size[1] = y;
+					child_layout_change_mark = kChild_Layout_Size;
+				}
+			}
+			// Notify the parent view that the subview layout has changed,
+			// maybe typesetting again and setting new layout offset.
+			_parent->onChildLayoutChange(this, child_layout_change_mark);
 
 			if (mark & kLayout_Child_Size) {
 				// it >> 4 to kLayout_Inner_Width and kLayout_Inner_Height
@@ -397,12 +394,12 @@ namespace qk {
 			unmark(kLayout_Size_ALL | kLayout_Child_Size);
 
 			if (change_mark) {
-				auto v = first();
+				auto v = first_rt();
 				while (v) {
 					if (v->visible()) {
 						v->layout_forward(change_mark | v->mark_value());
 					}
-					v = v->next();
+					v = v->next_rt();
 				}
 				mark_layout<true>(kLayout_Typesetting | kVisible_Region); // layout reverse
 			}
@@ -486,7 +483,7 @@ namespace qk {
 		Vec2 inner_size;
 		auto cur_x = _container.content[0];
 
-		auto v = first();
+		auto v = first_rt();
 		if (v) {
 			if ( _container.float_x() ) { // float width
 				float limitX = _container.pre_width_max;
@@ -503,9 +500,9 @@ namespace qk {
 						}
 						cur_x = Float32::max(cur_x, float_x);
 					}
-					v = v->next();
+					v = v->next_rt();
 				} while(v);
-				v = first();
+				v = first_rt();
 				cur_x = _container.clamp_width(cur_x);
 			}
 
@@ -594,7 +591,7 @@ namespace qk {
 							break;
 					}
 				}
-				v = v->next();
+				v = v->next_rt();
 			} while(v);
 			solveCenter();
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);

@@ -61,7 +61,7 @@ namespace qk {
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
-		, _is_render(false)
+		, _rerender(false)
 	{}
 
 	void PreRender::mark_layout(View *view, uint32_t level) {
@@ -84,11 +84,7 @@ namespace qk {
 		arr.pop(1);
 		view->_mark_index = 0;
 		_mark_total--;
-		_is_render = true;
-	}
-
-	void PreRender::mark_render() {
-		_is_render = true;
+		_rerender = true;
 	}
 
 	void PreRender::addtask(Task* task) {
@@ -179,8 +175,8 @@ namespace qk {
 	}
 
 	bool PreRender::solve(int64_t time, int64_t deltaTime) {
-		bool is_render = _is_render;
-		_is_render = false;  // Reset render flag
+		bool rerender = _rerender;
+		_rerender = false;  // Reset render flag
 
 		// Flush async calls
 		solveAsyncCall();
@@ -192,7 +188,7 @@ namespace qk {
 				if ( task ) {
 					if ( time > task->task_timeout() ) {
 						if ( task->run_task(time, deltaTime) ) {
-							is_render = true;
+							rerender = true;
 						}
 					}
 					i++;
@@ -235,10 +231,10 @@ namespace qk {
 				}
 				levelMarks.clear();
 			}
-			is_render = true; // Mark as needing render
+			rerender = true; // Mark as needing render
 		}
 
-		return is_render;
+		return rerender;
 	}
 
 	RenderTask::~RenderTask() {

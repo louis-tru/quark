@@ -71,7 +71,10 @@ namespace qk {
 
 		void mark_layout(View *view, uint32_t depth); //!< @thread Rt only render thread call
 		void unmark_layout(View *view, uint32_t depth); //!< @thread Rt only render thread call
-		void mark_render(); //!< mark render state @thread Rt only render thread call
+		/**
+		 * mark rerender state, the view will be rendered in the next frame
+		 */
+		inline void mark_rerender() { _rerender = true; }
 
 		/** 
 		 * add pre render task, if task already in pre render then ignore add
@@ -145,11 +148,6 @@ namespace qk {
 		*/
 		bool post(Cb cb, View *view, bool toQueue = false);
 
-		/**
-		 * @method mark_is_render() mark next frame need render
-		 */
-		inline void mark_is_render() { _is_render = true; }
-
 	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
@@ -177,7 +175,7 @@ namespace qk {
 		Array<LevelMarks> _marks; // marked view layout
 		AsyncCmds _asyncWrite, _asyncReady, _asyncExec;
 		Mutex _asyncCommitMutex;
-		bool _is_render; // next frame render
+		bool _rerender; // next frame render
 		friend class Application;
 		friend class Window;
 		friend class View;

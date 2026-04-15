@@ -80,12 +80,12 @@ namespace qk {
 			String value(_value); // safe hold
 			TextBlobBuilder(&lines, this, &_blob).make(value);
 
-			auto v = first();
+			auto v = first_rt();
 			if (v) {
 				do {
 					if (v->visible())
 						v->layout_text(&lines, this);
-					v = v->next();
+					v = v->next_rt();
 				} while(v);
 			}
 			lines.finish();

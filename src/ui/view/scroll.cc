@@ -780,17 +780,17 @@ namespace qk {
 
 	void ScrollView::set_scrollbar_color_direct(Color value, bool isRT) {
 		_scrollbar_color = value;
-		_host->mark_render();
+		_host->mark_rerender();
 	}
 
 	void ScrollView::set_scrollbar_width_direct(float value, bool isRT) {
 		_scrollbar_width = Float32::max(1.0, value);
-		_host->mark_render();
+		_host->mark_rerender();
 	}
 
 	void ScrollView::set_scrollbar_margin_direct(float value, bool isRT) {
 		_scrollbar_margin = Float32::max(1.0, value);
-		_host->mark_render();
+		_host->mark_rerender();
 	}
 
 	void ScrollView::set_scroll_duration(uint64_t value) {
