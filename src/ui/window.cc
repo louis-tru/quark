@@ -365,6 +365,10 @@ namespace qk {
 			return false;
 		}
 
+#if PRINT_RENDER_FRAME_TIME
+		int64_t st1 = time_microsecond();
+#endif
+
 		if (_time - _fspTime > 1e6) { // 1ns * 1e6
 			if (_debugMode && _fsp != _fspTick) {
 				// text blob build fps
@@ -403,11 +407,13 @@ namespace qk {
 		_render->getCanvas()->swapBuffer();
 
 #if PRINT_RENDER_FRAME_TIME
-		int64_t ts2 = (time_microsecond() - st) / 1e3;
-		if (ts2 > 16) {
-			Qk_Log("Window swapBuffer time: %ld -------------- ", ts2);
+		int64_t st2 = time_microsecond();
+		int64_t ts1 = (st1 - st) / 1e3;
+		int64_t ts2 = (st2 - st1) / 1e3;
+		if (ts1 + ts2 > 16) {
+			Qk_Log("Window swapBuffer time: %ld, %ld -------------- ", ts1, ts2);
 		} else {
-			Qk_Log("Window swapBuffer time: %ld", ts2);
+			Qk_Log("Window swapBuffer time: %ld, %ld", ts1, ts2);
 		}
 #endif
 		return true;

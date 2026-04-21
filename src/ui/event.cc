@@ -816,8 +816,9 @@ namespace qk {
 					auto pos = _mouse->position(); // last mouse pos
 					_loop->post(Cb([=](auto e) {
 						auto v = _mouse->view();
-						if (v)
+						if (v) {
 							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, pos, delta, code, mode));
+						}
 					}));
 				}
 				break;

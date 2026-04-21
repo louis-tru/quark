@@ -110,6 +110,7 @@ namespace qk {
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
+		Qk_DLog("Application::~Application()");
 
 		// Flush all pending asynchronous calls for every resident window.
 		// This is required during application shutdown to ensure that no

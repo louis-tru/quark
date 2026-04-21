@@ -290,7 +290,6 @@ namespace qk { namespace js {
 		_data.destroy(_ctx);
 		JSGlobalContextRelease(_ctx);
 		JSContextGroupRelease(_group);
-		Releasep(_classes);
 		uv_key_set(&th_key, nullptr);
 	}
 

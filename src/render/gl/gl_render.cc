@@ -302,6 +302,7 @@ namespace qk {
 			}
 			if (levels == 1 && genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
+				// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			}
 		}
 

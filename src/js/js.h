@@ -537,6 +537,12 @@ namespace qk { namespace js {
 		void release() override;
 		void garbageCollection();
 
+		/**
+		 * Check if the worker has been destroyed. After the worker is destroyed, 
+		 * all operations on the worker are invalid and may cause the program to crash.
+		*/
+		inline bool isDestroyed() const { return _strs == nullptr; }
+
 		// new instance
 		JSValue*  newValue(Object *val);
 		JSNumber* newValue(float val);

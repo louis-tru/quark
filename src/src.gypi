@@ -19,6 +19,7 @@
 			'deps/libpng/libpng.gyp:libpng',
 			'deps/libwebp/libwebp.gyp:libwebp',
 			'deps/spine/spine.gyp:spine',
+			'deps/bgfx/bgfx.gyp:libbgfx',
 		],
 		'direct_dependent_settings': {
 			'conditions': [
@@ -284,6 +285,8 @@
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
 						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
 					]
 				},
 			}],

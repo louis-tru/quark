@@ -101,7 +101,6 @@ namespace qk { namespace js {
 		_isolate->Exit();
 		Releasep(_locker);
 		_isolate->Dispose(); _isolate = nullptr;
-		Releasep(_classes);
 		Object::release();
 		Releasep(_params.array_buffer_allocator);
 	}

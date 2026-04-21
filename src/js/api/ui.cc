@@ -94,6 +94,10 @@ namespace qk { namespace js {
 		typedef EventNoticerBasic Basic;
 		std::function<void(Event<>&)> f = [this, func, cData](Event<>& e) {
 			auto worker = this->worker();
+			if (worker->isDestroyed()) {
+				Qk_DLog("Worker is destroyed, cannot trigger event.");
+				return;
+			}
 			Js_Handle_Scope(); // Callback Scope
 			// arg event
 			auto ev = MixObject::mix(&e);

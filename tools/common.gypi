@@ -219,6 +219,7 @@
 				],
 				'ldflags': [
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
+					# "-Wl,--fix-cortex-a8",
 					'-pthread',
 					# '-rdynamic',
 					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared

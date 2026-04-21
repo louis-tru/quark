@@ -7,9 +7,6 @@
 [submodule "deps/ffmpeg"]
 	path = deps/ffmpeg
 	url = https://github.com/louis-tru/ffmpeg.git
-[submodule "deps/bptree"]
-	path = deps/bptree
-	url = https://github.com/louis-tru/bptree.git
 [submodule "deps/libuv"]
 	path = deps/libuv
 	url = https://github.com/louis-tru/libuv.git
@@ -61,3 +58,12 @@
 [submodule "deps/lmdb"]
 	path = deps/lmdb
 	url =  https://github.com/louis-tru/lmdb.git
+[submodule "deps/bgfx"]
+	path = deps/bgfx
+	url = https://github.com/louis-tru/bgfx.git
+[submodule "deps/bimg"]
+	path = deps/bimg
+	url = https://github.com/louis-tru/bimg.git
+[submodule "deps/bx"]
+	path = deps/bx
+	url = https://github.com/louis-tru/bx.git

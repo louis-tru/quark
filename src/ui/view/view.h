@@ -918,6 +918,10 @@ namespace qk {
 		View* init(Window* win);
 
 	private:
+		void remove_mt();
+		void remove_rt();
+		void remove_all_child_mt();
+		void remove_all_child_rt();
 		void clear_link(); // Cleaning up associated view information
 		void clear_link_rt();
 		void set_parent(View *parent); // setting parent view

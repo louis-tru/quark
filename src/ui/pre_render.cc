@@ -153,12 +153,17 @@ namespace qk {
 	void PreRender::solveAsyncCall() {
 		if (_asyncReady.length()) {
 
-			constexpr int a = sizeof(AsyncCall<>) * 16384; // 1MB batch size
+			// int64_t st = time_microsecond();
+			// uint32_t count = _asyncReady.length();
+
+			// constexpr int a = sizeof(AsyncCall<>) * 16384; // 1MB batch size
 
 			_asyncCommitMutex.lock();
 			// 🚀 直接交换到本地执行队列
 			_asyncExec.swap(_asyncReady);
 			_asyncCommitMutex.unlock();
+
+			// int64_t st1 = time_microsecond();
 
 			// 🔥 执行（无锁）
 			for (auto &i: _asyncExec) {
@@ -166,6 +171,16 @@ namespace qk {
 			}
 			// 🧹 清空但不释放
 			_asyncExec.clear();
+
+			// int64_t st2 = time_microsecond();
+			// int64_t ts1 = (st1 - st);
+			// int64_t ts2 = (st2 - st1);
+
+			// if (ts1 + ts2 > 10000) {
+			// 	Qk_Log("PreRender async call: %u calls, %ld, %ld -------------- ", count, ts1, ts2);
+			// } else {
+			// 	Qk_Log("PreRender async call: %u calls, %ld, %ld", count, ts1, ts2);
+			// }
 		}
 	}
 
@@ -180,6 +195,7 @@ namespace qk {
 
 		// Flush async calls
 		solveAsyncCall();
+
 		// Solve tasks
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();

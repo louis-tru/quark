@@ -777,27 +777,53 @@ namespace qk {
 
 	void View::remove() {
 		if (_parent) {
-			blur();
-			set_action(nullptr); // Delete action
-			clear_link();
-			_parent = nullptr;
-			release(); // Disconnect from parent view strong reference
-			async_call([](auto self, auto arg) {
-				self->clear_link_rt();
-				self->_parent_rt = nullptr;
-				if (self->_level) {
-					self->clear_level_rt();
-				}
-			}, this, 0);
+			remove_mt();
+			_async_call({
+				self->remove_rt();
+			}, 0);
 		}
 	}
 
 	void View::remove_all_child() {
+		if (_first) {
+			remove_all_child_mt();
+			_async_call({
+				self->remove_all_child_rt();
+			}, 0);
+		}
+	}
+
+	void View::remove_mt() {
+		blur();
+		set_action(nullptr); // Delete action
+		clear_link();
+		_parent = nullptr;
+		release(); // Disconnect from parent view strong reference
+	}
+
+	void View::remove_rt() {
+		clear_link_rt();
+		_parent_rt = nullptr;
+		if (_level) {
+			clear_level_rt();
+		}
+	}
+
+	void View::remove_all_child_mt() {
 		auto _first = this->_first;
 		while (_first) {
-			_first->remove_all_child();
-			_first->remove();
+			_first->remove_all_child_mt();
+			_first->remove_mt();
 			_first = this->_first;
+		}
+	}
+
+	void View::remove_all_child_rt() {
+		auto _first = this->_first_rt;
+		while (_first) {
+			_first->remove_all_child_rt();
+			_first->remove_rt();
+			_first = this->_first_rt;
 		}
 	}
 
@@ -888,7 +914,7 @@ namespace qk {
 		auto _parent = this->_parent_rt;
 		auto level =
 			_parent && _parent->_level         ? _parent->_level + 1:
-			visible && _window->root() == this ? 1: 0;
+			visible && _window->root() == this ? 1: 0; // if visible and is root view then level = 1, else level = 0
 
 		if (visible && level) {
 			if (_level != level)
