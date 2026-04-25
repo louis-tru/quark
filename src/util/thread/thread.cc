@@ -309,7 +309,7 @@ namespace qk {
 		return *__on_background;
 	}
 
-	static void onUnexpectedTerminate() {
+	static void onTerminateWithLogging() {
 		if (auto eptr = std::current_exception()) {
 			try {
 				std::rethrow_exception(eptr);
@@ -337,7 +337,9 @@ namespace qk {
 		__on_foreground = new EventNoticer<Event<void>, Mutex>(nullptr);
 		__on_background = new EventNoticer<Event<void>, Mutex>(nullptr);
 		atexit([](){ thread_process_exit(0); });
-		std::set_terminate(onUnexpectedTerminate);
-		std::set_unexpected(onUnexpectedTerminate);
+		std::set_terminate(onTerminateWithLogging);
+#if __cplusplus < 201703L
+		std::set_unexpected(onTerminateWithLogging);
+#endif
 	}
 }

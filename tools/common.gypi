@@ -38,7 +38,7 @@
 		'android_abi%': '',
 		'ndk_path%': '',
 		'without_visibility_hidden%': 0,
-		'without_embed_bitcode%': 0,
+		'without_embed_bitcode%': 1, # default to not embed bitcode
 		'cross_compiling%': 0,
 		'emulator%': 0,
 		'more_Log%': 1,
@@ -386,6 +386,13 @@
 			}],
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],
+			}],
+			['_target_name in "libbgfx libbx libbimg libbimg_encoder"',{
+				'cflags_cc!': [ '-std=<(std_cpp)' ],
+				'cflags_cc': [ '-std=c++20' ], # bgfx, bx, bimg, bimg_encoder use c++20
+				'xcode_settings': {
+					'CLANG_CXX_LANGUAGE_STANDARD': 'c++20'
+				},
 			}],
 			['_toolset=="host"', {
 				'conditions': [
