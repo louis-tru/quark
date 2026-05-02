@@ -383,7 +383,7 @@ namespace qk {
 			delete _platform(_impl);
 			_impl = nullptr;
 			if (!_host->activeWindow())
-				thread_exit(0); // Exit process
+				abort_exit(0); // Exit process
 		}, this), false);
 	}
 

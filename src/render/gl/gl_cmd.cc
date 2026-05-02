@@ -366,8 +366,8 @@ namespace qk {
 		}
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
-			if (_cache->newVertexData(vertex.id)) {
-				glBindVertexArray(vertex.id->vao); // use vao
+			if (Render::setVertexData(vertex.id)) {
+				glBindVertexArray(vertex.id->a); // use vao
 				glUseProgram(shader->shader); // use shader program
 			} else /*if (vertex.vertex.length())*/ {
 				// copy vertex data to gpu and use shader

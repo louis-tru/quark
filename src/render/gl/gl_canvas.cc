@@ -71,10 +71,10 @@ namespace qk {
 		void clear() {
 			clearUnsafe(0/*max limit clear*/);
 		}
-		void afterClear() {
-			if (_afterClear) {
-				_afterClear->resolve();
-				_afterClear.release();
+		void clearExec() {
+			if (_clearExec) {
+				_clearExec->resolve();
+				_clearExec.release();
 			}
 		}
 	};
@@ -367,7 +367,7 @@ namespace qk {
 		auto pack = _cmdPackFront;
 		_cmdPackFront = _cmdPack;
 		_cmdPack = pack;
-		static_cast<GLPathvCache*>(_cache)->clear();
+		static_cast<GLPathvCache*>(_cache)->clear(); // tag: clear mark
 		_mutex.mutex.unlock();
 #endif
 	}
@@ -378,7 +378,7 @@ namespace qk {
 		_cmdPackFront->flush(); // commit gl cmd
 		_mutex.mutex.unlock();
 #endif
-		static_cast<GLPathvCache*>(_cache)->afterClear();
+		static_cast<GLPathvCache*>(_cache)->clearExec(); // clear @clear mark
 	}
 
 	int GLCanvas::save() {

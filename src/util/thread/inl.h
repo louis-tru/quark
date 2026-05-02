@@ -39,7 +39,7 @@
 namespace qk {
 	extern RunLoop*         __first_loop;
 	extern Mutex*           __threads_mutex;
-	extern std::atomic_bool __is_process_exit_flag;
+	extern std::atomic_bool __is_exit_flag;
 
 	struct WaitSelfEnd: CondMutex {
 		bool end = false;
@@ -96,6 +96,6 @@ namespace qk {
 	RunLoop*    current_from(RunLoop **inOut);
 	RunLoop*    backend_loop();
 	bool        has_backend_thread();
-	bool        is_process_exit();
+	bool        is_exit();
 }
 #endif

@@ -230,15 +230,15 @@ namespace qk {
 		 *
 		 * @param pixels {Array<Pixel>&} pixel array reference and will be modified
 		 */
-		static void convertToPremultipliedAlpha(Array<Pixel> &pixels);
+		static void premultipliedAlphaFromPixels(Array<Pixel> &pixels);
 
 	private:
 		ImageSource(RenderResource *res, RunLoop *loop);
 		void decode(Buffer& data);
 		void afterDecode(Array<Pixel>& pixels, bool success);
-		void unloadInl(bool destroy);
+		void unload_(bool destroy);
 		void reloadTexture();
-		static bool toPremultipliedAlpha(Pixel &pixel);
+		static bool premultipliedAlphaFromPixel(Pixel &pixel);
 
 		PixelInfo    _info;
 		Array<Pixel> _pixels;

@@ -35,7 +35,7 @@
 #include "./render.h"
 #define Qk_ARM_NEON Qk_ARCH_ARM64
 #if Qk_ARM_NEON
-#include <arm_neon.h>
+# include <arm_neon.h>
 #endif
 #include "../util/thread/inl.h"
 
@@ -128,7 +128,7 @@ namespace qk {
 	}
 
 	ImageSource::~ImageSource() {
-		unloadInl(true);
+		unload_(true);
 	}
 
 	bool ImageSource::markAsTexture(RenderResource *res) {
@@ -214,7 +214,7 @@ namespace qk {
 			for (auto &pix: pixels) {
 				if (pix.alphaType() == kUnpremul_AlphaType) {
 					if (self->_premulFlags == kConvert_PremulFlags)
-						ImageSource::toPremultipliedAlpha(pix);
+						premultipliedAlphaFromPixel(pix);
 					else if (self->_premulFlags == kOnlyMark_PremulFlags)
 						pix._alphaType = kPremul_AlphaType; // mark as premultiplied
 				}
@@ -247,21 +247,21 @@ namespace qk {
 				if (!pixels.length() || !pixels[0].length())
 					return;
 				int i = 0;
-				int levels = 1;
-				int len = pixels.length(), old_len = self->_tex.length();
-				if (len > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
+				int levels = 1; // 默认每个pixel做为一个独立纹理层并自动动生成mipmap，
+				// 如果满足条件则使用 pixels 中的多层数据作为 mipmap levels 数据
+				int texLen = pixels.length(), old_len = self->_tex.length();
+				if (texLen > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
 					if (pixels[0].width() >> 1 == pixels[1].width()) {
-						levels = len;
-						len = 1;
+						levels = texLen; // mipmap levels
+						texLen = 1; // 使用第一层作为主纹理，其他层作为 mipmap 数据，并且只创建一个纹理对象
 					}
 				}
-				Array<const TexStat*> texStat(len);
+				Array<const TexStat*> texStat(texLen);
 
-				// Qk_DLog("_ReloadTexture(), len: %d, uri: %s", pixels[0].length(), self->_uri.c_str());
-
-				while (i < len) {
+				// create texture for each pixel, and delete old texture if exist
+				while (i < texLen) {
 					auto tex = const_cast<TexStat *>(i < old_len ? self->_tex[i]: nullptr);
-					self->_res->newTexture(pixels.val() + i, levels, tex, true);
+					self->_res->createTexture(pixels.val() + i, levels, tex, self->_isMipmap);
 					texStat[i++] = tex;
 				}
 
@@ -281,13 +281,13 @@ namespace qk {
 	void ImageSource::unload() {
 		if (_loop) {
 			_loop->post(Cb([this](auto e) {
-				unloadInl(false);
+				unload_(false);
 				Qk_Trigger(State, _state);
 			}, this));
 		}
 	}
 
-	void ImageSource::unloadInl(bool destroy) {
+	void ImageSource::unload_(bool destroy) {
 		{
 			AutoSharedMutexExclusive ame(_onState); // lock, safe assign `_pixels`
 
@@ -298,7 +298,8 @@ namespace qk {
 				_loadId = 0;
 			}
 
-			if (!_res) return;
+			if (!_res)
+				return;
 
 			// as texture, Must be processed in the rendering thread
 
@@ -468,7 +469,7 @@ namespace qk {
 		}
 	}
 
-	bool ImageSource::toPremultipliedAlpha(Pixel &pixel) {
+	bool ImageSource::premultipliedAlphaFromPixel(Pixel &pixel) {
 		if (pixel.alphaType() != kUnpremul_AlphaType) {
 			return false;
 		}
@@ -483,9 +484,9 @@ namespace qk {
 		return true;
 	}
 
-	void ImageSource::convertToPremultipliedAlpha(Array<Pixel> &pixels) {
+	void ImageSource::premultipliedAlphaFromPixels(Array<Pixel> &pixels) {
 		for (auto &pix: pixels) {
-			toPremultipliedAlpha(pix);
+			premultipliedAlphaFromPixel(pix);
 		}
 	}
 
@@ -577,7 +578,7 @@ namespace qk {
 	}
 
 	void ImageSourcePool::clear(bool all) {
-		if (is_process_exit()) {
+		if (is_exit()) {
 			// avoid call when process exit
 			// because render resource maybe already destroyed
 			return;
@@ -650,7 +651,7 @@ namespace qk {
 			auto binData = codec_decode_to_ucs1(kBase64_Encoding, sliceBuf.buffer());
 			Array<Pixel> pixels; // decoded pixels
 			img_decode(binData, &pixels, imgFormat); // decode image from binary data
-			ImageSource::convertToPremultipliedAlpha(pixels); // convert to premultiplied alpha
+			ImageSource::premultipliedAlphaFromPixels(pixels); // convert to premultiplied alpha
 			auto res = kUseMarkAsTexture ? getSharedRenderResource(): nullptr;
 			auto src = ImageSource::Make(std::move(pixels), res);
 			return set_source(src);

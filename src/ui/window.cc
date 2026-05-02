@@ -94,11 +94,12 @@ namespace qk {
 		, _impl(nullptr)
 		, _opts(opts)
 		, _debugMode(false)
-		, _fspBlob(new TextBlob)
+		, _fspBlob(nullptr)
 	{
 		Qk_CHECK(_host);
 		check_is_first_loop();
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
+		_fspBlob = new TextBlob();
 		_dispatch = new EventDispatch(this);
 		_painter = new Painter(this);
 		_actionCenter = new ActionCenter(this);
@@ -163,7 +164,7 @@ namespace qk {
 	void Window::close() {
 		if (tryClose()) {
 			// avoid call when process exitting
-			if (!is_process_exit()) {
+			if (!is_exit()) {
 				Qk_Trigger(Close);
 			}
 			release(); // release ref count from host windows

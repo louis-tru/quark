@@ -252,7 +252,7 @@ namespace qk {
 		return tex;
 	}
 
-	bool gl_new_texture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
+	bool gl_new_texture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
 		if ( pix->length() == 0 )
 			return false;
 
@@ -284,7 +284,7 @@ namespace qk {
 
 		if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
 			for (int i = 0; i < levels; i++) {
 				auto it = pix + i;
 				glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
@@ -300,7 +300,7 @@ namespace qk {
 										it->width(),
 										it->height(), 0/*border*/, format, dtype, it->val());
 			}
-			if (levels == 1 && genMipmap) {
+			if (levels == 1 && mipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 				// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			}
@@ -369,6 +369,28 @@ namespace qk {
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 4, GL_TEXTURE_WIDTH, &texDims);
 		Qk_DLog("glGetTexLevelParameteriv: %d", texDims);
 #endif
+	}
+
+	void gl_new_vertex_data(VertexData::ID *id) {
+		auto &vertex = id->data->vertex;
+		glGenVertexArrays(1, &id->a);
+		glGenBuffers(1, &id->b);
+		glBindVertexArray(id->a);
+		glBindBuffer(GL_ARRAY_BUFFER, id->b);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
+		glEnableVertexAttribArray(1);
+		glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	void gl_delete_vertex_data(VertexData::ID *id) {
+		glDeleteVertexArrays(1, &id->a);
+		glDeleteBuffers(1, &id->b);
+		id->a = 0;
+		id->b = 0;
 	}
 
 	GLRender::GLRender(Options opts)
@@ -504,8 +526,8 @@ namespace qk {
 			delete[] texStat;
 			glDeleteBuffers(4, ubo);
 		}));
-		Qk_ASSERT_EQ(_glcanvas->ref_count(), 1);
-		_glcanvas->release(); _glcanvas = nullptr;
+		Qk_CHECK(_glcanvas->ref_count() == 1, "GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
+		Releasep(_glcanvas); // release canvas and set to nullptr
 		_canvas = nullptr;
 	}
 
@@ -514,47 +536,6 @@ namespace qk {
 		_surfaceSize = getSurfaceSize();
 		_delegate->onRenderBackendReload(_surfaceSize);
 		unlock();
-	}
-
-	void GLRender::newVertexData(VertexData::ID *id) {
-		if (!id->vao) {
-			auto &vertex = id->self->vertex;
-			glGenVertexArrays(1, &id->vao);
-			glGenBuffers(1, &id->vbo);
-			glBindVertexArray(id->vao);
-			glBindBuffer(GL_ARRAY_BUFFER, id->vbo);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
-			glEnableVertexAttribArray(1);
-			glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			vertex.clear(); // clear memory data
-		}
-	}
-
-	void GLRender::deleteVertexData(VertexData::ID *id) {
-		if (id->vao) {
-			glDeleteVertexArrays(1, &id->vao);
-			glDeleteBuffers(1, &id->vbo);
-			id->vao = 0;
-			id->vbo = 0;
-		}
-	}
-
-	bool GLRender::newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
-		if (_canvas) 
-			return gl_new_texture(pix, levels, out, genMipmap);
-		else
-			return false; // Render is release, do not create new texture
-	}
-
-	void GLRender::deleteTexture(TexStat *tex) {
-		if (_canvas) { // Render is not release, delete texture
-			glDeleteTextures(1, &tex->id);
-			delete tex;
-		}
 	}
 
 	void GLRender::gl_set_blend_mode(BlendMode mode) {
@@ -631,7 +612,7 @@ namespace qk {
 				Qk_DLog("gl_set_texture() Fail %p, reason: src->pixel(%d) == nullptr", src, index);
 				return false;
 			}
-			if (!gl_new_texture(pixel, 1, _texStat[slot], true)) {
+			if (!gl_new_texture(pixel, 1, _texStat[slot], src->isMipmap())) {
 				Qk_DLog("gl_set_texture() Fail %p, reason: _texStat[%d] == nullptr", src, slot);
 				return false;
 			}
@@ -669,7 +650,7 @@ namespace qk {
 		return sampler;
 	}
 
-	Canvas* GLRender::newCanvas(Options opts) {
+	Canvas* GLRender::createCanvas(Options opts) {
 #if Qk_USE_GLC_CMD_QUEUE
 		opts.colorType = opts.colorType ? opts.colorType: kRGBA_8888_ColorType;
 		return new GLCanvas(this, opts);
@@ -678,22 +659,52 @@ namespace qk {
 #endif
 	}
 
-	// ------------------------------------------------
-
-	void GLRenderResource::post_message(Cb cb) {
-		_loop->post(cb);
+	bool GLRender::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
+		if (isReleased()) {
+			return false; // Render is release, do not create new texture
+		} else {
+			return gl_new_texture(pix, levels, out, mipmap);
+		}
 	}
 
-	bool GLRenderResource::newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
-		if (gl_new_texture(pix, levels, out, genMipmap))
-			return glFlush(), true;
+	void GLRender::deleteTexture(TexStat *tex) {
+		if (!isReleased()) { // Render is not release, delete texture
+			glDeleteTextures(1, &tex->id);
+			delete tex;
+		}
+	}
+
+	bool GLRender::createVertexData(VertexData::ID *id) {
+		if (isReleased()) return false;
+		if (!id->a)
+			gl_new_vertex_data(id);
+		return true;
+	}
+
+	void GLRender::deleteVertexData(VertexData::ID *id) {
+		if (isReleased()) return;
+		if (id->a) {
+			gl_delete_vertex_data(id);
+		}
+	}
+
+	// ------------------------------------------------
+
+	bool GLRenderResource::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
+		if (gl_new_texture(pix, levels, out, mipmap)) {
+			glFlush(); // commit new texture command
+			return true;
+		}
 		return false;
 	}
 
 	void GLRenderResource::deleteTexture(TexStat *tex) {
 		glDeleteTextures(1, &tex->id);
-		glFlush();
+		glFlush(); // commit delete texture command
 		delete tex;
 	}
 
+	void GLRenderResource::post_message(Cb cb) {
+		_loop->post(cb);
+	}
 }

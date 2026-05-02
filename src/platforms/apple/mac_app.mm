@@ -45,12 +45,9 @@ QkApplicationDelegate* qkappdelegate = nil;
 
 @implementation QkApplicationDelegate
 
-	- (void) initPlatform:(AppInl*)host {
-	}
-
-	- (AppInl*) hostInl {
-		return Inl_Application(_host);
-	}
+- (AppInl*) hostInl {
+	return Inl_Application(_host);
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	Qk_ASSERT(!qkappdelegate);
@@ -126,8 +123,4 @@ void Application::sendEmail(cString& recipient,
 		*URI::encode(subject, true), *URI::encode(body, true)
 	];
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
-}
-
-void AppInl::initPlatform() {
-	[qkappdelegate initPlatform: this];
 }

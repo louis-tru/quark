@@ -68,6 +68,7 @@ namespace qk {
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		check_is_first_loop();
 		view_prop_acc_init();
+
 		_shared = this;
 		_clipboard = new Clipboard();
 		_screen = new Screen(this); // strong ref
@@ -75,8 +76,6 @@ namespace qk {
 		_imgPool = shared_imgPool();
 		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
 		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
-
-		Inl_Application(this)->initPlatform();
 
 		static uint32_t ticks = 0;
 		struct Func {
@@ -149,7 +148,7 @@ namespace qk {
 			if (main)
 				rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
-			thread_exit(rc); // if sub thread end then exit
+			abort_exit(rc); // if sub thread end then exit
 			Qk_DLog("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "Application::runMain");
 

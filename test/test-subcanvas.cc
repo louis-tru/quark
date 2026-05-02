@@ -14,7 +14,7 @@ public:
 	Sp<Canvas> _c;
 
 	TestSubcanvas(Window *win) {
-		_c = win->render()->newCanvas({.isMipmap=true});
+		_c = win->render()->createCanvas({.isMipmap=true});
 		_c->setSurface({600},2);
 	}
 

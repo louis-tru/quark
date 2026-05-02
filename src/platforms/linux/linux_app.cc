@@ -49,8 +49,8 @@
 
 namespace qk
 {
-	struct MainLooper;
-	static MainLooper* mainLooper = nullptr;
+	struct X11Application;
+	static X11Application* x11app = nullptr;
 	static ThreadID main_thread_id(thread_self_id());
 
 #if DEBUG
@@ -71,7 +71,10 @@ namespace qk
 	}
 #endif
 
-	struct MainLooper {
+	/**
+	 * x11 application manager, including xdisplay, xwindow and app loop msg queue
+	 */
+	struct X11Application {
 		XDisplay *_xdpy = 0;
 		XWindow _xwinTmp = 0;
 		App::Inl *_app = nullptr;
@@ -90,20 +93,22 @@ namespace qk
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
 			Atom wmDeleteWindow = XInternAtom(_xdpy, "WM_DELETE_WINDOW", False);
 
-			Qk_On(ProcessExit, [this](auto e) { Cb cb; addMsg(cb); });
+			Qk_On(Exit, [this](auto e) { Cb cb; addMsg(cb); });
 
 			WindowImpl* impl;
 			XEvent event;
 			do {
+				// wait for next event
 				XNextEvent(_xdpy, &event);
+				// resolve msg before event
 				resolveMsg();
 
 				if (XFilterEvent(&event, 0)) {
-					continue;
+					continue; // skip event if filtered by input method
 				}
 
 				if (!event.xany.window || !_winImpl.get(event.xany.window, impl)) {
-					continue;
+					continue; // skip event if not found window impl
 				}
 				auto win = impl->win();
 
@@ -170,7 +175,7 @@ namespace qk
 					case GenericEvent:
 						/* event is a union, so cookie == &event, but this is type safe. */
 						if (XGetEventData(_xdpy, &event.xcookie)) {
-							handleGenericEvent(event, impl);
+							onGenericEvent(event, impl);
 							XFreeEventData(_xdpy, &event.xcookie);
 						}
 						break;
@@ -178,7 +183,7 @@ namespace qk
 						//Qk_DLog("event, %d, %d", event.type, time_second());
 						break;
 				}
-			} while(!is_process_exit());
+			} while(!is_exit());
 		}
 
 		XWindow newXWindow() {
@@ -198,7 +203,10 @@ namespace qk
 			return xwin;
 		}
 
-		void handleGenericEvent(XEvent& event, WindowImpl* impl) {
+		/**
+		 * Handle generic events, specifically for touch events using XInput2 extension
+		*/
+		void onGenericEvent(XEvent& event, WindowImpl* impl) {
 			XGenericEventCookie* cookie = &event.xcookie;
 			XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
 			auto dispatch = impl->win()->dispatch();
@@ -264,21 +272,23 @@ namespace qk
 		}
 	};
 
+	// Add and delete window impl to global dict, for x11 event dispatching
 	void addImplToGlobal(XWindow xwin, WindowImpl* impl) {
-		mainLooper->_winImpl.set(xwin, impl);
+		x11app->_winImpl.set(xwin, impl);
 	}
 
+	// Delete window impl from global dict, for x11 event dispatching, and when no window impl, exit process
 	void deleteImplFromGlobal(XWindow xwin) {
-		mainLooper->_winImpl.erase(xwin);
-		if (mainLooper->_winImpl.length() == 0) { // Exit process
-			XDestroyWindow(mainLooper->_xdpy, mainLooper->_xwinTmp);
-			mainLooper->_xwinTmp = 0;
+		x11app->_winImpl.erase(xwin);
+		if (x11app->_winImpl.length() == 0) { // Exit process
+			XDestroyWindow(x11app->_xdpy, x11app->_xwinTmp);
+			x11app->_xwinTmp = 0;
 		}
 	}
 
 	// sync to x11 main message loop
 	void post_message_main(Cb cb, bool sync) {
-		Qk_ASSERT(mainLooper);
+		Qk_ASSERT(x11app);
 		if (main_thread_id == thread_self_id()) {
 			cb->resolve();
 		} else if (sync) {
@@ -287,21 +297,22 @@ namespace qk
 				cb->resolve();
 				mutex.lock_and_notify_one();
 			});
-			mainLooper->addMsg(cb1);
+			x11app->addMsg(cb1);
 			mutex.lock_and_wait_for(); // wait
 		} else {
-			mainLooper->addMsg(cb);
+			x11app->addMsg(cb);
 		}
 	}
 
+	// Open URL using xdg-open
 	void Application::openURL(cString& url) {
 		if (vfork() == 0) {
 			execlp("xdg-open", "xdg-open", *url, nullptr);
 		}
 	}
 
-	void Application::sendEmail(cString& recipient,
-			cString& subject, cString& body, cString& cc, cString& bcc)
+	// Send email using xdg-open and mailto: URI scheme
+	void Application::sendEmail(cString& recipient, cString& subject, cString& body, cString& cc, cString& bcc)
 	{
 		String uri(String::format("mailto:%s?cc=%s&bcc=%s&subject=%s&body=%s",
 			*recipient,
@@ -318,11 +329,9 @@ namespace qk
 		}
 	}
 
-	void AppInl::initPlatform() {
-	}
-
-	// ***************** E v e n t . D i s p a t c h *****************
-
+	/**
+	 * Sound control using ALSA library
+	 */
 	struct Snd {
 		snd_mixer_t* _mixer;
 		snd_mixer_elem_t* _element;
@@ -343,6 +352,10 @@ namespace qk
 		}
 
 		~Snd() {
+			shutdown();
+		}
+
+		shutdown() {
 			if (_mixer) {
 				snd_mixer_free(_mixer);
 				snd_mixer_detach(_mixer, "default");
@@ -382,27 +395,29 @@ namespace qk
 		}
 	};
 
+	// Singleton instance of Snd for volume control
 	static Snd* snd() {
-		static Sp<Snd> _snd = nullptr;
-		if (!_snd)
-			_snd = new Snd;
-		return _snd.get();
+		static Snd* _snd = new Snd;
+		return _snd;
 	}
 
+	// Volume control for the application, using ALSA library
 	void EventDispatch::setVolumeUp() {
 		snd()->set_master_volume(snd()->master_volume() + 1);
 	}
 
+	// Volume control for the application, using ALSA library
 	void EventDispatch::setVolumeDown() {
 		snd()->set_master_volume(snd()->master_volume() - 1);
 	}
 }
 
+using namespace qk;
+
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
-	using namespace qk;
-	mainLooper = New<MainLooper>();
+	x11app = new X11Application();
 	Application::runMain(argc, argv, true);
-	mainLooper->run();
-	Releasep(mainLooper);
+	x11app->run(); // run x11 main loop, block current thread until process exit
+	Releasep(x11app); // delete pionter and set to nullptr
 	return 0;
 }

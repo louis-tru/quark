@@ -41,11 +41,11 @@ namespace qk {
 	// Not thread safe, called in the rendering thread
 	class GLRender: public RenderBackend {
 	public:
-		virtual      ~GLRender();
+		virtual ~GLRender();
 		virtual void reload() override;
-		virtual Canvas* newCanvas(Options opts) override;
-		virtual bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) override;
-		virtual void newVertexData(VertexData::ID *id) override;
+		virtual Canvas* createCanvas(Options opts) override;
+		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		virtual bool createVertexData(VertexData::ID *id) override;
 		virtual void deleteTexture(TexStat *tex) override;
 		virtual void deleteVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
@@ -78,7 +78,7 @@ namespace qk {
 	public:
 		inline GLRenderResource(RunLoop *loop): _loop(loop) {}
 		void post_message(Cb cb) override;
-		bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) override;
+		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
 		void deleteTexture(TexStat *tex) override;
 	private:
 		RunLoop *_loop;

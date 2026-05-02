@@ -67,12 +67,14 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Window, 0, {
 				checkApp(worker);
-				if (args.length()) {
-					Js_Parse_Type(WindowOptions, args[0], "new Window(opts) %s");
-					New<MixWindow>(args, Window::Make(out));
-				} else {
-					New<MixWindow>(args, Window::Make({}));
-				}
+				Js_Try_Catch({ // try catch for constructor
+					if (args.length()) {
+						Js_Parse_Type(WindowOptions, args[0], "new Window(opts) %s");
+						New<MixWindow>(args, Window::Make(out));
+					} else {
+						New<MixWindow>(args, Window::Make({}));
+					}
+				}, Error);
 			});
 
 			Js_MixObject_Accessor(Window, Vec2, size, size);

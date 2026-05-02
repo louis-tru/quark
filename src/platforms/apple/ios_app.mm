@@ -51,11 +51,6 @@ QkWindowDelegate* getWindowDelegate() {
 
 @implementation QkApplicationDelegate
 
-	- (void) initPlatform:(AppInl*)host {
-		_host = host;
-		host->triggerLoad();
-	}
-
 	- (AppInl*) hostInl {
 		return Inl_Application(_host);
 	}
@@ -69,8 +64,11 @@ QkWindowDelegate* getWindowDelegate() {
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_ASSERT(!qkappdelegate);
+		Qk_ASSERT(Application::shared());
 		qkappdelegate = self;
+		_host = Application::shared();
 		_app = app;
+		Inl_Application(_host)->triggerLoad();
 		return YES;
 	}
 
@@ -167,8 +165,4 @@ void Application::sendEmail(cString& recipient,
 
 		[delegate presentViewController:mail animated:YES completion:nil];
 	});
-}
-
-void AppInl::initPlatform() {
-	[qkappdelegate initPlatform: this];
 }

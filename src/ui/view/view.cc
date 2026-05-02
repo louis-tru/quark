@@ -777,19 +777,19 @@ namespace qk {
 
 	void View::remove() {
 		if (_parent) {
-			remove_mt();
 			_async_call({
 				self->remove_rt();
 			}, 0);
+			remove_mt();
 		}
 	}
 
 	void View::remove_all_child() {
 		if (_first) {
-			remove_all_child_mt();
 			_async_call({
 				self->remove_all_child_rt();
 			}, 0);
+			remove_all_child_mt();
 		}
 	}
 

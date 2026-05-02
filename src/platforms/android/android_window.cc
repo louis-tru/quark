@@ -155,15 +155,13 @@ namespace qk {
 			return nullptr;
 		}
 
-		void initPlatform_AppInl(AppInl* host) {
-			_host = host;
-			_host->triggerLoad();
-		}
-
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
 			if (!swm) {
 				new SharedWindowManager();
 				Application::runMain(0, nullptr, false); // run gui application
+				Qk_ASSERT_NE(shared_app(), nullptr);
+				swm->_host = Inl_Application(shared_app());
+				swm->_host->triggerLoad(); // trigger load event
 			}
 			Qk_ASSERT_EQ(swm->_activity, nullptr);
 			// ANativeActivity_setWindowFlags(activity, 0x00000400, 0);
@@ -397,10 +395,6 @@ namespace qk {
 					break;
 			}
 		}
-	}
-
-	void AppInl::initPlatform() {
-		swm->initPlatform_AppInl(this);
 	}
 
 	void Window::openImpl(Options &opts) {

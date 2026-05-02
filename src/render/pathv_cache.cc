@@ -34,7 +34,7 @@
 namespace qk {
 
 	PathvCache::PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *sync)
-		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity), _afterClear(nullptr) {
+		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity), _clearExec(nullptr) {
 	}
 
 	PathvCache::~PathvCache() {
@@ -77,7 +77,7 @@ namespace qk {
 			return (*out)->base;
 		auto gb = new Wrap<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
-		gb->id->self = &gb->base;
+		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _PathTrianglesCache.set(hash, gb)->base;
 	}
@@ -91,7 +91,7 @@ namespace qk {
 			return (*out)->base;
 		auto gb = new Wrap<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
-		gb->id->self = &gb->base;
+		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _AAFuzzStrokeTriangleCache.set(hash, gb)->base;
 	}
@@ -99,7 +99,7 @@ namespace qk {
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
 		auto gb = new Wrap<RectPath>{std::move(rect),{{this,0,0,0}}};
 		gb->base.id = gb->id;
-		gb->id->self = &gb->base;
+		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _RectPathCache.set(hash, gb)->base;
 	}
@@ -110,10 +110,10 @@ namespace qk {
 		gb->base.right.id = gb->id+1;
 		gb->base.bottom.id = gb->id+2;
 		gb->base.left.id = gb->id+3;
-		gb->id[0].self = &gb->base.top;
-		gb->id[1].self = &gb->base.right;
-		gb->id[2].self = &gb->base.bottom;
-		gb->id[3].self = &gb->base.left;
+		gb->id[0].data = &gb->base.top;
+		gb->id[1].data = &gb->base.right;
+		gb->id[2].data = &gb->base.bottom;
+		gb->id[3].data = &gb->base.left;
 		_capacity += (
 			gb->base.top.vCount +
 			gb->base.right.vCount +
@@ -211,18 +211,6 @@ namespace qk {
 		}
 	}
 
-	bool PathvCache::newVertexData(const VertexData::ID *vertexInThis) {
-		if (vertexInThis) {
-			if (vertexInThis->vao) {
-				return true;
-			} else if (vertexInThis->host == this) {
-				_render->newVertexData(const_cast<VertexData::ID*>(vertexInThis));
-				return true;
-			}
-		}
-		return false;
-	}
-
 	void PathvCache::clear(bool all) {
 		_sync->lock();
 		clearUnsafe(all ? 2: 1/*memory warning clear half*/);
@@ -258,6 +246,29 @@ namespace qk {
 		}
 		_StrokePathCache.clear();
 
+		_capacity = 0;
+
+		// If the render backend is not available, directly clear the cache data and return
+		if (!_render) {
+			for (auto &i: _PathTrianglesCache) {
+				delete i.second;
+			}
+			for (auto &i: _AAFuzzStrokeTriangleCache) {
+				delete i.second;
+			}
+			for (auto &i: _RectPathCache) {
+				delete i.second;
+			}
+			for (auto &i: _RectOutlinePathCache) {
+				delete i.second;
+			}
+			_PathTrianglesCache.clear();
+			_AAFuzzStrokeTriangleCache.clear();
+			_RectPathCache.clear();
+			_RectOutlinePathCache.clear();
+			return; // No render backend, skip GPU resource deletion
+		}
+
 		auto render = _render;
 		auto a0 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_PathTrianglesCache));
 		auto a1 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_AAFuzzStrokeTriangleCache));
@@ -265,7 +276,7 @@ namespace qk {
 		auto c = new Dict<uint64_t, Wrap<RectOutlinePath,4>*>(std::move(_RectOutlinePathCache));
 
 		// Must be called after rendering is complete
-		Cb afterClear([render,a0,a1,b,c](auto &e) {
+		Cb clearExec([render,a0,a1,b,c](auto &e) {
 			for (auto &i: *a0) {
 				render->deleteVertexData(i.second->id);
 				delete i.second;
@@ -292,13 +303,13 @@ namespace qk {
 		});
 
 		if (immediately) {
-			render->post_message(afterClear);
+			render->post_message(clearExec);
 		} else {
-			render->post_message(Cb([this,afterClear](auto e) {
-				if (_afterClear) {
-					_afterClear->resolve(); // clear prev time
+			render->post_message(Cb([this,clearExec](auto e) {
+				if (_clearExec) {
+					_clearExec->resolve(); // clear prev time
 				}
-				_afterClear = afterClear;
+				_clearExec = clearExec;
 			}));
 		}
 
@@ -308,8 +319,6 @@ namespace qk {
 		Qk_CHECK(_AAFuzzStrokeTriangleCache.length() == 0);
 		Qk_CHECK(_RectPathCache.length() == 0);
 		Qk_CHECK(_RectOutlinePathCache.length() == 0);
-
-		_capacity = 0;
 	}
 
 }

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,21 +25,48 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./linux_render.h"
-#if Qk_ANDROID
-# include <android/native_window.h>
-#endif
-
-#if Qk_ENABLE_VULKAN && Qk_LINUX
+#include "./vk_render.h"
 
 namespace qk {
 
-	Render* make_vulkan_render(Render::Options opts) {
-		Render* r = nullptr;
-		return r;
+	VulkanRender::VulkanRender(Options opts): Render(opts) {
+	}
+
+	VulkanRender::~VulkanRender() {
+		// Qk_CHECK(_glcanvas == nullptr);
+	}
+
+	void VulkanRender::lock() {}
+
+	void VulkanRender::unlock() {}
+
+	void VulkanRender::release() {}
+
+	void VulkanRender::reload() {
+		lock();
+		// _surfaceSize = getSurfaceSize();
+		// _delegate->onRenderBackendReload(_surfaceSize);
+		unlock();
+	}
+
+	bool VulkanRender::createVertexData(VertexData::ID *id) {
+	}
+
+	void VulkanRender::deleteVertexData(VertexData::ID *id) {
+	}
+
+	bool VulkanRender::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
+		return false;
+	}
+
+	void VulkanRender::deleteTexture(TexStat *tex) {
+		delete tex;
+	}
+
+	Canvas* VulkanRender::createCanvas(Options opts) {
+		return nullptr;
 	}
 }
-#endif

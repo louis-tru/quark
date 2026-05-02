@@ -67,7 +67,7 @@ namespace qk { namespace js {
 				if (worker->_inspector) {
 					worker->_inspector->FatalException(error, message);
 				}
-				qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
+				qk::abort_exit(ERR_UNCAUGHT_EXCEPTION);
 			}
 		});
 
@@ -87,7 +87,7 @@ namespace qk { namespace js {
 				if (worker->_inspector) {
 					worker->_inspector->FatalException(reason, message);
 				}
-				qk::thread_exit(ERR_UNHANDLED_REJECTION);
+				qk::abort_exit(ERR_UNHANDLED_REJECTION);
 			}
 		});
 	}

@@ -40,7 +40,7 @@
 
 namespace qk {
 	extern int (*__qk_run_main__)(int, char**);
-	bool is_process_exit();
+	bool is_exit();
 namespace js {
 	std::atomic_int workers_count(0);
 	Worker* first_worker = nullptr;
@@ -536,7 +536,7 @@ namespace js {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static void onProcessExitHandle(Event<void, int>& e, void* ctx) {
+	static void onExitHandle(Event<void, int>& e, void* ctx) {
 		int rc = e.data();
 		if (RunLoop::first()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;
@@ -640,7 +640,7 @@ namespace js {
 		// Mark the current main thread and check current thread
 		Qk_ASSERT(RunLoop::current() == RunLoop::first());
 
-		Qk_On(ProcessExit, onProcessExitHandle);
+		Qk_On(Exit, onExitHandle);
 
 		arguments = &args;
 
@@ -695,14 +695,14 @@ namespace js {
 
 			do {
 				loop->run();
-				if (is_process_exit())
+				if (is_exit())
 					break;
 				// BeforeExit event trigger, if the event listener add more async task, continue loop
 				// else exit process
 				rc = triggerBeforeExit(worker, rc);
 			} while (loop->is_alive());
 
-			if (!is_process_exit())
+			if (!is_exit())
 				rc = triggerExit(worker, rc);
 
 			Release(shared_app()); // delete global object
@@ -712,7 +712,7 @@ namespace js {
 			return rc;
 		});
 
-		Qk_Off(ProcessExit, onProcessExitHandle);
+		Qk_Off(Exit, onExitHandle);
 
 		arguments = nullptr;
 		return rc;

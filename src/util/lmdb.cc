@@ -86,7 +86,7 @@ namespace qk {
 		String name;
 	};
 
-	static void handleProcessExit(Event<void, int>&e, LMDB* lmdb) {
+	static void handleExit(Event<void, int>&e, LMDB* lmdb) {
 		lmdb->close(); // auto close env on process exit
 	}
 
@@ -146,7 +146,7 @@ namespace qk {
 		}
 
 		// auto close env on process exit
-		Qk_On(ProcessExit, handleProcessExit, this);
+		Qk_On(Exit, handleExit, this);
 		// flush env on background
 		Qk_On(Background, handleBackground, this);
 
@@ -165,8 +165,8 @@ namespace qk {
 					it.second->dbi = 0; // invalidate dbi handle
 				_env = nullptr;
 			}
-			if (!is_process_exit()) { // avoid deadlock on process exit
-				Qk_Off(ProcessExit, handleProcessExit, this); // remove process exit listener
+			if (!is_exit()) { // avoid deadlock on process exit
+				Qk_Off(Exit, handleExit, this); // remove process exit listener
 				Qk_Off(Background, handleBackground, this); // remove background listener
 			}
 		}

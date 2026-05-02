@@ -38,11 +38,24 @@
 
 namespace qk {
 
+	/**
+	 * CPU/GPU hybrid triangle vertex data.
+	 *
+	 * VertexData stores path/shape triangle vertices. When no GPU backend is used,
+	 * the CPU-side vertex array is used directly for rendering. When a GPU backend
+	 * is available, the data may be lazily uploaded to backend-local GPU storage
+	 * through VertexData::ID, and the CPU-side vertex array may then be cleared to
+	 * save memory.
+	 *
+	 * @note id refers to the backend-local GPU cache object, if available.
+	 * @note vertex may be empty after successful GPU upload.
+	 */
 	struct VertexData {
 		struct ID;
-		const  ID   *id; // id of pathv cache object
-		uint32_t    vCount; // vertex count
-		Array<Vec3> vertex; // hold pointer triangle vertex {x,y,aafuzz or <z>}
+
+		const ID   *id;     ///< Backend-local GPU cache id, if uploaded.
+		uint32_t    vCount; ///< Number of vertices.
+		Array<Vec3> vertex; ///< CPU-side vertices: {x, y, aafuzz/z}.
 	};
 
 	class Qk_EXPORT Path: public Reference {
@@ -163,27 +176,41 @@ namespace qk {
 		friend class RectOutlinePath;
 	};
 
-	// combination of paths and triangle vertices
+	/**
+	 * Combination of a path and its generated triangle vertices.
+	 *
+	 * Used as a cached Canvas drawing primitive.
+	 */
 	struct Pathv: VertexData {
-		Path        path;
+		Path path; ///< Source or generated path.
 	};
 
-	// Optimizing rect vertex generation algorithm
+	/**
+	 * Optimized cached rectangle / rounded-rectangle path and triangles.
+	 *
+	 * RectPath avoids repeatedly rebuilding common rectangle geometry.
+	 */
 	struct Qk_EXPORT RectPath: Pathv {
-		Rect    rect;
-		int     rrectMask; // border radius mask
+		Rect rect;       ///< Rectangle bounds.
+		int  rrectMask;  ///< Border-radius corner mask.
+
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};
 
-	// Optimizing rect outline vertex generation algorithm
+	/**
+	 * Optimized cached rectangle outline geometry.
+	 *
+	 * Stores the four outline sides separately so Canvas can draw/update border
+	 * geometry efficiently.
+	 */
 	struct Qk_EXPORT RectOutlinePath {
-		Pathv top,right,bottom,left;
+		Pathv top, right, bottom, left;
+
 		static RectOutlinePath MakeRectOutline(const Rect &rect, const float border[4]);
 		static RectOutlinePath MakeRRectOutline(
 			const Rect &rect, const float border[4], const Path::BorderRadius &radius
 		);
 	};
-
 }
 #endif

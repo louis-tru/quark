@@ -58,12 +58,3 @@
 [submodule "deps/lmdb"]
 	path = deps/lmdb
 	url =  https://github.com/louis-tru/lmdb.git
-[submodule "deps/bgfx"]
-	path = deps/bgfx
-	url = https://github.com/louis-tru/bgfx.git
-[submodule "deps/bimg"]
-	path = deps/bimg
-	url = https://github.com/louis-tru/bimg.git
-[submodule "deps/bx"]
-	path = deps/bx
-	url = https://github.com/louis-tru/bx.git

@@ -50,7 +50,6 @@ namespace qk {
 		: _opts(opts)
 		, _canvas(nullptr)
 		, _delegate(nullptr)
-		, _isActive(true)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
 	}
@@ -65,8 +64,20 @@ namespace qk {
 		// post_message() calls, but no rendering work or resource operations are performed.
 	}
 
-	void RenderBackend::activate(bool isActive) {
-		_isActive = isActive;
+	// setting and use gpu vertex data
+	bool RenderBackend::setVertexData(const VertexData::ID *id) {
+		if (id) {
+			if (id->a) {
+				return true;
+			} else if (id->host->_render) {
+				if (id->host->_render->createVertexData(const_cast<VertexData::ID*>(id))) {
+					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is 0");
+					id->data->vertex.clear(); // clear memory data save memory, data already in GPU buffer
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	// Resident pool for RenderBackend storage blocks.

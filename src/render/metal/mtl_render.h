@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,26 +25,33 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__linux__linux_render__
-#define __quark__linux__linux_render__
-#include "../../util/macros.h"
-#if Qk_LINUX || Qk_ANDROID
-#include <EGL/eglplatform.h>
+// @private head
+
+#ifndef __quark_render_metal_metalrender__
+#define __quark_render_metal_metalrender__
+
+#include "../render.h"
 
 namespace qk {
 
-	class RenderSurface {
+	class MetalRender: public RenderBackend {
 	public:
-		virtual void makeSurface(EGLNativeWindowType win) = 0;
-		virtual void deleteSurface() = 0;
-		virtual void renderDisplay() = 0; // external render function, called in render loop
-		virtual void renderLoopRun() = 0; // create render thread and run render loop
-		virtual void renderLoopStop() = 0; // stop render loop and destroy render thread
+		virtual ~MetalRender();
+		virtual void reload() override;
+		virtual Canvas* createCanvas(Options opts) override;
+		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		virtual bool createVertexData(VertexData::ID *id) override;
+		virtual void deleteTexture(TexStat *tex) override;
+		virtual void deleteVertexData(VertexData::ID *id) override;
+		virtual void lock(); // lock render
+		virtual void unlock(); // unlock render
+		virtual void release() override;
+	protected:
+		MetalRender(Options opts);
 	};
 }
 
-#endif
-#endif
+#endif // __quark_render_metal_metalrender__

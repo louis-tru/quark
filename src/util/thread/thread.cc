@@ -51,15 +51,15 @@ namespace qk {
 		return id.hash;
 	}
 
-	std::atomic_bool                    __is_process_exit_flag{false};
+	std::atomic_bool                    __is_exit_flag{false};
 	Mutex                               *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
-	static EventNoticer<Event<void, int>, Mutex> *__on_process_exit = nullptr;
+	static EventNoticer<Event<void, int>, Mutex> *__on_exit = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_foreground = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_background = nullptr;
 
-	Qk_EXPORT bool is_process_exit() {
-		return __is_process_exit_flag;
+	Qk_EXPORT bool is_exit() {
+		return __is_exit_flag;
 	}
 
 	CondMutex::Lock::~Lock() {
@@ -147,7 +147,7 @@ namespace qk {
 	}
 
 	ThreadID thread_new(void (*exec)(cThread *t, void* arg), void* arg, cString& tag) {
-		if ( __is_process_exit_flag ) {
+		if ( __is_exit_flag ) {
 			return ThreadID();
 		}
 		ThreadID id;
@@ -223,7 +223,7 @@ namespace qk {
 		ScopeLock scope(t->mutex);
 		if (abort) {
 			if (t->loop)
-				t->loop->stop();
+				t->loop->stop(); // force stop loop if running
 			t->abort = abort;
 		}
 		t->cond.notify_one(); // resume sleep status @ thread_pause()
@@ -262,45 +262,45 @@ namespace qk {
 		}
 	}
 
-	static void thread_process_exit(int rc) {
-		if (__is_process_exit_flag.exchange(true))
-			return; // exit
+	static void abort_exit_inl(int rc) {
+		if (__is_exit_flag.exchange(true))
+			return; // exit already in progress
 
 		Array<ThreadID> threads_id;
 
-		Qk_DLog("thread_process_exit(), 0");
+		Qk_DLog("abort_exit_inl(), 0");
 		Event<void, int> ev(rc, rc);
-		Qk_Trigger(ProcessExit, ev); // trigger event
+		Qk_Trigger(Exit, ev); // trigger event
 		rc = ev.return_value;
-		Qk_DLog("thread_process_exit(), 1");
+		Qk_DLog("abort_exit_inl(), 1");
 
 		{
 			ScopeLock scope(*__threads_mutex);
 			Qk_DLog("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DLog("thread_process_exit(), tag, %p, %s", i.second->id, *i.second->name);
+				Qk_DLog("abort_exit_inl(), tag, %p, %s", i.second->id, *i.second->name);
 				thread_resume_(i.second, -2); // resume sleep status and abort
 				threads_id.push(i.second->id);
 			}
 		}
 		for ( auto& i: threads_id ) {
 			// CondMutex for the end of this thread here, this time defaults to 1 second
-			Qk_DLog("thread_process_exit(), join, %p", i);
+			Qk_DLog("abort_exit_inl(), join, %p", i);
 			thread_join_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 
-		Qk_DLog("thread_process_exit() 2");
+		Qk_DLog("abort_exit_inl() 2");
 	}
 
-	void thread_exit(int rc) {
-		if (!__is_process_exit_flag.load()) {
-			thread_process_exit(rc);
+	void abort_exit(int rc) {
+		if (!__is_exit_flag.load()) {
+			abort_exit_inl(rc);
 			::exit(rc); // exit process
 		}
 	}
 
-	EventNoticer<Event<void, int>, Mutex>& onProcessExit() {
-		return *__on_process_exit;
+	EventNoticer<Event<void, int>, Mutex>& onExit() {
+		return *__on_exit;
 	}
 	EventNoticer<Event<void, Object*>, Mutex>& onForeground() {
 		return *__on_foreground;
@@ -333,10 +333,10 @@ namespace qk {
 		// Object heap allocator may not have been initialized yet
 		__threads = new(::malloc(sizeof(Dict<ThreadID, Thread_INL*>))) Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
-		__on_process_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
+		__on_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
 		__on_foreground = new EventNoticer<Event<void>, Mutex>(nullptr);
 		__on_background = new EventNoticer<Event<void>, Mutex>(nullptr);
-		atexit([](){ thread_process_exit(0); });
+		atexit([](){ abort_exit_inl(0); });
 		std::set_terminate(onTerminateWithLogging);
 #if __cplusplus < 201703L
 		std::set_unexpected(onTerminateWithLogging);

@@ -65,9 +65,9 @@ function write(fp) {
 
 function readcode(input) {
 	return fs.readFileSync(input).toString('utf8')
-		.replace(/\s*\/\/(?!\!\<).*$/mg, '')
-		.replace(/\/\*.*?\*\//mg, '')
-		.replace(/\\/mg, '\\\\');
+		.replace(/\s*\/\/(?!\!\<).*$/mg, '') // delete comment but not delete //!< comment
+		.replace(/\/\*.*?\*\//mg, '') // delete /* */ comment
+		.replace(/\\/mg, '\\\\'); // escape \ to \\, because we will put the code into c++ string, and \ is escape char in c++
 }
 
 const glTypeSizeInformation = {
@@ -127,7 +127,9 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 			let [sizeT,glT,t] = glTypeSizeInformation[type];
 			let arrN = arr ? Number(arr): 1;
 			let size = sizeT*arrN;
-			let glTMap = mat[9];
+			// if exist glTMap, means the attribute is normalized, and the real gl type is GL_UNSIGNED_BYTE or GL_BYTE or ...
+			// for example: in vec4 lightColorIn; //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
+			let glTMap = mat[9]; //!< {GL_UNSIGNED_BYTE} or //!< {GL_BYTE} or ...
 			let normalized = 'GL_FALSE';
 
 			if (glTMap && glTMap != glT) {
@@ -147,7 +149,7 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 
 		mat = reg.exec(code);
 	}
-	
+
 	// find uniform block
 	reg = /^\s*(layout\s+\(std\d+\)\s+)?uniform\s+([a-zA-Z0-9\$_]+)\s*\{/mg;
 	mat = reg.exec(code);
@@ -158,34 +160,34 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 	}
 }
 
-const all_asts = {};
-
-function resolve_code_ast(input, hpp, cpp) {
-	let ast = all_asts[input];
-	if (!ast) {
-		let name = path.basename(input).replace(/[\-\.]/gm, '_');
-		let dir = path.dirname(input);
-		let codestr = readcode(input);
-		ast = resolve_code_ast_from_codestr(name, dir, codestr, 0,0,hpp, cpp);
-		all_asts[input] = ast;
-	}
-	return ast;
-}
-
-function get_import_all(Import, {if_flags,import_all}, set) {
-	for (let i of Import) {
+function get_imports_all(imports, {if_flags,imports_all}, set) {
+	for (let i of imports) {
 		if (!set.has(i.name)) {
 			set.add(i.name);
-			get_import_all(i.import, {if_flags,import_all}, set);
-			import_all.push(i);
+			get_imports_all(i.imports, {if_flags,imports_all}, set);
+			imports_all.push(i);
 			if_flags.push(...i.if_flags);
 		}
 	}
 }
 
-function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, hpp, cpp) {
-	let Import = [];
-	let import_all = [];
+const all_import_asts = {};
+
+function resolve_import_ast(imp) {
+	let ast = all_import_asts[imp];
+	if (!ast) {
+		let name = path.basename(imp).replace(/[\-\.]/gm, '_');
+		let dir = path.dirname(imp);
+		let codestr = readcode(imp);
+		ast = resolve_ast(name, dir, codestr);
+		all_import_asts[imp] = ast;
+	}
+	return ast;
+}
+
+function resolve_ast(name, dirname, codestr) {
+	let imports = []; // current file imports
+	let imports_all = []; // all recursive imports
 	let attributes = [
 		// struct ShaderAttr {
 		// 	const char *name;
@@ -196,16 +198,14 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		// };
 	];
 	let if_flags = [];
-	let uniforms = []
+	let uniforms = [];
 	var uniform_blocks = [];
-	let call = `get_${name}()`; // get_color_vert_code_glsl();
-	// get__util_glsl
 
 	let source = codestr.replace(/^#import\s+"([^"]+)"/gm, function(_,a) {
 		let imp = path.resolve(dirname, a);
-		Import.push(resolve_code_ast(imp,hpp,cpp));
+		imports.push(resolve_import_ast(imp));
 		return '';
-	}).replace(/^\s+/mg, '').replace(/#version\s+300(\s+es)?/, '');
+	}).replace(/^\s+/mg, '').replace(/#version\s+\d+(\s+es)?/, ''); // mabey is #version 300 es
 
 	let if_reg = / Qk_SHADER_IF_FLAGS_([a-z0-9\_]+)/igm,if_m;
 	// query if flags
@@ -215,123 +215,72 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 
 	find_uniforms_attributes(source, uniforms, uniform_blocks, attributes);
 
-	get_import_all(Import, {if_flags,import_all}, new Set);
+	get_imports_all(imports, {if_flags,imports_all}, new Set());
 
-	source = source.replace(/\s*\/\/.*$/mg, ''); // delete comment
+	source = source.replace(/\s*\/\/.*$/mg, ''); // delete comment, for example: //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
 
 	let source_len = Buffer.byteLength(source);
 
-	// write(hpp, `static cString& ${call};`);
-	if (isFrag || isVert) {
-		write(cpp, `static cString& ${call} {`,
-			`	static String c;`,
-			`	if (c.is_empty()) {`,
-				import_all.map(e=>(`		c.append(${e.call});`)),
-				`		c.append("${source.replace(/\n/gm, '\\n\\\n')}",${source_len});`,
-			`	}`,
-			`	return c;`,
-		'}',
-		);
-	} else {
-		write(cpp, `const char* ${call} {`,
-			`const char* c = "${source.replace(/\n/gm, '\\n\\\n')}";`,
-			`return c;`,
-		'}',
-		);
-		call += ',' + source_len;
-	}
-
 	let ast = {
 		name,
-		import: Import,
-		import_all,
-		source: source,
-		call: call,
+		imports, // current file imports ast array
+		imports_all, // all recursive imports ast array
+		source,
+		source_len,
 		attributes, // []
 		uniforms, // string[]
 		uniform_blocks,
 		if_flags,
+		is_writed_glsl_native: false, // is writed glsl native code to cpp
+		glal_native_get_call: '', // get_color_vert_code_glsl(); get__util_glsl();
 	};
 
 	return ast;
 }
 
-function resolve_glsl(name, input, hpp, cpp) {
+function resolve_doc(name, filename) {
 	console.log(`gen-glsl ${name}`);
 
-	let pathname = path.resolve(input);
+	let pathname = path.resolve(filename);
 	let dir = path.dirname(pathname);
 	let codestr = readcode(pathname);
-	let [first, fragstr] = codestr.split(/^#frag/gm);
-	let [util, vertstr] = first.split(/^#vert/gm);
+	let [first, fragstr] = codestr.split(/^#frag/gm); // split vert and frag
+	let [util, vertstr] = first.split(/^#vert/gm); // split util and vert
 
-	vertstr = '#import "_util.glsl"\n' + util + (vertstr || '');
-	fragstr = '#import "_util.glsl"\n' + util + (fragstr || '');
+	vertstr = '#import "_util.glsl"\n' + util + (vertstr || ''); // _util.glsl + util + vert
+	fragstr = '#import "_util.glsl"\n' + util + (fragstr || ''); // _util.glsl + util + frag
 
-	let vert_ast = resolve_code_ast_from_codestr(name+'_vert', dir, vertstr, 1, 0, hpp, cpp);
-	let frag_ast = resolve_code_ast_from_codestr(name+'_farg', dir, fragstr, 0, 1, hpp, cpp);
+	let vert_ast = resolve_ast(name+'_vert', dir, vertstr);
+	let frag_ast = resolve_ast(name+'_frag', dir, fragstr);
 	let set = {};
 
-	let attributes = vert_ast.import_all
+	let attributes = vert_ast.imports_all
 		.reduce((a,i)=>(a.push(...i.attributes),a), []).concat(vert_ast.attributes);
 
-	let uniforms_ = vert_ast.import_all.concat(frag_ast.import_all)
+	let uniforms_ = vert_ast.imports_all.concat(frag_ast.imports_all)
 		.reduce((a,i)=>(a.push(...i.uniforms),a), []).concat(vert_ast.uniforms,frag_ast.uniforms);
 
 	let if_flags = vert_ast.if_flags.concat(frag_ast.if_flags)
 		.reduce((a,i)=>((a.indexOf(i)==-1?a.push(i):void 0),a), []);
 
 	let uniforms = uniforms_.filter(e=>(set[e] ? 0: (set[e]=1,1)));
-	let className = `GLSL${name[0].toUpperCase()}${name.substring(1)}`;
+	let className = `${name[0].toUpperCase()}${name.substring(1)}`;
 
-	write(hpp, `	struct ${className}: GLSLShader {`,
-		attributes.length ? `		GLuint ${attributes.map(e=>e.name).join(',')}; // attributes`: '',
-		uniforms.length ? `		GLuint ${uniforms.join(',')}; // uniforms`: '',
-		`		virtual void build(const char* name, const char *macros);`,
-	`	};`);
-
-	// { {"girth_in",1,GL_FLOAT,(void*)(sizeof(float)*2)} }
-
-	write(cpp, `void ${className}::build(const char* name, const char * macros) {`,
-		`	gl_compile_link_shader(this, name,macros,`,
-		`	${vert_ast.call},${frag_ast.call},`,
-		'	{',
-			attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride},${e.normalized}},`),
-		'	},',
-		`	"${uniforms.join(',')}");`,
-		'}'
-	);
-
-	return {
-		name,
-		className,
-		vert_ast,
-		frag_ast,
-		attributes,
-		uniforms,
-		if_flags,
+	return { // return doc
+		name, // for example: colorRadial
+		className, // for example: ColorRadial
+		vert_ast, // doc vert ast
+		frag_ast, // doc frag ast
+		attributes, // doc all attributes
+		uniforms, // doc all uniforms
+		if_flags, // doc all if flags
 	};
 }
 
-function main() {
-	if ( !check_file_is_change(inputs.concat([__filename]), [output_h, output_cc]) )
-		return;
-
-	console.log(process.cwd(), output_h, output_cc);
-
+// generate glsl native code to cpp and hpp
+function gen_glsl_native_code(glslDocs, output_h, output_cpp) {
 	var hpp = fs.openSync(output_h, 'w');
 	var cpp = fs.openSync(output_cc, 'w');
-	var pair_inputs = {};
-	var glslAll = [];
-
-	inputs.forEach(function(input) {
-		var mat = input.match(/[\/\\]([a-z][^\/\\]+)\.glsl$/i);
-		if ( mat ) {
-			var name = mat[1];
-			pair_inputs[name] = {name,input}
-		}
-	});
-
 	var now = Date.now();
 	write(hpp,
 		'// @private head',
@@ -347,15 +296,66 @@ function main() {
 		'namespace qk {',
 	);
 
-	for (let {name,input} of Object.values(pair_inputs)) {
-		name = name.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
-		glslAll.push(resolve_glsl(name, input, hpp, cpp));
+	function write_cpp(ast, isEntrance, cpp) {
+		if (ast.is_writed_glsl_native)
+			return;
+
+		ast.is_writed_glsl_native = true;
+
+		for (let imp of ast.imports) {
+			write_cpp(imp, false, cpp);
+		}
+
+		ast.glal_native_get_call = `get_${ast.name}()`; // get_color_vert_code_glsl(); get__util_glsl();
+
+		// write(hpp, `static cString& ${call};`);
+		if (isEntrance) {
+			write(cpp, `static cString& ${ast.glal_native_get_call} {`,
+				`	static String c;`,
+				`	if (c.is_empty()) {`,
+						ast.imports_all.map(e=>(`		c.append(${e.glal_native_get_call});`)), // append all imports code
+				`		c.append("${ast.source.replace(/\n/gm, '\\n\\\n')}",${ast.source_len});`, // append current code
+				`	}`,
+				`	return c;`,
+			'}',
+			);
+		} else {
+			write(cpp, `const char* ${ast.glal_native_get_call} {`,
+				`const char* c = "${ast.source.replace(/\n/gm, '\\n\\\n')}";`,
+				`return c;`,
+			'}',
+			);
+			ast.glal_native_get_call += ',' + ast.source_len; // get_call + length, for example: get__util_glsl(), 1234
+		}
+	}
+
+	for (let doc of glslDocs) {
+		write_cpp(doc.vert_ast, true, cpp);
+		write_cpp(doc.frag_ast, true, cpp);
+
+		write(hpp, `	struct GLSL${doc.className}: GLSLShader {`,
+			doc.attributes.length ? `		GLuint ${doc.attributes.map(e=>e.name).join(',')}; // attributes`: '',
+			doc.uniforms.length ? `		GLuint ${doc.uniforms.join(',')}; // uniforms`: '',
+			`		virtual void build(const char* name, const char *macros);`,
+		`	};`);
+
+		// { {"girth_in",1,GL_FLOAT,(void*)(sizeof(float)*2)} }
+
+		write(cpp, `void GLSL${doc.className}::build(const char* name, const char * macros) {`,
+			`	gl_compile_link_shader(this, name,macros,`,
+			`	${doc.vert_ast.glal_native_get_call},${doc.frag_ast.glal_native_get_call},`,
+			'	{',
+				doc.attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride},${e.normalized}},`),
+			'	},',
+			`	"${doc.uniforms.join(',')}");`,
+			'}'
+		);
 	}
 
 	write(hpp, '	struct GLSLShaders {');
 	write(cpp, 'void GLSLShaders::buildAll() {');
 
-	for (let glsl of glslAll) {
+	for (let glsl of glslDocs) {
 		write(cpp, `	${glsl.name}.build("${glsl.name}", "");`);
 
 		let names = [glsl.name];
@@ -371,7 +371,7 @@ function main() {
 				write(cpp, `	${name}.build("${name}","${glsl.if_flags.map(e=>`#define Qk_SHADER_IF_FLAGS_${e}\\n`).join('')}");`);
 			}
 		}
-		write(hpp, '		' + glsl.className + ' ' + names.join(',') + ';');
+		write(hpp, '		GLSL' + glsl.className + ' ' + names.join(',') + ';');
 	}
 
 	write(hpp,
@@ -385,6 +385,38 @@ function main() {
 
 	fs.closeSync(hpp);
 	fs.closeSync(cpp);
+}
+
+// generate bgfx native code
+function gen_bgfx_native_code(glslDocs, output_h, output_cpp) {
+	// var hpp = fs.openSync(output_h, 'w');
+	// var cpp = fs.openSync(output_cc, 'w');
+	// var now = Date.now();
+}
+
+function main() {
+	if ( !check_file_is_change(inputs.concat([__filename]), [output_h, output_cc]) )
+		return;
+
+	console.log(process.cwd(), output_h, output_cc);
+
+	var inputs_doc = {};
+	var glslDocs = [];
+
+	inputs.forEach(function(input) {
+		var mat = input.match(/[\/\\]([a-z][^\/\\]+)\.glsl$/i);
+		if ( mat ) {
+			var name = mat[1];
+			inputs_doc[name] = {name,input}
+		}
+	});
+
+	for (let {name,input} of Object.values(inputs_doc)) {
+		name = name.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
+		glslDocs.push(resolve_doc(name, input));
+	}
+
+	gen_glsl_native_code(glslDocs, output_h, output_cc);
 }
 
 main();

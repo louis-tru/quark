@@ -150,9 +150,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 - (void) LogMouse:(const char*)name event:(NSEvent *)e {
 	/*
-		Qk_DLog("%s,type:%d,modifierFlags:%d,eventNumber:%d,\
-pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
-",
+		Qk_DLog("%s,type:%d,modifierFlags:%d,eventNumber:%d,pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f",
 		name, e.type,
 		e.modifierFlags,
 		e.eventNumber,

@@ -135,10 +135,12 @@ namespace qk {
 						__loops = new Array<RunLoop*>();
 					}
 					for (auto i: *__loops) {
-						if (!i->_thread)
-							loop = i; break;
+						if (!i->_thread) {
+							loop = i;
+							break; // find a loop without thread
+						}
 					}
-					if (!loop) {
+					if (!loop) { // no loop without thread, create a new one
 						__loops->push((
 							loop = new RunLoop(__first_loop ? uv_loop_new(): uv_default_loop())
 						));
@@ -169,8 +171,8 @@ namespace qk {
 	}
 
 	void RunLoop::run() {
-		if (__is_process_exit_flag) {
-			Qk_Warn("cannot run RunLoop::run(), __is_process_exit_flag != false"); return;
+		if (__is_exit_flag) {
+			Qk_Warn("cannot run RunLoop::run(), __is_exit_flag != false"); return;
 		}
 		if (!_thread) {
 			Qk_Warn("cannot run RunLoop::run(), _thread == nullptr"); return;
