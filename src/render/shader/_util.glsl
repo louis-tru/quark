@@ -1,23 +1,32 @@
-#version 300 es
+#version 450
 
-#define matrix (rootMatrix * viewMatrix)
+#define matrix (rMat.value * vMat.value)
 
+#define Qk_CONSTANT(block) layout(push_constant) uniform PcArgs {\
+	block \
+	float depth; \
+	uint flags; \
+} pc
+
+#define Qk_FLAG_AACLIP (1u << 0)
+#define Qk_IF_AACLIP if ((pc.flags & Qk_FLAG_AACLIP) != 0)
+
+#vert
 // global shared data
-layout (std140/*std430?,binding=0*/) uniform rootMatrixBlock {
-	mediump mat4 rootMatrix;
-};
-layout (std140) uniform viewMatrixBlock {
-	mediump mat4 viewMatrix;
-};
+layout(binding=0) uniform RootMatrixBlock {
+	mat4 value;
+} rMat;
+layout(binding=1) uniform ViewMatrixBlock {
+	mat4 value;
+} vMat;
+layout(location=0) in      vec2  vertexIn;
+layout(location=1) in      float aafuzzIn; // anti alias fuzz or z depth plus
+layout(location=0) out     float aafuzz;
 
-#ifdef Qk_SHADER_VERT
-uniform                     float depth;
-/*layout(location=0)*/in    vec2  vertexIn;
-in                          float aafuzzIn; // anti alias fuzz or z depth plus
-out                         float aafuzz;
-#else
-uniform                sampler2D  aaclip; // anti alias clip texture buffer @aaclipOut
-in                     lowp float aafuzz;
-layout(location=0) out lowp vec4  fragColor;
-// layout(location=1) out lowp vec4  aaclipOut; // aa clip output
-#endif
+#frag
+precision mediump float; // lowp/highp
+precision mediump sampler2D;
+layout(binding=2)  uniform sampler2D aaclip; // anti alias clip texture buffer @aaclipOut
+layout(location=0) in      float aafuzz;
+layout(location=0) out     vec4  fragColor;
+// layout(location=1) out  vec4  aaclipOut; // aa clip output

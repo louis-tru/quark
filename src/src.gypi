@@ -378,6 +378,8 @@
 					'<(node)',
 					'<@(_inputs)',
 					'<@(_outputs)',
+					'--glslc=<(glslc)',
+					'--spirv-cross=<(spirv-cross)',
 				],
 				'process_outputs_as_sources': 1,
 			},

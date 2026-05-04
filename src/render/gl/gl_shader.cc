@@ -57,17 +57,13 @@ namespace qk {
 		GLSLShader *s,
 		cChar *name, cChar* macros,
 		cString& vertexShader, cString& fragmentShader,
-		cArray<GLShaderAttr> &attributes, cChar *uniforms)
+		cArray<GLShaderAttr> &attributes,
+		cArray<GLShaderUniform> &uniforms,
+		cArray<GLShaderUniformBlock> &uniformBlocks)
 	{
 		String vertexCode  ("#version " Qk_GL_Version "\n");
 		String fragmentCode(vertexCode);
 
-		vertexCode += "#define Qk_SHADER_VERT\n";
-		fragmentCode += "#define Qk_SHADER_FRAG\n";
-		vertexCode += gl_Global_GLSL_Macros;
-		fragmentCode += gl_Global_GLSL_Macros;
-		vertexCode += macros;
-		fragmentCode += macros;
 		vertexCode += vertexShader;
 		fragmentCode += fragmentShader;
 
@@ -78,15 +74,12 @@ namespace qk {
 		glAttachShader(program, fragment_handle);
 
 		GLint status; // query status
-		GLuint *storeLocation = &s->vbo + 1;
-
-		//Qk_DLog("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
 
 		// bind attrib Location
 		GLuint attrIdx = 0;
-		GLuint *store = storeLocation;
 		for (auto &i: attributes) {
-			glBindAttribLocation(program, *store++ = attrIdx++, i.name);
+			*i.location = attrIdx;
+			glBindAttribLocation(program, attrIdx++, i.name);
 		}
 
 		glLinkProgram(program);
@@ -99,24 +92,18 @@ namespace qk {
 			Qk_Fatal("Link shader error, %s\n\n%s", name, log);
 		}
 
-		// binding = 0 uniform block index as 0
-		glUniformBlockBinding(program, glGetUniformBlockIndex(program, "rootMatrixBlock"), 0);
-		// binding = 0 uniform block index as 1
-		glUniformBlockBinding(program, glGetUniformBlockIndex(program, "viewMatrixBlock"), 1);
+		GLuint binding = 0;
+		for (auto &i: uniformBlocks) {
+			*i.binding = binding; // set binding index to uniform block
+			glUniformBlockBinding(program, glGetUniformBlockIndex(program, i.name), binding++);
+		}
 #if DEBUG
 		// Get uniform block and bind index
-		GLuint ubo = glGetUniformBlockIndex(program, "rootMatrixBlock");
+		GLuint ubo = glGetUniformBlockIndex(program, "RootMatrixBlock");
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
 		Qk_ASSERT(bufferSize == 64);
 #endif
-
-		// Get Uniform Location index value
-		for (auto &i: String(uniforms).split(",")) {
-			if (!i.is_empty()) {
-				*store++ = glGetUniformLocation(program, i.c_str());
-			}
-		}
 
 		glGenVertexArrays(1, &s->vao); // gen vao, vbo
 		glGenBuffers(1, &s->vbo);
@@ -125,20 +112,28 @@ namespace qk {
 		glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 		glBufferData(GL_ARRAY_BUFFER, 128, nullptr, GL_DYNAMIC_DRAW);
 
+		// Get Uniform Location index value
+		GLuint texSlot = 0;
+		for (auto &i: uniforms) {
+			*i.location = glGetUniformLocation(program, i.name);
+			if (i.texSlot) {
+				glUniform1i(*i.location, texSlot); // set texture slot index to uniform
+				*i.texSlot = texSlot++;
+			}
+		}
+
 		GLsizei stride = 0, pointer = 0;
 
 		for (auto &i: attributes) {
 			stride += i.stride;
 		}
 		for (auto &i: attributes) {
-			GLuint local = *storeLocation++;
-			glEnableVertexAttribArray(local);
-			glVertexAttribPointer(local, i.size, i.type, i.normalized, stride, (const GLvoid*)pointer);
+			GLuint local = *i.location;
+			glEnableVertexAttribArray(*i.location);
+			glVertexAttribPointer(local, i.size, i.glType, i.normalized, stride, (const GLvoid*)pointer);
 			pointer += i.stride;
 		}
 
-		// set aa texture slot
-		glUniform1i(glGetUniformLocation(program, "aaclip"), gl_MaxTextureImageUnits-1);
 		// clean up
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -150,21 +145,6 @@ namespace qk {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 		glBindVertexArray(vao);
-
-// #if Qk_MacOS
-// 		GLint isValidate = 0;
-// 		if (!isValidate) {
-// 			isValidate = 1;
-// 			/*
-// 				TODO: Mac systems may crash if they do not call this verification
-// 				FALLBACK (log once): Fallback to SW vertex processing for VERT_BUF_REQ
-// 				FALLBACK (log once): Fallback to SW fragment processing for FRAG_BUF_REQ
-// 				FALLBACK (log once): Fallback to SW vertex processing, m_disable_code: 1
-// 				FALLBACK (log once): Fallback to SW fragment processing, m_disable_code: 10000
-// 			*/
-// 			glValidateProgram(shader); // validate shader program
-// 		}
-// #endif
 	}
 
 }

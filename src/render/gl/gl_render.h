@@ -36,6 +36,10 @@
 #include "../render.h"
 #include "./gl_canvas.h"
 
+// Slot 0 is occupied by aaclip, so start from 1.
+#define Qk_TEXTURE0 (GL_TEXTURE0+1)
+#define Qk_BindSampler(slot, sampler) glBindSampler(slot+1, sampler)
+
 namespace qk {
 
 	// Not thread safe, called in the rendering thread
@@ -61,9 +65,8 @@ namespace qk {
 		GLRender(Options opts);
 		// define props
 		TexStat **_texStat; // temp tbo
-		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
-		GLuint _optsBlock; // ubo, generic optsBlock
-		GLuint _ebo; // temp ebo
+		GLuint _ubo0,_ubo1,_ubo2,_ubo3; // ubo: rootMatrixBlock,viewportBlock,Other0,Other1
+		GLuint _ebo; // temp ebo, GL_ELEMENT_ARRAY_BUFFER
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status

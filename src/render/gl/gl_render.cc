@@ -243,7 +243,7 @@ namespace qk {
 			.id=0,
 		};
 		glGenTextures(1, &tex->id);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(Qk_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -264,7 +264,7 @@ namespace qk {
 		if (!out) {
 			out = gl_new_tex_stat();
 		}
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(Qk_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, out->id);
 
 #if defined(GL_EXT_texture_filter_anisotropic)
@@ -305,14 +305,13 @@ namespace qk {
 				// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			}
 		}
-
 		return true;
 	}
 
-	void gl_tex_image2D_null(GLuint tex, Vec2 size, ColorType type, GLuint slot) {
-		glActiveTexture(GL_TEXTURE0 + slot);
+	void gl_tex_image2D_null(GLuint tex, Vec2 size, ColorType type, GLint slot) {
+		glActiveTexture(Qk_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
-		glBindSampler(slot, 0);
+		Qk_BindSampler(slot, 0);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
 		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
 		GLint iformat = gl_get_texture_internalformat(type);
@@ -343,7 +342,7 @@ namespace qk {
 
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
-		GLuint slot = gl_MaxTextureImageUnits - 1; // Binding go to the last channel
+		GLint slot = -1; // 0 permanently occupied slots
 #if Qk_iOS || Qk_LINUX || Qk_ANDROID
 		ColorType type = kRGBA_8888_ColorType;
 #else
@@ -402,15 +401,20 @@ namespace qk {
 		_glcanvas->retain(); // retain
 
 		// glGenFramebuffers(1, &_fbo);
-		glGenBuffers(4, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock, _ebo
-		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
+		glGenBuffers(5, &_ubo0); // _ubo0, _ubo1, _ubo2, _ubo3, _ebo
+		// _rootMatrixBlock
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo0);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo0);
+		// glBindBufferRange(GL_UNIFORM_BUFFER, 0, _ubo0, 0, sizeof(Mat4));
 		// _viewMatrixBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _viewMatrixBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _viewMatrixBlock);
-		// _optsBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _optsBlock);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _optsBlock);
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo1);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _ubo1);
+		// Other options block 0
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo2);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _ubo2);
+		// Other options block 1
+		glBindBuffer(GL_UNIFORM_BUFFER, _ubo3);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 3, _ubo3);
 
 #if DEBUG
 		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
@@ -451,43 +455,6 @@ namespace qk {
 		_shaders.buildAll();
 #endif
 
-		// settings shader
-		for (auto s = &_shaders.colorBatch, e = s + 2; s < e; s++) {
-			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
-		}
-		for (auto s = &_shaders.image, e = s + 2; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.imageMask, e = s + 2; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.imageSdfMask, e = s + 2; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.imageYuv, e = s + 2; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-			glUniform1i(s->image_u, 1);
-			glUniform1i(s->image_v, 2);
-		}
-		for (auto s = &_shaders.blur, e = s + 5; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		for (auto s = &_shaders.triangles, e = s + 4; s < e; s++) {
-			glUseProgram(s->shader);
-			glUniform1i(s->image, 0); // set texture slot
-		}
-		// set viewport shader
-		glUseProgram(_shaders.vportCp.shader);
-		glUniform1i(_shaders.vportCp.image, 0); // set texture slot
-		// set viewport full shader
-		glUseProgram(_shaders.vportFullCp.shader);
-		glUniform1i(_shaders.vportFullCp.image, 0); // set texture slot
-
 		glUseProgram(0);
 		glEnable(GL_BLEND); // enable color blend
 		gl_set_blend_mode(kSrcOver_BlendMode); // set default color blend mode
@@ -513,7 +480,7 @@ namespace qk {
 	void GLRender::unlock() {}
 
 	void GLRender::release() {
-		GLuint ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock,_ebo};
+		GLuint ubo[] = {_ubo0,_ubo1,_ubo2,_ubo3,_ebo};
 		auto texStat = _texStat;
 		auto texSamplers = std::move(_texSamplers);
 		post_message(Cb([ubo,texStat,texSamplers](auto &e) {
@@ -524,7 +491,7 @@ namespace qk {
 				glDeleteSamplers(1, &i.second);
 			}
 			delete[] texStat;
-			glDeleteBuffers(4, ubo);
+			glDeleteBuffers(5, ubo);
 		}));
 		Qk_CHECK(_glcanvas->ref_count() == 1, "GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
 		Releasep(_glcanvas); // release canvas and set to nullptr
@@ -623,9 +590,9 @@ namespace qk {
 	}
 
 	void GLRender::gl_set_texture_param(TexStat *tex, uint32_t slot, const PaintImage* paint) {
-		glActiveTexture(GL_TEXTURE0 + slot);
+		glActiveTexture(Qk_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex->id);
-		glBindSampler(slot, gl_get_tex_sampler(paint));
+		Qk_BindSampler(slot, gl_get_tex_sampler(paint));
 	}
 
 	GLuint GLRender::gl_get_tex_sampler(const PaintImage* paint) {

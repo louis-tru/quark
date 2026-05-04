@@ -64,9 +64,22 @@ namespace qk {
 	struct GLShaderAttr {
 		const char *name;
 		GLint size;
-		GLenum type;
+		GLenum glType;
 		GLsizei stride;
 		GLboolean normalized;
+		GLuint* location;
+	};
+
+	struct GLShaderUniform {
+		const char *name;
+		GLenum glType;
+		GLuint* location;
+		GLuint* texSlot; // if sampler2D then set texture slot index
+	};
+
+	struct GLShaderUniformBlock {
+		const char *name;
+		GLuint* binding;
 	};
 
 	struct GLSLShader {
@@ -78,7 +91,7 @@ namespace qk {
 	void gl_compile_link_shader(
 		GLSLShader *s,
 		cChar *name, cChar* macros, cString& vertexShader, cString& fragmentShader,
-		cArray<GLShaderAttr> &attributes, cChar *uniforms);
+		cArray<GLShaderAttr> &attributes, cArray<GLShaderUniform> &uniforms, cArray<GLShaderUniformBlock> &uniformBlocks);
 
 }
 

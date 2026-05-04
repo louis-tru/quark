@@ -48,6 +48,8 @@
 		'use_openssl%': 1,
 		'V%': 0,
 		'use_qk_rwlock': 1, # use qk rwlock for bptree
+		'glslc%': 'glslc', # glslc path, for example: glslc, /path/to/glslc, etc.
+		'spirv-cross%': 'spirv-cross', # spirv-cross path, for example: spirv-cross, /path/to/spirv-cross, etc.
 
 		############################# dependents set ##################
 

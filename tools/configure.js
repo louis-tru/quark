@@ -521,6 +521,9 @@ async function install_depe(opts, variables) {
 		};
 	}
 
+	dpkg['glslc'] = getPkgmCmds('shaderc'); // glslc shader compiler for vulkan
+	dpkg['spirv-cross'] = getPkgmCmds('spirv-cross'); // spirv-cross for vulkan shader cross compiling
+
 	if (host_os == 'linux') {
 		if (pkgm == 'apt-get') {
 			const suffix =
@@ -615,6 +618,12 @@ async function install_depe(opts, variables) {
 
 	for (var i in dpkg) {
 		await install_check(i, dpkg[i]);
+	}
+
+	for (var i of ['glslc', 'spirv-cross']) {
+		const res = execSync(`which ${i}`);
+		util.assert(res.code == 0, `not found ${i} shader compiler, please install shaderc or ${i} for vulkan shader compiling`);
+		variables[i] = res.first.trim(); // set glslc and spirv-cross path for later use
 	}
 }
 

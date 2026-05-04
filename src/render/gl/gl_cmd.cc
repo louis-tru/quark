@@ -37,8 +37,8 @@
 #define Qk_CGCmd_VertexBlock_Capacity 6555
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
-//#define Qk_useShaderProgram(shader, vertex) if (!useShaderProgram(shader, vertex)) return
-#define Qk_useShaderProgram(shader, vertex) useShaderProgram(shader, vertex)
+#define Qk_FLAG_AACLIP (1u << 0)
+#define Qk_AACLIP(clip) (clip ? Qk_FLAG_AACLIP: 0)
 
 namespace qk {
 	extern const float aa_fuzz_weight;
@@ -292,14 +292,15 @@ namespace qk {
 						}
 						case kColors_CmdType: {
 							auto c = (ColorsCmd*)cmd;
-							auto s = c->aaclip ? &_render->_shaders.colorBatch_AACLIP: &_render->_shaders.colorBatch;
-							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
+							auto s = &_render->_shaders.colorBatch;
+							glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo2);
 							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorsCmd::Option) * c->subcmd, c->opts,
 								GL_DYNAMIC_DRAW);
 							glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
 							glBindVertexArray(s->vao);
 							glUseProgram(s->shader);
+							glUniform1ui(s->pc_flags, Qk_AACLIP(c->aaclip));
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
 							break;
 						}
@@ -377,7 +378,7 @@ namespace qk {
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
-			glBindBuffer(GL_UNIFORM_BUFFER, _render->_rootMatrixBlock);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo0);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, root.val, GL_DYNAMIC_DRAW);
 		}
 
@@ -388,8 +389,9 @@ namespace qk {
 				0.0,    0.0,    1.0, 0.0,
 				mat[2], mat[5], 0.0, 1.0
 			}; // transpose matrix
-			glBindBuffer(GL_UNIFORM_BUFFER, _render->_viewMatrixBlock);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo1);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
+			// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, m4x4); // for sync
 		}
 
 		void switchStateCall(GLenum id, bool isEnable) {
@@ -403,12 +405,11 @@ namespace qk {
 		void drawColorCall(const VertexData &vertex,
 			const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
-			auto s = aafuzz ? 
-				aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
-				aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
-			Qk_useShaderProgram(s, vertex);
-			glUniform1f(s->depth, depth);
-			glUniform4fv(s->color, 1, color.val);
+			auto s = &_render->_shaders.color;
+			useShaderProgram(s, vertex);
+			glUniform1f(s->pc_depth, depth);
+			glUniform4fv(s->pc_color, 1, color.val);
+			glUniform1ui(s->pc_flags, (aaclip ? Qk_FLAG_AACLIP: 0) | (aafuzz ? (1u << 1): 0));
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
 
@@ -417,8 +418,9 @@ namespace qk {
 		) {
 			s = Qk_Max(s, 0.5);
 			float s1 = s * 1.15, s2 = s * 2.0;
-			auto sh = aaclip ?
-				&_render->_shaders.colorRrectBlur_AACLIP: &_render->_shaders.colorRrectBlur;
+			auto sh = &_render->_shaders.colorRrectBlur;
+			// aaclip ?
+			// 	&_render->_shaders.colorRrectBlur_AACLIP: &_render->_shaders.colorRrectBlur;
 			float min_edge = Qk_Min(rect.size[0],rect.size[1]); // min w or h
 			float rmax = 0.5 * min_edge; // max r
 			Vec2 size = rect.size * 0.5;
@@ -429,10 +431,11 @@ namespace qk {
 			Vec2 p_[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
 
 			glUseProgram(sh->shader); // use shader program
-			glUniform4fv(sh->color, 1, color.val);
-			glUniform1f(sh->min_edge, min_edge);
-			glUniform1f(sh->depth, depth);
-			glUniform1f(sh->s_inv, 1.0/s); // 1/s blur size reciprocal
+			glUniform4fv(sh->pc_color, 1, color.val);
+			glUniform1f(sh->pc_min_edge, min_edge);
+			glUniform1f(sh->pc_depth, depth);
+			glUniform1f(sh->pc_s_inv, 1.0/s); // 1/s blur size reciprocal
+			glUniform1ui(sh->pc_flags, Qk_AACLIP(aaclip));
 			glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
 			glBindVertexArray(sh->vao);
 
@@ -442,8 +445,8 @@ namespace qk {
 				float r0 = Float32::min(Vec2(r[i], s1).length(), rmax); // len
 				float r1 = Float32::min(Vec2(r[i], s2).length(), rmax);
 				float n = 2.0 * r1 / r0;
-				glUniform3f(sh->consts, r1, n, 1.0/n);
-				glUniform2f(sh->horn, p[0], p[1]);
+				glUniform3f(sh->pc_consts, r1, n, 1.0/n);
+				glUniform2f(sh->pc_horn, p[0], p[1]);
 				glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			}
@@ -471,29 +474,33 @@ namespace qk {
 		) {
 			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) { // rgb or y
-				GLSLImage *s;
 				auto src = paint->image;
 
 				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
-					auto yuv = aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
-					s = (GLSLImage*)yuv;
-					Qk_useShaderProgram(s, vertex);
+					auto yuv = &_render->_shaders.imageYuv;
+					useShaderProgram(yuv, vertex);
+					glUniform1ui(yuv->pc_flags, Qk_AACLIP(aaclip));
+					glUniform1f(yuv->pc_depth, depth);
+					glUniform1f(yuv->pc_allScale, allScale);
+					glUniform4fv(yuv->pc_color, 1, color.val);
+					glUniform4fv(yuv->pc_texCoords, 1, paint->coord.begin.val);
 
 					if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
 						_render->gl_set_texture(src, 2, paint); // v
-						glUniform1i(yuv->format, 1); // yuv420p
+						glUniform1i(yuv->pc_format, 1); // yuv420p
 					} else {
-						glUniform1i(yuv->format, 0); // yuv420sp
+						glUniform1i(yuv->pc_format, 0); // yuv420sp
 					}
 					_render->gl_set_texture(src, 1, paint); // u or uv
 				} else {
-					s = aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
-					Qk_useShaderProgram(s, vertex);
+					auto s = &_render->_shaders.image;
+					useShaderProgram(s, vertex);
+					glUniform1ui(s->pc_flags, Qk_AACLIP(aaclip));
+					glUniform1f(s->pc_depth, depth);
+					glUniform1f(s->pc_allScale, allScale);
+					glUniform4fv(s->pc_color, 1, color.val);
+					glUniform4fv(s->pc_texCoords, 1, paint->coord.begin.val);
 				}
-				glUniform1f(s->depth, depth);
-				glUniform1f(s->allScale, allScale);
-				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -504,14 +511,15 @@ namespace qk {
 			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
 				auto type = paint->image->type();
-				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
-				Qk_useShaderProgram(s, vertex);
-				glUniform1f(s->depth, depth);
-				glUniform1i(s->alphaIndex, type == kAlpha_8_ColorType ? 0 :
+				auto s = &_render->_shaders.imageMask;
+				useShaderProgram(s, vertex);
+				glUniform1ui(s->pc_flags, Qk_AACLIP(aaclip));
+				glUniform1f(s->pc_depth, depth);
+				glUniform1i(s->pc_alphaIndex, type == kAlpha_8_ColorType ? 0 :
 						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
-				glUniform1f(s->allScale, allScale);
-				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
+				glUniform1f(s->pc_allScale, allScale);
+				glUniform4fv(s->pc_color, 1, color.val);
+				glUniform4fv(s->pc_texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -521,13 +529,14 @@ namespace qk {
 				float stroke, bool aafuzz, bool aaclip, float depth) {
 			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
-				auto s = aaclip ? &_render->_shaders.imageSdfMask_AACLIP: &_render->_shaders.imageSdfMask;
-				Qk_useShaderProgram(s, vertex);
-				glUniform1f(s->depth, depth);
-				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->strokeColor, 1, stroke <= 0 ? color.val: strokeColor.val);
-				glUniform1f(s->strokeWidth, stroke);
-				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
+				auto s = &_render->_shaders.imageSdfMask;
+				useShaderProgram(s, vertex);
+				glUniform1ui(s->pc_flags, Qk_AACLIP(aaclip));
+				glUniform1f(s->pc_depth, depth);
+				glUniform4fv(s->pc_color, 1, color.val);
+				glUniform4fv(s->pc_strokeColor, 1, stroke <= 0 ? color.val: strokeColor.val);
+				glUniform1f(s->pc_strokeWidth, stroke);
+				glUniform4fv(s->pc_texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -536,13 +545,12 @@ namespace qk {
 			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
 				auto isPre = paint->image->premultipliedAlpha();
-				auto s = triangles.isDarkColor ?
-					aaclip ? &_render->_shaders.triangles_DARK_COLOR_AACLIP: &_render->_shaders.triangles_DARK_COLOR:
-					aaclip ? &_render->_shaders.triangles_AACLIP: &_render->_shaders.triangles;
+				auto s = &_render->_shaders.triangles;
 				Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
 				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
-				glUniform1f(s->depth, depth);
-				glUniform4fv(s->color, 1, color.val);
+				glUniform1ui(s->pc_flags, Qk_AACLIP(aaclip) | (triangles.isDarkColor ? (1u << 1): 0));
+				glUniform1f(s->pc_depth, depth);
+				glUniform4fv(s->pc_color, 1, color.val);
 				// glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * triangles.indexCount, triangles.indices, GL_DYNAMIC_DRAW);
@@ -553,26 +561,21 @@ namespace qk {
 		void drawGradientCall(const VertexData &vertex, 
 			const PaintGradient *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
-			GLSLColorRadial *s;
-			auto count = paint->count;
+			// colorRadial and colorLinear have the same uniform layout
+			GLSLColorRadial *s = paint->type == PaintGradient::kRadial_Type ?
+				&_render->_shaders.colorRadial: (GLSLColorRadial*)&_render->_shaders.colorLinear;
+			auto count = Qk_Min(64, paint->count); // max 64 stops
 
-			if (paint->type == PaintGradient::kRadial_Type) {
-				s = count == 2 ?
-					aaclip ? &_render->_shaders.colorRadial_COUNT2_AACLIP: &_render->_shaders.colorRadial_COUNT2:
-					aaclip ? &_render->_shaders.colorRadial_AACLIP: &_render->_shaders.colorRadial;
-			} else {
-				s = (GLSLColorRadial*)(count == 2 ?
-					aaclip ? &_render->_shaders.colorLinear_COUNT2_AACLIP: &_render->_shaders.colorLinear_COUNT2:
-					aaclip ? &_render->_shaders.colorLinear_AACLIP: &_render->_shaders.colorLinear);
-			}
-
-			Qk_useShaderProgram(s, vertex);
-			glUniform1f(s->depth, depth);
-			glUniform4fv(s->color, 1, color.val);
-			glUniform4fv(s->range, 1, paint->origin.val);
-			glUniform1i(s->count, count);
-			glUniform4fv(s->colors, count, (const GLfloat*)paint->colors);
-			glUniform1fv(s->positions, count, (const GLfloat*)paint->positions);
+			useShaderProgram(s, vertex);
+			glUniform1ui(s->pc_flags, Qk_AACLIP(aaclip) | (count == 2 ? (1u << 1): 0));
+			glUniform1f(s->pc_depth, depth);
+			glUniform4fv(s->pc_color, 1, color.val);
+			glUniform4fv(s->pc_range, 1, paint->origin.val);
+			glUniform1i(s->pc_count, count);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo2);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(Color4f) * count, (const GLfloat*)paint->colors, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo3);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * count, (const GLfloat*)paint->positions, GL_DYNAMIC_DRAW);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.length());
 			//glDrawArrays(GL_LINES, 0, vertex.length());
@@ -607,12 +610,13 @@ namespace qk {
 				glBlendFunc(GL_DST_COLOR, GL_ZERO); // src * dst
 			}
 			setColorbuffer(true, nullptr);
-			auto shader = revoke ? &_render->_shaders.aaclip_AACLIP_REVOKE: &_render->_shaders.aaclip;
+			auto shader = &_render->_shaders.aaclip;
 			float aafuzzWeight = W * 0.1f;
 			shader->use(vertex.vertex.size(), vertex.vertex.val());
-			glUniform1f(shader->depth, depth);
-			glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
-			glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
+			glUniform1ui(shader->pc_flags, revoke ? 1u << 1 : 0u);
+			glUniform1f(shader->pc_depth, depth);
+			glUniform1f(shader->pc_aafuzzWeight, aafuzzWeight); // Difference: -0.09
+			glUniform1f(shader->pc_aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
 			setColorbuffer(false, recover);
 			_render->gl_set_blend_mode(chMode); // revoke blend mode
@@ -622,8 +626,8 @@ namespace qk {
 			if (vertex.vCount == 0) return;
 			auto shader = &_render->_shaders.color;
 			shader->use(vertex.vertex.size(), vertex.vertex.val());
-			glUniform4fv(shader->color, 1, emptyColor); // not output color buffer
-			glUniform1f(shader->depth, depth);
+			glUniform4fv(shader->pc_color, 1, emptyColor); // not output color buffer
+			glUniform1f(shader->pc_depth, depth);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
 		}
 
@@ -667,8 +671,8 @@ namespace qk {
 					x2,y2,0, /*right bottom*/
 				};
 				_render->_shaders.color.use(sizeof(float) * 12, data);
-				glUniform1f(_render->_shaders.color.depth, depth);
-				glUniform4fv(_render->_shaders.color.color, 1, color.val);
+				glUniform1f(_render->_shaders.color.pc_depth, depth);
+				glUniform4fv(_render->_shaders.color.pc_color, 1, color.val);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			}
 		}
@@ -745,8 +749,8 @@ namespace qk {
 			Vec2 R = _c->_surfaceSize;
 			uint32_t oRw = R.x(), oRh = R.y();
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindSampler(0, 0);
+			glActiveTexture(Qk_TEXTURE0);
+			Qk_BindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, _c->_outA);
 
 			if (lod) { // copy image, gen mipmap texture
@@ -762,13 +766,13 @@ namespace qk {
 				float x1_ = x1 - size, x2_ = x2 + size;
 				float vertex[] = { x1_,y1,0, x2_,y1,0, x1_,y2,0, x2_,y2,0 };
 				cp.use(sizeof(float) * 12, vertex);
-				glUniform2f(cp.iResolution, R.x(), R.y());
-				glUniform4f(cp.coord, 0, 0, 1, 1);
+				glUniform2f(cp.pc_iResolution, R.x(), R.y());
+				glUniform4f(cp.pc_coord, 0, 0, 1, 1);
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
-					glUniform1f(cp.depth, depth);
-					glUniform1f(cp.imageLod, level++);
-					glUniform2f(cp.oResolution, oRw, oRh);
+					glUniform1f(cp.pc_depth, depth);
+					glUniform1f(cp.pc_imageLod, level++);
+					glUniform2f(cp.pc_oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outA, level);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					depth += zDepthNextUnit;
@@ -823,12 +827,12 @@ namespace qk {
 			clearRegion({{x2, y1_}, {x2+3, y2_}}, oiScale, offsetY, depth); // clear right
 			// Making blur of the x-axis direction
 			blur->use(sizeof(float) * 12, vertex_x);
-			glUniform1f(blur->depth, depth);
-			glUniform2f(blur->iResolution, R.x(), R.y());
-			glUniform2f(blur->oResolution, oRw, oRh);
-			glUniform1f(blur->imageLod, lod);
-			glUniform1f(blur->detail, 1.0f/(n-1));
-			glUniform2f(blur->size, fullsize / R.x(), 0); // horizontal blur
+			glUniform1f(blur->pc_depth, depth);
+			glUniform2f(blur->pc_iResolution, R.x(), R.y());
+			glUniform2f(blur->pc_oResolution, oRw, oRh);
+			glUniform1f(blur->pc_imageLod, lod);
+			glUniform1f(blur->pc_detail, 1.0f/(n-1));
+			glUniform2f(blur->pc_size, fullsize / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 
 			if (lod && isClipState) {
@@ -850,9 +854,9 @@ namespace qk {
 
 			// Making blur of the y-axis direction
 			blur->use(sizeof(float) * 12, vertex_y);
-			glUniform1f(blur->depth, depth + zDepthNextUnit);
-			glUniform2f(blur->oResolution, R.x(), R.y());
-			glUniform2f(blur->size, 0, fullsize / R.y()); // vertical blur
+			glUniform1f(blur->pc_depth, depth + zDepthNextUnit);
+			glUniform2f(blur->pc_oResolution, R.x(), R.y());
+			glUniform2f(blur->pc_size, 0, fullsize / R.y()); // vertical blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
 		}
 
@@ -867,8 +871,8 @@ namespace qk {
 			if (!tex) {
 				tex = gl_new_tex_stat();
 			}
-			glActiveTexture(GL_TEXTURE0);
-			glBindSampler(0, 0);
+			glActiveTexture(Qk_TEXTURE0);
+			Qk_BindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
@@ -891,12 +895,12 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 			}
 			cp.use(sizeof(float) * 12, data);
-			glUniform1f(cp.depth, depth);
-			glUniform2f(cp.iResolution, surfaceSize.x(), surfaceSize.y());
-			glUniform2f(cp.oResolution, w, h);
-			glUniform1f(cp.imageLod, 0);
+			glUniform1f(cp.pc_depth, depth);
+			glUniform2f(cp.pc_iResolution, surfaceSize.x(), surfaceSize.y());
+			glUniform2f(cp.pc_oResolution, w, h);
+			glUniform1f(cp.pc_imageLod, 0);
 			o /= surfaceSize; s /= surfaceSize;
-			glUniform4f(cp.coord, o[0], o[1], s[0], s[1]);
+			glUniform4f(cp.pc_coord, o[0], o[1], s[0], s[1]);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTex->id, 0);
 			glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -923,8 +927,8 @@ namespace qk {
 			if (!tex) {
 				tex = gl_new_tex_stat();
 			}
-			glActiveTexture(GL_TEXTURE0);
-			glBindSampler(0, 0);
+			glActiveTexture(Qk_TEXTURE0);
+			Qk_BindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, format, type, nullptr);
@@ -941,8 +945,8 @@ namespace qk {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTex->id, 0);
 			//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_outColor);
 			if (img->isMipmap()) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindSampler(0, 0);
+				glActiveTexture(Qk_TEXTURE0);
+				Qk_BindSampler(0, 0);
 				glBindTexture(GL_TEXTURE_2D, img->texture(0)->id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -983,8 +987,8 @@ namespace qk {
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
 			if (srcC->_opts.isMipmap) { // gen mipmap texture
-				glActiveTexture(GL_TEXTURE0);
-				glBindSampler(0, 0);
+				glActiveTexture(Qk_TEXTURE0);
+				Qk_BindSampler(0, 0);
 				glBindTexture(GL_TEXTURE_2D, srcC->_outTex->id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
