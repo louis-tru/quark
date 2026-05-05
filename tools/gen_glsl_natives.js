@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 const { exec } = require('qktool/node/syscall');
-const arguments = require('qktool/arguments');
+const argument = require('qktool/arguments');
 const fs      = require('fs');
 const path    = require('path');
 const {check_file_is_change} = require('./check');
@@ -37,8 +37,8 @@ const inputs  = process.argv.slice(2)
 	.filter(e=>e.substring(0,2) != '--'); // delete option, for example: --watch
 const output_cc = inputs.pop();
 const output_h = inputs.pop();
-const glslc = arguments.options.glslc || 'glslc';
-const spirv_cross = arguments.options.spirv_cross || 'spirv-cross';
+const glslc = argument.options.glslc || 'glslc';
+const spirv_cross = argument.options.spirv_cross || 'spirv-cross';
 
 const round = `
 float qk_round(float num) {
@@ -385,13 +385,11 @@ async function resolve_ast(name, stage, source_both) {
 		}
 	}
 
-	// source = source.replace(/\s*\/\/.*$/mg, ''); // delete comment, for example: //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
-
 	let ast = {
 		name,
 		stage,
 		source,
-		source_es300,//: source_es300.replace(/#version\s+\d+(\s*[a-z]+)/mg, ''), // delete version
+		source_es300,
 		attributes,
 		uniforms,
 		uniform_blocks,
@@ -426,7 +424,7 @@ async function resolve_doc(name_, input) {
 
 	let uniforms_commom = uniforms.filter(e=>!e.struct);
 	let uniforms_struct = uniforms.filter(e=>e.struct);
-	let uniforms_sampler2Ds = uniforms.filter(e=>e.glType == 'GL_SAMPLER_2D');
+	let uniforms_sampler2D = uniforms.filter(e=>e.glType == 'GL_SAMPLER_2D');
 
 	let if_flags = vert_ast.if_flags.concat(frag_ast.if_flags)
 		.reduce((a,i)=>((a.indexOf(i)==-1?a.push(i):void 0),a), []);
@@ -443,7 +441,7 @@ async function resolve_doc(name_, input) {
 		uniforms, // doc all uniforms
 		uniforms_commom, // doc all common uniforms, means not struct uniforms
 		uniforms_struct, // doc all struct uniforms
-		uniforms_sampler2Ds, // doc all sampler2D uniforms
+		uniforms_sampler2D, // doc all sampler2D uniforms
 		if_flags, // doc all if flags
 		glal_native_get_call: '',
 	};
@@ -489,7 +487,7 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 		write_cpp(doc.vert_ast, cpp);
 		write_cpp(doc.frag_ast, cpp);
 
-		const {uniforms_commom,uniforms_struct,uniforms_sampler2Ds} = doc;
+		const {uniforms_commom,uniforms_struct,uniforms_sampler2D} = doc;
 
 		// write hpp
 		write(hpp, `	struct GLSL${doc.className}: GLSLShader {`,
@@ -502,7 +500,7 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 			doc.attributes.length ? `		GLuint ${doc.attributes.map(e=>e.name).join(',')}; // attributes location`: '',
 			uniforms_commom.length ? `		GLuint ${uniforms_commom.map(e=>e.name).join(',')}; // uniforms location`: '',
 			uniforms_struct.length ? uniforms_struct.map(e=>`		GLuint ${e.struct.block.map(it=>`${e.name}_${it.name}`).join(',')}; // struct uniform block location`) : '',
-			uniforms_sampler2Ds.length ? `		GLuint ${uniforms_sampler2Ds.map(e=>e.nameSlot).join(',')}; // sampler2D texture slot`: '',
+			uniforms_sampler2D.length ? `		GLuint ${uniforms_sampler2D.map(e=>e.nameSlot).join(',')}; // sampler2D texture slot`: '',
 			doc.uniform_blocks.length ? `		GLuint ${doc.uniform_blocks.map(e=>e.type).join(',')}; // uniform block binding index`: '',
 			`		virtual void build(const char* name, const char *macros);`,
 		`	};`);
@@ -552,11 +550,9 @@ async function main(output_h, output_cc) {
 
 	console.log(process.cwd(), output_h, output_cc);
 
-	fs.mkdirSync(`${__dirname}/../src/render/shader/out/glsl`, { recursive: true }); // make out dir if not exist
-	fs.mkdirSync(`${__dirname}/../src/render/shader/out/es300`, { recursive: true });
-	fs.mkdirSync(`${__dirname}/../src/render/shader/out/es450`, { recursive: true });
-	fs.mkdirSync(`${__dirname}/../src/render/shader/out/spv`, { recursive: true });
-	fs.mkdirSync(`${__dirname}/../src/render/shader/out/metal`, { recursive: true });
+	for (let dir of ['glsl', 'es300', 'es450', 'spv', 'metal']) {
+		fs.mkdirSync(`${__dirname}/../src/render/shader/out/${dir}`, { recursive: true }); // make out dir if not exist
+	}
 
 	const glslDocs = [];
 
