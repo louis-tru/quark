@@ -159,6 +159,7 @@
 			'render/source.cc',
 			'render/sdf.h',
 			'render/sdf.cc',
+			'render/plotforms.h',
 			'os/os.h', # os
 			'os/os.cc',
 			'errno.h',
@@ -176,16 +177,54 @@
 					'render/gl/gl_render.cc',
 					'render/gl/gl_shader.h',
 					'render/gl/gl_shader.cc',
+					'render/gl/glsl_shaders.h',
+					'render/gl/glsl_shaders.cc',
+				],
+				'conditions': [
+					['os=="ios"', {
+						'sources': [
+							'render/gl/gl_render_ios.mm',
+						],
+					}],
+					['os=="mac"', {
+						'sources': [
+							'render/gl/gl_render_mac.mm',
+						],
+						'link_settings': {
+							'libraries': [
+								'$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+							],
+						},
+					}],
+					['os=="linux" or os=="android"', {
+						'sources': [
+							'render/gl/gl_render_linux.cc',
+						],
+						'link_settings': {
+							'libraries': [
+								'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+							],
+						},
+					}],
 				],
 			}],
 			['os in "mac ios" and use_gl==0', { # use metal
 				'defines': [ 'Qk_ENABLE_METAL=1' ],
 				'sources': [
-					'render/metal/metal_canvas.h',
-					'render/metal/metal_canvas.mm',
-					'render/metal/metal_render.h',
-					'render/metal/metal_render.mm',
+					'render/metal/mtl_canvas.h',
+					'render/metal/mtl_canvas.mm',
+					'render/metal/mtl_render.h',
+					'render/metal/mtl_render.mm',
+					'render/metal/mtl_shaders.h',
+					'render/metal/mtl_shaders.mm',
+					# 'render/metal/mtl_apple.mm',
 				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
+					],
+				},
 			}],
 			['os=="linux" or os=="android"', {
 				'sources': [
@@ -205,27 +244,7 @@
 					# 'render/font/custom/custom_directory.cpp', ## font/custom
 					# 'render/font/custom/custom_typeface.cpp',
 					# 'render/font/custom/custom_typeface.h',
-					'render/linux/linux_render.cc',
-					'render/linux/linux_render.h',
 				],
-			}],
-			['os=="linux"', {
-				'sources': [
-					'platforms/linux/linux_app.cc',
-					'platforms/linux/linux_app.h',
-					'platforms/linux/linux_ime_helper.cc',
-					'platforms/linux/linux_keyboard.cc',
-					'platforms/linux/linux_os.cc',
-					'platforms/linux/linux_screen.cc',
-					'platforms/linux/linux_window.cc',
-					# render
-					'render/font/freetype/ft_fontconfig.cc',
-				],
-				'link_settings': {
-					'libraries': [
-						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound', '-lfontconfig',
-					],
-				},
 			}],
 			['os=="android"', {
 				'dependencies': [
@@ -259,33 +278,22 @@
 					],
 				},
 			}],
-			['os in "mac ios"', { # mac ios
-				'dependencies': [
-					'deps/reachability/reachability.gyp:reachability',
-				],
-				'sources':[
-					'platforms/apple/apple_app.h',
-					'platforms/apple/apple_keyboard.mm',
-					'platforms/apple/apple_os.mm',
-					'platforms/apple/apple_clipboard.mm',
-					'render/codec/codec_apple.mm',
-					'render/apple/apple_render.h',
-					'render/apple/apple_render.mm',
-					'render/apple/apple_metal.mm',
-					'render/font/ct/ct_pool.cc',
-					'render/font/ct/ct_typeface.cc',
-					'render/font/ct/ct_typeface.h',
-					'render/font/ct/ct_util.cc',
-					'render/font/ct/ct_util.h',
+			['os=="linux"', {
+				'sources': [
+					'platforms/linux/linux_app.cc',
+					'platforms/linux/linux_app.h',
+					'platforms/linux/linux_ime_helper.cc',
+					'platforms/linux/linux_keyboard.cc',
+					'platforms/linux/linux_os.cc',
+					'platforms/linux/linux_screen.cc',
+					'platforms/linux/linux_window.cc',
+					# render
+					'render/font/freetype/ft_fontconfig.cc',
 				],
 				'link_settings': {
 					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
-						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
-						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
-						'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
-						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-					]
+						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound', '-lfontconfig',
+					],
 				},
 			}],
 			['os=="ios"', {
@@ -295,11 +303,9 @@
 					'platforms/apple/ios_ime_helper.mm',
 					'platforms/apple/ios_main.mm',
 					'platforms/apple/ios_window.mm',
-					'render/apple/ios_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/MessageUI.framework',
 						'$(SDKROOT)/System/Library/Frameworks/CoreText.framework',
@@ -313,13 +319,37 @@
 					'platforms/apple/mac_ime_helper.mm',
 					'platforms/apple/mac_main.mm',
 					'platforms/apple/mac_window.mm',
-					'render/apple/mac_render.mm',
+					# 'render/apple/mac_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
 						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
+					]
+				},
+			}],
+			['os=="mac" or os=="ios"', { # mac ios
+				'dependencies': [
+					'deps/reachability/reachability.gyp:reachability',
+				],
+				'sources':[
+					'platforms/apple/apple_app.h',
+					'platforms/apple/apple_keyboard.mm',
+					'platforms/apple/apple_os.mm',
+					'platforms/apple/apple_clipboard.mm',
+					'render/codec/codec_apple.mm',
+					'render/plotforms.mm',
+					'render/font/ct/ct_pool.cc',
+					'render/font/ct/ct_typeface.cc',
+					'render/font/ct/ct_typeface.h',
+					'render/font/ct/ct_util.cc',
+					'render/font/ct/ct_util.h',
+				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
+						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
 					]
 				},
 			}],
@@ -363,16 +393,20 @@
 					'render/shader/image_yuv.glsl',
 					'render/shader/vport_cp.glsl',
 					'render/shader/blur.glsl',
-					'render/shader/blur3.glsl',
-					'render/shader/blur7.glsl',
-					'render/shader/blur13.glsl',
-					'render/shader/blur19.glsl',
+					# 'render/shader/blur3.glsl',
+					# 'render/shader/blur7.glsl',
+					# 'render/shader/blur13.glsl',
+					# 'render/shader/blur19.glsl',
 					'render/shader/triangles.glsl',
 					'render/shader/vport_full_cp.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',
 					'render/gl/glsl_shaders.cc',
+					'render/metal/mtl_shaders.h',
+					'render/metal/mtl_shaders.mm',
+					'render/vulkan/vk_shaders.h',
+					'render/vulkan/vk_shaders.cc',
 				],
 				'action': [
 					'<(node)',
@@ -381,7 +415,7 @@
 					'--glslc=<(glslc)',
 					'--spirv-cross=<(spirv-cross)',
 				],
-				'process_outputs_as_sources': 1,
+				'process_outputs_as_sources': 0,
 			},
 		],
 		# end

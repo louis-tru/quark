@@ -60,6 +60,7 @@ namespace qk {
 		void lock();
 		void unlock();
 	private:
+		void lock_();
 		Window *_win;
 		bool _lock;
 	};
@@ -126,7 +127,6 @@ namespace qk {
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
 		Qk_DEFINE_ACCE_GET(View*, activeView); //! focus active view
-		Qk_DEFINE_PROP_GET(ThreadID, renderThreadId, Const); //!< window render thread ID
 
 		/**
 		 * @prop surfaceSize
@@ -208,12 +208,14 @@ namespace qk {
 		inline Painter* painter() { return _painter; }
 
 		/**
-		 * @method isRenderThread() check current thread is render thread
+		 * check if the window is locked by UILock in current thread,
+		 * if true, the current thread can call UI-API functions without lock, 
+		 * otherwise must be locked before call
 		*/
-		bool isRenderThread() const;
+		bool isUILocked() const;
 
 	private:
-		void reload(bool isRt);
+		void reload();
 		void solveNextFrame();
 		void onRenderBackendReload(Vec2 size) override;
 		bool onRenderBackendDisplay() override;
@@ -224,7 +226,7 @@ namespace qk {
 		Range getDisplayRange(Vec2 size); // get surface display range
 		void afterDisplay();
 		bool tryClose(); // destroy window and protform window
-		void reload_root_rt();
+		void reload_root();
 		static void flushAsyncCall(); // flush all asynchronous calls for all windows, used when app destroyed
 
 		/**
@@ -246,6 +248,7 @@ namespace qk {
 		Array<RangeSize> _clipRange;
 		List<Window*>::Iterator _id;
 		RecursiveMutex _renderMutex;
+		ThreadID _lockThreadId; // thread id of current UILock
 		PreRender _preRender;
 		Options _opts;
 		// Reverse index: class hash -> views declaring the class.

@@ -126,13 +126,16 @@ namespace qk {
 	static BlendMode getBlendMode(Slot *slot, bool premultipliedAlpha) {
 		switch (slot->getData().getBlendMode()) {
 			case BlendMode_Additive:
-				return premultipliedAlpha ? kPlus_BlendMode: kAdditive_BlendMode;
+				return premultipliedAlpha ? kPlus_BlendMode: kPlusStraight_BlendMode;
 			case BlendMode_Multiply:
-				return kMultiply_BlendMode;
+				// Multiply/Screen are legacy straight-alpha fixed-function blend modes.
+				// They require straight source rgb. If the source is PMA, the source color
+				// should be unpremultiplied before drawing, or the result is only approximate.
+				return kMultiplyStraight_BlendMode;
 			case BlendMode_Screen:
-				return kScreen_BlendMode;
+				return kScreenStraight_BlendMode;
 			default:
-				return premultipliedAlpha ? kSrcOverPre_BlendMode: kSrcOver_BlendMode;
+				return premultipliedAlpha ? kSrcOver_BlendMode: kSrcOverStraight_BlendMode;
 		}
 	}
 

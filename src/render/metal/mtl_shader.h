@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,35 +25,61 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../util/thread.h"
-#import "./apple_render.h"
+// @private head
+
+#ifndef __quark_render_metal_mtl_shader__
+#define __quark_render_metal_mtl_shader__
+
+#include "../../util/dict.h"
+#include "../math.h"
+#include "../pixel.h"
+#include "../blend.h"
+
+#ifdef __OBJC__
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
+#endif
 
 namespace qk {
-	static ThreadID main_thread_id(thread_self_id());
+#ifdef __OBJC__
+	typedef id<MTLRenderPipelineState> MTLRenderPipelineStateID;
+	typedef id<MTLFunction> MTLFunctionID;
+	typedef id<MTLDevice> MTLDeviceID;
+	typedef id<MTLCommandQueue> MTLCommandQueueID;
+#else
+	typedef void* MTLRenderPipelineStateID;
+	typedef void* MTLFunctionID;
+	typedef void* MTLDeviceID;
+	typedef void* MTLCommandQueueID;
+#endif
 
-	Qk_EXPORT void post_message_main(Cb cb, bool sync) {
-		auto main = dispatch_get_main_queue();
-		if (main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
-			cb->resolve();
-		} else if (sync) {
-			CondMutex mutex;
-			CondMutex *mutexp = &mutex;
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-				mutexp->lock_and_notify_one();
-			});
-			mutex.lock_and_wait_for(); // wait
-		} else {
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-			});
-		}
-	}
+	enum MSLPipelineKind: uint8_t;
+
+	struct MSLShaderSource {
+		const char *name;
+		MSLPipelineKind kind;
+		String (*vertexSource)();
+		String (*fragmentSource)();
+	};
+
+	struct MSLShaderAttr {
+		uint32_t bufferIndex; // vertex buffer index
+		uint32_t size; // glsl attribute size, for vec4 colors[8]; size = 4*8 = 32
+		uint32_t format; // MTLVertexFormat
+		uint32_t sizeOf; // for example: sizeof(float)*4 for vec4
+	};
+
+	struct MSLShader {
+		MSLShaderSource source; // shader source
+		Array<MSLShaderAttr> vertexAttrs; // vertex attributes format
+		uint32_t bufferIndex; // vertex buffer index
+		MTLRenderPipelineStateID getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount);
+	protected:
+		Dict<uint32_t, MTLRenderPipelineStateID> _pipelines;
+	};
 }
+
+#endif

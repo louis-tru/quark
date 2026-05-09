@@ -45,22 +45,21 @@ namespace qk {
 	// Not thread safe, called in the rendering thread
 	class GLRender: public RenderBackend {
 	public:
-		virtual ~GLRender();
-		virtual void reload() override;
-		virtual Canvas* createCanvas(Options opts) override;
-		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		virtual bool createVertexData(VertexData::ID *id) override;
-		virtual void deleteTexture(TexStat *tex) override;
-		virtual void deleteVertexData(VertexData::ID *id) override;
-		virtual void lock(); // lock render
+		~GLRender() override;
+		void release() override;
+		void reload() override;
+		Canvas* createCanvas(Options opts) override;
+		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		bool createVertexData(VertexData::ID *id) override;
+		void deleteTexture(TexStat *tex) override;
+		void deleteVertexData(VertexData::ID *id) override;
+		virtual void lock(); // lock render thread
 		virtual void unlock(); // unlock render
-		virtual void release() override;
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
 		bool gl_set_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
 		void gl_set_texture_param(TexStat *tex, uint32_t slot, const PaintImage* paint);
 		GLuint gl_get_tex_sampler(const PaintImage* paint);
-
 	protected:
 		GLRender(Options opts);
 		// define props
@@ -70,19 +69,23 @@ namespace qk {
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
-		String _extensions;
 		Dict<uint32_t, GLuint> _texSamplers; // PaintImage => Sampler
-
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 	};
 
+	/**
+	 * Global render resource, not thread safe, called in the post message callback of thread
+	 */
 	class GLRenderResource: public RenderResource {
 	public:
-		inline GLRenderResource(RunLoop *loop): _loop(loop) {}
 		void post_message(Cb cb) override;
 		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		bool createVertexData(VertexData::ID *id) override;
 		void deleteTexture(TexStat *tex) override;
+		void deleteVertexData(VertexData::ID *id) override;
+	protected:
+		explicit GLRenderResource(RunLoop *loop): _loop(loop) {}
 	private:
 		RunLoop *_loop;
 	};

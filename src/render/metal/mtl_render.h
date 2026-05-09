@@ -4,54 +4,70 @@
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Louis.chu nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __quark_render_metal_metalrender__
-#define __quark_render_metal_metalrender__
+#ifndef __quark_render_metal_mtlrender__
+#define __quark_render_metal_mtlrender__
 
 #include "../render.h"
+#include "../blend.h"
+#include "../canvas.h"
+#include "./mtl_shaders.h"
 
 namespace qk {
+	class MetalCanvas;
 
+	// Global render resource,
+	// used for texture/vertex data creation, shader function and pipeline state caching
+	class MetalRenderResource: public RenderResource {
+	public:
+		~MetalRenderResource();
+		void post_message(Cb cb) override;
+		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		void deleteTexture(TexStat *tex) override;
+		bool createVertexData(VertexData::ID *id) override;
+		void deleteVertexData(VertexData::ID *id) override;
+		MTLRenderPipelineStateID
+		getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount);
+	private:
+		explicit MetalRenderResource();
+		MTLFunctionID getShaderFunction(MSLPipelineKind kind, bool vertex);
+	// fields:
+		Mutex _mutex; // protect shared resource
+		MSLShaders _shaders; // shader source and pipeline state cache
+		MTLDeviceID _device;
+		MTLCommandQueueID _commandQueue;
+		Dict<uint32_t, MTLFunctionID> _functions; // key = (kind << 1) | vertex, value = MTLFunctionID
+		// key = (kind << 16) | (blendMode << 8) | (outputType << 4) | sampleCount, value = MTLRenderPipelineStateID
+		Dict<uint32_t, MTLRenderPipelineStateID> _pipelines;
+		friend RenderResource* getSharedRenderResource();
+		friend class MetalRender;
+	};
+
+	// Metal render backend implementation for iOS and macOS
 	class MetalRender: public RenderBackend {
 	public:
-		virtual ~MetalRender();
-		virtual void reload() override;
-		virtual Canvas* createCanvas(Options opts) override;
-		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		virtual bool createVertexData(VertexData::ID *id) override;
-		virtual void deleteTexture(TexStat *tex) override;
-		virtual void deleteVertexData(VertexData::ID *id) override;
+		~MetalRender() override;
+		void release() override;
+		void reload() override;
+		Canvas* createCanvas(Options opts) override;
+		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
+		bool createVertexData(VertexData::ID *id) override;
+		void deleteTexture(TexStat *tex) override;
+		void deleteVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
-		virtual void release() override;
 	protected:
 		MetalRender(Options opts);
+	// fields:
+		MetalRenderResource* _resource; // shared render resource, used for texture/vertex data creation
+		MetalCanvas *_mtlcanvas;
+		MSLShaders _shaders; // shader source and pipeline state cache, for render thread use
+		MTLDeviceID _device;
+		MTLCommandQueueID _commandQueue;
+		friend class MetalCanvas;
 	};
-}
 
-#endif // __quark_render_metal_metalrender__
+} // namespace qk
+
+#endif

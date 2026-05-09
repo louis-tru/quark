@@ -278,7 +278,7 @@ namespace qk {
 
 		if (!src->premultipliedAlpha()) {
 			paint.fill.color = paint.fill.color.recover_unpremul_alpha();
-			paint.blendMode = kSrcOver_BlendMode;
+			paint.blendMode = kSrcOverStraight_BlendMode;
 		}
 
 		auto aaShrink = aa() ? painter->AAShrink() : 0;

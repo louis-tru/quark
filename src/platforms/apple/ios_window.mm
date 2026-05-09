@@ -32,10 +32,9 @@
 typedef UIEvent MacUIEvent;
 #import "../../ui/ui.h"
 #import "../../ui/event.h"
-#include "../../ui/window.h"
-#include "../../ui/screen.h"
-#include "../../render/apple/apple_render.h"
-#include "./apple_app.h"
+#import "../../ui/window.h"
+#import "../../ui/screen.h"
+#import "./apple_app.h"
 
 using namespace qk;
 

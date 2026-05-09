@@ -76,6 +76,28 @@ namespace qk {
 		 * @thread Rt
 		 */
 		virtual void deleteTexture(TexStat *tex) = 0;
+
+		/**
+		 * Create GPU vertex data.
+		 *
+		 * @param id VertexData instance id to initialize.
+		 * @returns true if creation succeeded.
+		 *
+		 * @note This must be called on the Qk render thread that owns this backend.
+		 *       For OpenGL this object may contain context-local state such as VAO.
+		 *
+		 * @thread Rt
+		 */
+		virtual bool createVertexData(VertexData::ID *id) = 0;
+
+		/**
+		 * Delete GPU vertex data.
+		 *
+		 * @param id VertexData instance id created by createVertexData().
+		 *
+		 * @thread Rt
+		 */
+		virtual void deleteVertexData(VertexData::ID *id) = 0;
 	};
 
 	/**
@@ -170,28 +192,6 @@ namespace qk {
 		 * Whether the backend has already released its canvas/resources.
 		 */
 		inline bool isReleased() const { return !_canvas; }
-
-		/**
-		 * Create backend-local GPU vertex data.
-		 *
-		 * @param id VertexData instance id to initialize.
-		 * @returns true if creation succeeded.
-		 *
-		 * @note This must be called on the Qk render thread that owns this backend.
-		 *       For OpenGL this object may contain context-local state such as VAO.
-		 *
-		 * @thread Rt
-		 */
-		virtual bool createVertexData(VertexData::ID *id) = 0;
-
-		/**
-		 * Delete backend-local GPU vertex data.
-		 *
-		 * @param id VertexData instance id created by createVertexData().
-		 *
-		 * @thread Rt
-		 */
-		virtual void deleteVertexData(VertexData::ID *id) = 0;
 
 		/**
 		 * Return platform render surface object.

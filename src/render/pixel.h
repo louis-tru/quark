@@ -45,13 +45,15 @@ namespace qk {
 	 * @enum ColorType color tye enum
 	 */
 	enum ColorType {
-		kInvalid_ColorType, //!< Invalid 
+		kInvalid_ColorType, //!< Invalid
 		kAlpha_8_ColorType, //!< Alpha 8 bit
 		kRGB_565_ColorType,
 		kRGBA_4444_ColorType,
 		kRGB_444X_ColorType,
 		kRGBA_8888_ColorType,
 		kRGB_888X_ColorType,
+		kBGRA_8888_ColorType, // BGRA order, used by windows d3d and macos metal
+		kBGR_888X_ColorType, // BGR order, used by windows d3d and macos metal
 		kRGBA_1010102_ColorType,
 		kRGB_101010X_ColorType,
 		kRGB_888_ColorType,
@@ -63,9 +65,9 @@ namespace qk {
 		kSDF_Unsigned_F32_ColorType, //! unsigned distance function, inner is 0, outside is positive
 		kYUV420P_Y_8_ColorType,  // YUV420P
 		kYUV420SP_Y_8_ColorType = kYUV420P_Y_8_ColorType, // YUV420SP
-		kYUV420P_U_8_ColorType,
-		kYUV420P_V_8_ColorType = kYUV420P_U_8_ColorType,
-		kYUV420SP_UV_88_ColorType,
+		kYUV420P_U_8_ColorType, // U plane of YUV420P
+		kYUV420P_V_8_ColorType = kYUV420P_U_8_ColorType, // V plane of YUV420P
+		kYUV420SP_UV_88_ColorType, // interleaved UV plane of YUV420SP
 		// Compressed package for pvrtc
 		kPVRTCI_2BPP_RGB_ColorType,
 		kPVRTCI_2BPP_RGBA_ColorType,

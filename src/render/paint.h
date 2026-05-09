@@ -253,7 +253,7 @@ namespace qk {
 
 		PaintStyle    fill;           //!< Fill paint style (solid, image, or gradient).
 		PaintStyle    stroke;         //!< Stroke paint style (solid, image, or gradient).
-		BlendMode     blendMode = kSrcOverPre_BlendMode; //!< Compositing mode (default: premultiplied alpha src-over).
+		BlendMode     blendMode = kSrcOver_BlendMode; //!< Compositing mode (default: premultiplied alpha src-over).
 		Style         style = kFill_Style;               //!< Fill/stroke mode.
 		Cap           cap = kButt_Cap;                   //!< Stroke cap style.
 		Join          join = kMiter_Join;                //!< Stroke join style.
@@ -271,7 +271,10 @@ namespace qk {
 	 * May refer to a hardware texture (OpenGL ID, Vulkan image, etc.).
 	 */
 	struct TexStat {
-		uint32_t id; //!< Backend texture identifier.
+		union {
+			uint32_t id; //!< Generic texture identifier (e.g., OpenGL texture ID).
+			void *ptr;    //!< Generic pointer for backends that use pointer-based texture handles.
+		};
 	};
 }
 

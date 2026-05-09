@@ -34,14 +34,47 @@
 
 namespace qk {
 
+	/**
+	 * Blend modes used by Qk rendering pipeline.
+	 *
+	 * Qk internally prefers premultiplied-alpha (PMA) rendering.
+	 *
+	 * In PMA mode:
+	 *
+	 *   src.rgb = original.rgb * src.a
+	 *   src.a   = src.a
+	 *
+	 * Most rendering paths, framebuffer accumulation, antialiasing coverage
+	 * (such as aafuzz), and compositing operations are designed around PMA.
+	 *
+	 * Blend modes without the "Straight" suffix assume premultiplied-alpha
+	 * source color input.
+	 *
+	 * Blend modes with the "Straight" suffix are legacy compatibility modes
+	 * for straight-alpha source color input:
+	 *
+	 *   src.rgb = original.rgb
+	 *   src.a   = src.a
+	 *
+	 * Straight-alpha modes may produce incorrect edge blending results when
+	 * combined with coverage-based antialiasing (for example aafuzz), because
+	 * fragment coverage naturally behaves as premultiplied-alpha contribution.
+	 *
+	 * Framebuffer contents are treated as premultiplied-alpha accumulated data.
+	 *
+	 * Blend equations below describe the resulting PMA framebuffer output.
+	 *
+	 * References:
+	 *   Porter-Duff compositing operators
+	 *   Premultiplied alpha compositing
+	 */
 	enum BlendMode {
 		kClear_BlendMode,         //!< r = (1-sa)*d
 		kSrc_BlendMode,           //!< r = s
 		kDst_BlendMode,           //!< r = d
-		// Deprecated kSrcOver_BlendMode, recommended to use kSrcOverPre_BlendMode
-		kSrcOver_BlendMode,       //!< r = sa*s + (1-sa)*d
-		kSrcOverPre_BlendMode,    //!< r = s + (1-sa)*d
-		kDstOver_BlendMode,       //!< r = (1-da)*s + da*d
+		kSrcOverStraight_BlendMode,//!< r = sa*s + (1-sa)*d, recommended to use kSrcOverPre_BlendMode
+		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
+		kDstOver_BlendMode,       //!< r = (1-da)*s + d
 		kSrcIn_BlendMode,         //!< r = da*s
 		kDstIn_BlendMode,         //!< r = sa*d
 		kSrcOut_BlendMode,        //!< r = (1-da)*s
@@ -49,12 +82,11 @@ namespace qk {
 		kSrcATop_BlendMode,       //!< r = da*s + (1-sa)*d
 		kDstATop_BlendMode,       //!< r = (1-da)*s + sa*d
 		kXor_BlendMode,           //!< r = (1-da)*s + (1-sa)*d
-		kPlus_BlendMode,          //!< r = min(s + d, 1)
-		kModulate_BlendMode,      //!< r = s*d
-		kScreen_BlendMode,        //!< r = s + d - s*d
-		kMultiply_BlendMode,      //!< r = d*s + (1-sa)*d
-		// Deprecated kAdditive_BlendMode, recommended to use kPlus_BlendMode
-		kAdditive_BlendMode,      //!< r = sa*s + d
+		kPlus_BlendMode,          //!< r = s + d
+		kModulateStraight_BlendMode, //!< r = s*d
+		kScreenStraight_BlendMode,  //!< r = s + (1-s)*d
+		kMultiplyStraight_BlendMode, //!< r = d*s + (1-sa)*d
+		kPlusStraight_BlendMode,  //!< r = sa*s + d, recommended to use kPlus_BlendMode
 	};
 }
 

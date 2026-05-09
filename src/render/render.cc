@@ -42,8 +42,8 @@ namespace qk {
 
 	static uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		n = Qk_Min(n, 9);
-		return n > 1 ? n: 0;
+		n = Qk_Min(n, 9); // max sample count is 9
+		return n > 1 ? n: 1;
 	}
 
 	RenderBackend::RenderBackend(Options opts)
@@ -71,7 +71,7 @@ namespace qk {
 				return true;
 			} else if (id->host->_render) {
 				if (id->host->_render->createVertexData(const_cast<VertexData::ID*>(id))) {
-					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is 0");
+					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is empty");
 					id->data->vertex.clear(); // clear memory data save memory, data already in GPU buffer
 					return true;
 				}
@@ -134,7 +134,7 @@ namespace qk {
 		if (!r) r = make_vulkan_render();
 #endif
 #if Qk_ENABLE_METAL
-		if (!r) r = make_metal_render();
+		if (!r) r = make_metal_render(opts);
 #endif
 #if Qk_ENABLE_GL
 		if (!r) r = make_gl_render(opts);

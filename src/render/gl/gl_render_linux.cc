@@ -40,9 +40,9 @@
 # undef None
 #endif
 
-#include "./linux_render.h"
-#include "../gl/gl_render.h"
-#include "../gl/gl_cmd.h"
+#include "../plotforms.h"
+#include "./gl_render.h"
+#include "./gl_cmd.h"
 
 #if (Qk_LINUX || Qk_ANDROID) && Qk_ENABLE_GL
 
@@ -54,8 +54,6 @@ namespace qk {
 	typedef Render::Options Options;
 
 	typedef std::remove_pointer_t<EGLDisplay> EGLDisplayType;
-
-	static ThreadID emptyThreadID;
 
 	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
 
@@ -217,10 +215,6 @@ namespace qk {
 			Object::release(); // final destruction
 		}
 
-		RenderSurface* surface() override {
-			return this;
-		}
-
 		bool isRenderThread() {
 			return _renderThreadId == thread_self_id();
 		}
@@ -233,6 +227,10 @@ namespace qk {
 			_mutex.unlock();
 		}
 
+		RenderSurface* surface() override {
+			return this;
+		}
+
 		void post_message(Cb cb) override {
 			if (!_context)
 				return; // Render is release, do not post message
@@ -240,7 +238,7 @@ namespace qk {
 				lock();
 				cb->resolve();
 				unlock();
-			} else if (_renderThreadId == emptyThreadID) { // No run
+			} else if (_renderThreadId == ThreadID()) { // No run
 				if (_mutexMsg.try_lock()) {
 					_msg.push(cb);
 					_mutexMsg.unlock();
@@ -281,6 +279,7 @@ namespace qk {
 
 			if (_delegate->onRenderBackendDisplay()) {
 				_glcanvas->flushBuffer(); // commit gl canvas cmd
+#if 0
 				auto src = _glcanvas->surfaceSize();
 				auto dest = _surfaceSize;
 				auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
@@ -288,7 +287,10 @@ namespace qk {
 				// copy pixels to default color buffer
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 				glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // restore default framebuffer
+#else
+				_glcanvas->vportFullCopy(0); // copy pixels to default color buffer
+#endif
 
 				glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 				// GLuint fence = glCreateSyncTokens(1);

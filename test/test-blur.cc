@@ -39,7 +39,7 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, kSrcOver_BlendMode);
+		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, kSrcOverStraight_BlendMode);
 		// paint.blendMode = kSrcOver_BlendMode;
 		paint.fill.color = Color4f(1, 1, 1, 1);
 		paint.filter = nullptr;

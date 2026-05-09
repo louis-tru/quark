@@ -31,9 +31,9 @@
 #define GL_SILENCE_DEPRECATION
 #define GL3_PROTOTYPES
 
-#import "./apple_render.h"
-#import "../gl/gl_render.h"
-#import "../gl/gl_cmd.h"
+#import "../plotforms.h"
+#import "./gl_render.h"
+#import "./gl_cmd.h"
 
 using namespace qk;
 
@@ -56,11 +56,11 @@ class MacGLRender;
 // ----------------------------------------------------------------------------------------------
 
 class MacGLRender final: public GLRender, public RenderSurface {
-public:
+ public:
 	MacGLRender(Options opts, NSOpenGLContext *ctx)
 		: GLRender(opts), _view(nil), _ctx(ctx)
 	{
-		//CFBridgingRetain(_ctx);
+		CFBridgingRetain(_ctx);
 	}
 
 	~MacGLRender() override {
@@ -88,13 +88,9 @@ public:
 		}
 		_mutexMsg.unlock();
 
-		//CFBridgingRelease((__bridge void*)_ctx);
+		CFBridgingRelease((__bridge void*)_ctx);
 		_ctx = nil;
 		Object::release(); // final destruction
-	}
-
-	RenderSurface* surface() override {
-		return this;
 	}
 
 	bool isRenderThread() {
@@ -112,6 +108,10 @@ public:
 		if (!isRenderThread()) {
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
+	}
+
+	RenderSurface* surface() override {
+		return this;
 	}
 
 	void post_message(Cb cb) override {

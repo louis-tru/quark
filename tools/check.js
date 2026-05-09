@@ -41,13 +41,15 @@ function check_file_is_change(inputs, outputs) {
 	});
 
 	for ( var i = 0; i < outputs.length; i++ ) {
-		if ( fs.existsSync(outputs[i]) ) {
-			var ctime = fs.statSync(outputs[i]).ctime;
-			if ( ctime < last_ctime ) {
+		if (outputs[i]) {
+			if ( fs.existsSync(outputs[i]) ) {
+				var ctime = fs.statSync(outputs[i]).ctime;
+				if ( ctime < last_ctime ) {
+					return true;
+				}
+			} else {
 				return true;
 			}
-		} else {
-			return true;
 		}
 	}
 	return false;

@@ -21,10 +21,10 @@ void main() {
 
 layout(location=1) in float weight;
 
-layout(std140, binding=4) uniform Colors {
+layout(std140, binding=3) uniform Colors {
 	vec4  colors[64];
 };
-layout(std140, binding=5) uniform Positions {
+layout(std140, binding=4) uniform Positions {
 	vec4 positions[16]; // 16 * 4 = 64 floats, enough for 64 stops
 };
 

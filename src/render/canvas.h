@@ -254,7 +254,7 @@ namespace qk {
 		 */
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, 
 			ColorType type = kRGBA_8888_ColorType,
-			BlendMode mode = kSrcOverPre_BlendMode, bool isMipmap = false) = 0;
+			BlendMode mode = kSrcOver_BlendMode, bool isMipmap = false) = 0;
 
 		/**
 		 * @brief Creates or binds a render target image as current output.

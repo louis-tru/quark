@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./apple_render.h"
-#import "../gl/gl_render.h"
+#import "../plotforms.h"
+#import "./gl_render.h"
 
 using namespace qk;
 
@@ -89,16 +89,16 @@ public:
 		Object::release(); // final destruction
 	}
 
-	RenderSurface* surface() override {
-		return this;
-	}
-
 	void lock() override {
 		_mutex.lock();
 	}
 
 	void unlock() override {
 		_mutex.unlock();
+	}
+
+	RenderSurface* surface() override {
+		return this;
 	}
 
 	void post_message(Cb cb) override {
@@ -127,18 +127,24 @@ public:
 			GLenum attachments[] = {GL_COLOR_ATTACHMENT1,GL_STENCIL_ATTACHMENT,GL_DEPTH_ATTACHMENT};
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, sizeof(attachments)/sizeof(GLenum), attachments);
 
-			if (_rbo_0_size != _surfaceSize) {
+			if (_rbo_0_size != _surfaceSize) { // re-allocate render buffer if surface size changed
 				_rbo_0_size = _surfaceSize;
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo_0);
 				glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
+				// allocate render buffer storage from layer
 				[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable: _layer];
+				// attach render buffer to framebuffer
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_0);
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, _glcanvas->fbo());
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, _glcanvas->fbo()); // restore default
 			}
-			// copy pixels to default color buffer
+#if 0
+			// copy pixels to fob_0/rbo_0 color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fbo_0);
 			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // restore default framebuffer
+#else
+			_glcanvas->vportFullCopy(_fbo_0); // copy pixels to fob_0/rbo_0 color buffer
+#endif
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,

@@ -21,7 +21,7 @@ void main() {
 }
 
 #frag
-layout(binding=3) uniform sampler2D image; // image image input
+layout(binding=4) uniform sampler2D image; // image image input
 
 // Gaussian blur normalization
 //

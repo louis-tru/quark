@@ -74,6 +74,7 @@
 						'<(use_js) '
 						'<(use_v8) '
 						'<(emulator) '
+						'<(use_gl) '
 					],
 					'conditions': [
 						['use_js==1', {

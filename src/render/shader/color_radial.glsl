@@ -19,10 +19,10 @@ void main() {
 
 layout(location=1) in vec2 position;
 
-layout(std140, binding=4) uniform Colors {
+layout(std140, binding=3) uniform Colors {
 	vec4  colors[64];
 };
-layout(std140, binding=5) uniform Positions {
+layout(std140, binding=4) uniform Positions {
 	vec4 positions[16];
 };
 

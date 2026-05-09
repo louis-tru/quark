@@ -125,13 +125,13 @@ namespace qk {
 		GLsizei stride = 0, pointer = 0;
 
 		for (auto &i: attributes) {
-			stride += i.stride;
+			stride += i.sizeOf;
 		}
 		for (auto &i: attributes) {
 			GLuint local = *i.location;
 			glEnableVertexAttribArray(*i.location);
 			glVertexAttribPointer(local, i.size, i.glType, i.normalized, stride, (const GLvoid*)pointer);
-			pointer += i.stride;
+			pointer += i.sizeOf;
 		}
 
 		// clean up

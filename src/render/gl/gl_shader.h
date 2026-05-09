@@ -33,7 +33,6 @@
 #ifndef __quark_render_gl_glsl_shader__
 #define __quark_render_gl_glsl_shader__
 
-#include "../../util/util.h"
 #include "../math.h"
 
 #if Qk_iOS
@@ -63,9 +62,9 @@ namespace qk {
 	struct VertexData;
 	struct GLShaderAttr {
 		const char *name;
-		GLint size;
-		GLenum glType;
-		GLsizei stride;
+		GLint size; // for example: vec4 colors[8]; size = 4*8 = 32
+		GLenum glType; // for example: GL_FLOAT
+		GLsizei sizeOf; // for example: sizeof(float)*32
 		GLboolean normalized;
 		GLuint* location;
 	};

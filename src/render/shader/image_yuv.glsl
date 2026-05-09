@@ -5,9 +5,9 @@
 #import "_image.glsl"
 
 #frag
-// layout(binding=3) uniform sampler2D image;   // y of yuv
-layout(binding=4) uniform sampler2D image_u; // 420p u or 420sp uv
-layout(binding=5) uniform sampler2D image_v; // 420p v
+// layout(binding=4) uniform sampler2D image;   // y of yuv
+layout(binding=5) uniform sampler2D image_u; // 420p u or 420sp uv
+layout(binding=6) uniform sampler2D image_v; // 420p v
 
 void main() {
 	float y = texture(image, coords).r;

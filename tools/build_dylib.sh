@@ -11,6 +11,7 @@ without_embed_bitcode=$6
 use_js=$7
 use_v8=$8
 emulator=$9
+use_gl=${10}
 obj=obj.target
 name=quark
 
@@ -90,18 +91,21 @@ frameworks="\
 "
 
 if [ "$os" = "mac" ]; then
-	frameworks="$frameworks \
-		-framework OpenGL \
-		-framework AppKit \
-		-framework IOKit \
-	"
+	if [ "$use_gl" = "1" ]; then
+		frameworks="$frameworks -framework OpenGL "
+	else
+		rm -rf $obj/quark/src/render/gl
+		frameworks="$frameworks -framework Metal -framework MetalKit "
+	fi
+	frameworks="$frameworks -framework AppKit -framework IOKit "
 else # ios
-	frameworks="$frameworks \
-		-framework OpenGLES \
-		-framework UIKit \
-		-framework MessageUI \
-		-framework CoreText \
-	"
+	if [ "$use_gl" = "1" ]; then
+		frameworks="$frameworks -framework OpenGLES "
+	else
+		rm -rf $obj/quark/src/render/gl
+		frameworks="$frameworks -framework Metal -framework MetalKit "
+	fi
+	frameworks="$frameworks -framework UIKit -framework MessageUI -framework CoreText "
 fi
 
 if [ "$use_js" = "1" ]; then

@@ -30,7 +30,6 @@
 
 #import <AppKit/AppKit.h>
 #import "../../ui/ui.h"
-#import "../../render/apple/apple_render.h"
 #import "./apple_app.h"
 
 using namespace qk;

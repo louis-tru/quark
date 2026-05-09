@@ -1027,7 +1027,6 @@ namespace qk {
 		void setBuffersCall(Vec2 size, ImageSource *recover, bool chSize) {
 			auto _c = _canvas;
 			auto w = size.x(), h = size.y();
-			auto type = _c->_opts.colorType;
 
 			Qk_ASSERT(w, "Invalid viewport size width");
 			Qk_ASSERT(h, "Invalid viewport size height");

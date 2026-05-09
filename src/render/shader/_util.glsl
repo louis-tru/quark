@@ -13,10 +13,10 @@
 
 #vert
 // global shared data
-layout(binding=0) uniform RootMatrixBlock {
+layout(binding=1) uniform RootMatrixBlock {
 	mat4 value;
 } rMat;
-layout(binding=1) uniform ViewMatrixBlock {
+layout(binding=2) uniform ViewMatrixBlock {
 	mat4 value;
 } vMat;
 layout(location=0) in      vec2  vertexIn;
@@ -26,7 +26,7 @@ layout(location=0) out     float aafuzz;
 #frag
 precision mediump float; // lowp/highp
 precision mediump sampler2D;
-layout(binding=2)  uniform sampler2D aaclip; // anti alias clip texture buffer @aaclipOut
+layout(binding=3)  uniform sampler2D aaclip; // anti alias clip texture buffer @aaclipOut
 layout(location=0) in      float aafuzz;
 layout(location=0) out     vec4  fragColor;
 // layout(location=1) out  vec4  aaclipOut; // aa clip output

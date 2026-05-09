@@ -166,6 +166,9 @@ namespace qk {
 		return Application::shared();
 	}
 
+	/**
+	 * Post a message to the main thread, and execute the callback in the main thread.
+	*/
 	Qk_EXPORT void post_message_main(Cb cb, bool sync);
 }
 #endif

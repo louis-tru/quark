@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__apple__apple_render__
-#define __quark__render__apple__apple_render__
-#include "../../util/macros.h"
+#ifndef __quark__render__plotforms__
+#define __quark__render__plotforms__
+
+#include "./render.h"
 #if Qk_APPLE
-#include "../render.h"
 #if Qk_MacOS
 #import <AppKit/AppKit.h>
 #define UIResponder NSResponder
@@ -47,14 +47,30 @@
 #else // iOS
 #import <UIKit/UIKit.h>
 #endif
+#endif
+
+#if Qk_LINUX || Qk_ANDROID
+#include <EGL/eglplatform.h>
+#endif
 
 namespace qk {
+
+	/**
+	 * RenderSurface for different platforms, such as UIView for iOS, NSView for MacOS, and EGLSurface for Linux and Android.
+	 */
 	class RenderSurface {
 	public:
+#if Qk_APPLE
 		virtual UIView* surfaceView() = 0;
+#endif
+#if Qk_LINUX || Qk_ANDROID
+		virtual void makeSurface(EGLNativeWindowType win) = 0;
+		virtual void deleteSurface() = 0;
+		virtual void renderDisplay() = 0; // external render function, called in render loop
+		virtual void renderLoopRun() = 0; // create render thread and run render loop
+		virtual void renderLoopStop() = 0; // stop render loop and destroy render thread
+#endif
 	};
-	void post_message_main(Cb cb, bool sync);
 }
 
-#endif
 #endif

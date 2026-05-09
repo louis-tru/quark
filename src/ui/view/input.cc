@@ -1170,9 +1170,9 @@ namespace qk {
 
 	void Input::set_value_u4_direct(String4 val, bool isRT) {
 		if (_value_u4 != val) {
-			mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRT);
 			_value_u4 = val;
-			set_max_length(_max_length);
+			set_max_length_direct(_max_length, isRT);
 		}
 	}
 
@@ -1211,10 +1211,10 @@ namespace qk {
 			_readonly = val;
 			if (val && is_focus()) {
 				if (isRT) {
-				pre_render().post(Cb([](auto e) {
-					if (static_cast<Input*>(e.data)->_readonly)
-						static_cast<Input*>(e.data)->blur();
-				}), this);
+					pre_render().post(Cb([](auto e) {
+						if (static_cast<Input*>(e.data)->_readonly)
+							static_cast<Input*>(e.data)->blur();
+					}), this);
 				} else {
 					blur();
 				}

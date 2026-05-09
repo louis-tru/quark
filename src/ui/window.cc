@@ -52,17 +52,22 @@ namespace qk {
 	}
 
 	UILock::UILock(Window *win): _win(win), _lock(true) {
-		win->_renderMutex.lock();
+		lock_();
 	}
 
 	UILock::~UILock() {
 		unlock();
 	}
 
+	void UILock::lock_() {
+		_win->_renderMutex.lock();
+		_win->_lockThreadId = thread_self_id();
+	}
+
 	void UILock::lock() {
 		if (!_lock) {
 			_lock = true;
-			_win->_renderMutex.lock();
+			lock_();
 		}
 	}
 
@@ -185,7 +190,6 @@ namespace qk {
 		}
 		// ------------------------
 
-		_renderThreadId = thread_self_id();
 		_root->remove_all_child(); // remove child view
 		Releasep(_root); // release root view
 		_preRender.flushAsyncCall(); // flush async call
@@ -200,7 +204,6 @@ namespace qk {
 		Releasep(_render); // release render backend
 		_viewsByClass.clear(); // clear css class views map
 		lock.lock(); // relock
-		_renderThreadId = ThreadID(); // reset render thread id
 		// ------------------------
 
 		closeImpl(); // close platform window
@@ -246,7 +249,7 @@ namespace qk {
 			UILock lock(this);
 			if (_lockSize.x() != w || _lockSize.y() != h) {
 				_lockSize = { w, h };
-				reload(false);
+				reload();
 			}
 		} else {
 			Qk_DLog("Lock size value can not be less than zero\n");
@@ -257,14 +260,14 @@ namespace qk {
 		_debugMode = v;
 	}
 
-	void Window::reload_root_rt() {
-		// set render thread id avoid assert fail when call root mark_layout in reload
-		_renderThreadId = thread_self_id();
+	void Window::reload_root() {
 		// The root view needs to be marked with a layout change when the window size changes.
 		_root->mark_layout<true>(View::kLayout_Inner_Width | View::kLayout_Inner_Height);
 	}
 
-	void Window::reload(bool isRt) { // Lock before calling
+	void Window::reload() { // Lock before calling this method
+		Qk_ASSERT(isUILocked(), "Window::reload must be called with UILock");
+
 		Vec2 size = surfaceSize();
 		float width = size.x();
 		float height = size.y();
@@ -301,13 +304,7 @@ namespace qk {
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-		if (isRt) {
-			reload_root_rt();
-		} else {
-			_preRender.async_call([](auto self, auto arg) {
-				self->reload_root_rt();
-			}, this, 0);
-		}
+		reload_root();
 
 		Qk_DLog("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
@@ -328,9 +325,9 @@ namespace qk {
 			) {
 				_surfaceDisplayRange = { range.begin, range.end, size };
 				_defaultScale = defaultScale;
-				reload(true);
+				reload();
 			} else {
-				reload_root_rt();
+				reload_root();
 			}
 		}
 	}
@@ -355,7 +352,6 @@ namespace qk {
 			deltaTime = 2e5;
 		}
 		_time = time;
-		_renderThreadId = thread_self_id(); // set render thread id
 
 #if PRINT_RENDER_FRAME_TIME
 		int64_t st = time_microsecond();
@@ -460,7 +456,7 @@ namespace qk {
 		_clipRange.pop();
 	}
 
-	bool Window::isRenderThread() const {
-		return thread_self_id() == _renderThreadId;
+	bool Window::isUILocked() const {
+		return thread_self_id() == _lockThreadId;
 	}
 }

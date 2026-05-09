@@ -50,7 +50,7 @@
 #define _IfNotBorder(v) _Border(v); if (!_border) return
 
 namespace qk {
-	constexpr BlendMode defaultBlendMode = kSrcOverPre_BlendMode;
+	constexpr BlendMode defaultBlendMode = kSrcOver_BlendMode;
 
 	typedef Painter::BoxData BoxData;
 
@@ -353,7 +353,7 @@ namespace qk {
 		//paint.blendMode = kSrcOver_BlendMode;
 
 		if (!src->premultipliedAlpha()) {
-			paint.blendMode = kSrcOver_BlendMode;
+			paint.blendMode = kSrcOverStraight_BlendMode;
 			paint.fill.color = _color.recover_unpremul_alpha();
 		}
 
@@ -521,7 +521,7 @@ namespace qk {
 			auto &o = _boxData.outside->rect.begin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.x, o.y()+s.y}, _boxData.outside->rect.size,
-			},&v->_border_top_left_radius, s.size, s.color.premul_alpha().mul(_color), kSrcOverPre_BlendMode);
+			},&v->_border_top_left_radius, s.size, s.color.premul_alpha().mul(_color), kSrcOver_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
@@ -532,7 +532,7 @@ namespace qk {
 			return;
 		getInsideRectPath(v);
 		_canvas->drawPathvColor(*_boxData.inside,
-			v->_background_color.premul_alpha().mul(_color), kSrcOverPre_BlendMode, v->_aa
+			v->_background_color.premul_alpha().mul(_color), kSrcOver_BlendMode, v->_aa
 		);
 		//Paint paint;
 		//paint.antiAlias = true;
@@ -781,7 +781,7 @@ namespace qk {
 			paint.fill.image = &img;
 			paint.fill.color = draw->color();
 			if (!src->premultipliedAlpha()) {
-				paint.blendMode = kSrcOver_BlendMode;
+				paint.blendMode = kSrcOverStraight_BlendMode;
 				paint.fill.color = paint.fill.color.recover_unpremul_alpha();
 			}
 			//img.tileModeX = PaintImage::kDecal_TileMode;

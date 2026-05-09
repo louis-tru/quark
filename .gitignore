@@ -17,6 +17,8 @@ package-lock.json
 *.pyc
 src/render/gl/glsl_shaders.h
 src/render/gl/glsl_shaders.cc
+src/render/metal/mtl_shaders.h
+src/render/metal/mtl_shaders.mm
 build
 quark.*
 .kdev4/quark.kdev4 
@@ -24,3 +26,4 @@ quark.*
 deps/spine
 src/ui/painter_*
 a.out
+test/test-demo

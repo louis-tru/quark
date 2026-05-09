@@ -28,23 +28,32 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__linux__linux_render__
-#define __quark__linux__linux_render__
-#include "../../util/macros.h"
-#if Qk_LINUX || Qk_ANDROID
-#include <EGL/eglplatform.h>
+#import "./plotforms.h"
+#import "../util/thread.h"
 
 namespace qk {
+	static ThreadID main_thread_id(thread_self_id());
 
-	class RenderSurface {
-	public:
-		virtual void makeSurface(EGLNativeWindowType win) = 0;
-		virtual void deleteSurface() = 0;
-		virtual void renderDisplay() = 0; // external render function, called in render loop
-		virtual void renderLoopRun() = 0; // create render thread and run render loop
-		virtual void renderLoopStop() = 0; // stop render loop and destroy render thread
-	};
+	Qk_EXPORT void post_message_main(Cb cb, bool sync) {
+		auto main = dispatch_get_main_queue();
+		if (main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
+			cb->resolve();
+		} else if (sync) {
+			CondMutex mutex;
+			CondMutex *mutexp = &mutex;
+			auto core = cb.Handle::collapse();
+			dispatch_async(main, ^{
+				core->resolve();
+				core->release();
+				mutexp->lock_and_notify_one();
+			});
+			mutex.lock_and_wait_for(); // wait
+		} else {
+			auto core = cb.Handle::collapse();
+			dispatch_async(main, ^{
+				core->resolve();
+				core->release();
+			});
+		}
+	}
 }
-
-#endif
-#endif

@@ -14,7 +14,7 @@ void main() {
 }
 
 #frag
-layout(binding=3) uniform sampler2D image; // input image
+layout(binding=4) uniform sampler2D image; // input image
 
 void main() {
 	fragColor = textureLod(image, gl_FragCoord.xy / pc.oResolution * pc.coord.zw + pc.coord.xy, pc.imageLod);

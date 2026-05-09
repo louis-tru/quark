@@ -31,9 +31,50 @@
 #include "./gl_render.h"
 #include "./gl_cmd.h"
 
+#ifndef GL_APPLE_texture_format_BGRA8888
+#define GL_APPLE_texture_format_BGRA8888 1
+#define GL_BGRA_EXT                       0x80E1
+#define GL_BGRA8_EXT                      0x93A1
+#endif /* GL_APPLE_texture_format_BGRA8888 */
+
+#ifndef GL_UNSIGNED_INT_10_10_10_2
+# define GL_UNSIGNED_INT_10_10_10_2 0x8036
+#endif
+
 namespace qk {
-	String gl_Global_GLSL_Macros;
-	int    gl_MaxTextureImageUnits = 0;
+	String gl_Global_GLSL_Macros, gl_extensions;
+	int gl_MaxTextureImageUnits = 0;
+
+	void gl_updateGlobalData() {
+		if (gl_MaxTextureImageUnits)
+			return; // already initialized
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
+		gl_Global_GLSL_Macros = 
+			String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
+#if Qk_ANDROID
+		gl_Global_GLSL_Macros += "#define Qk_ANDROID\n";
+#elif Qk_LINUX
+		gl_Global_GLSL_Macros += "#define Qk_LINUX\n";
+#endif
+
+#if DEBUG
+	GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+#ifdef GL_MAX_TEXTURE_BUFFER_SIZE
+	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
+#endif
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+	Qk_DLog("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
+	Qk_DLog("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
+	Qk_DLog("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
+#endif
+		gl_extensions = (cChar*)glGetString(GL_EXTENSIONS);
+
+		Qk_DLog("GL_VENDOR: %s", glGetString(GL_VENDOR));
+		Qk_DLog("GL_RENDERER: %s", glGetString(GL_RENDERER));
+		Qk_DLog("GL_VERSION: %s", glGetString(GL_VERSION));
+		Qk_DLog("GL_EXTENSIONS:\n%s", *gl_extensions);
+	}
 
 	void gl_CheckFramebufferStatus(GLenum target) {
 		auto status = glCheckFramebufferStatus(target);
@@ -103,6 +144,8 @@ namespace qk {
 			case kRGB_444X_ColorType: return GL_RGBA4;
 			case kRGBA_8888_ColorType: return GL_RGBA8;
 			case kRGB_888X_ColorType: return GL_RGBA8;
+			case kBGRA_8888_ColorType: return GL_BGRA8_EXT;
+			case kBGR_888X_ColorType: return GL_BGRA8_EXT;
 			case kRGBA_1010102_ColorType: return GL_RGB10_A2;
 			case kRGB_101010X_ColorType: return GL_RGB10_A2;
 			case kRGB_888_ColorType: return GL_RGB8;
@@ -141,6 +184,8 @@ namespace qk {
 			case kRGB_444X_ColorType: return GL_RGBA;
 			case kRGBA_8888_ColorType: return GL_RGBA;
 			case kRGB_888X_ColorType: return GL_RGBA;
+			case kBGRA_8888_ColorType: return GL_BGRA_EXT;
+			case kBGR_888X_ColorType: return GL_BGRA_EXT;
 			case kRGBA_1010102_ColorType: return GL_RGBA;
 			case kRGB_101010X_ColorType: return GL_RGBA;
 			case kRGB_888_ColorType: return GL_RGB;
@@ -157,9 +202,6 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_data_type(ColorType format) {
-#ifndef GL_UNSIGNED_INT_10_10_10_2
-# define GL_UNSIGNED_INT_10_10_10_2 0x8036
-#endif
 		switch (format) {
 			case kAlpha_8_ColorType:      return GL_UNSIGNED_BYTE;
 			case kRGB_565_ColorType:      return GL_UNSIGNED_SHORT_5_6_5;
@@ -167,13 +209,15 @@ namespace qk {
 			case kRGB_444X_ColorType:     return GL_UNSIGNED_SHORT_4_4_4_4;
 			case kRGBA_8888_ColorType:    return GL_UNSIGNED_BYTE;
 			case kRGB_888X_ColorType:     return GL_UNSIGNED_BYTE;
+			case kBGRA_8888_ColorType:    return GL_UNSIGNED_BYTE;
+			case kBGR_888X_ColorType:     return GL_UNSIGNED_BYTE;
 			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
 			case kRGB_101010X_ColorType:  return GL_UNSIGNED_INT_10_10_10_2;
 			case kRGB_888_ColorType:      return GL_UNSIGNED_BYTE;
 			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_5_5_5_1;
 			case kSDF_F32_ColorType:      return GL_FLOAT;
 			case kSDF_Unsigned_F32_ColorType: return GL_FLOAT;
-			default:                      return GL_UNSIGNED_BYTE;
+			default: return GL_UNSIGNED_BYTE;
 		}
 	}
 
@@ -273,23 +317,29 @@ namespace qk {
 		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
 #endif
 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
+		// glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
+		// Use tightly packed pixel rows without alignment padding.
+		// This avoids row misalignment issues for formats like RGB888 or odd texture widths.
+		// GL default unpack alignment is 4 bytes.
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		// Qk_DLog("gl_new_texture(), len: %d, p: %p", pix->length(), pix);
-
 		if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
 			for (int i = 0; i < levels; i++) {
 				auto it = pix + i;
 				glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
 															it->width(),
 															it->height(), 0/*border*/, it->body().length(), it->val());
+			}
+			if (levels > 1) {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
+			} else {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			}
 		} else {
 			GLint format = gl_get_texture_format(type);
@@ -300,9 +350,14 @@ namespace qk {
 										it->width(),
 										it->height(), 0/*border*/, format, dtype, it->val());
 			}
-			if (levels == 1 && mipmap) {
+
+			if (levels > 1) {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
+			} else if (mipmap) { // levels == 1 && mipmap
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64); // allow auto mipmap generation
 				glGenerateMipmap(GL_TEXTURE_2D);
-				// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			} else { // levels == 1 && !mipmap
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			}
 		}
 		return true;
@@ -320,20 +375,20 @@ namespace qk {
 		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, format, dtype, nullptr);
 	}
 
-	void gl_set_framebuffer_renderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
-		glBindRenderbuffer(GL_RENDERBUFFER, buff);
+	void gl_set_framebuffer_renderbuffer(GLuint rbo, Vec2 size, GLenum iformat, GLenum attachment) {
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 		// glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, iformat, size[0], size[1]):
 		glRenderbufferStorage(GL_RENDERBUFFER, iformat, size[0], size[1]);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, rbo);
 	}
 
-	void gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size) {
-		if (rboTex) {
+	void gl_set_color_renderbuffer(GLuint rbo, TexStat *orRbo, ColorType type, Vec2 size) {
+		if (orRbo) {
 			// use texture render buffer
-			gl_tex_image2D_null(rboTex->id, size, type, 0);
+			gl_tex_image2D_null(orRbo->id, size, type, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rboTex->id, 0);
-			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, rboTex->id, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, orRbo->id, 0);
+			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, orRbo->id, 0);
 		} else {
 			GLenum iformat = gl_get_texture_internalformat(type);
 			gl_set_framebuffer_renderbuffer(rbo, size, iformat, GL_COLOR_ATTACHMENT0);
@@ -396,11 +451,11 @@ namespace qk {
 		: Render(opts)
 		, _texStat(new TexStat*[8]{0}), _glcanvas(nullptr)
 	{
-		_glcanvas = new GLCanvas(this, _opts);
-		_canvas = _glcanvas; // set default canvas
-		_glcanvas->retain(); // retain
+		gl_updateGlobalData();
 
-		// glGenFramebuffers(1, &_fbo);
+		_glcanvas = NewRetain<GLCanvas>(this, _opts);
+		_canvas = _glcanvas; // set default canvas
+
 		glGenBuffers(5, &_ubo0); // _ubo0, _ubo1, _ubo2, _ubo3, _ebo
 		// _rootMatrixBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _ubo0);
@@ -417,42 +472,11 @@ namespace qk {
 		glBindBufferBase(GL_UNIFORM_BUFFER, 3, _ubo3);
 
 #if DEBUG
-		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-#ifdef GL_MAX_TEXTURE_BUFFER_SIZE
-		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
-#endif
-		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
-
-		Qk_DLog("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
-		Qk_DLog("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
-		Qk_DLog("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
-#endif
-
-		if (!gl_MaxTextureImageUnits) {
-			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
-			gl_Global_GLSL_Macros = 
-				String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
-#if Qk_ANDROID
-			gl_Global_GLSL_Macros += "#define Qk_ANDROID\n";
-#elif Qk_LINUX
-			gl_Global_GLSL_Macros += "#define Qk_LINUX\n";
-#endif
-		}
-
-		_extensions = (cChar*)glGetString(GL_EXTENSIONS);
-
-		Qk_DLog("GL_VENDOR: %s", glGetString(GL_VENDOR));
-		Qk_DLog("GL_RENDERER: %s", glGetString(GL_RENDERER));
-		Qk_DLog("GL_VERSION: %s", glGetString(GL_VERSION));
-		Qk_DLog("GL_EXTENSIONS:\n%s", *_extensions);
-
-#if DEBUG
 		int64_t st = time_microsecond();
+#endif
 		_shaders.buildAll(); // compile all shaders
+#if DEBUG
 		Qk_DLog("shaders.buildAll time: %ld (micro s)", time_microsecond() - st);
-#else
-		_shaders.buildAll();
 #endif
 
 		glUseProgram(0);
@@ -468,38 +492,39 @@ namespace qk {
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepthf(0.0f); // set depth clear value to -1.0
-
-		// sizeof(GLSLShaders);
 	}
 
 	GLRender::~GLRender() {
 		Qk_CHECK(_glcanvas == nullptr);
 	}
 
-	void GLRender::lock() {}
-	void GLRender::unlock() {}
-
 	void GLRender::release() {
-		GLuint ubo[] = {_ubo0,_ubo1,_ubo2,_ubo3,_ebo};
-		auto texStat = _texStat;
-		auto texSamplers = std::move(_texSamplers);
-		post_message(Cb([ubo,texStat,texSamplers](auto &e) {
+		Qk_CHECK(_glcanvas->ref_count() == 1,
+			"GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
+		GLuint ubo[] = {
+			_ubo0,_ubo1,_ubo2,_ubo3,_ebo
+		};
+		post_message(Cb([ubo,texStat=_texStat,samplers=std::move(_texSamplers)](auto &e) {
 			for (int i = 0; i < 8; i++) {
 				if (texStat[i]) glDeleteTextures(1, &texStat[i]->id);
 			}
-			for (auto &i: texSamplers) {
+			for (auto &i: samplers) {
 				glDeleteSamplers(1, &i.second);
 			}
 			delete[] texStat;
 			glDeleteBuffers(5, ubo);
 		}));
-		Qk_CHECK(_glcanvas->ref_count() == 1, "GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
 		Releasep(_glcanvas); // release canvas and set to nullptr
 		_canvas = nullptr;
 	}
 
+	void GLRender::lock() {
+	}
+	void GLRender::unlock() {
+	}
+
 	void GLRender::reload() {
-		lock();
+		lock(); // safe reload, avoid render thread is calling onRenderBackendDisplay while reload
 		_surfaceSize = getSurfaceSize();
 		_delegate->onRenderBackendReload(_surfaceSize);
 		unlock();
@@ -507,26 +532,23 @@ namespace qk {
 
 	void GLRender::gl_set_blend_mode(BlendMode mode) {
 		switch (mode) {
-			case kClear_BlendMode:         //!< r = 0 + (1-sa)*d
-				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+			case kClear_BlendMode:         //!< r = 0
+				glBlendFunc(GL_ZERO, GL_ZERO);
 				break;
 			case kSrc_BlendMode:           //!< r = s
 				glBlendFunc(GL_ONE, GL_ZERO);
-				// glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ZERO, GL_ZERO);
 				break;
 			case kDst_BlendMode:           //!< r = d
 				glBlendFunc(GL_ZERO, GL_ONE);
 				break;
-			case kSrcOver_BlendMode:       //!< r = sa*s + (1-sa)*d
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			case kSrcOverStraight_BlendMode: //!< r = sa*s + (1-sa)*d
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case kSrcOverPre_BlendMode: // r = s + (1-sa)*d
+			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case kDstOver_BlendMode:       //!< r = (1-da)*s + da*d
-				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-				//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+			case kDstOver_BlendMode:       //!< r = (1-da)*s + d
+				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 				break;
 			case kSrcIn_BlendMode:         //!< r = da*s
 				glBlendFunc(GL_DST_ALPHA, GL_ZERO);
@@ -549,19 +571,19 @@ namespace qk {
 			case kXor_BlendMode:           //!< r = (1-da)*s + (1-sa)*d
 				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case kPlus_BlendMode:          //!< r = min(s + d, 1)
+			case kPlus_BlendMode:          //!< r = s + d
 				glBlendFunc(GL_ONE, GL_ONE);
 				break;
-			case kModulate_BlendMode:      //!< r = s*d
+			case kModulateStraight_BlendMode: //!< r = s*d
 				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 				break;
-			case kScreen_BlendMode:        //!< r = s + d - s*d
+			case kScreenStraight_BlendMode: //!< r = s + (1-s)*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
 				break;
-			case kMultiply_BlendMode:      //!< r = d*s + (1-sa)*d
+			case kMultiplyStraight_BlendMode: //!< r = d*s + (1-sa)*d
 				glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case kAdditive_BlendMode:
+			case kPlusStraight_BlendMode:
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //!< r = sa*s + d
 				break;
 		}
@@ -627,22 +649,21 @@ namespace qk {
 	}
 
 	bool GLRender::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
-		if (isReleased()) {
+		if (isReleased())
 			return false; // Render is release, do not create new texture
-		} else {
-			return gl_new_texture(pix, levels, out, mipmap);
-		}
+		return gl_new_texture(pix, levels, out, mipmap);
 	}
 
 	void GLRender::deleteTexture(TexStat *tex) {
-		if (!isReleased()) { // Render is not release, delete texture
-			glDeleteTextures(1, &tex->id);
-			delete tex;
-		}
+		if (isReleased()) return;
+		// Render is not release, delete texture
+		glDeleteTextures(1, &tex->id);
+		delete tex;
 	}
 
 	bool GLRender::createVertexData(VertexData::ID *id) {
 		if (isReleased()) return false;
+		// Qk_ASSERT_EQ(id->host->_render, this, "VertexData host render mismatch");
 		if (!id->a)
 			gl_new_vertex_data(id);
 		return true;
@@ -650,25 +671,34 @@ namespace qk {
 
 	void GLRender::deleteVertexData(VertexData::ID *id) {
 		if (isReleased()) return;
+		// Qk_ASSERT_EQ(id->host->_render, this, "VertexData host render mismatch");
 		if (id->a) {
 			gl_delete_vertex_data(id);
 		}
 	}
 
-	// ------------------------------------------------
+	// --------------------------------------------------
 
 	bool GLRenderResource::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
-		if (gl_new_texture(pix, levels, out, mipmap)) {
-			glFlush(); // commit new texture command
-			return true;
-		}
-		return false;
+		return gl_new_texture(pix, levels, out, mipmap);
 	}
 
 	void GLRenderResource::deleteTexture(TexStat *tex) {
 		glDeleteTextures(1, &tex->id);
-		glFlush(); // commit delete texture command
 		delete tex;
+	}
+
+	bool GLRenderResource::createVertexData(VertexData::ID *id) {
+		if (!id->a)
+			gl_new_vertex_data(id);
+		// glFlush(); // commit delete texture command
+		return true;
+	}
+
+	void GLRenderResource::deleteVertexData(VertexData::ID *id) {
+		if (id->a) {
+			gl_delete_vertex_data(id);
+		}
 	}
 
 	void GLRenderResource::post_message(Cb cb) {

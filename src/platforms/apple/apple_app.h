@@ -32,7 +32,7 @@
 
 #ifndef __quark__apple__apple_app__
 #define __quark__apple__apple_app__
-#include "../../render/apple/apple_render.h"
+#include "../../render/plotforms.h"
 #include "../../ui/types.h"
 
 #if Qk_APPLE

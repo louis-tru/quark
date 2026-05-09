@@ -39,11 +39,11 @@
 #if DEBUG
 # define Qk_Assert_FirstThread(...) \
 	Qk_ASSERT(RunLoop::is_first(), ##__VA_ARGS__)
-# define Qk_Assert_ReaderThread(...) \
-	Qk_ASSERT(_window->isRenderThread(), ##__VA_ARGS__)
+# define Qk_Assert_IsUILocked(...) \
+	Qk_ASSERT(_window->isUILocked(), ##__VA_ARGS__)
 #else
 # define Qk_Assert_FirstThread(...) (void)0
-# define Qk_Assert_ReaderThread(...) (void)0
+# define Qk_Assert_IsUILocked(...) (void)0
 #endif
 
 namespace qk {
@@ -863,7 +863,7 @@ namespace qk {
 		template<bool isRT = false>
 		inline void mark(uint32_t mark, bool orIsRt = false) {
 			if (isRT || orIsRt) {
-				Qk_Assert_ReaderThread("View::mark can only be called on the render thread");
+				Qk_Assert_IsUILocked("View::mark can only be called on the render thread");
 				mark_rt_(mark);
 			} else {
 				Qk_Assert_FirstThread("View::mark can only be called on the main thread");
@@ -881,7 +881,7 @@ namespace qk {
 		template<bool isRT = false>
 		inline void mark_layout(uint32_t mark, bool orIsRt = false) {
 			if (isRT || orIsRt) {
-				Qk_Assert_ReaderThread("View::mark_layout can only be called on the render thread");
+				Qk_Assert_IsUILocked("View::mark_layout can only be called on the render thread");
 				mark_layout_rt_(mark);
 			} else {
 				Qk_Assert_FirstThread("View::mark_layout can only be called on the main thread");

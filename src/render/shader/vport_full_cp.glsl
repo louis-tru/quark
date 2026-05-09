@@ -12,7 +12,7 @@ void main() {
 }
 
 #frag
-layout(binding=3)  uniform sampler2D image;
+layout(binding=4)  uniform sampler2D image;
 layout(location=1) in vec2 coords;
 
 void main() {
