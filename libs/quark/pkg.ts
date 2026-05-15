@@ -395,7 +395,7 @@ function lookup(request: string, parent?: Module): LookupResult | null {
 */
 export interface PackageJson {
 	name: string; //!<
-	main?: string; //!<
+	main: string; //!<
 	version: string; //!<
 	description?: string; //!<
 	scripts?: Dict<string>; //!<
@@ -1191,7 +1191,7 @@ class QkPackage extends Package {
 			return cached;
 		}
 		if (!pathname) {
-			pathname = self.json.main || 'index.js'; // it must be a standard
+			pathname = self.json.main; // it must be a standard
 		}
 		let pathnames = [...Object.keys(Module._extensions), ''].map(e=>pathname+e);
 
