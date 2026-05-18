@@ -24,7 +24,7 @@ public:
 
 		Paint paint;
 		paint.fill.color = Color4f(0, 0, 1);
-		auto path = Path::MakeArc({1,298}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		auto path = Path::MakeArc({1,298}, Qk_PI_2_1 * 1.0f, Qk_PI + Qk_PI_2_1, true);
 
 		_c->clearColor({0,0,0,0});
 		_c->drawPath(path, paint);

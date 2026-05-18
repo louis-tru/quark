@@ -209,7 +209,7 @@ namespace qk {
 	 * Only one of these is typically active per paint operation.
 	 */
 	struct PaintStyle {
-		Color4f        color;                 //!< Solid color value.
+		Color4f        color = {1,1,1,1};     //!< Solid color value.
 		PaintImage*    image = nullptr;       //!< Image or sub-canvas source (weak).
 		PaintGradient* gradient = nullptr;    //!< Gradient color definition (weak).
 	};

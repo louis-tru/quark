@@ -25,6 +25,7 @@ public:
 		//canvas->clearColor(Color4f(1,1,1));
 		//canvas->drawColor(Color4f(1,0,0));
 		Paint paint;
+		paint.blendMode = kSrcOverStraight_BlendMode;
 
 		// -------- clip ------
 		canvas->save();
@@ -87,17 +88,17 @@ public:
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI, 1), paint);
 		}
 
-		{ // font text
-			paint.fill.color = Color4f(255,0,255);
-			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
-			auto pool = shared_app()->fontPool();
-			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
-			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);
-			Vec2 origin(10,60);
-			for (auto &fg: fgs) {
-				origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
-			}
-		}
+//		{ // font text
+//			paint.fill.color = Color4f(255,0,255);
+//			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
+//			auto pool = shared_app()->fontPool();
+//			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
+//			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);
+//			Vec2 origin(10,60);
+//			for (auto &fg: fgs) {
+//				origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
+//			}
+//		}
 
 		{ // outline
 			paint.fill.color = Color4f(0, 0, 0);

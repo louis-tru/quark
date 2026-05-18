@@ -32,12 +32,10 @@ float getPos(int i) {
 
 void main() {
 	float weight = length((position-pc.range.xy)/pc.range.zw); // 0 - 1
-// #ifdef Qk_SHADER_IF_FLAGS_COUNT2
 	if ((pc.flags & Qk_FLAG_COUNT2) != 0) {
 		float w = (weight - getPos(0)) / (getPos(1) - getPos(0));
 		fragColor = mix(colors[0], colors[1], w);
 	} else {
-// #else
 		int s = 0;
 		int e = pc.count-1;
 		while (s+1 < e) {/*dichotomy search color value*/
@@ -53,7 +51,6 @@ void main() {
 		float w = (weight - getPos(s)) / (getPos(e) - getPos(s));
 		fragColor = mix(colors[s], colors[e], w);
 	}
-// #endif
 	fragColor *= pc.color;
 	fragColor *= 1.0 - abs(aafuzz); // premultiplied alpha
 

@@ -38,7 +38,6 @@
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
 #define Qk_FLAG_AACLIP (1u << 0)
-#define Qk_FLAG_Y_FLIPPED (1u << 1)
 #define Qk_AACLIP(clip) (clip ? Qk_FLAG_AACLIP: 0)
 
 namespace qk {
