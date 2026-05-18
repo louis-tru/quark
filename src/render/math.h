@@ -164,7 +164,16 @@ namespace qk {
 	template<> bool Vec<float,2>::is_zero_axis() const;
 
 	// ------------------------------------------
-
+	// Qk Coordinate System
+	// 2D/UI:
+	// x right+
+	// y down+
+	// clockwise positive rotation
+	// 3D:
+	// left-handed
+	// positive z forward
+	// clockwise positive rotation
+	// Euler order: ZXY
 	struct Qk_EXPORT Vec2: Vec<float,2> {
 	#define Qk_Default_Vec_Operator(Name,T,Len) \
 		Name(); \
@@ -393,12 +402,32 @@ namespace qk {
 		Mat4 transpose() const;
 
 		/**
-		 * @method frustum Create a perspective frustum matrix
+		 * Create a perspective projection matrix.
+		 * Uses Qk screen-space / left-handed convention:
+		 *   x right+
+		 *   y down+
+		 *   z forward+
+		 * Maps camera-space z after perspective divide:
+		 *   near -> -1
+		 *   far  ->  1
+		 * Requires:
+		 *   right != left
+		 *   bottom != top
+		 *   far != near
+		 *   near > 0
+		 *   far  > near
 		 */
 		static Mat4 frustum(float left, float right, float top, float bottom, float near, float far);
 
 		/**
-		 * @method ortho Create an orthogonal projection matrix
+		 * Create an orthogonal projection matrix.
+		 * Uses Qk screen-space convention:
+		 *   x right+
+		 *   y down+
+		 *   z forward+
+		 * Z is mapped linearly without sign inversion:
+		 *   near -> -1
+		 *   far  ->  1
 		 */
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};

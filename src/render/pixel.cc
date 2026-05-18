@@ -60,6 +60,8 @@ namespace qk {
 			case kRGB_444X_ColorType:  return 2;
 			case kRGBA_8888_ColorType: return 4;
 			case kRGB_888X_ColorType: return 4;
+			case kBGRA_8888_ColorType: return 4;
+			case kBGR_888X_ColorType: return 4;
 			case kRGBA_1010102_ColorType: return 4;
 			case kRGB_101010X_ColorType: return 4;
 			case kRGB_888_ColorType: return 3;
@@ -79,7 +81,7 @@ namespace qk {
 	{}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-		, _val(reinterpret_cast<uint8_t*>(pixel.body().copy().collapse()))
+		, _val(reinterpret_cast<uint8_t*>(pixel.buffer().copy().collapse()))
 		, _length(pixel._length)
 		, _body(nullptr) {
 	}
@@ -121,7 +123,7 @@ namespace qk {
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
 		this->~Pixel();
-		_val    = reinterpret_cast<uint8_t*>(pixel.body().copy().collapse());
+		_val    = reinterpret_cast<uint8_t*>(pixel.buffer().copy().collapse());
 		_length = pixel.length();
 		return *this;
 	}
@@ -135,7 +137,7 @@ namespace qk {
 		return *this;
 	}
 
-	WeakBuffer Pixel::body() const {
+	WeakBuffer Pixel::buffer() const {
 		return WeakBuffer(reinterpret_cast<cChar*>(_val), _length);
 	}
 

@@ -300,8 +300,8 @@ namespace qk {
 		}));
 
 		auto region = _surfaceDisplayRange;
-		Vec2 start = Vec2(-region.begin.x() / _scale, -region.begin.y() / _scale);
-		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
+		Vec2 start = -region.begin / Vec2(_scale);
+		Vec2 end   = region.size / Vec2(_scale) + start;
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
 		reload_root();

@@ -196,10 +196,14 @@ namespace qk {
 
 		/**
 		 * Draws a triangle mesh.
-		 * 
-		 * @note Vertex/index data must remain alive until GPU submission finishes.
+		 *
+		 * @param copyData If true, vertex/index data will be copied internally and may
+		 *        be released by the caller immediately after this call returns.
+		 *
+		 * @note If copyData is false, vertex/index data must remain alive until GPU
+		 *       submission finishes.
 		 */
-		virtual void drawTriangles(const Triangles& triangles, const Paint& paint) = 0;
+		virtual void drawTriangles(const Triangles& triangles, const Paint& paint, bool copyData = false) = 0;
 
 		/**
 		 * Optimized rounded-rect blur drawing using solid color fill.
@@ -218,20 +222,6 @@ namespace qk {
 		// ---------------------------------------------------------------------
 
 		/**
-		 * @method readPixels
-		 * 
-		 * Synchronously reads pixel data from the current render surface into `dst`.
-		 * 
-		 * ⚠️ **Warning — blocks the rendering pipeline:**  
-		 * This call forces a full GPU→CPU sync and stalls the graphics command queue,
-		 * which can severely impact performance, especially when invoked per frame.
-		 * 
-		 * Use only for debugging or one-time readback.  
-		 * For general use, prefer the asynchronous `readImage()` method instead.
-		 */
-		virtual bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) = 0;
-
-		/**
 		 * @brief Asynchronously reads a rectangular region into a GPU-side ImageSource.
 		 *
 		 * Unlike `readPixels()`, this method does **not** stall the rendering pipeline.
@@ -244,17 +234,17 @@ namespace qk {
 		 *
 		 * @param src   Source rectangle in current render target coordinates.
 		 * @param dest  Destination offset within the new image.
-		 * @param type  Color format for the image (default: RGBA_8888).
+		 * @param type  Color format for the image (default: auto select based on backend capabilities).
 		 * @param mode  Blend mode used when compositing into the image.
-		 * @param isMipmap  Whether to generate mipmaps for the resulting texture.
+		 * @param mipmap  Whether to generate mipmaps for the resulting texture.
 		 * @return A shared pointer to the resulting GPU-resident `ImageSource`.
 		 *
 		 * @note This operation is non-blocking on the CPU, but the GPU copy cost still
 		 *       depends on backend implementation and queue synchronization.
 		 */
-		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, 
-			ColorType type = kRGBA_8888_ColorType,
-			BlendMode mode = kSrcOver_BlendMode, bool isMipmap = false) = 0;
+		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest,
+			ColorType type = kInvalid_ColorType,
+			BlendMode mode = kSrc_BlendMode, bool mipmap = false) = 0;
 
 		/**
 		 * @brief Creates or binds a render target image as current output.
@@ -263,9 +253,9 @@ namespace qk {
 		 * All subsequent draw calls will render into this image until `restore()` is invoked.
 		 * 
 		 * @param dest Existing image target (optional).
-		 * @param isMipmap Whether to generate mipmaps for the render target.
+		 * @param mipmap Whether to generate mipmaps for the render target.
 		 */
-		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap = false) = 0;
+		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool mipmap = false) = 0;
 
 		/**
 		 * @brief Draws a pre-computed text blob with baseline alignment.
@@ -279,8 +269,25 @@ namespace qk {
 		/** Returns true if this canvas is backed by GPU rendering. */
 		virtual bool isGpu();
 
-		/** Swaps internal draw command buffers (multi-queue renderers). */
-		virtual void swapBuffer() = 0;
+		/**
+		 * Swap internal draw command buffers.
+		 *
+		 * Used by multi-queue / asynchronous render backends to move the current
+		 * recording command buffer to the front execution queue.
+		 *
+		 * @returns true if the backend front queue is available and the swap
+		 *          operation completed successfully.
+		 *
+		 *          Returning false means the previous front command buffer is still
+		 *          pending execution or flushing, and the backend is currently busy.
+		 *          In this case the caller may choose to:
+		 *
+		 *            - keep recording commands and retry later
+		 *            - discard current unsubmitted commands
+		 *            - merge commands into a future frame
+		 *            - or apply other back-pressure strategies
+		 */
+		virtual bool swapBuffer() = 0;
 
 		/** Returns the cached path vectorizer for path reuse. */
 		virtual PathvCache* getPathvCache() = 0;
@@ -296,7 +303,10 @@ namespace qk {
 		/** Simplified overload of setSurface(). */
 		void setSurface(Vec2 surfaceSize, float scale = 1);
 
-		/** Returns the drawable surface size in pixels. */
+		/**
+		 * Returns the drawable surface size in pixels.
+		 * size = surfaceSize / scale (as set by setSurface())
+		 */
 		virtual Vec2 size() = 0;
 
 	protected:

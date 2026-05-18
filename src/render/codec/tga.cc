@@ -297,7 +297,7 @@ namespace qk {
 			memcpy(*ret_data, &header, sizeof(TGAHeader));
 
 			auto pixels = pix->width() * pix->height();
-			auto src  = (const uint8_t*)pix->body().val();
+			auto src  = (const uint8_t*)pix->buffer().val();
 			auto dest = (uint8_t*)*ret_data + sizeof(TGAHeader);
 
 			if (pix->type() != kRGBA_8888_ColorType) {

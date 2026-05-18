@@ -163,7 +163,12 @@ namespace qk {
 	void Application::clear(bool all) {
 		check_is_first_loop();
 		for (auto i: _windows) {
-			i->render()->getCanvas()->getPathvCache()->clear(all);
+			// TODO Not yet implemented,
+			// Because currently it can only be called on the rendering thread, and the method is private,
+			// So it is temporarily not implemented.
+			// i->render()->post_message(Cb([render=i->render(),all](auto& d) {
+			// 	render->getCanvas()->getPathvCache()->clear(all?2:0);
+			// }, i));
 		}
 		_imgPool->clear(all); // clear image cache
 	}

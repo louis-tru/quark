@@ -224,7 +224,7 @@ namespace qk {
 	}
 
 	Typeface::TextImage Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,
-			cArray<Vec2> *offset, RenderBackend *render)
+			cArray<Vec2> *offset)
 	{
 		if (offset) {
 			Qk_ASSERT(offset->length() >= glyphs.length());
@@ -232,29 +232,29 @@ namespace qk {
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
 		}
-		return onGetImage(glyphs, fontSize, offset, 0.1, true, render);
+		return onGetImage(glyphs, fontSize, offset, 0.1, true);
 	}
 
 	Typeface::TextImage Typeface::getSDFImage(cArray<GlyphID> &glyphs,
-		float fontSize, cArray<Vec2> *offset, bool is_signed, RenderBackend *render) {
+		float fontSize, cArray<Vec2> *offset, bool is_signed) {
 		if (offset) {
 			Qk_ASSERT(offset->length() >= glyphs.length());
 		}
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
 		}
-		auto out = onGetImage(glyphs, fontSize, offset, 0.4, true, nullptr);
+		auto out = onGetImage(glyphs, fontSize, offset, 0.4, true);
 		auto w = out.image->width();
 		auto h = out.image->height();
 
 		switch(out.image->type()) {
 			case kAlpha_8_ColorType:
 				out.image = ImageSource::Make(compute_distance_f32(
-						out.image->pixel(0)->val(), w, h, 1, is_signed), render);
+						out.image->pixel(0)->val(), w, h, 1, is_signed));
 				break;
 			case kRGBA_8888_ColorType: {
 				auto val = out.image->pixel(0)->val();
-				out.image = ImageSource::Make(compute_distance_f32(val + 3, w, h, 4, is_signed), render);
+				out.image = ImageSource::Make(compute_distance_f32(val + 3, w, h, 4, is_signed));
 				break;
 			}
 			default: break;

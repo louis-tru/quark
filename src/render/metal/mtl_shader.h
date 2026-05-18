@@ -45,16 +45,36 @@
 
 namespace qk {
 #ifdef __OBJC__
-	typedef id<MTLRenderPipelineState> MTLRenderPipelineStateID;
+	typedef id<MTLRenderPipelineState> MTLPipeline;
 	typedef id<MTLFunction> MTLFunctionID;
 	typedef id<MTLDevice> MTLDeviceID;
 	typedef id<MTLCommandQueue> MTLCommandQueueID;
+	typedef id<MTLSamplerState> MTLSampler;
+	typedef id<MTLRenderCommandEncoder> MTLRenderEncoder;
+	typedef id<MTLTexture> MTLTextureID;
+	typedef id<MTLCommandBuffer> MTLCommandBuffer;
+	typedef id<MTLRenderPassDescriptor> MTLPassDescriptor;
 #else
-	typedef void* MTLRenderPipelineStateID;
+	typedef void* MTLPipeline;
 	typedef void* MTLFunctionID;
 	typedef void* MTLDeviceID;
 	typedef void* MTLCommandQueueID;
+	typedef void* MTLSampler;
+	typedef void* MTLRenderEncoder;
+	typedef void* MTLTextureID;
+	typedef void* MTLCommandBuffer;
+	typedef void* MTLPassDescriptor;
 #endif
+
+	struct Vec3Padding {
+		Vec3 value;
+		float padding;
+	};
+
+	struct IVec3Padding {
+		IVec3 value;
+		int32_t padding;
+	};
 
 	enum MSLPipelineKind: uint8_t;
 
@@ -74,11 +94,11 @@ namespace qk {
 
 	struct MSLShader {
 		MSLShaderSource source; // shader source
-		Array<MSLShaderAttr> vertexAttrs; // vertex attributes format
+		Array<MSLShaderAttr> attributes; // vertex attributes format
 		uint32_t bufferIndex; // vertex buffer index
-		MTLRenderPipelineStateID getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount);
+		MTLPipeline getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount);
 	protected:
-		Dict<uint32_t, MTLRenderPipelineStateID> _pipelines;
+		Dict<uint32_t, MTLPipeline> _pipelines;
 	};
 }
 

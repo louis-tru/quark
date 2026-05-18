@@ -69,11 +69,12 @@ namespace qk {
 	 *   Premultiplied alpha compositing
 	 */
 	enum BlendMode {
-		kClear_BlendMode,         //!< r = (1-sa)*d
+		kInvalid_BlendMode,       //!< Invalid blend mode, used for error handling
+		kClear_BlendMode,         //!< r = 0
 		kSrc_BlendMode,           //!< r = s
-		kDst_BlendMode,           //!< r = d
-		kSrcOverStraight_BlendMode,//!< r = sa*s + (1-sa)*d, recommended to use kSrcOverPre_BlendMode
+		kSrcOverStraight_BlendMode,//!< r = sa*s + (1-sa)*d, recommended to use kSrcOver_BlendMode
 		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
+		kDst_BlendMode,           //!< r = d
 		kDstOver_BlendMode,       //!< r = (1-da)*s + d
 		kSrcIn_BlendMode,         //!< r = da*s
 		kDstIn_BlendMode,         //!< r = sa*d

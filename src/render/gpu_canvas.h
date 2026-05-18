@@ -1,0 +1,144 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2015, Louis.chu
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Louis.chu nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+// @private head
+
+#ifndef __quark_render_gpucanvas__
+#define __quark_render_gpucanvas__
+
+#include "./render.h"
+#include "./canvas.h"
+
+namespace qk {
+
+	struct GC_State { // gpu canvas state
+		struct Clip { // canvas clip
+			Mat             matrix;
+			VertexData      vertex,aafuzz;
+			Canvas::ClipOp  op;
+			bool            aaclip; // is aaclip
+		};
+		Mat         matrix;
+		uint32_t    aaclip; // Is there a aa clip area and aaclip count
+		Array<Clip> clips; // clip queue
+		Sp<ImageSource> output; // output dest texture, null for default framebuffer
+	};
+
+	enum GC_ClearFlags {
+		kBlend_ClearFlags, // only clear blend mode, not clear color and depth and stencil
+		kOnlyColor_ClearFlags, // only clear color, not clear depth and stencil
+		kClearAll_ClearFlags, // clear color and depth and stencil
+	};
+
+	class GC_Filter;
+	class GC_BlurFilter;
+
+	/**
+	 * @class GPUCanvas - A Canvas implementation that renders using GPU acceleration.
+	 */
+	class GPUCanvas: public Canvas {
+	public:
+		GPUCanvas(Render *render, Render::Options opts);
+		~GPUCanvas() override;
+		Vec2 size() override; // _size = surfaceSize / scale
+		bool isGpu() override;
+		int  save() override;
+		void restore(uint32_t count) override;
+		int  getSaveCount() const override;
+		const Mat& getMatrix() const override;
+		void setMatrix(const Mat& mat) override;
+		void setTranslate(Vec2 val) override;
+		void translate(Vec2 val) override;
+		void scale(Vec2 val) override;
+		void rotate(float z) override;
+		void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
+		void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
+		void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
+		void clearColor(const Color4f& color) override;
+		void drawColor(const Color4f& color, BlendMode mode) override;
+		void drawPath(const Path& path, const Paint& paint) override;
+		void drawPathv(const Pathv& path, const Paint& paint) override;
+		void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawRRectBlurColor(const Rect& rect,
+			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
+		void drawRect(const Rect& rect, const Paint& paint) override;
+		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
+		float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
+		void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
+		void drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) override;
+		Sp<ImageSource> readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) override;
+		Sp<ImageSource> outputImage(ImageSource* dst, bool mipmap) override;
+		PathvCache* getPathvCache() override;
+		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
+		Vec2 surfaceSize() { return _surfaceSize; }
+	protected:
+		virtual void setSurfaceCmd(bool changeSize) = 0;
+		virtual void setMatrixCmd() = 0;
+		virtual void setBlendModeCmd() = 0;
+		virtual void enableStencilTestCmd(bool enable) = 0;
+		virtual void drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) = 0;
+		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
+		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
+		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
+		virtual void drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
+		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
+		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
+		virtual void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+				const Color4f &strokeColor, float stroke) = 0;
+		virtual void blurFilterBeginCmd(Range bounds, float radius, float clearPad) = 0;
+		virtual void blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) = 0;
+		virtual void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) = 0;
+		virtual void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dst) = 0;
+		virtual void outputImageBeginCmd(ImageSource* dst) = 0;
+		virtual void outputImageEndCmd(ImageSource* exit) = 0;
+	// fields:
+		Array<GC_State> _stateStack; // state
+		GC_State    *_state; // state pointer
+		PathvCache *_cache;
+		uint32_t _stencilRef, _stencilRefDrop; // stencil clip state
+		float  _zDepth;
+		float  _surfaceScale, _scale;
+		float  _allScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
+		Vec2   _size, _surfaceSize; // canvas size and surface size
+		Mat4   _rootMatrix;
+		BlendMode _blendMode; // blend mode state
+		uint8_t  _DeviceMsaa; // device anti alias, msaa
+		bool   _clipState; // clip state
+		Render::Options _opts;
+		Mutex _mutex; // submit swap mutex
+
+		friend class GC_Filter;
+		friend class GC_BlurFilter;
+		Qk_DEFINE_INLINE_CLASS(Inl);
+	};
+
+}
+#endif

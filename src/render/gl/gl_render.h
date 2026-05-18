@@ -49,27 +49,28 @@ namespace qk {
 		void release() override;
 		void reload() override;
 		Canvas* createCanvas(Options opts) override;
-		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		bool createVertexData(VertexData::ID *id) override;
-		void deleteTexture(TexStat *tex) override;
-		void deleteVertexData(VertexData::ID *id) override;
+		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadTexture(TexStat *tex) override;
+		void unloadVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render thread
 		virtual void unlock(); // unlock render
 		// set gl state
-		void gl_set_blend_mode(BlendMode mode);
-		bool gl_set_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
-		void gl_set_texture_param(TexStat *tex, uint32_t slot, const PaintImage* paint);
-		GLuint gl_get_tex_sampler(const PaintImage* paint);
+		void set_blend_mode(BlendMode mode);
+		void set_viewport(Vec2 size);
+		bool use_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
+		void set_texture_param(GLuint tex, int slot, const PaintImage* paint);
+		GLuint get_tex_sampler(const PaintImage* paint);
 	protected:
-		GLRender(Options opts);
+		explicit GLRender(Options opts);
 		// define props
-		TexStat **_texStat; // temp tbo
 		GLuint _ubo0,_ubo1,_ubo2,_ubo3; // ubo: rootMatrixBlock,viewportBlock,Other0,Other1
 		GLuint _ebo; // temp ebo, GL_ELEMENT_ARRAY_BUFFER
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
 		Dict<uint32_t, GLuint> _texSamplers; // PaintImage => Sampler
+		Vec2 _vportSize; // last viewport size
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 	};
@@ -80,10 +81,10 @@ namespace qk {
 	class GLRenderResource: public RenderResource {
 	public:
 		void post_message(Cb cb) override;
-		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		bool createVertexData(VertexData::ID *id) override;
-		void deleteTexture(TexStat *tex) override;
-		void deleteVertexData(VertexData::ID *id) override;
+		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadTexture(TexStat *tex) override;
+		void unloadVertexData(VertexData::ID *id) override;
 	protected:
 		explicit GLRenderResource(RunLoop *loop): _loop(loop) {}
 	private:

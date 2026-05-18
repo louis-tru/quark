@@ -6,8 +6,8 @@
 #define gk(x) exp(-x*x*2.0)
 
 void main() {
-	vec2  coord = gl_FragCoord.xy / pc.oResolution;
-	vec4  o = textureLod(image, coord, pc.imageLod);
+	vec2  coord = gl_FragCoord.xy / pc.oResolution; // coord uv
+	vec4  o = textureLod(image, coord, pc.imageLod); // original color
 	float g, x = -1.0, t = 0.0;
 
 	do {

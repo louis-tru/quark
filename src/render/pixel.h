@@ -34,6 +34,7 @@
 #include "../util/util.h"
 #include "../util/string.h"
 #include "../util/array.h"
+#include "./math.h"
 
 namespace qk {
 	class         PixelInfo;
@@ -122,6 +123,7 @@ namespace qk {
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType);
 		uint32_t rowbytes() const;
 		uint32_t bytes() const;
+		Vec2 size() const { return Vec2(_width, _height); }
 		friend class ImageSource;
 	};
 
@@ -144,7 +146,7 @@ namespace qk {
 
 		Qk_DEFINE_PROP_GET(uint8_t*, val);
 		Qk_DEFINE_PROP_GET(uint32_t, length, Const);
-		Qk_DEFINE_ACCE_GET(WeakBuffer, body, Const);
+		Qk_DEFINE_ACCE_GET(WeakBuffer, buffer, Const);
 
 		inline const uint8_t* val() const { return _val; }
 

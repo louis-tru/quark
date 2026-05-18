@@ -29,8 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 // ------------------- Metal ------------------
-#import "../plotforms.h"
+
 #if Qk_ENABLE_METAL
+#import "../plotforms.h"
 #import "../metal/mtl_render.h"
 #import "../metal/mtl_canvas.h"
 #import <Metal/Metal.h>
@@ -41,43 +42,15 @@
 
 using namespace qk;
 
-// -----------------------------------------------------------------------
-// Shared Metal view (CAMetalLayer-backed)
-// -----------------------------------------------------------------------
-#if Qk_iOS
 @interface MTLSurfaceView: UIView
 @end
-@implementation MTLSurfaceView
-+ (Class)layerClass { return CAMetalLayer.class; }
-@end
-#else // macOS
-@interface MTLSurfaceView: NSView
-@end
-@implementation MTLSurfaceView
-- (CALayer*)makeBackingLayer { return [CAMetalLayer layer]; }
-- (BOOL)wantsUpdateLayer { return YES; }
-@end
-#endif
-
-// -----------------------------------------------------------------------
-// AppleMetalRender
-// -----------------------------------------------------------------------
-namespace qk {
-
-void* acquireRenderBackendStorage(size_t typeHash, size_t size);
-class AppleMetalRender;
-static AppleMetalRender *g_sharedRenderResource = nullptr;
 
 class AppleMetalRender final: public MetalRender, public RenderSurface {
 public:
 	AppleMetalRender(Options opts)
 		: MetalRender(opts)
 		, _view(nil), _metalLayer(nil), _isRun(false)
-#if Qk_iOS
 		, _displayLink(nil)
-#else
-		, _displayLink(nullptr)
-#endif
 	{}
 
 	~AppleMetalRender() {
@@ -89,9 +62,6 @@ public:
 		MetalRender::release();
 		_view       = nil;
 		_metalLayer = nil;
-		if (g_sharedRenderResource == this) {
-			g_sharedRenderResource = nullptr;
-		}
 		Object::release();
 	}
 
@@ -119,55 +89,51 @@ public:
 #else
 		CGRect frame  = _view.frame;
 		CGSize size   = frame.size;
-		float  scale  = _view.window ? _view.window.backingScaleFactor : NSScreen.mainScreen.backingScaleFactor;
+		float  scale  = _view.window ? _view.window.backingScaleFactor: UIScreen.mainScreen.backingScaleFactor;
 #endif
 		return Vec2(size.width * scale, size.height * scale);
-	}
-
-	// Present canvas content to the CAMetalLayer drawable
-	void presentDrawable() {
-		if (!_metalLayer) return;
-		auto canvas = static_cast<MTLCanvas*>(mtlCanvas());
-		if (!canvas || !canvas->colorTexture()) return;
-
-#if Qk_iOS
-		auto scale = UIScreen.mainScreen.scale;
-#else
-		auto scale = _view.window ? _view.window.backingScaleFactor : NSScreen.mainScreen.backingScaleFactor;
-#endif
-		_metalLayer.drawableSize = CGSizeMake(_view.bounds.size.width * scale, _view.bounds.size.height * scale);
-
-		id<CAMetalDrawable> drawable = [_metalLayer nextDrawable];
-		if (!drawable) return;
-
-		// Copy from offscreen color texture to drawable using vportFullCp shader
-		auto cb  = [_commandQueue commandBuffer];
-		auto rpd = [MTLRenderPassDescriptor new];
-		rpd.colorAttachments[0].texture     = drawable.texture;
-		rpd.colorAttachments[0].loadAction  = MTLLoadActionDontCare;
-		rpd.colorAttachments[0].storeAction = MTLStoreActionStore;
-
-		auto enc = [cb renderCommandEncoderWithDescriptor:rpd];
-		auto pso = blitPipeline(surfacePixelFormat());
-		if (pso) {
-			[enc setRenderPipelineState:pso];
-			// vportFullCp vert: uses vertex_id only (no buffers)
-			// frag: tex(0) = image (no PcArgs)
-			[enc setFragmentTexture:canvas->colorTexture() atIndex:0];
-			[enc setFragmentSamplerState:mtlSampler() atIndex:0];
-			[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-		}
-		[enc endEncoding];
-		[cb presentDrawable:drawable];
-		[cb commit];
 	}
 
 	void renderDisplay() {
 		lock();
 		if (_delegate->onRenderBackendDisplay()) {
+			_mtlcanvas->flushBuffer();
+
+			// Present canvas content to the CAMetalLayer drawable
+			if (!_metalLayer) return;
 			auto canvas = static_cast<MTLCanvas*>(mtlCanvas());
-			canvas->flushBuffer();
-			presentDrawable();
+			if (!canvas || !canvas->colorTexture()) return;
+
+#if Qk_iOS
+			auto scale = UIScreen.mainScreen.scale;
+#else
+			auto scale = _view.window ? _view.window.backingScaleFactor : UIScreen.mainScreen.backingScaleFactor;
+#endif
+			_metalLayer.drawableSize = CGSizeMake(_view.bounds.size.width * scale, _view.bounds.size.height * scale);
+
+			id<CAMetalDrawable> drawable = [_metalLayer nextDrawable];
+			if (!drawable) return;
+
+			// Copy from offscreen color texture to drawable using vportFullCp shader
+			auto cb  = [_commandQueue commandBuffer];
+			auto rpd = [MTLRenderPassDescriptor new];
+			rpd.colorAttachments[0].texture     = drawable.texture;
+			rpd.colorAttachments[0].loadAction  = MTLLoadActionDontCare;
+			rpd.colorAttachments[0].storeAction = MTLStoreActionStore;
+
+			auto enc = [cb renderCommandEncoderWithDescriptor:rpd];
+			auto pso = blitPipeline(surfacePixelFormat());
+			if (pso) {
+				[enc setRenderPipelineState:pso];
+				// vportFullCp vert: uses vertex_id only (no buffers)
+				// frag: tex(0) = image (no PcArgs)
+				[enc setFragmentTexture:canvas->colorTexture() atIndex:0];
+				[enc setFragmentSamplerState:mtlSampler() atIndex:0];
+				[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+			}
+			[enc endEncoding];
+			[cb presentDrawable:drawable];
+			[cb commit];
 		}
 		unlock();
 	}
@@ -195,20 +161,24 @@ private:
 	void startDisplay() {
 		if (_isRun) return;
 		_isRun = true;
+		auto self = this;
 #if Qk_iOS
 		_displayLink = [CADisplayLink displayLinkWithTarget:
-			[NSBlockOperation blockOperationWithBlock:^{ renderDisplay(); }]
+			[NSBlockOperation blockOperationWithBlock:^{
+				if (self->_isRun)
+					self->renderDisplay();
+			}]
 			selector:@selector(main)];
 		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 #else
-		auto self = this;
 		CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
 		CVDisplayLinkSetOutputHandler(_displayLink, ^CVReturn(CVDisplayLinkRef, const CVTimeStamp *,
-		                                                       const CVTimeStamp *, CVOptionFlags,
-		                                                       CVOptionFlags *) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				if (self->_isRun) self->renderDisplay();
-			});
+																													const CVTimeStamp *, CVOptionFlags,
+																													CVOptionFlags *) {
+			// dispatch_async(dispatch_get_main_queue(), ^{
+			if (self->_isRun)
+				self->renderDisplay();
+			// });
 			return kCVReturnSuccess;
 		});
 		CVDisplayLinkStart(_displayLink);
@@ -240,19 +210,25 @@ private:
 };
 
 // -----------------------------------------------------------------------
+// MTLSurfaceView implementation
+// -----------------------------------------------------------------------
+@implementation MTLSurfaceView
+#if Qk_iOS
++ (Class)layerClass { return CAMetalLayer.class; }
+#else // macOS
+- (CALayer*)makeBackingLayer { return [CAMetalLayer layer]; }
+- (BOOL)wantsUpdateLayer { return YES; }
+#endif
+@end
 
-RenderResource* getSharedRenderResource() {
-	return g_sharedRenderResource;
-}
+// -----------------------------------------------------------------------
+namespace qk {
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
-Render* make_metal_render(Render::Options opts) {
-	auto mem = acquireRenderBackendStorage(typeid(AppleMetalRender).hash_code(), sizeof(AppleMetalRender));
-	auto render = new(mem) AppleMetalRender(opts);
-	if (!g_sharedRenderResource) {
-		g_sharedRenderResource = render;
+	Render* make_metal_render(Render::Options opts) {
+		auto mem = acquireRenderBackendStorage(typeid(AppleMetalRender).hash_code(), sizeof(AppleMetalRender));
+		auto render = new(mem) AppleMetalRender(opts);
+		return render;
 	}
-	return render;
-}
-
 } // namespace qk
 #endif // Qk_ENABLE_METAL

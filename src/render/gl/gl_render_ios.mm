@@ -28,18 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../../util/macros.h"
+#if Qk_ENABLE_GL && Qk_iOS
+
 #import "../plotforms.h"
 #import "./gl_render.h"
 
 using namespace qk;
 
-// ------------------- OpenGL ------------------
-#if Qk_ENABLE_GL && Qk_iOS
-
 class IosGLRender;
-
-@interface GLView: UIView
-{
+@interface GLView: UIView {
 	CADisplayLink *_displayLink;
 	IosGLRender   *_render;
 }
@@ -51,7 +49,7 @@ class IosGLRender;
 // ----------------------------------------------------------------------------------------------
 
 class IosGLRender final: public GLRender, public RenderSurface {
-public:
+ public:
 	IosGLRender(Options opts, EAGLContext* ctx)
 		: GLRender(opts), _ctx(ctx), _layer(nil), _view(nil), _fbo_0(0), _rbo_0(0)
 	{
@@ -89,12 +87,21 @@ public:
 		Object::release(); // final destruction
 	}
 
+	bool isRenderThread() {
+		return _threadId == thread_self_id();
+	}
+
 	void lock() override {
-		_mutex.lock();
+		if (!isRenderThread()) { // avoid deadlock if already in render thread
+			_mutex.lock();
+			[EAGLContext setCurrentContext:_ctx];
+		}
 	}
 
 	void unlock() override {
-		_mutex.unlock();
+		if (!isRenderThread()) {
+			_mutex.unlock();
+		}
 	}
 
 	RenderSurface* surface() override {
@@ -102,9 +109,10 @@ public:
 	}
 
 	void post_message(Cb cb) override {
-		if (_ctx) { // render is not released
-			post_message_main(cb, false);
-		}
+		Qk_ASSERT(_ctx, "Render context is null. Cannot post message.");
+		// Send it directly to the main thread,
+		// because iOS renders everything on the main thread.
+		post_message_main(cb, false);
 	}
 
 	Vec2 getSurfaceSize() override {
@@ -115,7 +123,9 @@ public:
 	}
 
 	void renderDisplay() {
-		lock();
+		_mutex.lock();
+		_threadId = thread_self_id();
+		Qk_ASSERT_EQ(EAGLContext.currentContext, _ctx, "Failed to set current OpenGL context");
 
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmd
@@ -137,14 +147,14 @@ public:
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_0);
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, _glcanvas->fbo()); // restore default
 			}
-#if 0
+ #if 0
 			// copy pixels to fob_0/rbo_0 color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fbo_0);
 			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // restore default framebuffer
-#else
+ #else
 			_glcanvas->vportFullCopy(_fbo_0); // copy pixels to fob_0/rbo_0 color buffer
-#endif
+ #endif
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
@@ -153,7 +163,8 @@ public:
 			glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
 			[_ctx presentRenderbuffer: GL_RENDERBUFFER];
 		}
-		unlock();
+		_threadId = qk::ThreadID();
+		_mutex.unlock();
 	}
 
 	UIView* surfaceView() override {
@@ -175,46 +186,48 @@ public:
 		return _view;
 	}
 
-private:
+ private:
 	EAGLContext *_ctx;
 	CAEAGLLayer *_layer;
 	GLView      *_view;
 	Vec2       _rbo_0_size;
 	GLuint     _fbo_0, _rbo_0;
-	RecursiveMutex _mutex;
+	Mutex      _mutex;
+	qk::ThreadID _threadId;
 };
+
+// ----------------------------------------------------------------------------------------------
 
 @implementation GLView
 
-+ (Class) layerClass {
-	return CAEAGLLayer.class;
-}
-
-- (id) init:(IosGLRender*)render {
-	self = [super initWithFrame:UIScreen.mainScreen.bounds];
-	if (self) {
-		_isRun = true;
-		_render = render;
-		_displayLink = [CADisplayLink displayLinkWithTarget:self
-																								selector:@selector(renderDisplay:)];
-		//_displayLink.frameInterval = 0;
-		//_displayLink.preferredFramesPerSecond = 0;
-		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+	+ (Class) layerClass {
+		return CAEAGLLayer.class;
 	}
-	return self;
-}
 
-- (void) renderDisplay:(CADisplayLink*)displayLink {
-	if (_isRun) {
-		Qk_ASSERT(EAGLContext.currentContext, "Failed to set current OpenGL context");
-		_render->renderDisplay();
+	- (id) init:(IosGLRender*)render {
+		self = [super initWithFrame:UIScreen.mainScreen.bounds];
+		if (self) {
+			_isRun = true;
+			_render = render;
+			_displayLink = [CADisplayLink displayLinkWithTarget:self
+																									selector:@selector(renderDisplay:)];
+			//_displayLink.frameInterval = 0;
+			//_displayLink.preferredFramesPerSecond = 0;
+			[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+		}
+		return self;
 	}
-}
 
-- (void) stopDisplay {
-	[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-	_isRun = false;
-}
+	- (void) renderDisplay:(CADisplayLink*)displayLink {
+		if (_isRun) {
+			_render->renderDisplay();
+		}
+	}
+
+	- (void) stopDisplay {
+		[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+		_isRun = false;
+	}
 
 @end
 

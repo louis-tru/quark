@@ -111,6 +111,7 @@ namespace qk {
 
 		enum MipmapMode {
 			kNone_MipmapMode,          //!< No mipmaps, fastest, aliased.
+			kNearest_MipmapMode,       //!< Nearest mipmap level, nearest texel (fast, alias-prone).
 			kLinearNearest_MipmapMode, //!< Linear filtering in one layer only.
 			kNearestLinear_MipmapMode, //!< Nearest texel, blended between mip levels.
 			kLinear_MipmapMode,        //!< Trilinear filtering (best quality).
@@ -121,14 +122,14 @@ namespace qk {
 				(kClamp_TileMode << 8) |
 				(kClamp_TileMode << 10) |
 				(kNone_MipmapMode << 12) |
-				(kNearest_FilterMode << 14)
+				(kNearest_FilterMode << 13)
 			);
 			struct {
 				uint8_t     srcIndex: 8;     //!< Source pixel offset (reserved, usually 0).
 				TileMode    tileModeX: 2;    //!< Horizontal tile mode.
 				TileMode    tileModeY: 2;    //!< Vertical tile mode.
-				MipmapMode  mipmapMode: 2;   //!< Mipmap sampling mode.
-				FilterMode  filterMode: 2;   //!< Texture sampling mode.
+				FilterMode  filterMode: 1;   //!< Texture sampling mode.
+				MipmapMode  mipmapMode: 3;   //!< Mipmap sampling mode.
 				bool       _isCanvas: 8;    //!< Whether the source is a canvas.
 				uint8_t    _padding: 8;   //!< Padding for alignment.
 			};
@@ -261,20 +262,6 @@ namespace qk {
 		float         strokeWidth = 0.0f;                //!< Stroke thickness in pixels.
 		PaintFilter*  filter = nullptr;                  //!< Optional post-processing filter (weak reference).
 		PaintImage*   mask = nullptr;                    //!< Optional mask image (weak reference).
-	};
-
-	/**
-	 * @struct TexStat
-	 * @brief Lightweight GPU texture handle used by RenderBackend.
-	 *
-	 * Represents a backend-managed texture resource identifier.
-	 * May refer to a hardware texture (OpenGL ID, Vulkan image, etc.).
-	 */
-	struct TexStat {
-		union {
-			uint32_t id; //!< Generic texture identifier (e.g., OpenGL texture ID).
-			void *ptr;    //!< Generic pointer for backends that use pointer-based texture handles.
-		};
 	};
 }
 

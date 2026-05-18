@@ -37,7 +37,7 @@
 
 namespace qk
 {
-	class RenderBackend;
+	class RenderResource;
 	class Canvas;
 	class PathvCache;
 
@@ -62,7 +62,7 @@ namespace qk
 				uint32_t a,b; ///< Numeric GPU ids, for example VAO/VBO.
 			};
 			struct {
-				void* c; ///< Pointer-like backend handle.
+				void* ptr; ///< Pointer-like backend handle.
 			};
 		};
 	};
@@ -93,20 +93,15 @@ namespace qk
 		 */
 		template<class T, int N = 1>
 		struct Wrap {
+			// int refCount; ///< Reference count for this wrapper.
 			T              base;  ///< Cached object, such as VertexData.
 			VertexData::ID id[N]; ///< Backend-local GPU ids owned by this wrapper.
-		};
-
-		class ClearSync {
-		public:
-			virtual void lock() = 0;
-			virtual void unlock() = 0;
 		};
 
 		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory capacity
 		Qk_DEFINE_PROP_GET(uint32_t, maxCapacity, Const); // max memory capacity
 
-		PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *lock);
+		PathvCache(uint32_t maxCapacity, RenderResource *render);
 		~PathvCache();
 
 		/**
@@ -185,28 +180,34 @@ namespace qk
 		*/
 		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
 
-		/**
-		 * @dev clear cache data
-		 * @note Must be called in a worker thread,
-		 *  these methods are called on the same thread as `getRRectOutlinePath()`
-		 *  or displayed thread mutual exclusion measures
-		*/
-		void clear(bool all = false);
-
 	protected:
-		void clearUnsafe(int flags);
-		void clearAll(bool immediately);
+		/**
+		 * @dev Clear cached path data.
+		 * @param flags Clear mode:
+		 *        0: clear by internal memory/size policy
+		 *        1: memory warning cleanup
+		 *        otherwise: clear all cache data
+		 * @note Must be called from the same worker/render thread that accesses
+		 *       the cache, or under external mutual exclusion protection.
+		 * @note This method is intentionally private.
+		 *       Cached path data may still be referenced by pending draw commands
+		 *       already submitted to the render pipeline.
+		 *       External/manual clearing may invalidate those references 
+		 *       and cause rendering corruption or use-after-free style access.
+		 *       Cache cleanup is therefore controlled internally at safe synchronization points.
+		 */
+		void clear(int flags = 0);
+		void clearAll(bool destroy);
 		void clearPart(uint32_t capacity);
-		RenderBackend *_render;
-		ClearSync     *_sync;
-		Cb            _clearExec; // clear callback for render thread
+		RenderResource *_render; // render resource for GPU cache management
+		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Wrap<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
 		Dict<uint64_t, Wrap<RectPath>*> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
 
-		friend class RenderBackend;
+		friend class RenderResource;
 	};
 
 } // namespace qk

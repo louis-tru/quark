@@ -29,6 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../util/macros.h"
+#if (Qk_LINUX || Qk_ANDROID) && Qk_ENABLE_GL
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #if Qk_ANDROID
@@ -42,9 +44,7 @@
 
 #include "../plotforms.h"
 #include "./gl_render.h"
-#include "./gl_cmd.h"
-
-#if (Qk_LINUX || Qk_ANDROID) && Qk_ENABLE_GL
+#include "./gl_command.h"
 
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
@@ -216,7 +216,7 @@ namespace qk {
 		}
 
 		bool isRenderThread() {
-			return _renderThreadId == thread_self_id();
+			return _threadId == thread_self_id();
 		}
 
 		void lock() override {
@@ -232,13 +232,13 @@ namespace qk {
 		}
 
 		void post_message(Cb cb) override {
-			if (!_context)
-				return; // Render is release, do not post message
+			// if (!_context) return; // Render is release, do not post message
+			Qk_ASSERT(_context, "Render context is null. Cannot post message.");
 			if (isRenderThread()) {
 				lock();
 				cb->resolve();
 				unlock();
-			} else if (_renderThreadId == ThreadID()) { // No run
+			} else if (_threadId == ThreadID()) { // No run
 				if (_mutexMsg.try_lock()) {
 					_msg.push(cb);
 					_mutexMsg.unlock();
@@ -314,8 +314,8 @@ namespace qk {
 
 		void deleteSurface() override {
 			if (_surface) {
-				if (_renderThreadId == thread_self_id()) {
-					_renderThreadId = ThreadID();
+				if (_threadId == thread_self_id()) {
+					_threadId = ThreadID();
 					eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr);
 				}
 				eglDestroySurface(_display, _surface);
@@ -324,19 +324,19 @@ namespace qk {
 		}
 
 		void makeCurrent() {
-			if (_renderThreadId == ThreadID()) {
-				_renderThreadId = thread_self_id();
+			if (_threadId == ThreadID()) {
+				_threadId = thread_self_id();
 				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
 			}
-			Qk_ASSERT_EQ(thread_self_id(), _renderThreadId);
+			Qk_ASSERT_EQ(thread_self_id(), _threadId);
 		}
 
 		void renderLoopRun() {
-			if (_renderThreadId != ThreadID())
+			if (_threadId != ThreadID())
 				return;
 
-			_renderThreadId = thread_new([this](cThread* t) {
+			_threadId = thread_new([this](cThread* t) {
 				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
 				const int64_t intervalUs = 1e6 / 60; // 60 frames
@@ -349,15 +349,15 @@ namespace qk {
 					}
 				}
 				Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
-				_renderThreadId = ThreadID();
+				_threadId = ThreadID();
 			}, "linux_render_Thread");
 		}
 
 		void renderLoopStop() {
-			if (_renderThreadId != ThreadID()) {
-				thread_try_abort(_renderThreadId);
-				thread_join_for(_renderThreadId);
-				_renderThreadId = ThreadID();
+			if (_threadId != ThreadID()) {
+				thread_try_abort(_threadId);
+				thread_join_for(_threadId);
+				_threadId = ThreadID();
 			}
 		}
 
@@ -369,7 +369,7 @@ namespace qk {
 		EGLNativeWindowType _win;
 		Mutex _mutexMsg;
 		Array<Cb> _msg;
-		ThreadID _renderThreadId;
+		ThreadID _threadId;
 		RecursiveMutex _mutex;
 	};
 

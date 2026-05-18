@@ -190,20 +190,45 @@ namespace qk {
 		String to_string() const;
 
 		/**
-		 * @method clear() clear data
-		*/
+		 * @method clear()
+		 *
+		 * Clear all elements and release allocated storage memory.
+		 *
+		 * This destroys all contained objects and frees the internal buffer.
+		 * After clear(), both element count and allocated capacity become zero.
+		 */
 		void clear();
 
 		/**
-		 * @method reset realloc length
-		*/
+		 * @method reset()
+		 *
+		 * Reset the logical element count without necessarily reallocating storage.
+		 *
+		 * If the new length is smaller than the current length:
+		 *   - Extra elements are destroyed
+		 *   - Allocated storage memory is retained for future reuse
+		 *
+		 * If the new length is larger than the current length:
+		 *   - New elements are appended using default construction
+		 *   - Internal storage is only expanded if existing capacity is insufficient
+		 *
+		 * Unlike clear(), reset(0) does not free the internal buffer memory.
+		 * This is useful for high-frequency reuse scenarios to avoid repeated
+		 * allocation/free operations.
+		 */
 		void reset(uint32_t length);
 
 		/**
+		 * Extend the logical element count by constructing new elements.
 		 *
-		 * Expand the length, call the default constructor, can only increase, can not reduce
+		 * If the requested length is larger than the current length:
+		 *   - Internal storage is expanded if necessary
+		 *   - Newly added elements are default-constructed
 		 *
-		 * @method extend()
+		 * Existing elements remain unchanged.
+		 *
+		 * This method only increases the logical element count and cannot shrink it.
+		 * To reduce the element count while retaining allocated storage, use reset().
 		 */
 		void extend(uint32_t length);
 
@@ -567,7 +592,7 @@ namespace qk {
 
 	template<typename T, typename A, typename B>
 	void Array<T, A, B>::clear() {
-		if (_ptr.val) {
+		if (_ptr.extra) {
 			if (!IsPointer<T>::value) {
 				T *i = _ptr.val, *end = i + _ptr.extra;
 				while (i < end)
@@ -640,6 +665,7 @@ namespace qk {
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
 		Qk_DEF_ARRAY_SPECIAL_(T, Allocator, Object)
+		// Qk_DEF_ARRAY_SPECIAL_(T, Allocator, NonObject)
 
 	Qk_DEF_ARRAY_SPECIAL(char);
 	Qk_DEF_ARRAY_SPECIAL(uint8_t);

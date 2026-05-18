@@ -114,6 +114,18 @@ const informationsForTypes = {
 	sampler2D: [1,'GL_INT','int','MTLVertexFormatInt'],
 };
 
+// for example: float for float, vec4 for Vec4, int for int32_t, ivec3 for IVec3, ...
+const typesForCC_Vec = {
+	vec2: 'Vec2',
+	// std140/std430 requires vec3 to be aligned to 4 float, so add a padding float after vec3
+	vec3: 'Vec3Padding',
+	vec4: 'Vec4',
+	ivec2: 'IVec2',
+	// std140/std430 requires ivec3 to be aligned to 4 int, so add a padding int after ivec3
+	ivec3: 'IVec3Padding',
+	ivec4: 'IVec4',
+};
+
 const normalizedForTypes = {
 	GL_BYTE: {cc: 'int8_t', msl: ['MTLVertexFormatCharNormalized',
 		'MTLVertexFormatChar2Normalized', 'MTLVertexFormatChar3Normalized', 'MTLVertexFormatChar4Normalized']},
@@ -646,6 +658,8 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 			doc.structs.concat(doc.uniform_blocks).map(s=>[
 				`		struct ${s.type} {`,
 					s.block.map(b=>
+						typesForCC_Vec[b.type] ?
+						`			${typesForCC_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}` :
 						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}`),
 				`		};`
 			]),
@@ -660,7 +674,7 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 		// write build() function cpp
 		write(cpp, `void MSL${doc.className}::build() {`,
 			`	source = {"${doc.name}",k${doc.className}_Pipeline,${doc.vert_ast.msl_native_get_call},${doc.frag_ast.msl_native_get_call}};`,
-			`	vertexAttrs = {`,
+			`	attributes = {`,
 					doc.attributes.map(e=>{
 						return `		{${vertexBufferIndex},${e.size},${e.mslType},${e.sizeOf}},`
 					}),

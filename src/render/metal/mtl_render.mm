@@ -14,9 +14,10 @@
 #import <Metal/Metal.h>
 
 namespace qk {
+	uint32_t massSample(uint32_t n);
 
-	Render* make_metal_render(Render::Options opts) {
-		return nil;
+	MTLTextureID mtl_get_texture(TexStat *stat) {
+		return (__bridge MTLTextureID)stat->ptr();
 	}
 
 	MTLPixelFormat mtl_pixel_format(ColorType type) {
@@ -82,135 +83,205 @@ namespace qk {
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorZero;
 				break;
-
 			case kSrc_BlendMode: // r = s
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorZero;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorZero;
 				break;
-
 			case kDst_BlendMode: // r = d
 				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
-
 			case kSrcOverStraight_BlendMode: // r = sa*s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kSrcOver_BlendMode: // r = s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kDstOver_BlendMode: // r = (1-da)*s + d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
-
 			case kSrcIn_BlendMode: // r = da*s
 				ca.sourceRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorZero;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorZero;
 				break;
-
 			case kDstIn_BlendMode: // r = sa*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
 				ca.destinationRGBBlendFactor = MTLBlendFactorSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorSourceAlpha;
 				break;
-
 			case kSrcOut_BlendMode: // r = (1-da)*s
 				ca.sourceRGBBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorZero;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorZero;
 				break;
-
 			case kDstOut_BlendMode: // r = (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kSrcATop_BlendMode: // r = da*s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kDstATop_BlendMode: // r = (1-da)*s + sa*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorSourceAlpha;
 				break;
-
 			case kXor_BlendMode: // r = (1-da)*s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kPlus_BlendMode: // r = s + d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
-
 			case kModulateStraight_BlendMode: // r = s*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
 				ca.destinationRGBBlendFactor = MTLBlendFactorSourceColor;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorSourceAlpha;
 				break;
-
 			case kScreenStraight_BlendMode: // r = s + (1-s)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceColor;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kMultiplyStraight_BlendMode: // r = d*s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorDestinationColor;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-
 			case kPlusStraight_BlendMode: // r = sa*s + d
 				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
+			default:
+				ca.blendingEnabled = NO;
+				break;
 		}
 	}
 
-	uint32_t pipeline_key(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
+	MTLSamplerAddressMode mtl_sampler_address_mode(PaintImage::TileMode mode) {
+		switch (mode) {
+			case PaintImage::kClamp_TileMode:
+				return MTLSamplerAddressModeClampToEdge;
+			case PaintImage::kRepeat_TileMode:
+				return MTLSamplerAddressModeRepeat;
+			case PaintImage::kMirror_TileMode:
+				return MTLSamplerAddressModeMirrorRepeat;
+			case PaintImage::kDecal_TileMode:
+				if (@available(macOS 11.0, iOS 14.0, *)) {
+					return MTLSamplerAddressModeClampToZero;
+				} else {
+					return MTLSamplerAddressModeClampToEdge;
+				}
+		}
+	}
+
+	MTLSamplerMinMagFilter mtl_sampler_mag_filter(PaintImage::FilterMode filter) {
+		switch (filter) {
+			case PaintImage::kNearest_FilterMode:
+				return MTLSamplerMinMagFilterNearest;
+			case PaintImage::kLinear_FilterMode:
+				return MTLSamplerMinMagFilterLinear;
+		}
+	}
+
+	void mtl_set_sampler_min_mip_filter(MTLSamplerDescriptor* desc, PaintImage::MipmapMode mode) {
+		switch (mode) {
+			case PaintImage::kNone_MipmapMode:
+				desc.minFilter = MTLSamplerMinMagFilterNearest;
+				desc.mipFilter = MTLSamplerMipFilterNotMipmapped;
+				break;
+			case PaintImage::kNearest_MipmapMode:
+				desc.minFilter = MTLSamplerMinMagFilterNearest;
+				desc.mipFilter = MTLSamplerMipFilterNearest;
+				break;
+			case PaintImage::kLinearNearest_MipmapMode:
+				desc.minFilter = MTLSamplerMinMagFilterLinear;
+				desc.mipFilter = MTLSamplerMipFilterNearest;
+				break;
+			case PaintImage::kNearestLinear_MipmapMode:
+				desc.minFilter = MTLSamplerMinMagFilterNearest;
+				desc.mipFilter = MTLSamplerMipFilterLinear;
+				break;
+			case PaintImage::kLinear_MipmapMode:
+				desc.minFilter = MTLSamplerMinMagFilterLinear;
+				desc.mipFilter = MTLSamplerMipFilterLinear;
+				break;
+		}
+	}
+
+	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
 		// kind: 8 bits, mode: 8 bits, outputType: 8 bits, sampleCount: 4 bits
 		return ((uint32_t)kind << 20) | // 8 bits for pipeline kind
 			((uint32_t)mode << 12) | // 8 bits for blend mode
 			((uint32_t)outputType << 4) | // 8 bits for output type
 			(uint32_t)(sampleCount & 0b1111) // 4 bits for sample count, max 16 samples
 		;
+	}
+
+	TexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, TexStat* texStat, TexStat &newStat, bool mipmap) {
+		auto fmt = mtl_pixel_format(type);
+		auto tex = mtl_get_texture(texStat);
+		if (fmt == MTLPixelFormatInvalid)
+			return nullptr;
+		if (!tex || tex.width != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
+				(mipmap && tex.mipmapLevelCount <= 1)
+		) {
+			auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:fmt
+																																		 width:size.x()
+																																		height:size.y()
+																																mipmapped:mipmap];
+			desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+			desc.storageMode = MTLStorageModePrivate;
+			tex = [device newTextureWithDescriptor:desc];
+			if (!tex)
+				return nullptr;
+			texStat = &newStat; // update texStat to newStat
+			newStat.set_ptr(CFBridgingRetain(tex)); // retain new texture and set to texStat
+		}
+		return texStat;
+	}
+
+	MTLTextureID mtl_new_tex_renderbuffer(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool read, bool priv, bool mipmap) {
+		auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
+																																		width:size.x()
+																																	height:size.y()
+																																mipmapped:mipmap];
+		desc.usage = MTLTextureUsageRenderTarget | (read ? MTLTextureUsageShaderRead : 0);
+		desc.storageMode = priv ? MTLStorageModePrivate : MTLStorageModeShared;
+		return [device newTextureWithDescriptor:desc];
 	}
 
 	RenderResource* getSharedRenderResource() {
@@ -236,11 +307,14 @@ namespace qk {
 		_commandQueue = nil;
 	}
 
-	bool MetalRenderResource::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
-		if (!pix || pix->length() == 0)
+	bool MetalRenderResource::uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) {
+		Qk_ASSERT_GT(levels, 0, "Levels must be greater than 0");
+		if (!pix || pix->length() == 0) {
 			return false;
+		}
 
-		auto fmt = mtl_pixel_format(pix->type());
+		auto type = pix->type();
+		auto fmt = mtl_pixel_format(type);
 		if (fmt == MTLPixelFormatInvalid)
 			return false;
 
@@ -251,53 +325,36 @@ namespace qk {
 																																	width:pix->width()
 																																	height:pix->height()
 																															mipmapped:hasMipmaps];
-
-		desc.storageMode = MTLStorageModePrivate;
-		desc.usage = MTLTextureUsageShaderRead;// | MTLTextureUsageBlitDestination;
-
-		if (genMipmap) {
-			// generateMipmapsForTexture needs to read existing levels and write generated levels.
-			// desc.usage |= MTLTextureUsageBlitSource;
-		}
-
 		if (levels > 1) {
 			desc.mipmapLevelCount = levels; // only provided levels exist
 		}
+		desc.usage = MTLTextureUsageShaderRead;
+		desc.storageMode = MTLStorageModePrivate;
 
-		id<MTLTexture> tex = [_device newTextureWithDescriptor:desc];
-		if (!tex)
-			return false;
+		auto tex = [_device newTextureWithDescriptor:desc];
+		if (!tex) return false;
 
-		id<MTLCommandBuffer> cmd = [_commandQueue commandBuffer];
-		id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
-
-		// NSMutableArray<id<MTLBuffer>> *stagingBuffers = [NSMutableArray array];
+		auto cmd = [_commandQueue commandBuffer];
+		auto blit = [cmd blitCommandEncoder];
 
 		for (int i = 0; i < levels; i++) {
 			auto p = pix + i;
 
 			if (!p->val() || p->length() == 0)
 				continue;
+			auto width = (NSUInteger)p->width();
+			auto height = (NSUInteger)p->height();
+			auto bytesPerRow = width * Pixel::bytes_per_pixel(type);
+			auto uploadSize = bytesPerRow * height;
 
-			NSUInteger width = (NSUInteger)p->width();
-			NSUInteger height = (NSUInteger)p->height();
-			NSUInteger bpp = (NSUInteger)Pixel::bytes_per_pixel(p->type());
-			NSUInteger bytesPerRow = width * bpp;
-			NSUInteger uploadSize = bytesPerRow * height;
-
-			id<MTLBuffer> staging = [_device newBufferWithBytes:p->val()
-																									length:uploadSize
-																									options:MTLResourceStorageModeShared];
-
-			if (!staging) {
+			auto buff = [_device newBufferWithBytes:p->val()
+																			length:uploadSize
+																			options:MTLResourceStorageModeShared];
+			if (!buff) {
 				[blit endEncoding];
 				return false;
 			}
-
-			// Keep staging buffer alive until command buffer completes.
-			// [stagingBuffers addObject:staging];
-
-			[blit copyFromBuffer:staging
+			[blit copyFromBuffer:buff
 							sourceOffset:0
 				sourceBytesPerRow:bytesPerRow
 			sourceBytesPerImage:uploadSize
@@ -321,25 +378,20 @@ namespace qk {
 
 		[cmd commit];
 
-		if (!out) {
-			out = new TexStat{.ptr = nullptr};
+		if (out->ptr()) {
+			CFBridgingRelease(out->ptr()); // release old texture if exists
 		}
-
-		if (out->ptr) {
-			CFBridgingRelease(out->ptr); // release old texture if exists
-		}
-		out->ptr = (void*)CFBridgingRetain(tex); // retain new texture for TexStat
+		out->set_ptr((void*)CFBridgingRetain(tex)); // retain new texture for TexStat
 
 		return true;
 	}
 
-	void MetalRenderResource::deleteTexture(TexStat *tex) {
-		CFBridgingRelease(tex->ptr); // release texture
-		tex->ptr = nullptr;
-		delete tex;
+	void MetalRenderResource::unloadTexture(TexStat *tex) {
+		CFBridgingRelease(tex->ptr()); // release texture
+		tex->set_ptr(nullptr);
 	}
 
-	bool MetalRenderResource::createVertexData(VertexData::ID *vid) {
+	bool MetalRenderResource::uploadVertexData(VertexData::ID *vid) {
 		if (vid->c)
 			return true;
 		auto &vertex = vid->data->vertex;
@@ -350,16 +402,16 @@ namespace qk {
 																		length:vertex.size()
 																		options:MTLResourceStorageModeShared];
 		if (!buf) return false;
-		// vid->c = (__bridge_retained void*)buf;
-		vid->c = (void*)CFBridgingRetain(buf);
+		// vid->ptr = (__bridge_retained void*)buf;
+		vid->ptr = (void*)CFBridgingRetain(buf);
 		return true;
 	}
 
-	void MetalRenderResource::deleteVertexData(VertexData::ID *vid) {
-		if (vid->c) {
-			// (void)(__bridge_transfer id<MTLBuffer>)vid->c;
-			CFBridgingRelease(vid->c); // release buffer for vertex data
-			vid->c = nullptr;
+	void MetalRenderResource::unloadVertexData(VertexData::ID *vid) {
+		if (vid->ptr) {
+			// (void)(__bridge_transfer id<MTLBuffer>)vid->ptr;
+			CFBridgingRelease(vid->ptr); // release buffer for vertex data
+			vid->ptr = nullptr;
 		}
 	}
 
@@ -386,10 +438,10 @@ namespace qk {
 		return _functions[key] = fn;
 	}
 
-	MTLRenderPipelineStateID MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
+	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
 		ScopeLock lock(_mutex); // protect shader function cache
-		auto key = pipeline_key(kind, mode, outputType, sampleCount);
-		MTLRenderPipelineStateID pso = nil;
+		auto key = mtl_pipeline_key(kind, mode, outputType, sampleCount);
+		MTLPipeline pso = nil;
 		if (_pipelines.get(key, pso))
 			return pso;
 		auto desc = [MTLRenderPipelineDescriptor new];
@@ -406,7 +458,7 @@ namespace qk {
 						attrIndex = 0;
 		auto shader = _shaders.allShaders[kind]; // get shader by pipeline kind
 		desc.vertexDescriptor = [MTLVertexDescriptor vertexDescriptor];
-		for (auto &i: shader->vertexAttrs) {
+		for (auto &i: shader->attributes) {
 			desc.vertexDescriptor.attributes[attrIndex].format = (MTLVertexFormat)i.format;
 			desc.vertexDescriptor.attributes[attrIndex].offset = offset;
 			desc.vertexDescriptor.attributes[attrIndex].bufferIndex = i.bufferIndex;
@@ -423,11 +475,11 @@ namespace qk {
 		return pso;
 	}
 
-	MTLRenderPipelineStateID MSLShader::getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount) {
+	MTLPipeline MSLShader::getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount) {
 		uint32_t key = ((uint32_t)mode << 12) | // 8 bits for blend mode
 			((uint32_t)outputType << 4) | // 8 bits for output type
 			(uint32_t)sampleCount; // 4 bits for sample count, max 16 samples
-		MTLRenderPipelineStateID pso;
+		MTLPipeline pso;
 		if (_pipelines.get(key, pso))
 			return pso;
 		// get pipeline from render resource by pipeline kind
@@ -442,11 +494,10 @@ namespace qk {
 		: RenderBackend(opts)
 		, _resource(nil)
 		, _mtlcanvas(nil)
+		, _texStat(new TexStat*[12]{0})
 		, _device(nil)
 		, _commandQueue(nil)
 	{
-		_opts.colorType = _opts.colorType ? _opts.colorType:
-			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
 		_resource = (MetalRenderResource*)getSharedRenderResource();
 		_device = _resource->_device;
 		id<MTLCommandQueue> commandQueue = [_device newCommandQueue];
@@ -455,14 +506,14 @@ namespace qk {
 		_mtlcanvas = NewRetain<MetalCanvas>(this, _opts); // new and retain canvas for render backend
 		_canvas = _mtlcanvas; // set default canvas
 		_shaders = _resource->_shaders; // copy shader cache reference for render thread use
+		// pre-create sampler for aa clip image
+		_aaclipSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 
-		// auto samplerDesc = [MTLSamplerDescriptor new];
-		// samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
-		// samplerDesc.magFilter = MTLSamplerMinMagFilterLinear;
-		// samplerDesc.mipFilter = MTLSamplerMipFilterLinear;
-		// samplerDesc.sAddressMode = MTLSamplerAddressModeClampToEdge;
-		// samplerDesc.tAddressMode = MTLSamplerAddressModeClampToEdge;
-		// _sampler = [_device newSamplerStateWithDescriptor:samplerDesc];
+		// MTLDepthStencilDescriptor *desc = [MTLDepthStencilDescriptor new];
+		// desc.depthCompareFunction = MTLCompareFunctionGreater;
+		// desc.depthWriteEnabled = YES;
+		// id<MTLDepthStencilState> depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
+		// desc.frontFaceStencil.stencilCompareFunction = MTLCompareFunctionEqual;
 	}
 
 	MetalRender::~MetalRender() {
@@ -472,15 +523,25 @@ namespace qk {
 	void MetalRender::release() {
 		Qk_CHECK(_mtlcanvas->ref_count() == 1,
 			"MetalCanvas still has reference, ref count: %d", _mtlcanvas->ref_count());
+
+		for (int i = 0; i < 12; i++) {
+			if (_texStat[i])
+				CFBridgingRelease(_texStat[i]->ptr); // release texture
+		}
+		delete[] _texStat;
+		_texStat = nullptr;
+		_aaclipSampler = nil; // release aa clip sampler reference
+		_texSamplers.clear(); // clear sampler cache
 		Releasep(_mtlcanvas); // release canvas and set to nullptr
-		_canvas = nullptr;
-		// _sampler = nil;
-		_commandQueue = nil;
-		_device = nil;
+		_canvas = nullptr; // clear canvas reference
+		_commandQueue = nil; // release command queue reference
+		_device = nil; // release device reference
 	}
 
-	void MetalRender::lock() {}
-	void MetalRender::unlock() {}
+	void MetalRender::lock() {
+	}
+	void MetalRender::unlock() {
+	}
 
 	void MetalRender::reload() {
 		lock();
@@ -490,24 +551,77 @@ namespace qk {
 	}
 
 	Canvas* MetalRender::createCanvas(Options opts) {
-		opts.colorType = opts.colorType ? opts.colorType:
-			kBGRA_8888_ColorType; // default to BGRA for better performance on Metal
 		return new MetalCanvas(this, opts);
 	}
 
-	bool MetalRender::createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
-		return _resource->MetalRenderResource::createTexture(pix, levels, out, mipmap);
+	bool MetalRender::uploadTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
+		return _resource->MetalRenderResource::uploadTexture(pix, levels, out, mipmap);
 	}
 
-	void MetalRender::deleteTexture(TexStat *tex) {
-		_resource->MetalRenderResource::deleteTexture(tex);
+	void MetalRender::unloadTexture(TexStat *tex) {
+		_resource->MetalRenderResource::unloadTexture(tex);
 	}
 
-	bool MetalRender::createVertexData(VertexData::ID *vid) {
-		return _resource->MetalRenderResource::createVertexData(vid);
+	bool MetalRender::uploadVertexData(VertexData::ID *vid) {
+		return _resource->MetalRenderResource::uploadVertexData(vid);
 	}
 
-	void MetalRender::deleteVertexData(VertexData::ID *vid) {
-		_resource->MetalRenderResource::deleteVertexData(vid);
+	void MetalRender::unloadVertexData(VertexData::ID *vid) {
+		_resource->MetalRenderResource::unloadVertexData(vid);
 	}
+
+	bool MetalRender::use_texture(MTLRenderEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint) {
+		auto index = paint->srcIndex + srcSlot;
+		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
+		auto tex = src->texture(index);
+		if (!tex.ptr()) {
+			// mark texture for this render, and try to create texture immediately
+			src->markAsTexture(this);
+			if (!tex->ptr()) {
+				Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
+				return false; // texture not ready
+			}
+		}
+		set_texture_param(enc, mtl_get_texture(tex), dstSlot, paint);
+		return true;
+	}
+
+	void MetalRender::set_texture_param(MTLRenderEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint) {
+		auto sampler = get_sampler(paint); // get sampler state for paint image
+		[enc setFragmentTexture:tex atIndex:dstSlot];
+		[enc setFragmentSamplerState:sampler atIndex:dstSlot];
+	}
+
+	MTLSampler MetalRender::get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap) {
+		PaintImage img;
+		img.tileModeX = PaintImage::kClamp_TileMode;
+		img.tileModeY = PaintImage::kClamp_TileMode;
+		img.filterMode = filter;
+		img.mipmapMode = mipmap;
+		return get_sampler(&img);
+	}
+
+	MTLSampler MetalRender::get_sampler(const PaintImage* paint) {
+		constexpr uint32_t bitfields = (
+			// 0 | // src index default zero
+			(0b11 << 8)  | // 2 bits
+			(0b11 << 10) | // 2 bits
+			(0b1  << 12) | // 1 bit
+			(0b111 << 13)| // 3 bits
+			0
+		);
+		uint32_t key = bitfields & paint->bitfields;
+		MTLSampler sampler;
+		if (!_texSamplers.get(key, sampler)) {
+			auto desc = [MTLSamplerDescriptor new];
+			desc.sAddressMode = mtl_sampler_address_mode(paint->tileModeX);
+			desc.tAddressMode = mtl_sampler_address_mode(paint->tileModeY);
+			desc.magFilter = mtl_sampler_mag_filter(paint->filterMode);
+			mtl_set_sampler_min_mip_filter(desc, paint->mipmapMode);
+			sampler = [_device newSamplerStateWithDescriptor:desc];
+			_texSamplers.set(key, sampler);
+		}
+		return sampler;
+	}
+
 } // namespace qk

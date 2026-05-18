@@ -39,9 +39,6 @@
 #endif
 #include "../util/thread/inl.h"
 
-// Define to use mark as texture when load image source
-constexpr bool kUseMarkAsTexture = true;
-
 namespace qk {
 	// -------------------- I m a g e . S o u r c e --------------------
 
@@ -53,34 +50,26 @@ namespace qk {
 		Qk_ReturnLocal(dest);
 	}
 
-	static void deleteTextures(RenderResource *res, cArray<const TexStat*> &tex) {
-		for (auto i: tex)
-			if (i)
-				res->deleteTexture(const_cast<TexStat *>(i));
+	static void unloadTextures(RenderResource *res, TexStat* tex) {
+		for (int i = 0; i < 8; ++i)
+			res->unloadTexture(tex+i);
 	}
 
 	RenderResource* getSharedRenderResource();
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
-		void setMipmap(bool val) {
-			_isMipmap = val;
-		}
-		void setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex);
+		void setTex(cPixelInfo &info, const TexStat *tex);
 	};
 
-	void setMipmap_SourceImage(ImageSource* img, bool val) {
-		static_cast<ImageSource::Inl*>(img)->setMipmap(val);
-	}
-	void setTex_SourceImage(RenderResource *res,
-			ImageSource* img, cPixelInfo &i, const TexStat *tex)
+	void setTex_SourceImage(ImageSource* img, cPixelInfo &i, const TexStat *tex)
 	{
-		static_cast<ImageSource::Inl*>(img)->setTex(res, i, tex);
+		static_cast<ImageSource::Inl*>(img)->setTex(i, tex);
 	}
 
-	ImageSource::ImageSource(RenderResource *res, RunLoop *loop): Qk_Init_Event(State)
+	ImageSource::ImageSource(RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _res(res), _loop(loop), _isMipmap(true)
+		, _loadId(0), _res(nullptr), _loop(loop), _mipmap(true)
 		, _premultipliedAlpha(false)
 		, _premulFlags(kConvert_PremulFlags)
 	{
@@ -89,41 +78,40 @@ namespace qk {
 
 	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
 	{
-		auto img = new ImageSource(nullptr, loop);
+		auto img = new ImageSource(loop);
 		if (!uri.is_empty())
 			img->_uri = fs_reader()->format(uri);
 		return img;
 	}
 
-	Sp<ImageSource> ImageSource::Make(Array<Pixel>&& pixels, RenderResource *res)
+	Sp<ImageSource> ImageSource::Make(Array<Pixel>&& pixels, RenderResource *first)
 	{
-		Sp<ImageSource> img = new ImageSource(res, nullptr);
+		Sp<ImageSource> img = new ImageSource(nullptr);
 		if (pixels.length()) {
 			img->_info = pixels[0];
-			img->_premultipliedAlpha =
-				img->_info.alphaType() == kPremul_AlphaType ||
+			img->_premultipliedAlpha = img->_info.alphaType() == kPremul_AlphaType ||
 				// kOpaque_AlphaType also as premultiplied, because alpha is 1.0
 				img->_info.alphaType() == kOpaque_AlphaType;
 			if (pixels[0].length()) {
 				img->_state = kSTATE_LOAD_COMPLETE;
 				img->_pixels = std::move(pixels);
-				if (res) {
-					img->reloadTexture();
+				if (first) {
+					img->markAsTexture(first);
 				}
 			}
 		}
 		Qk_ReturnLocal(img);
 	}
 
-	Sp<ImageSource> ImageSource::Make(Pixel&& pixel, RenderResource *res) {
+	Sp<ImageSource> ImageSource::Make(Pixel&& pixel, RenderResource *first) {
 		if (pixel.val()) {
 			Array<Pixel> pixels;
 			pixels.push(std::move(pixel));
-			return Make(std::move(pixels), res);
+			return Make(std::move(pixels), first);
 		} else {
-			auto img = new ImageSource(res, nullptr);
+			auto img = new ImageSource(nullptr); // create empty image source
 			img->_info = pixel;
-			return img;
+			Qk_ReturnLocal(img);
 		}
 	}
 
@@ -131,22 +119,27 @@ namespace qk {
 		unload_(true);
 	}
 
-	bool ImageSource::markAsTexture(RenderResource *res) {
+	void ImageSource::markAsTexture(RenderResource *first) {
 		if (_res)
-			return true; // already as texture
-		_res = res ? res : getSharedRenderResource();
-
-		if (!_res) {
-			return false;
-		}
+			return; // already as texture
+		_res = getSharedRenderResource();
+		// always use shared render resource,
+		// but first try to use the render resource provided by caller if exist,
+		// because it may be the current render resource of caller and 
+		// can immediately create texture without waiting for next render loop
+		if (!_res)
+			return; // no render resource, can't be texture
 		if (_pixels.length() && _pixels[0].length()) {
-			reloadTexture();
+			reloadTexture(first ? first: _res);
 		}
-		return true;
 	}
 
 	void ImageSource::set_premulFlags(PremulFlags val) {
 		_premulFlags = val;
+	}
+
+	void ImageSource::set_mipmap(bool val) {
+		_mipmap = val;
 	}
 
 	bool ImageSource::load() {
@@ -226,19 +219,18 @@ namespace qk {
 				self->_info.alphaType() == kOpaque_AlphaType;
 			self->_pixels = std::move(pixels);
 			self->_onState.unlock();
-
 			if (self->_res) {
-				self->reloadTexture();
+				self->reloadTexture(self->_res);
 			}
 		} else { // decode fail
 			self->_state = State((self->_state | kSTATE_DECODE_ERROR) & ~kSTATE_LOADING);
 		}
 	}
 
-	void ImageSource::reloadTexture() {
+	void ImageSource::reloadTexture(RenderResource *res) {
 		// set gpu texture, Must be processed in the rendering thread
 		struct Running: Cb::Core {
-			Running(ImageSource* s): source(s) {
+			Running(ImageSource* s, RenderResource* r): source(s), res(r) {
 			}
 			void call(Data& evt) override {
 				AutoSharedMutexExclusive ame(source->_onState);
@@ -246,36 +238,35 @@ namespace qk {
 				auto &pixels = self->_pixels;
 				if (!pixels.length() || !pixels[0].length())
 					return;
-				int i = 0;
 				int levels = 1; // 默认每个pixel做为一个独立纹理层并自动动生成mipmap，
 				// 如果满足条件则使用 pixels 中的多层数据作为 mipmap levels 数据
-				int texLen = pixels.length(), old_len = self->_tex.length();
+				int texLen = Int32::min(pixels.length(), 8);
 				if (texLen > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
 					if (pixels[0].width() >> 1 == pixels[1].width()) {
 						levels = texLen; // mipmap levels
 						texLen = 1; // 使用第一层作为主纹理，其他层作为 mipmap 数据，并且只创建一个纹理对象
 					}
 				}
-				Array<const TexStat*> texStat(texLen);
 
+				int i = 0;
 				// create texture for each pixel, and delete old texture if exist
 				while (i < texLen) {
-					auto tex = const_cast<TexStat *>(i < old_len ? self->_tex[i]: nullptr);
-					self->_res->createTexture(pixels.val() + i, levels, tex, self->_isMipmap);
-					texStat[i++] = tex;
-				}
-
-				while(i < old_len) {
-					if (self->_tex[i])
-						self->_res->deleteTexture(const_cast<TexStat *>(self->_tex[i]));
+					auto tex = self->_tex + i;
+					res->uploadTexture(pixels.val() + i, levels, tex, self->_mipmap);
 					i++;
 				}
-				self->_tex = std::move(texStat);
+
+				while(texLen < 8) {
+					if (!self->_tex[texLen].id())
+						break; // no more texture
+					res->unloadTexture(self->_tex + (texLen++));
+				}
 				self->_pixels = copyInfo(self->_pixels); // delete pixels data as save memory space
 			}
 			Sp<ImageSource> source;
+			RenderResource *res;
 		};
-		_res->post_message(Cb(new Running(this)));
+		res->post_message(Cb(new Running(this, res)));
 	}
 
 	void ImageSource::unload() {
@@ -304,10 +295,13 @@ namespace qk {
 			// as texture, Must be processed in the rendering thread
 
 			if (destroy) {
-				auto res = _res;
-				_res->post_message(Cb([res,tex = std::move(_tex)](auto e) { // to call from Rt
-					deleteTextures(res, tex);
+				TexStat tex[8];
+				memcpy(tex, _tex, sizeof(_tex));
+				memset(_tex, 0, sizeof(_tex)); // clear texture state
+				_res->post_message(Cb([res=_res,tex](auto e) mutable { // to call from Rt
+					unloadTextures(res, tex);
 				}));
+				// Qk_DLog("ImageSource is destroyed, unload texture later, src: %p", this);
 			}
 		}
 
@@ -315,8 +309,7 @@ namespace qk {
 		if (!destroy) {
 			_res->post_message(Cb([this](auto e) { // to call from Rt
 				AutoSharedMutexExclusive ame(_onState);
-				deleteTextures(_res, _tex);
-				_tex.clear();
+				unloadTextures(_res, _tex);
 			}, this));
 		}
 	}
@@ -490,18 +483,14 @@ namespace qk {
 		}
 	}
 
-	void ImageSource::Inl::setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex) {
+	void ImageSource::Inl::setTex(cPixelInfo &info, const TexStat *tex) {
 		AutoSharedMutexExclusive ame(_onState);
 		if (!_res)
-			_res = res;
-		if (_tex.length()) { // replace old texture
-			auto oldTex = _tex[0];
-			if (oldTex && oldTex != tex)
-				res->deleteTexture(const_cast<TexStat *>(oldTex));
-			_tex[0] = tex;
-		} else {
-			_tex.push(tex);
-		}
+			_res = getSharedRenderResource(); // mark as texture use shared render resource if not exist
+		Qk_ASSERT(_res, "No render resource, can't set texture");
+		if (_tex != tex && _tex[0].id())
+			_res->unloadTexture(_tex); // release old texture if exist
+		_tex[0] = *tex; // copy texture state
 		_state = kSTATE_LOAD_COMPLETE; //
 		_info = info; //
 	}
@@ -549,8 +538,6 @@ namespace qk {
 			return it->second.source.get();
 		}
 		auto source = ImageSource::Make(_uri, _loop);
-		if (kUseMarkAsTexture)
-			source->markAsTexture();
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
 		_sources.set(id, { source, info.bytes(), 0 });
@@ -652,17 +639,15 @@ namespace qk {
 			Array<Pixel> pixels; // decoded pixels
 			img_decode(binData, &pixels, imgFormat); // decode image from binary data
 			ImageSource::premultipliedAlphaFromPixels(pixels); // convert to premultiplied alpha
-			auto res = kUseMarkAsTexture ? getSharedRenderResource(): nullptr;
-			auto src = ImageSource::Make(std::move(pixels), res);
+			auto src = ImageSource::Make(std::move(pixels));
 			return set_source(src);
+			return false;
 		}
 		auto pool = imgPool();
 		if (pool) {
 			return set_source(pool->get(val));
 		} else {
 			auto src = ImageSource::Make(val);
-			if (kUseMarkAsTexture)
-				src->markAsTexture(); // mark as texture
 			return set_source(src);
 		}
 	}

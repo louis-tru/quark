@@ -83,7 +83,7 @@ namespace qk {
 			return 6;
 		}
 		if (fontSize <= 8) {
-			return 6;
+			return 8;
 		}
 		if (fontSize <= 10) {
 			return 10;
@@ -110,7 +110,7 @@ namespace qk {
 			return 32;
 		}
 		if (fontSize <= 46) {
-			return 64;
+			return 46;
 		}
 		if (fontSize <= 128) {
 			return 128;

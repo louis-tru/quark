@@ -241,7 +241,7 @@ namespace qk
 
 		void addMsg(Cb& cb) {
 			_msgMutex.lock();
-			_msg.pushBack(cb);
+			_msg.push_back(cb);
 			_msgMutex.unlock();
 
 			XEvent event;
@@ -355,7 +355,7 @@ namespace qk
 			shutdown();
 		}
 
-		shutdown() {
+		void shutdown() {
 			if (_mixer) {
 				snd_mixer_free(_mixer);
 				snd_mixer_detach(_mixer, "default");

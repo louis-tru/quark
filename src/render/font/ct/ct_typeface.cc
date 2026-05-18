@@ -656,7 +656,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
 }
 
 Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
-	float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render)
+	float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -753,7 +753,7 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	Pixel pixel(PixelInfo(w, h, kRGBA_8888_ColorType, kPremul_AlphaType), image);
 
 	return {
-		ImageSource::Make(std::move(pixel), render),
+		ImageSource::Make(std::move(pixel)),
 		float(paddInt),top,right,
 		fontSize,
 		1.0f,

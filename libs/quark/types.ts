@@ -784,8 +784,8 @@ export class Vec2 extends Base<Vec2> {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);
 		return newVec2(
-			this.x * c - this.y * s,
-			this.x * s + this.y * c
+			this.x * c + this.y * s,
+			this.y * c - this.x * s
 		);
 	}
 

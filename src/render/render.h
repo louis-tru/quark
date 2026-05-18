@@ -38,6 +38,7 @@
 namespace qk {
 	class RenderSurface; // platform render surface
 	class Canvas;
+	struct TexStat; // texture state
 
 	/**
 	 * @class RenderResource
@@ -51,53 +52,102 @@ namespace qk {
 	class RenderResource: public PostMessage {
 	public:
 		/**
-		 * Create a texture resource.
+		 * Upload texture data to backend-local GPU resources.
 		 *
 		 * @param pix Source pixel data.
 		 * @param levels Number of pixel levels contained in pix.
 		 *        If levels is 1 and mipmap is true, mipmaps may be generated automatically.
-		 * @param out Output texture state object.
+		 * @param tex Texture state container provided and owned by the caller.
 		 * @param mipmap Whether mipmap generation is requested.
-		 * @returns true if the request was accepted successfully.
+		 * @returns true if upload/creation succeeded.
 		 *
-		 * @note The backend may defer actual GPU upload.
+		 * @note This method uploads or initializes backend-local GPU texture resources
+		 *       using the pixel data provided by pix.
+		 *
+		 *       The TexStat container itself is provided and owned by the caller.
+		 *       Backend-local texture handles or pointers are stored inside tex.
+		 *
+		 *       Backend implementations may defer actual GPU upload.
 		 *
 		 * @thread Rt
 		 */
-		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) = 0;
+		virtual bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) = 0;
 
 		/**
-		 * Delete a texture resource.
+		 * Release backend-local GPU texture resources.
 		 *
-		 * @param tex Texture state object returned by createTexture().
+		 * @param tex Texture state container previously uploaded by uploadTexture().
 		 *
-		 * @note Actual GPU destruction may be deferred.
+		 * @note This method releases backend-local GPU texture resources stored in tex,
+		 *       then clears the backend id/pointer fields inside the container.
+		 *
+		 *       The TexStat container itself is owned by the caller
+		 *       and is not deleted by this method.
+		 *
+		 *       Actual GPU destruction may be deferred.
 		 *
 		 * @thread Rt
 		 */
-		virtual void deleteTexture(TexStat *tex) = 0;
+		virtual void unloadTexture(TexStat *tex) = 0;
 
 		/**
-		 * Create GPU vertex data.
+		 * Upload vertex data to backend-local GPU resources.
 		 *
-		 * @param id VertexData instance id to initialize.
-		 * @returns true if creation succeeded.
+		 * @param id VertexData container provided and owned by the caller.
+		 * @returns true if upload/creation succeeded.
 		 *
-		 * @note This must be called on the Qk render thread that owns this backend.
-		 *       For OpenGL this object may contain context-local state such as VAO.
+		 * @note This method uploads or initializes backend-local GPU vertex resources
+		 *       using the data stored in id.
+		 *
+		 *       The VertexData::ID container itself is provided and owned by the caller.
+		 *       Backend-local handles or pointers are stored inside id.
+		 *
+		 *       Backend implementations may create internal objects such as:
+		 *         - OpenGL VBO / VAO
+		 *         - Metal buffers
+		 *         - Vulkan vertex buffers
 		 *
 		 * @thread Rt
 		 */
-		virtual bool createVertexData(VertexData::ID *id) = 0;
+		virtual bool uploadVertexData(VertexData::ID *id) = 0;
 
 		/**
-		 * Delete GPU vertex data.
+		 * Release backend-local GPU vertex resources.
 		 *
-		 * @param id VertexData instance id created by createVertexData().
+		 * @param id VertexData container previously uploaded by uploadVertexData().
+		 *
+		 * @note This method releases backend-local GPU vertex resources stored in id,
+		 *       then clears the backend id/pointer fields inside the container.
+		 *
+		 *       The VertexData::ID container itself is owned by the caller
+		 *       and is not deleted by this method.
 		 *
 		 * @thread Rt
 		 */
-		virtual void deleteVertexData(VertexData::ID *id) = 0;
+		virtual void unloadVertexData(VertexData::ID *id) = 0;
+
+		/**
+		 * Ensure vertex data is uploaded and available for GPU rendering.
+		 *
+		 * This helper performs lazy GPU upload when a render backend is available.
+		 * If backend-local GPU vertex resources already exist, it returns true immediately.
+		 * Otherwise it attempts to upload/create backend-local GPU vertex resources
+		 * from the CPU-side vertex array.
+		 *
+		 * On successful GPU upload, the CPU-side vertex array may optionally be cleared
+		 * to save memory. Software rendering paths should use VertexData::vertex directly
+		 * and do not need this function.
+		 *
+		 * @param id VertexData GPU cache id.
+		 * @param clearCpuData Whether to clear the CPU-side vertex array after successful GPU upload.
+		 * @returns true if backend-local GPU vertex resources are valid and ready to use.
+		 *
+		 * @note This function may modify VertexData::ID and may clear
+		 *       id->data->vertex after successful upload.
+		 *
+		 * @thread Rt
+		 */
+		static bool useVertexData(const VertexData::ID *id, bool clearCpuData = false);
 	};
 
 	/**
@@ -125,7 +175,7 @@ namespace qk {
 			uint16_t   msaaSample; ///< GPU MSAA sample count.
 			uint16_t   fps;        ///< If 0, use vSync; otherwise limit to this FPS.
 			uint32_t   maxCapacityForPathvCache; ///< Max path vertex cache size, default 128 MB.
-			bool       isMipmap;   ///< Whether some color-buffer commands should generate mipmaps.
+			bool       mipmap;   ///< Whether some color-buffer commands should generate mipmaps.
 		};
 
 		class Delegate {
@@ -200,28 +250,6 @@ namespace qk {
 
 		// Override Object
 		virtual void destroy() override;
-
-		/**
-		 * Ensure vertex data is available for GPU rendering.
-		 *
-		 * This helper performs lazy GPU upload when a render backend is available.
-		 * If the GPU buffer already exists, it returns true immediately. Otherwise it
-		 * attempts to create backend-local GPU vertex data from the CPU-side vertex
-		 * array.
-		 *
-		 * On successful GPU upload, the CPU-side vertex array may be cleared to save
-		 * memory. Software rendering paths should use VertexData::vertex directly and
-		 * do not need this function.
-		 *
-		 * @param id VertexData GPU cache id.
-		 * @returns true if GPU vertex data is valid and ready to use.
-		 *
-		 * @note This function may modify the VertexData::ID and may clear
-		 *       id->data->vertex after upload.
-		 *
-		 * @thread Rt
-		 */
-		static bool setVertexData(const VertexData::ID *id);
 
 	protected:
 		RenderBackend(Options opts);

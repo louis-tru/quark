@@ -122,6 +122,7 @@ namespace qk {
 
 #define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,APPEND_ZERO,APPEND_CODE) \
 	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Allocator,Object,APPEND_ZERO,APPEND_CODE)
+	// Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Allocator,NonObject,APPEND_ZERO,APPEND_CODE)
 
 #ifndef Qk_ARRAY_SKIP_DEFAULT_IMPL
 	template<> void Array<char, Allocator, Object>::_Reverse(void *src, size_t size, uint32_t len) {

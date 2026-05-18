@@ -2,6 +2,15 @@
 
 #define matrix (rMat.value * vMat.value)
 
+// global shared data
+#define Qk_MatrixBlock \
+layout(binding=1) uniform RootMatrixBlock { \
+	mat4 value; \
+} rMat; \
+layout(binding=2) uniform ViewMatrixBlock { \
+	mat4 value;\
+} vMat;
+
 #define Qk_CONSTANT(block) layout(push_constant) uniform PcArgs {\
 	block \
 	float depth; \
@@ -12,13 +21,7 @@
 #define Qk_IF_AACLIP if ((pc.flags & Qk_FLAG_AACLIP) != 0)
 
 #vert
-// global shared data
-layout(binding=1) uniform RootMatrixBlock {
-	mat4 value;
-} rMat;
-layout(binding=2) uniform ViewMatrixBlock {
-	mat4 value;
-} vMat;
+Qk_MatrixBlock
 layout(location=0) in      vec2  vertexIn;
 layout(location=1) in      float aafuzzIn; // anti alias fuzz or z depth plus
 layout(location=0) out     float aafuzz;

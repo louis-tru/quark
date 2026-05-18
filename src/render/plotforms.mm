@@ -32,11 +32,11 @@
 #import "../util/thread.h"
 
 namespace qk {
-	static ThreadID main_thread_id(thread_self_id());
+	ThreadID apple_main_thread_id(thread_self_id());
 
 	Qk_EXPORT void post_message_main(Cb cb, bool sync) {
 		auto main = dispatch_get_main_queue();
-		if (main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
+		if (apple_main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
 			cb->resolve();
 		} else if (sync) {
 			CondMutex mutex;

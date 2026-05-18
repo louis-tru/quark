@@ -32,7 +32,6 @@ layout(location=3) in vec4 dark;
 void main() {
 	vec4 tex = texture(image, texCoords);
 
-// #ifdef Qk_SHADER_IF_FLAGS_DARK_COLOR
 	if ((pc.flags & Qk_FLAGS_DARK_COLOR) != 0) {
 		// if not premultiplied alpha, (1.0 - tex.rgb) is dark color of tex
 		// if premultiplied alpha, (tex.a - tex.rgb) is dark color of tex
@@ -44,12 +43,9 @@ void main() {
 		// always apply premultiplied alpha for dark color
 		fragColor = light * tex + dark * vec4(tex.a - tex.rgb, 0.0);
 	} else {
-// #else
 		fragColor = light * tex;
 	}
-// #endif
 
-// #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	Qk_IF_AACLIP {
 		float alpha = smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 		// apply premultiplied alpha
@@ -58,5 +54,4 @@ void main() {
 		// always apply premultiplied alpha
 		fragColor *= alpha;
 	}
-// #endif
 }

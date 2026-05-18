@@ -33,15 +33,35 @@
 
 namespace qk {
 
-	PathvCache::PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *sync)
-		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity), _clearExec(nullptr) {
+	struct PathvCacheInl: PathvCache {
+		void clear(int flags) {
+			PathvCache::clear(flags);
+		}
+		void clearExec() {
+			if (!_clearExecs || _clearExecs->length() == 0)
+				return;
+			for (auto &i: *_clearExecs) {
+				i->resolve();
+			}
+			_clearExecs->reset(0);
+		}
+	};
+
+	void clear_PathvCache(PathvCache *cache, int flags) {
+		static_cast<PathvCacheInl*>(cache)->clear(flags);
+	}
+
+	void clearExec_PathvCache(PathvCache *cache) {
+		static_cast<PathvCacheInl*>(cache)->clearExec();
+ 	}
+
+	PathvCache::PathvCache(uint32_t maxCapacity, RenderResource *render)
+		: _render(render), _capacity(0), _maxCapacity(maxCapacity)
+		, _clearExecs(new Array<Cb>) {
 	}
 
 	PathvCache::~PathvCache() {
-		// First call
 		clearAll(true);
-		// When called a second time, the final deletion from the previous call is performed
-		// clear(true);
 	}
 
 	const Path& PathvCache::getNormalizedPath(const Path &path) {
@@ -211,23 +231,15 @@ namespace qk {
 		}
 	}
 
-	void PathvCache::clear(bool all) {
-		_sync->lock();
-		clearUnsafe(all ? 2: 1/*memory warning clear half*/);
-		_sync->unlock();
-	}
-
-	void PathvCache::clearUnsafe(int flags) {
-		if (flags) {
-			if (flags == 1) { // memory warning
-				if (_capacity > _maxCapacity) {
-					clearPart(Int32::max(_capacity * 0.5, _capacity - _maxCapacity)); // clean half
-				}
-			} else { // clear all
-				clearAll(false);
+	void PathvCache::clear(int flags) {
+		if (flags == 0) {
+			if (_capacity > _maxCapacity) { // max limit clear
+				clearPart(_capacity - _maxCapacity);
 			}
-		} else if (_capacity > _maxCapacity) { // max limit clear
-			clearPart(_capacity - _maxCapacity);
+		} else if (flags == 1) { // memory warning, clean half or clean to max limit
+			clearPart(Int32::max(_capacity * 0.5, _capacity - _maxCapacity));
+		} else { // clear all
+			clearAll(false);
 		}
 	}
 
@@ -235,17 +247,12 @@ namespace qk {
 		clearAll(false); // TODO: Not yet realized
 	}
 
-	void PathvCache::clearAll(bool immediately) {
-		for (auto &i: _NormalizedPathCache) {
-			Release(i.second);
+	void PathvCache::clearAll(bool destroy) {
+		for (auto &it: {&_NormalizedPathCache, &_StrokePathCache}) {
+			for (auto &i: *it)
+				Release(i.second);
+			it->clear();
 		}
-		_NormalizedPathCache.clear();
-
-		for (auto &i: _StrokePathCache) {
-			Release(i.second);
-		}
-		_StrokePathCache.clear();
-
 		_capacity = 0;
 
 		// If the render backend is not available, directly clear the cache data and return
@@ -269,31 +276,30 @@ namespace qk {
 			return; // No render backend, skip GPU resource deletion
 		}
 
-		auto render = _render;
 		auto a0 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_PathTrianglesCache));
 		auto a1 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_AAFuzzStrokeTriangleCache));
 		auto b = new Dict<uint64_t, Wrap<RectPath>*>(std::move(_RectPathCache));
 		auto c = new Dict<uint64_t, Wrap<RectOutlinePath,4>*>(std::move(_RectOutlinePathCache));
 
 		// Must be called after rendering is complete
-		Cb clearExec([render,a0,a1,b,c](auto &e) {
+		Cb exec([render=_render,a0,a1,b,c](auto &e) {
 			for (auto &i: *a0) {
-				render->deleteVertexData(i.second->id);
+				render->unloadVertexData(i.second->id);
 				delete i.second;
 			}
 			for (auto &i: *a1) {
-				render->deleteVertexData(i.second->id);
+				render->unloadVertexData(i.second->id);
 				delete i.second;
 			}
 			for (auto &i: *b) {
-				render->deleteVertexData(i.second->id);
+				render->unloadVertexData(i.second->id);
 				delete i.second;
 			}
 			for (auto &i: *c) {
-				render->deleteVertexData(i.second->id);
-				render->deleteVertexData(i.second->id+1);
-				render->deleteVertexData(i.second->id+2);
-				render->deleteVertexData(i.second->id+3);
+				render->unloadVertexData(i.second->id);
+				render->unloadVertexData(i.second->id+1);
+				render->unloadVertexData(i.second->id+2);
+				render->unloadVertexData(i.second->id+3);
 				delete i.second;
 			}
 			Releasep(a0);
@@ -302,14 +308,19 @@ namespace qk {
 			Releasep(c);
 		});
 
-		if (immediately) {
-			render->post_message(clearExec);
+		Qk_ASSERT(_clearExecs, "clear callback is null");
+
+		if (destroy) {
+			_render->post_message(Cb([execs=_clearExecs,exec](auto e) {
+				for (auto &i: *execs)
+					i->resolve(); // execute clear callback
+				exec->resolve(); // execute clear callback
+				Release(execs); // release array
+			}));
+			_clearExecs = nullptr;
 		} else {
-			render->post_message(Cb([this,clearExec](auto e) {
-				if (_clearExec) {
-					_clearExec->resolve(); // clear prev time
-				}
-				_clearExec = clearExec;
+			_render->post_message(Cb([execs=_clearExecs,exec](auto e) {
+				execs->push(exec); // add to render thread queue
 			}));
 		}
 

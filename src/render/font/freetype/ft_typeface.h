@@ -141,7 +141,7 @@ protected:
 	void onGetMetrics(FontMetrics* metrics) override;
 	bool onGetPath(GlyphID glyph, Path *path) override;
 	TextImage onGetImage(cArray<GlyphID>& glyphs, float fontSize,
-		cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render) override;
+		cArray<Vec2> *offset, float padding, bool antiAlias) override;
 
 	virtual Sp<QkFontData> onMakeFontData() const = 0;
 

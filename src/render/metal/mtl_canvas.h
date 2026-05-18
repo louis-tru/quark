@@ -6,122 +6,90 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark_render_metal_mtlcanvas__
 #define __quark_render_metal_mtlcanvas__
 
-#include "../canvas.h"
-#include "../pathv_cache.h"
-#include "./mtl_render.h"
-
-#ifdef __OBJC__
-# import <Metal/Metal.h>
-#endif
+#include "../gpu_canvas.h"
+#include "./mtl_shaders.h"
 
 namespace qk {
-
 	class MetalRender;
 
-	class MetalCanvas: public Canvas, public PathvCache::ClearSync {
+	struct MTL_CmdPack {
+		Array<MTLCommandBuffer> cmds; // command buffers
+		MTLCommandBuffer current = nullptr; // current command buffer for render pass
+		MTLPassDescriptor pass = nullptr; // current render pass descriptor for enc
+		MTLRenderEncoder enc = nullptr; // current encoder for render
+		MTLPipeline pipeline = nullptr; // current pipeline state for render
+		bool recorded = false; // whether current command buffer has recorded commands
+		inline bool isRecorded() const {
+			return recorded || cmds.length();
+		}
+	};
+
+	class MetalCanvas: public GPUCanvas {
 	public:
 		MetalCanvas(MetalRender *render, Render::Options opts);
 		~MetalCanvas() override;
-
-		int save() override;
-		void restore(uint32_t count) override;
-		int getSaveCount() const override;
-		const Mat& getMatrix() const override;
-		void setMatrix(const Mat& mat) override;
-		void setTranslate(Vec2 val) override;
-		void translate(Vec2 val) override;
-		void scale(Vec2 val) override;
-		void rotate(float z) override;
-
-		void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
-		void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
-		void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
-
-		void clearColor(const Color4f& color) override;
-		void drawColor(const Color4f& color, BlendMode mode) override;
-		void drawPath(const Path& path, const Paint& paint) override;
-		void drawPathv(const Pathv& path, const Paint& paint) override;
-		void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawRRectBlurColor(const Rect& rect, const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
-		void drawRect(const Rect& rect, const Paint& paint) override;
-		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
-		float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
-		void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
-		void drawTriangles(const Triangles& triangles, const Paint &paint) override;
-
-		bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) override;
-		Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, BlendMode mode, bool isMipmap) override;
-		Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap) override;
-
-		void swapBuffer() override;
-		void flushBuffer();
-		PathvCache* getPathvCache() override;
-		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
-		Vec2 size() override;
-		bool isGpu() override;
-		void lock() override;
-		void unlock() override;
-
-#ifdef __OBJC__
-		id<MTLTexture> colorTexture() const { return _colorTex; }
-#endif
-
+		bool swapBuffer() override;
+		Array<MTLCommandBuffer> flushBuffer(); // flush front buffer and return mtl command buffers
+		void flushSubcanvas(MetalCanvas *sub); // flush subcanvas to current canvas
 	private:
-		struct State {
-			Mat matrix;
-		};
-
-		enum OpType: uint8_t {
-			kClear_Op,
-			kSolid_Op,
-			kImage_Op,
-			kImageMask_Op,
-			kSdfMask_Op,
-		};
-
-		struct DrawOp {
-			OpType type;
-			Mat matrix;
-			VertexData vertex;
-			Color4f color;
-			Color4f strokeColor;
-			PaintImage image;
-			Sp<ImageSource> imageSource;
-			BlendMode blendMode;
-			float strokeWidth;
-			int alphaIndex;
-			bool fullClear;
-		};
-
-		void recordSolid(const VertexData &vertex, const Color4f &color, BlendMode mode);
-		void recordImage(OpType type, const VertexData &vertex, const PaintImage *image,
-			const Color4f &color, BlendMode mode, int alphaIndex = 3,
-			const Color4f &strokeColor = Color4f(), float strokeWidth = 0);
-		void drawPaintPathv(const Pathv &path, const Paint &paint);
-		float drawTextImage(Typeface::TextImage &img, float scale, Vec2 origin, const Paint &paint);
-		void ensureTarget();
-
-		Array<State> _stateStack;
-		State *_state;
-		Array<DrawOp> _ops;
-		Array<DrawOp> _frontOps;
-		MetalRender *_render;
-		PathvCache *_cache;
-		CondMutex _mutex;
-		Render::Options _opts;
-		Mat4 _rootMatrix;
-		Vec2 _surfaceSize;
-		Vec2 _size;
-		Vec2 _scale;
-		float _surfaceScale;
-
-#ifdef __OBJC__
-		id<MTLTexture> _colorTex;
-#endif
+		inline MTLPipeline getPipeline(MSLShader& shader) {
+			return shader.getPipeline(_blendMode, _opts.colorType, _opts.msaaSample);
+		}
+		inline void setPipeline(MTLRenderEncoder enc, MSLShader& shader);
+		virtual void setBuffers(Vec2 size);
+		MTLPassDescriptor beginPass();
+		MTLPassDescriptor beginPass(int level, bool loadColor);
+		MTLRenderEncoder getEncoder();
+		void endPass();
+		// set enc pipeline state for shader
+		// get encoder and set pipeline state for shader, also ensure vertex data is valid and set for draw call
+		// if vertex data is invalid, return nullptr and skip draw call
+		MTLRenderEncoder useShader(MSLShader& shader, const VertexData &vertex);
+		MTLRenderEncoder useShader(MTLRenderEncoder enc, MSLShader& shader, const VertexData &vertex);
+		MTLRenderEncoder useTextureSlot0(const PaintImage *paint, bool* isYuv = nullptr);
+		void setSurfaceCmd(bool changeSize) override;
+		void setMatrixCmd() override;
+		void setBlendModeCmd() override;
+		void enableStencilTestCmd(bool enable) override;
+		void drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) override;
+		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
+		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
+		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
+		void drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
+		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
+		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
+		void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+				const Color4f &strokeColor, float stroke) override;
+		void blurFilterBeginCmd(Range bounds, float radius, float clearPad) override;
+		void blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) override;
+		void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) override;
+		void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dest) override;
+		void outputImageBeginCmd(ImageSource* img) override;
+		void outputImageEndCmd(ImageSource* exit) override;
+		void drawRegion(const Color4f &color, const Range &region, float depth);
+		void clearRegion(const Range &region, float scale, float offsetY, float depth);
+	// fields:
+		MetalRender *_render; // render backend
+		MTLDeviceID  _device; // Metal device
+		MTLCommandQueueID _commandQueue; // Metal command queue
+		MTL_CmdPack  _cmdPack, _cmdPackFront; // current and front command pack for render
+		MTLTextureID _outTex; // main window/surface color render target texture
+		// current active color render target texture.
+		// may point to:
+		//   _outTex               : default surface render target
+		//   _state->output        : rendering directly into output image
+		//   _outTexA / _outTexB   : temporary ping-pong render targets
+		// actual render passes always write into _outColorTex.
+		MTLTextureID _outColorTex; //
+		MTLTextureID _outDepthTex; // Depth stencil buffer object of texture
+		MTLTextureID _outAaclipTex; // Aaclip buffer object of texture
+		MTLTextureID _outTexA, _outTexB; // temp texture for render
+		bool _enableStencilTest; // whether stencil test enabled
 	};
 
 } // namespace qk

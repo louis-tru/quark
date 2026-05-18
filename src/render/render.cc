@@ -40,10 +40,27 @@ namespace qk {
 		return (uint32_t) powf(2, floor(log2(n)));
 	}
 
-	static uint32_t massSample(uint32_t n) {
+	uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
 		n = Qk_Min(n, 9); // max sample count is 9
 		return n > 1 ? n: 1;
+	}
+
+	// setting and use gpu vertex data
+	bool RenderResource::useVertexData(const VertexData::ID *id, bool clearCpuData) {
+		if (id) {
+			if (id->a) {
+				return true;
+			} else if (id->host->_render) {
+				if (id->host->_render->uploadVertexData(const_cast<VertexData::ID*>(id))) {
+					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is empty");
+					if (clearCpuData)
+						id->data->vertex.clear(); // clear memory data save memory, data already in GPU buffer
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	RenderBackend::RenderBackend(Options opts)
@@ -51,7 +68,6 @@ namespace qk {
 		, _canvas(nullptr)
 		, _delegate(nullptr)
 	{
-		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
 	}
 
 	void RenderBackend::destroy() {
@@ -62,22 +78,6 @@ namespace qk {
 		// Instances are kept in the resident pool and reused via placement new.
 		// After release(), the backend becomes a passive shell: it may still receive
 		// post_message() calls, but no rendering work or resource operations are performed.
-	}
-
-	// setting and use gpu vertex data
-	bool RenderBackend::setVertexData(const VertexData::ID *id) {
-		if (id) {
-			if (id->a) {
-				return true;
-			} else if (id->host->_render) {
-				if (id->host->_render->createVertexData(const_cast<VertexData::ID*>(id))) {
-					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is empty");
-					id->data->vertex.clear(); // clear memory data save memory, data already in GPU buffer
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	// Resident pool for RenderBackend storage blocks.

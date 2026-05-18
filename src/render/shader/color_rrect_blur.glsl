@@ -50,13 +50,9 @@ void main() {
 	float d = sdf(pos_f, r1);
 	float z = (erf(pc.s_inv * (d + pc.min_edge)) - erf(pc.s_inv * d)) * 0.5;
 	fragColor = pc.color;
-	// fragColor.a *= z;
 	fragColor *= z; // premultiplied alpha
 
-// #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	Qk_IF_AACLIP {
-		// fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 	}
-// #endif
 }

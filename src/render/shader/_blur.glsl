@@ -7,17 +7,17 @@
 
 Qk_CONSTANT(
 	vec2           iResolution; // viewport resolution
-	vec2           oResolution; // generate image resolution
+	vec2           oResolution; // generate image resolution, this <= iResolution
 	// frag
 	vec2           size; // blur size resolution %
 	float          imageLod; // image image lod
-	float          detail; // N target sampling rate, detail = 1.0 / ((n-1)*0.5)
+	float          detail; // N target sampling rate, detail = 1.0 / ((sample-1)*0.5)
 );
 
 #vert
 void main() {
-	gl_Position = rMat.value * vec4(vertexIn.xy * pc.oResolution / pc.iResolution, pc.depth, 1.0);
-	gl_Position.y += (pc.oResolution.y / pc.iResolution.y - 1.0) * 2.0; // correct canvas offset
+	vec2 scale = pc.oResolution / pc.iResolution;
+	gl_Position = rMat.value * vec4(vertexIn.xy * scale, pc.depth, 1.0);
 }
 
 #frag

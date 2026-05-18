@@ -71,7 +71,7 @@ public:
 	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) override;
 	bool onGetPath(GlyphID glyph, Path *path) override;
 	TextImage onGetImage(cArray<GlyphID>& glyphs, float fontSize,
-		cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render) override;
+		cArray<Vec2> *offset, float padding, bool antiAlias) override;
 private:
 	QkUniqueCFRef<CTFontRef> ctFont(float fontSize) const;
 	QkUniqueCFRef<CGColorSpaceRef> fRGBSpace;

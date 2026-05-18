@@ -127,7 +127,7 @@ namespace qk {
 		RunLoop* get_loop() {
 			Lock lock(mutex);
 			if (id == ThreadID()) {
-				thread_new(run, this, "first_loop");
+				thread_new(run, this, "backend loop");
 				cond.wait(lock); // wait
 			}
 			return loop;

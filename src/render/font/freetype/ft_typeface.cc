@@ -1273,7 +1273,7 @@ bool QkTypeface_FreeType::onGetPath(GlyphID glyphID, Path *path) {
 }
 
 Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, float fontSize,
-	cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render)
+	cArray<Vec2> *offset, float padding, bool antiAlias)
 {
 	Array<FontGlyphMetrics> gms = getGlyphsMetrics(glyphs);
 
@@ -1333,7 +1333,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		switch (fFace->glyph->bitmap.pixel_mode) {
 		case FT_PIXEL_MODE_MONO:
 		case FT_PIXEL_MODE_GRAY: type = kAlpha_8_ColorType; break;
-		case FT_PIXEL_MODE_BGRA: type = kRGBA_8888_ColorType; break;
+		case FT_PIXEL_MODE_BGRA: type = kBGRA_8888_ColorType; break;
 		case FT_PIXEL_MODE_LCD:
 		case FT_PIXEL_MODE_LCD_V: type = kRGB_888X_ColorType; break;
 		default:
@@ -1360,7 +1360,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 	}
 
 	return {
-		.image = ImageSource::Make(std::move(pixel), render),
+		.image = ImageSource::Make(std::move(pixel)),
 		.left = float(paddInt),
 		.top = top,
 		.width = right,

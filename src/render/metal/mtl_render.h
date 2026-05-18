@@ -6,16 +6,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark_render_metal_mtlrender__
 #define __quark_render_metal_mtlrender__
 
 #include "../render.h"
 #include "../blend.h"
-#include "../canvas.h"
-#include "./mtl_shaders.h"
+#include "./mtl_canvas.h"
 
 namespace qk {
-	class MetalCanvas;
 
 	// Global render resource,
 	// used for texture/vertex data creation, shader function and pipeline state caching
@@ -23,12 +23,11 @@ namespace qk {
 	public:
 		~MetalRenderResource();
 		void post_message(Cb cb) override;
-		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		void deleteTexture(TexStat *tex) override;
-		bool createVertexData(VertexData::ID *id) override;
-		void deleteVertexData(VertexData::ID *id) override;
-		MTLRenderPipelineStateID
-		getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount);
+		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadTexture(TexStat *tex) override;
+		void unloadVertexData(VertexData::ID *id) override;
+		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount);
 	private:
 		explicit MetalRenderResource();
 		MTLFunctionID getShaderFunction(MSLPipelineKind kind, bool vertex);
@@ -38,8 +37,8 @@ namespace qk {
 		MTLDeviceID _device;
 		MTLCommandQueueID _commandQueue;
 		Dict<uint32_t, MTLFunctionID> _functions; // key = (kind << 1) | vertex, value = MTLFunctionID
-		// key = (kind << 16) | (blendMode << 8) | (outputType << 4) | sampleCount, value = MTLRenderPipelineStateID
-		Dict<uint32_t, MTLRenderPipelineStateID> _pipelines;
+		// key = (kind << 16) | (blendMode << 8) | (outputType << 4) | sampleCount, value = MTLPipeline
+		Dict<uint32_t, MTLPipeline> _pipelines;
 		friend RenderResource* getSharedRenderResource();
 		friend class MetalRender;
 	};
@@ -51,20 +50,27 @@ namespace qk {
 		void release() override;
 		void reload() override;
 		Canvas* createCanvas(Options opts) override;
-		bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		bool createVertexData(VertexData::ID *id) override;
-		void deleteTexture(TexStat *tex) override;
-		void deleteVertexData(VertexData::ID *id) override;
+		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadTexture(TexStat *tex) override;
+		void unloadVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
+		bool use_texture(MTLRenderEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
+		void set_texture_param(MTLRenderEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint);
+		MTLSampler get_sampler(const PaintImage* paint);
+		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
 	protected:
-		MetalRender(Options opts);
+		explicit MetalRender(Options opts);
 	// fields:
 		MetalRenderResource* _resource; // shared render resource, used for texture/vertex data creation
-		MetalCanvas *_mtlcanvas;
+		MetalCanvas *_mtlcanvas; // current main canvas, owned by this backend
+		TexStat **_texStat; // temp cache for texture state, indexed by slot (0-11)
 		MSLShaders _shaders; // shader source and pipeline state cache, for render thread use
-		MTLDeviceID _device;
-		MTLCommandQueueID _commandQueue;
+		MTLDeviceID _device; // Metal device
+		MTLCommandQueueID _commandQueue; // Metal command queue
+		MTLSampler _aaclipSampler; // sampler state for aaclip texture
+		Dict<uint32_t, MTLSampler> _texSamplers; // PaintImage => Sampler, indexed by PaintImage bitfields (tile/filter/mipmap modes)
 		friend class MetalCanvas;
 	};
 

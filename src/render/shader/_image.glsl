@@ -9,7 +9,7 @@
 _CONSTANT_IMAGE(Qk_CONSTANT_Fields);
 
 #vert
-layout(location=1) out vec2 coords; // texture coordinates for fragment shader
+layout(location=1) out vec2 coords; // texture coordinates uv for fragment shader
 
 void main() {
 	vec4 pos = (vMat.value * vec4(vertexIn.xy, pc.depth, 1.0));
@@ -19,7 +19,10 @@ void main() {
 	gl_Position = rMat.value * vec4(pos.xy, pos.zw);
 
 	aafuzz = aafuzzIn;
-	coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw;
+	// Qk uses screen-space coordinates internally.
+	// Intermediate render targets keep the same memory orientation as uploaded images.
+	// Do not flip Y here; backend-specific Y correction is applied only at final present.
+	coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw; // coord uv
 }
 
 #frag

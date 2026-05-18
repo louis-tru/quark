@@ -37,10 +37,39 @@
 #include "./pixel.h"
 #include "../util/thread.h"
 #include "../util/thread/mutex.h"
+#include "./paint.h"
 
 namespace qk {
 	class RenderResource;
-	struct TexStat;
+
+	/**
+	 * @struct TexStat
+	 * @brief Lightweight GPU texture handle used by RenderBackend.
+	 *
+	 * Represents a backend-managed texture resource identifier.
+	 * May refer to a hardware texture (OpenGL ID, Vulkan image, etc.).
+	 */
+	struct TexStat {
+		std::atomic<uintptr_t> handle; //!< Atomic handle to support concurrent access and updates.
+		uint32_t id() const { //!< Generic texture identifier (e.g., OpenGL texture ID).
+			return uint32_t(handle.load(std::memory_order_acquire));
+		}
+		void* ptr() const { //!< Generic pointer for backends that use pointer-based texture handles.
+			return reinterpret_cast<void*>(handle.load(std::memory_order_acquire));
+		}
+		void set_id(uint32_t v) {
+			handle.store(uintptr_t(v), std::memory_order_release);
+		}
+		void set_ptr(const void* p) {
+			handle.store(reinterpret_cast<uintptr_t>(p), std::memory_order_release);
+		}
+		TexStat& operator=(const TexStat& other) {
+			handle.store(other.handle.load(std::memory_order_acquire), std::memory_order_release);
+			return *this;
+		}
+		TexStat(): handle(0) {}
+		TexStat(const TexStat& other): handle(other.handle.load(std::memory_order_acquire)) {}
+	};
 
 	/**
 	 * @class ImageSource
@@ -119,8 +148,9 @@ namespace qk {
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
 		Qk_DEFINE_PROP_GET(State, state, Const);
-		Qk_DEFINE_PROP_GET(bool, premultipliedAlpha, Const); // is premultiplied alpha
 		Qk_DEFINE_PROPERTY(PremulFlags, premulFlags, Const); // default as kConvert_PremulFlags
+		Qk_DEFINE_PROP_GET(bool, premultipliedAlpha, Const); // is premultiplied alpha
+		Qk_DEFINE_PROPERTY(bool, mipmap, Const); // is generate GPU mipmap texture default as true
 
 		/**
 		 * Create an ImageSource from URI.
@@ -144,11 +174,11 @@ namespace qk {
 		/**
 		 * Create source and mark to gpu texture
 		 * @param pixels {Array<Pixel>&&} pixel array move
-		 * @param res {RenderResource* = nullptr} mark as texture if not null
+		 * @param first {RenderResource* = nullptr} mark as texture if not null
 		 * @return {Sp<ImageSource>} image source smart pointer
 		*/
-		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *res = nullptr);
-		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *res = nullptr);
+		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *first = nullptr);
+		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *first = nullptr);
 
 		/**
 		 * @destructor
@@ -166,14 +196,16 @@ namespace qk {
 		void unload();
 
 		/**
-		 *
 		 * Upload pixel data to GPU as texture.
-		 * After this call, the image becomes GPU-ready for rendering.
+		 * After this call, the image becomes GPU-ready for rendering,
+		 * generally called by the backend.
 		 * 
-		 * @param res {RenderResource* = nullptr} render resource pointer, default use shared render resource
-		 * @return {bool} return mark success or failure
+		 * @param first {RenderResource* = nullptr} 
+		 * first try to use the render resource provided by caller if exist,
+		 * because it may be the current render resource of caller and can immediately 
+		 * create texture without waiting for next render loop, otherwise use shared render resource
 		 */
-		bool markAsTexture(RenderResource *res = nullptr);
+		void markAsTexture(RenderResource *first = nullptr);
 
 		/**
 		 * @method isLoaded() is ready draw image
@@ -211,13 +243,9 @@ namespace qk {
 		 * @method texture(index) get  image texture with index
 		*/
 		inline const TexStat* texture(uint32_t index) const {
-			return index < _tex.length() ? _tex[index]: nullptr;
+			Qk_ASSERT_LT(index, 8, "TexStat size must be equal to atomic uint32_t");
+			return _tex + index;
 		}
-
-		/**
-		 * @method isMipmap() Whether generate mipmap texture
-		*/
-		inline bool isMipmap() const { return _isMipmap; }
 
 		/**
 		 * @method count() pixels count
@@ -233,20 +261,19 @@ namespace qk {
 		static void premultipliedAlphaFromPixels(Array<Pixel> &pixels);
 
 	private:
-		ImageSource(RenderResource *res, RunLoop *loop);
+		ImageSource(RunLoop *loop);
 		void decode(Buffer& data);
 		void afterDecode(Array<Pixel>& pixels, bool success);
 		void unload_(bool destroy);
-		void reloadTexture();
+		void reloadTexture(RenderResource *res);
 		static bool premultipliedAlphaFromPixel(Pixel &pixel);
 
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		Array<const TexStat*> _tex;
-		uint32_t     _loadId;
+		TexStat      _tex[8]; // support up to 8 slot texture
 		RenderResource *_res; // weak ref, texture mark
 		RunLoop       *_loop;
-		bool          _isMipmap; // Whether generate mipmap texture
+		uint32_t      _loadId;
 	};
 
 	/**

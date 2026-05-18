@@ -317,7 +317,6 @@ namespace qk {
 		auto src = fill->source();
 		if (!src || !src->load())
 			return;
-		// src->markAsTexture();
 
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = v->_client_size;
@@ -773,7 +772,6 @@ namespace qk {
 
 		auto src = source();
 		if (src && src->load()) {
-			// src->markAsTexture();
 			draw->getInsideRectPath(this);
 			Paint paint;
 			PaintImage img;
@@ -981,7 +979,7 @@ namespace qk {
 				painter->set_origin(origin_value());
 				painter->set_matrix(&matrix());
 				// The root background is not pre-multiplied, the color is drawn directly.
-				canvas->clearColor(background_color().mul_color4f(color().to_color4f()));
+				canvas->clearColor(background_color().mul_color4f(painter->_color));
 				painter->drawBoxFill(this);
 				painter->drawBoxBorder(this);
 				painter->set_origin({}); // reset origin

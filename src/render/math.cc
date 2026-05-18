@@ -189,19 +189,19 @@ namespace qk {
 	}
 
 	Vec2 Vec2::rotate90z() const {
-		return Vec2{val[1], -val[0]};
+		return Vec2{-val[1], val[0]};
 	}
 
 	Vec2 Vec2::rotate270z() const { // ccw rotate 90
-		return Vec2{-val[1], val[0]};
+		return Vec2{val[1], -val[0]};
 	}
 
 	Vec2 Vec2::rotate(float radians) const {
 		float c = cosf(radians);
 		float s = sinf(radians);
 		return Vec2{
-			val[0] * c - val[1] * s,
-			val[0] * s + val[1] * c
+			val[0] * c + val[1] * s,
+			val[1] * c - val[0] * s
 		};
 	}
 
@@ -1757,54 +1757,54 @@ namespace qk {
 
 	Mat4 Mat4::frustum(float left, float right, float top, float bottom, float near, float far) {
 		Mat4 matrix;
-		float* _matrix = matrix.val;
+		float* m = matrix.val;
 		
-		_matrix[0]  = (2.0f * near) / (right - left);
-		_matrix[1]  = 0.0;
-		_matrix[2]  = (right + left) / (right - left);
-		_matrix[3]  = 0.0;
+		m[0]  = (2.0f * near) / (right - left);
+		m[1]  = 0.0;
+		m[2]  = (right + left) / (right - left);
+		m[3]  = 0.0;
 		
-		_matrix[4]  = 0.0;
-		_matrix[5]  = (2.0f * near) / (top - bottom);
-		_matrix[6]  = (top + bottom) / (top - bottom);
-		_matrix[7]  = 0.0;
+		m[4]  = 0.0;
+		m[5]  = (2.0f * near) / (bottom - top);
+		m[6]  = (top + bottom) / (bottom - top);
+		m[7]  = 0.0;
 		
-		_matrix[8]  = 0.0;
-		_matrix[9]  = 0.0;
-		_matrix[10] = -(far + near) / (far - near);
-		_matrix[11] = -(2.0f * far * near) / (far - near);
+		m[8]  = 0.0;
+		m[9]  = 0.0;
+		m[10] = (far + near) / (far - near);
+		m[11] = -(2.0f * far * near) / (far - near);
 		
-		_matrix[12] = 0.0;
-		_matrix[13] = 0.0;
-		_matrix[14] = -1.0f;
-		_matrix[15] = 0.0;
+		m[12] = 0.0;
+		m[13] = 0.0;
+		m[14] = 1.0f; // w' = z, +z forward
+		m[15] = 0.0f;
 
 		return matrix;
-	};
+	}
 
 	Mat4 Mat4::ortho(float left, float right, float top, float bottom, float near, float far) {
 		Mat4 matrix;
-		float* _matrix = matrix.val;
+		float* m = matrix.val;
 		
-		_matrix[0]  = 2.0f / (right - left);
-		_matrix[1]  = 0.0;
-		_matrix[2]  = 0.0;
-		_matrix[3]  = -(right + left) / (right - left);
+		m[0]  = 2.0f / (right - left);
+		m[1]  = 0.0;
+		m[2]  = 0.0;
+		m[3]  = -(right + left) / (right - left);
 		
-		_matrix[4]  = 0.0;
-		_matrix[5]  = 2.0f / (top - bottom);
-		_matrix[6]  = 0.0;
-		_matrix[7]  = -(top + bottom) / (top - bottom);
+		m[4]  = 0.0;
+		m[5]  = 2.0f / (bottom - top);
+		m[6]  = 0.0;
+		m[7]  = -(top + bottom) / (bottom - top);
 		
-		_matrix[8]  = 0.0;
-		_matrix[9]  = 0.0;
-		_matrix[10] = 2.0f  / (far - near);
-		_matrix[11] = -(far + near) / (far - near);
+		m[8]  = 0.0;
+		m[9]  = 0.0;
+		m[10] = 2.0f  / (far - near);
+		m[11] = -(far + near) / (far - near);
 		
-		_matrix[12] = 0.0;
-		_matrix[13] = 0.0;
-		_matrix[14] = 0.0;
-		_matrix[15] = 1.0;
+		m[12] = 0.0;
+		m[13] = 0.0;
+		m[14] = 0.0;
+		m[15] = 1.0;
 
 		return matrix;
 	}

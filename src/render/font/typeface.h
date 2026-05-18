@@ -77,14 +77,14 @@ namespace qk {
 		Array<FontGlyphMetrics> getGlyphsMetrics(cArray<GlyphID>& glyphs); // returns the glyphs metrics
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
+
 		/**
 		* get image source object from out param and return top to baseline value for image text
 		* @method getImage
 		* @param offset {cArray<Vec2>*} layout offset, offset.length = glyphs.length + 1
 		* @param offsetScale {float} offset scale
 		*/
-		TextImage getImage(cArray<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, RenderBackend *render = nullptr);
+		TextImage getImage(cArray<GlyphID> &glyphs, float fontSize, cArray<Vec2> *offset);
 
 		/**
 		 * get sdf image source object from out param and return top to baseline value for image text
@@ -92,8 +92,8 @@ namespace qk {
 		 * @param offset {cArray<Vec2>*} layout offset, offset.length = glyphs.length + 1
 		 * @param offsetScale {float} offset scale
 		*/
-		TextImage getSDFImage(cArray<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, bool is_signed, RenderBackend *render = nullptr);
+		TextImage getSDFImage(cArray<GlyphID> &glyphs, float fontSize, cArray<Vec2> *offset, bool is_signed);
+
 	protected:
 		Typeface(FontStyle style);
 		virtual int onCountGlyphs() const = 0;
@@ -107,7 +107,7 @@ namespace qk {
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) = 0;
 		virtual TextImage onGetImage(cArray<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render) = 0;
+			float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias) = 0;
 		SharedMutex& mutex() const { return *_Mutex; }
 	private:
 		// props field:
