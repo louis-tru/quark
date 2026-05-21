@@ -46,7 +46,7 @@ namespace qk {
 		~GLCanvas() override;
 		bool swapBuffer() override; // swap gl double cmd pkg, success return true
 		void flushBuffer(); // commit gl cmd, only can rendering thread call
-		void vportFullCopy(GLuint dstFBO);
+		void vportCopy(GLuint dstFBO);
 		bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst);
 	private:
 		void checkMatrix();
@@ -55,7 +55,8 @@ namespace qk {
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
 		void enableStencilTestCmd(bool enable) override;
-		void drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) override;
+		void drawClipCmd(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *lastClip,
+				GC_State::Clip *clip, ClipOp rawOp) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
 		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
@@ -70,6 +71,7 @@ namespace qk {
 		void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dest) override;
 		void outputImageBeginCmd(ImageSource* img) override;
 		void outputImageEndCmd(ImageSource* exit) override;
+		void restoreClipCmd(GC_State::Clip* clip) override;
 	// fields:
 		GLRender *_render; // render backend
 		GLC_CmdPack *_cmdPack;
@@ -77,8 +79,6 @@ namespace qk {
 		GLuint _fbo; // frame buffer object
 		GLuint _outTex; // Color render buffer object of texture
 		GLuint _outDepth; // Depth and stencil buffer object
-		GLuint _outAaclipTex; // Output texture AA clip buffer object
-		GLuint _outTexA, _outTexB; // Temp output texture buffer object A and B
 		bool _matrixFlag; // change matrix flag
 
 		friend class GLC_CmdPack;

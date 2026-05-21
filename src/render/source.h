@@ -67,7 +67,9 @@ namespace qk {
 			handle.store(other.handle.load(std::memory_order_acquire), std::memory_order_release);
 			return *this;
 		}
-		TexStat(): handle(0) {}
+		explicit TexStat(void *h): handle(reinterpret_cast<uintptr_t>(h)) {}
+		explicit TexStat(uint32_t id): handle(id) {}
+		explicit TexStat(): handle(0) {}
 		TexStat(const TexStat& other): handle(other.handle.load(std::memory_order_acquire)) {}
 	};
 
@@ -231,6 +233,11 @@ namespace qk {
 		 * @method info() Returns pixel bitmap height
 		*/
 		inline int height() const { return _info.height(); }
+
+		/**
+		 * @method info() Returns pixel bitmap size
+		*/
+		inline Vec2 size() const { return _info.size(); }
 
 		/**
 		 * @method pixel(index) Returns pixel data and info

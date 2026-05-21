@@ -1,23 +1,40 @@
 Qk_CONSTANT(
 	vec4 color;
+	vec4 surface; // surface offset xy, surface rMat scale_inv zw: surface.zw = 1 / surfaceScale
 );
 
 #vert
 void main() {
 	// gl_InstanceID, gl_VertexID
 	aafuzz = aafuzzIn;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	vec4 pos = vMat.value * vec4(vertexIn.xy, pc.depth, 1.0);
+	pos.xy += pc.surface.xy * pc.surface.zw; // apply surface offset
+	gl_Position = rMat.value * pos;
 }
 
 #frag
+#define Qk_FLAG_AAFUZZ_Inverted (1u << 2)
 
 void main() {
 	fragColor = pc.color;
 
-	// fuzz value range: 1 => 0, alpha range: 0 => 1
-	fragColor *= (1.0 - abs(aafuzz)); // premultiplied alpha
-
-	Qk_IF_AACLIP {
-		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+	if ((pc.flags & Qk_FLAG_AAFUZZ_Inverted) != 0) {
+		// Inverted AA fuzz coverage.
+		//
+		// Normal AA fuzz:
+		//   alpha = 1 - abs(aafuzz)
+		//
+		// Inverted mode:
+		//   alpha = abs(aafuzz)
+		//
+		// Used by subtractive/difference clip masks to produce
+		// smooth anti-aliased mask edges without directly drawing
+		// solid black coverage.
+		fragColor *= abs(aafuzz);
+	} else {
+		// fuzz value range: 1 => 0, alpha range: 0 => 1
+		fragColor *= (1.0 - abs(aafuzz)); // premultiplied alpha
 	}
+
+	Qk_CLIP_(clipStat.range.xy - pc.surface.xy); // apply clip mask if needed
 }

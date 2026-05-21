@@ -259,6 +259,26 @@ namespace qk {
 		Vec2 round() const;
 
 		/**
+		 * @method min return min of two vector
+		 */
+		Vec2 min(const Vec2 &b) const;
+
+		/**
+		 * @method max return max of two vector
+		 */
+		Vec2 max(const Vec2 &b) const;
+
+		/**
+		 * @method floor return floor of vector
+		 */
+		Vec2 floor() const;
+
+		/**
+		 * @method ceil return ceil of vector
+		 */
+		Vec2 ceil() const;
+
+		/**
 		 * @method angleTo(to) return vector angle
 		 */
 		float angleTo(const Vec2 to) const;

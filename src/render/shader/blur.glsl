@@ -6,17 +6,16 @@
 #define gk(x) exp(-x*x*2.0)
 
 void main() {
-	vec2  coord = gl_FragCoord.xy / pc.oResolution; // coord uv
-	vec4  o = textureLod(image, coord, pc.imageLod); // original color
+	vec2  uv = gl_FragCoord.xy / pc.oResolution; // coord uv
+	vec4  o = textureLod(image, uv, pc.imageLod); // original color
 	float g, x = -1.0, t = 0.0;
 
 	do {
 		g = gk(x);
-		o += tex(coord, pc.size * x/*offset distance*/) * g;
-		// o += tex(coord, vec2(0,0)/*offset distance*/) * g;
+		o += tex(uv, pc.radius_uv * x/*offset distance*/) * g;
 		t += g;
-		x += pc.detail;
-	} while(x < 0.0);
+		x += pc.sample_inv;
+	} while(x < -0.01); // x < -0.01 to avoid precision issue when x is close to 0
 
 	fragColor = blend(o, t*2.0+1.0);
 }

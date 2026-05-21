@@ -9,9 +9,9 @@ Qk_CONSTANT(
 	vec2           iResolution; // viewport resolution
 	vec2           oResolution; // generate image resolution, this <= iResolution
 	// frag
-	vec2           size; // blur size resolution %
+	vec2           radius_uv; // radius/resolution, used for offset distance in texture sampling
+	float          sample_inv; // N target sampling rate, sample_inv = 1.0 / ((sample-1)*0.5)
 	float          imageLod; // image image lod
-	float          detail; // N target sampling rate, detail = 1.0 / ((sample-1)*0.5)
 );
 
 #vert
@@ -21,7 +21,7 @@ void main() {
 }
 
 #frag
-layout(binding=4) uniform sampler2D image; // image image input
+layout(binding=5) uniform sampler2D image; // image image input
 
 // Gaussian blur normalization
 //
@@ -48,6 +48,6 @@ vec4 blend(in vec4 o, in float t) {
 	return o / t;
 }
 
-vec4 tex(in vec2 coord, in vec2 d) {
-	return textureLod(image, coord + d, pc.imageLod) + textureLod(image, coord - d, pc.imageLod);
+vec4 tex(in vec2 uv, in vec2 d) {
+	return textureLod(image, uv + d, pc.imageLod) + textureLod(image, uv - d, pc.imageLod);
 }

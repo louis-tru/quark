@@ -22,7 +22,7 @@ void main() {
 }
 
 #frag
-layout(binding=4) uniform sampler2D image;
+layout(binding=1,set=1) uniform sampler2D image;
 layout(location=1) in vec2 texCoords;
 layout(location=2) in vec4 light;
 layout(location=3) in vec4 dark;
@@ -46,12 +46,5 @@ void main() {
 		fragColor = light * tex;
 	}
 
-	Qk_IF_AACLIP {
-		float alpha = smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-		// apply premultiplied alpha
-		// float premul = mix(1.0, alpha, premultipliedAlpha);
-		// fragColor *= vec4(vec3(premul), alpha);
-		// always apply premultiplied alpha
-		fragColor *= alpha;
-	}
+	Qk_CLIP(); // apply clip mask if needed
 }

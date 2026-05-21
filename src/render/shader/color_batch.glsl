@@ -7,7 +7,7 @@ struct Option {
 	vec4  color; // color
 };
 
-layout(binding=4) uniform OptsBlock {
+layout(binding=4, set=0, std140) uniform OptsBlock {
 	Option opts[256];
 };
 
@@ -45,7 +45,5 @@ void main() {
 	// fuzz value range: 1 => 0, alpha range: 0 => 1
 	fragColor *= 1.0 - abs(aafuzz); // premultiplied alpha
 
-	Qk_IF_AACLIP {
-		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-	}
+	Qk_CLIP(); // apply clip mask if needed
 }

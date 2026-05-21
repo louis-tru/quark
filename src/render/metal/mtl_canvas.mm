@@ -142,6 +142,12 @@ namespace qk {
 		}
 	}
 
+	inline MTLRenderEncoder MetalCanvas::setPipeline(MSLShader& shader) {
+		auto enc = getEncoder();
+		setPipeline(enc, shader);
+		return enc;
+	}
+
 	// useShader with vertex data ensures vertex data is valid and set for draw call,
 	// if vertex data is invalid, return nil and skip draw call
 	MTLRenderEncoder MetalCanvas::useShader(MTLRenderEncoder enc, MSLShader& shader, const VertexData &vertex) {
@@ -212,10 +218,6 @@ namespace qk {
 
 	void MetalCanvas::setSurfaceCmd(bool changeSize) {
 		int w = _surfaceSize.x(), h = _surfaceSize.y();
-
-		Qk_ASSERT(w, "Invalid viewport surface size width");
-		Qk_ASSERT(h, "Invalid viewport surface size height");
-
 		if (changeSize) {
 			_outTex = mtl_new_tex_renderbuffer(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), true, true, false);
@@ -232,13 +234,13 @@ namespace qk {
 
 		// start a new pass with new buffers
 		auto pass = beginPass();
+		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+		pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
 		// clear depth and stencil to default values
 		pass.depthAttachment.loadAction = MTLLoadActionClear;
 		pass.depthAttachment.clearDepth = 0; // default depth value
 		pass.stencilAttachment.loadAction = MTLLoadActionClear;
 		pass.stencilAttachment.clearStencil = 127; // default stencil ref value
-		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
-		pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
 
 		// Root/view matrices are uploaded when the encoder is lazily created by getEncoder().
 	}
@@ -262,7 +264,7 @@ namespace qk {
 		}
 	}
 
-	void MetalCanvas::drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) {
+	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *dstClip) {
 		// TODO
 	}
 
@@ -279,8 +281,7 @@ namespace qk {
 			pass.colorAttachments[0].clearColor = MTLClearColorMake(color.r(), color.g(), color.b(), color.a());
 		} else {
 			auto &shader = _render->_shaders.clear;
-			auto enc = getEncoder();
-			setPipeline(enc, shader); // set pipeline state for clear shader
+			auto enc = setPipeline(shader); // set pipeline state for clear shader
 
 			MSLClear::PcArgs pc{ color, _zDepth, 0 };
 
@@ -446,9 +447,8 @@ namespace qk {
 		float x1 = c[0] - w, x2 = c[0] + w;
 		float y1 = c[1] - h, y2 = c[1] + h;
 		Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
-		auto enc = getEncoder();
 		auto& sh = _render->_shaders.colorRrectBlur;
-		setPipeline(enc, sh);
+		auto enc = setPipeline(sh);
 		int flags = Qk_AACLIP(_state->clip.aaclip);
 		float s_inv = 1.0f / blur;
 
@@ -476,8 +476,7 @@ namespace qk {
 
 	void MetalCanvas::drawRegion(const Color4f &color, const Range &region, float depth) {
 		auto &shader = _render->_shaders.color;
-		auto enc = getEncoder();
-		setPipeline(enc, shader);
+		auto enc = setPipeline(shader);
 		float x1 = region.begin.x(), y1 = region.begin.y();
 		float x2 = region.end.x(), y2 = region.end.y();
 		float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
@@ -508,28 +507,27 @@ namespace qk {
 		}
 		auto blend = _blendMode; // save current blend mode
 		auto stencilTest = _enableStencilTest;
-		if (blend > kSrcOver_BlendMode)
-			_blendMode = kSrc_BlendMode; // set blend mode to src for blur filter
+		_blendMode = kSrc_BlendMode; // set blend mode to src for blur filter
 		_enableStencilTest = false; // disabling stencil test for blur filter
 		_outColorTex = _outTexA; // output to texture A for blur filter then do post processing
 		// begin a new pass for blur filter with texture A as render target
 		beginPass(0, false);
 
-		/*clear pixels within bounds
-			bounds already includes the blur radius; keep an extra guard band for
-			scaled/mipmapped blur samples near the edge of the temporary texture.
-		|.|......|.|
-		|.|.body.|.|
-		|.|......|.|
-		*/
+		// bounds already includes the blur radius,
+		// extra padding for scaled/mipmapped blur samples
+		// |r|r|rrrrrr|r|r|
+		// |r|r|rrrrrr|r|r|
+		// |r|r| body |r|r|
+		// |r|r|rrrrrr|r|r|
+		// |r|r|rrrrrr|r|r|
+		float padding = radius + clearPad; // extra padding for scaled/mipmapped blur samples
 		drawRegion({0,0,0,0}, {
-			{bounds.begin.x() - clearPad, bounds.begin.y() - clearPad},
-			{bounds.end.x() + clearPad, bounds.end.y() + clearPad},
+			{bounds.begin.x() - padding, bounds.begin.y() - padding},
+			{bounds.end.x() + padding, bounds.end.y() + padding},
 		}, depth);
 	
-		if (stencilTest || blend != _blendMode) {
+		if (stencilTest)
 			endPass(); // end current pass if state will be changed
-		}
 		_blendMode = blend; // restore blend mode
 		_enableStencilTest = stencilTest; // restore stencil test state
 	}
@@ -543,128 +541,93 @@ namespace qk {
 		*   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		*/
 	void MetalCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) {
-		float x1 = bounds.begin.x() - clearPad, y1 = bounds.begin.y() - clearPad;
-		float x2 = bounds.end.x() + clearPad, y2 = bounds.end.y() + clearPad;
-		float fullRadius = radius * _surfaceScale;
+		float x1 = bounds.begin.x(), y1 = bounds.begin.y();
+		float x2 = bounds.end.x(), y2 = bounds.end.y();
+		float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+		x1 -= clearPad, y1 -= clearPad; // extra padding for scaled/mipmapped blur samples
+		x2 += clearPad, y2 += clearPad;
+		float radius2 = radius * _surfaceScale; // radius in pixel unit
 		Vec2 R = _surfaceSize; // viewport resolution of the vport_cp shader
 		int oRw = R.x(), oRh = R.y();
 
-		auto &cp = _render->_shaders.vportCp;
-		auto blend = _blendMode; // save current blend mode
 		auto stencilTest = _enableStencilTest;
-		if (blend > kSrcOver_BlendMode)
-			_blendMode = kSrc_BlendMode;
+		auto blend = _blendMode; // save current blend mode
 		_enableStencilTest = false;
+		_blendMode = kSrc_BlendMode;
 		// get sampler state for paint image
 		auto sampler = _render->get_sampler(PaintImage::kNearest_FilterMode,
 			PaintImage::kLinearNearest_MipmapMode);
+		auto &cp = _render->_shaders.vportCp;
+		// Choosing the right blur shader
+		auto blur = &_render->_shaders.blur;
 
-		int level = 0;
-		while (level < imageLod && oRw && oRh) { // copy image, gen mipmap texture
-			/* Copy more the x-axis regions, but ignore the y-axis blurred regions
-			|.|......|.|
-			|.|.body.|.|
-			|.|......|.|
-			*/
-			float scale = float(oRw >> 1) / oRw; // ≈ 0.5 for each level
-			x1 *= scale; y1 *= scale; x2 *= scale; y2 *= scale;
-			oRw >>= 1; oRh >>= 1;
+		if (imageLod) {
+			// |r|r|rrrrrr|r|r|
+			// |r|r|rrrrrr|r|r|
+			// |r|r| body |r|r|
+			// |r|r|rrrrrr|r|r|
+			// |r|r|rrrrrr|r|r|
+			int level = 0;
 			float vertex[] = {
-				x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0
+				x1-radius,y1-radius,0, x2+radius,y1-radius,0,
+				x1-radius,y2+radius,0, x2+radius,y2+radius,0,
 			};
-			MSLVportCp::PcArgs pc{
-				Vec2(oRw, oRh), // iResolution
-				Vec2(oRw, oRh), // oResolution
-				{ 0, 0, 1, 1 }, // coord scale coefficient
-				level++, // imageLod
-				depth,
-				0
-			};
-			beginPass(level, false); // begin new pass for next level
-			auto enc = getEncoder();
-			setPipeline(enc, cp);
-			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:cp.bufferIndex];
+			do { // Copy the image to smaller texture for next level
+				oRw >>= 1; oRh >>= 1;
+				MSLVportCp::PcArgs pc{ R, Vec2(oRw, oRh), { 0, 0, 1, 1 }, level++, depth, 0};
+				beginPass(level, false); // begin new pass for next level
+				auto enc = setPipeline(cp);
+				enc.viewport = MTLViewportMake(0, 0, oRw, oRh, 0, 1); // set viewport for current level
+				[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:cp.bufferIndex];
+				[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+				[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+				[enc setFragmentTexture:_outTexA atIndex:cp.fragment.image];
+				[enc setFragmentSamplerState:sampler atIndex:cp.fragment.sampler];
+				[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+				depth += zDepthNextUnit;
+			} while (level < imageLod);
+		}
+		{
+			// The blur regions for x-axis
+			// |r|rrrrrr|r|
+			// |r|rrrrrr|r|
+			// |r| body |r|
+			// |r|rrrrrr|r|
+			// |r|rrrrrr|r|
+			_outColorTex = _outTexB; // output to texture B
+			// begin new pass for blur filter with texture B as render target
+			beginPass(imageLod, false);
+			// Making blur of the x-axis direction
+			float vertex_x[] = { x1,y1-radius,0, x2,y1-radius,0, x1,y2+radius,0, x2,y2+radius,0 };
+			MSLBlur::PcArgs pc{ R, Vec2(oRw, oRh), Vec2(radius2 / R.x(), 0), imageLod, depth, 0 };
+			auto enc = setPipeline(*blur);
+			[enc setVertexBytes:vertex_x length:sizeof(vertex_x) atIndex:blur->bufferIndex];
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-			[enc setFragmentTexture:_outTexA atIndex:cp.fragment.image];
-			[enc setFragmentSamplerState:sampler atIndex:cp.fragment.sampler];
+			[enc setFragmentTexture:_outTexA atIndex:blur->fragment.image];
+			[enc setFragmentSamplerState:sampler atIndex:blur->fragment.sampler];
+			// draw blur to texture B
 			[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 			depth += zDepthNextUnit;
 		}
-
-		_outColorTex = _outTexB; // output to texture B
-		// begin new pass for blur filter with texture B as render target
-		beginPass(level, false);
-
-		// Choosing the right blur shader
-		auto blur = &_render->_shaders.blur;
-		/*switch (n) {
-			case 3: blur += 1; break; // blur3
-			case 7: blur += 2; break; // blur7
-			case 13: blur += 3; break; // blur13
-			case 19: blur += 4; break; // blur19
-		}*/
-
-		/* The x-axis regions
-		|.|......|.|
-		|.|.body.|.|
-		|.|......|.|
-		*/
-		float vertex_x[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
-		/* The y-axis regions
-		|/|/|//////|/|/|
-		|/|.|......|.|/|
-		|/|.| body |.|/|
-		|/|.|......|.|/|
-		|/|/|//////|/|/|
-		*/
-		float y1_ = y1 - radius, y2_ = y2 + radius;
-		float vertex_y[] = { x1,y1_,0, x2,y1_,0, x1,y2_,0, x2,y2_,0 };
-		float oiScale = oRw / R.x(); // oResolution / iResolution
-		float offsetY = (R.y() - oRh) / _surfaceScale;
-		/* First clean the y-axis of buffer B
-		|.|.|......|.|.|
-		|.|.|......|.|.|
-		|.|/|//////|/|.|
-		|.|.|......|.|.|
-		|.|.|......|.|.|
-		*/
-		//	oRw, oRh, R.x(), R.y(), offsetY, oiScale);
-		//glClearBufferfv(GL_COLOR, 0, emptyColor);
-		y1_-=radius; y2_+=radius;
-		// clearRegion({{x1, y1_}, {x2, y1}}, oiScale, offsetY, depth); // clear top
-		// clearRegion({{x1, y2}, {x2, y2_}}, oiScale, offsetY, depth); // clear bottom
-		// clearRegion({{x1-3, y1_}, {x1, y2_}}, oiScale, offsetY, depth); // clear left
-		// clearRegion({{x2, y1_}, {x2+3, y2_}}, oiScale, offsetY, depth); // clear right
-		// Making blur of the x-axis direction
-		blur->use(sizeof(float) * 12, vertex_x);
-		glUniform1f(blur->pc_depth, depth);
-		glUniform2f(blur->pc_iResolution, R.x(), R.y());
-		glUniform2f(blur->pc_oResolution, oRw, oRh);
-		glUniform1f(blur->pc_imageLod, imageLod);
-		glUniform1f(blur->pc_detail, 1.0f/(sample-1));
-		glUniform2f(blur->pc_size, fullRadius / R.x(), 0); // horizontal blur
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
-
-		// if (clipState) {
-		// 	glEnable(GL_STENCIL_TEST); // recover clip state
-		// }
-		// _render->set_blend_mode(backMode); // restore blend mode
-
-		// recover output target
-		glFramebufferTexture2D(
-			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			recover ? recover->texture(0)->id(): _outTex, 0
-		);
-
-		glBindTexture(GL_TEXTURE_2D, _outTexB);
-
-		// Making blur of the y-axis direction
-		blur->use(sizeof(float) * 12, vertex_y);
-		glUniform1f(blur->pc_depth, depth + zDepthNextUnit);
-		glUniform2f(blur->pc_oResolution, R.x(), R.y());
-		glUniform2f(blur->pc_size, 0, fullRadius / R.y()); // vertical blur
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
+		{
+			// The blur regions for y-axis
+			// |r|rrrrrr|r|
+			// |r| body |r|
+			// |r|rrrrrr|r|
+			_outColorTex = _state->output ? _state->output: _outTex;
+			_enableStencilTest = stencilTest;
+			_blendMode = blend;
+			beginPass(); // begin new pass for main render target
+			MSLBlur::PcArgs pc = { R, Vec2(oRw, oRh), Vec2(0, radius2 / R.y()), imageLod, depth, 0 };
+			auto enc = setPipeline(*blur);
+			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:blur->bufferIndex];
+			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc setFragmentTexture:_outTexB atIndex:blur->fragment.image];
+			[enc setFragmentSamplerState:sampler atIndex:blur->fragment.sampler];
+			[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+		}
 	}
 
 	void MetalCanvas::drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) {

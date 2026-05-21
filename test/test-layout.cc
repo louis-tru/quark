@@ -45,20 +45,21 @@ void layout_text(Window* win) {
 }
 
 void layout_scroll(Window* win) {
-	auto box = win->root();
-	auto v = box->append_new<Scroll>();
+	auto r = win->root();
+	auto v = r->append_new<Scroll>();
 
-	//box->set_rotate_z(10);
-	//box->set_translate({100,100});
+	// r->set_rotate_z(10);
+	// r->set_translate({100,100});
 
-	//v->set_clip(false);
-	//v->set_width({ 150, BoxSizeKind::Match });
-	v->set_width({ 1, BoxSizeKind::Ratio });
-	v->set_height({ 1, BoxSizeKind::Ratio });
-	//v->set_margin_left(100);
-	//v->set_margin_top(100);
+	// v->set_clip(false);
+	// v->set_width({ 150, BoxSizeKind::Match });
+	v->set_width({ 1, BoxSizeKind::Match });
+	v->set_height({ 1, BoxSizeKind::Match });
+	// v->set_margin_left(100);
+	// v->set_margin_top(100);
+	v->set_margin({10});
 	v->set_align(Align::Center);
-	v->set_background_color(Color(255,255,255));
+	// v->set_background_color(Color(255,0,128));
 	v->set_border_radius({100});
 	v->set_scrollbar_width(4);
 

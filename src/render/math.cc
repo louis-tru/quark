@@ -266,6 +266,28 @@ namespace qk {
 		return *reinterpret_cast<Vec2*>(r);
 	}
 
+	Vec2 Vec2::min(const Vec2 &b) const {
+		return Vec2(
+			val[0] < b.val[0] ? val[0] : b.val[0],
+			val[1] < b.val[1] ? val[1] : b.val[1]
+		);
+	}
+
+	Vec2 Vec2::max(const Vec2 &b) const {
+		return Vec2(
+			val[0] > b.val[0] ? val[0] : b.val[0],
+			val[1] > b.val[1] ? val[1] : b.val[1]
+		);
+	}
+
+	Vec2 Vec2::floor() const {
+		return { floorf(val[0]), floorf(val[1]) };
+	}
+
+	Vec2 Vec2::ceil() const {
+		return { ceilf(val[0]), ceilf(val[1]) };
+	}
+
 	// ------------------------------------------
 
 	Vec3::Vec3(): Vec(0,0,0) {

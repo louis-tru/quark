@@ -87,7 +87,7 @@ function write(fp) {
 function readcode(input) {
 	return fs.readFileSync(input).toString('utf8')
 		.replace(/^\s+/mg, '') // delete indent
-		.replace(/\s*\/\/(?!\!\<).*$/mg, '') // delete comment but not delete //!< comment
+		.replace(/\s*\/\/(?!\!\<\s*\{.+?\}).*$/mg, '') // delete comment but not delete //!< comment
 		.replace(/\/\*.*?\*\//mg, '') // delete /* */ comment
 		// .replace(/\\/mg, '\\\\'); // escape \ to \\, because we will put the code into c++ string, and \ is escape char in c++
 }
@@ -151,7 +151,6 @@ function parse_type_info(type, name, arr, location, glTNormalized) {
 			name,
 			type,
 			arr: arrN>1?arrN:0,
-				
 		};
 	let [items,glType,ccType,mslType] = info;
 	let size = items*arrN;
@@ -270,7 +269,9 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, structs) {
 		if (key == 'uniform') { // uniform block or uniform
 			if (block) { // uniform block
 				uniform_blocks.push({
-					type, name: type, binding, std, block: parse_block(block),
+					type,
+					name: type.substring(0, 1).toLowerCase() + type.substring(1), // for example: RootMatrixBlock -> rootMatrixBlock
+					binding, std, block: parse_block(block),
 				});
 			} else if (type == 'sampler2D') {
 				uniforms.push({
@@ -293,7 +294,11 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, structs) {
 			}
 		} else if (key == 'struct') { // struct
 			if (block) {
-				structs.push({ type, name: type, block: parse_block(block) });
+				structs.push({
+					type,
+					name: type,
+					block: parse_block(block)
+				});
 			}
 		}
 
@@ -465,16 +470,15 @@ async function resolve_doc(name_, input) {
 	let uniform_blocks = vert_ast.uniform_blocks.concat(frag_ast.uniform_blocks)
 		.filter(e=>(set[e.type+'_block'] ? 0: (set[e.type+'_block']=1,1)));
 
-	// sort uniform blocks by binding index
-	uniform_blocks.sort((a,b)=>Number(a.binding)-Number(b.binding));
-
 	let structs = vert_ast.structs.concat(frag_ast.structs)
 		.filter(e=>(set[e.type+'_struct'] ? 0: (set[e.type+'_struct']=1,1)));
 
 	let uniforms = vert_ast.uniforms.concat(frag_ast.uniforms)
 		.filter(e=>(set[e.name] ? 0: (set[e.name]=1,1)));
 
-	uniforms.sort((a,b)=>Number(a.binding || 9999) - Number(b.binding || 9999));
+	// sort uniform blocks by binding index
+	uniform_blocks.sort((a,b)=>a.binding-b.binding);
+	uniforms.sort((a,b)=>a.binding-b.binding);
 
 	let uniforms_commom = uniforms.filter(e=>!e.struct); // for: uniform vec4 color; or uniform Sampler2D texture;
 	let uniforms_struct = uniforms.filter(e=>e.struct); // for: uniform PcArgs pc; (PcArgs is struct type)
@@ -556,7 +560,7 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 			uniforms_commom.length ? `		GLuint ${uniforms_commom.map(e=>e.name).join(',')}; // uniforms location`: '',
 			uniforms_struct.length ? uniforms_struct.map(e=>`		GLuint ${e.struct.block.map(it=>`${e.name}_${it.name}`).join(',')}; // struct uniform block location`) : '',
 			uniforms_sampler2D.length ? `		GLuint ${uniforms_sampler2D.map(e=>e.nameSlot).join(',')}; // sampler2D texture slot`: '',
-			doc.uniform_blocks.length ? `		GLuint ${doc.uniform_blocks.map(e=>e.type).join(',')}; // uniform block binding index`: '',
+			doc.uniform_blocks.length ? `		GLuint ${doc.uniform_blocks.map(e=>e.name).join(',')}; // uniform block binding index`: '',
 			`		virtual void build(const char* name, const char *macros);`,
 		`	};`);
 
@@ -572,7 +576,7 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 					uniforms_struct.map(e=>e.struct.block.map(it=>`		{"${e.name}.${it.name}",${it.glType},&${e.name}_${it.name},0},`)),
 			'	},',
 			'	{',
-					doc.uniform_blocks.map(e=>`		{"${e.type}",&${e.type}},`),
+					doc.uniform_blocks.map(e=>`		{"${e.type}",&${e.name}},`),
 			'	});',
 			'}'
 		);

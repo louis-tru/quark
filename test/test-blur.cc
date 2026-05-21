@@ -30,8 +30,11 @@ public:
 
 		Paint paint;
 		paint.fill.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
+		paint.stroke.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
 		PaintFilter filter{PaintFilter::kBlur_Type,c*50};
 		paint.filter = &filter;
+		paint.style = Paint::kStroke_Style;
+		paint.strokeWidth = 5;
 		// paint.antiAlias = false;
 		Rect rect{size/2-width*0.5,width};
 		//auto path = Path::MakeRect(rect);
@@ -39,21 +42,24 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage({0,width}, {width}, kInvalid_ColorType, kSrcOverStraight_BlendMode);
-		// auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode);
+		// auto img = canvas->readImage({0,width}, {width}, kInvalid_ColorType, kSrcOverStraight_BlendMode);
+		auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
 		// paint.blendMode = kSrcOverStraight_BlendMode;
 		paint.fill.color = Color4f(1, 1, 1, 1);
+		paint.stroke.color = Color4f(1, 1, 1, 1);
 		paint.filter = nullptr;
 		PaintImage pimg;
+		paint.style = Paint::kFill_Style;
 		pimg.tileModeX = PaintImage::kMirror_TileMode;
 		pimg.tileModeY = PaintImage::kRepeat_TileMode;
 		// pimg.tileModeX = PaintImage::kDecal_TileMode;
 		// pimg.tileModeY = PaintImage::kDecal_TileMode;
 		pimg.mipmapMode = PaintImage::kLinear_MipmapMode;
 		pimg.filterMode = PaintImage::kLinear_FilterMode;
-		pimg.setImage(*img, {{0},{width*0.5f}});
+		pimg.setImage(*img, {{0},{width*0.25f}});
 		// paint.mask = &pimg;
 		paint.fill.image = &pimg;
+		paint.stroke.image = &pimg;
 		canvas->drawRect({{0},{width}}, paint);
 
 		mark_rerender(); // mark next frame to redraw
@@ -67,7 +73,7 @@ Qk_TEST_Func(blur) {
 	auto r = win->root();
 	auto t = r->append_new<TestBlur>();
 	r->set_origin({BoxOrigin{0,BoxOriginKind::Value}});
-	r->set_background_color({255,0,0,0});
+	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });
 	app.run();

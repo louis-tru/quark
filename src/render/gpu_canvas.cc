@@ -31,10 +31,13 @@
 #include "./gpu_canvas.h"
 
 #define isMoreSofterAA 1 // 1 is softer aa, 0 is more radical aa
+#define Qk_Limit_TEXTURE_SIZE (4096) // limit texture size to 4096 for better performance and compatibility
 
 namespace qk {
 	uint32_t massSample(uint32_t n);
 	float get_level_font_size(float fontSize);
+	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
+	uint32_t upPow2(uint32_t size);
 
 	extern const Range ZeroRange;
 #if isMoreSofterAA
@@ -90,52 +93,74 @@ namespace qk {
 			}
 		}
 
-		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
-			GC_State::Clip clip{
-				.matrix=_state->matrix, /*.path=path,*/ .op=op,
-			};
-			if (vertex.vertex.val()) { // copy vertex data
-				clip.vertex = vertex;
-			} else if (path.verbsLen()) {
-				clip.vertex = _cache->getPathTriangles(path);
-				if (!clip.vertex.vertex.val()) {
-					clip.vertex = path.getTriangles();
+		void clipv(const Path &path, const VertexData &vertex, ClipOp rawOp, bool antiAlias) {
+			if (vertex.vCount == 0)
+				return; // skip empty clip
+			if (rawOp > kReplace_ClipOp) {
+				Qk_DLog("Invalid ClipOp: %d, expected kIntersect_ClipOp, kDifference_ClipOp, or kReplace_ClipOp", rawOp);
+				return;
+			}
+			const float pad = _surfaceScale; // 1 pixel pad for anti-aliasing
+			auto clip = new GC_State::Clip;
+			auto range = path.getBounds(&_state->matrix);
+			auto lastClip = _clipState;
+
+			// for replace, we can directly use the new clip region,
+			// so skip combining with last clip state
+			if (rawOp == kReplace_ClipOp) {
+				rawOp = kIntersect_ClipOp; // treat replace as intersect
+				lastClip = nullptr; // ignore last clip state
+			}
+			// last clip state operation, default as intersect
+			auto lastOp = lastClip ? lastClip->op : kIntersect_ClipOp;
+			// last clip state range, default as surface size
+			auto lastRange = lastClip ? lastClip->range : Range{{0},_surfaceSize};
+			// apply surface scale and padding
+			range.begin = (range.begin * Vec2(_surfaceScale) - Vec2(pad)).floor();
+			range.end = (range.end * Vec2(_surfaceScale) + Vec2(pad)).ceil();
+			// rawOp: requested operation for this clip command.
+			// clip->op: how the resulting mask should be interpreted by fragment shader.
+			clip->op = rawOp;
+
+			// combine with last clip state
+			if (rawOp == kIntersect_ClipOp) {
+				if (lastOp == kIntersect_ClipOp) {
+					range.begin = range.begin.max(lastRange.begin);
+					range.end = range.end.min(lastRange.end);
+				} else { // if (lastOp == kDifference_ClipOp)
+					range.begin = range.begin.max(0);
+					range.end = range.end.min(_surfaceSize);
+				}
+			} else { // if (rawOp == kDifference_ClipOp)
+				if (!lastClip) {
+					// Difference with no previous clip means full surface minus incoming.
+					// Store only incoming bounds as the restricted mask area.
+					range.begin = range.begin.max(0);
+					range.end = range.end.min(_surfaceSize);
+				} else if (lastOp == kDifference_ClipOp) {
+					// expand to a larger restricted area image
+					range.begin = range.begin.min(lastRange.begin).max(0);
+					range.end = range.end.max(lastRange.end).min(_surfaceSize);
+				} else { // if (lastOp == kIntersect_ClipOp)
+					// difference with intersect is still intersect,
+					// but keep the larger range for shader to do difference clipping
+					clip->op = kIntersect_ClipOp;
+					// keep last clip range for shader to do difference clipping
+					range = lastRange;
 				}
 			}
-
-			// empty clip area, but still need to process stencil buffer,
-			// Very important, it may be necessary to buffer template parameters
-			// if (clip.vertex.vCount == 0) return;
-
-			if (!_clipState) {
-				_clipState = true;
-				enableStencilTestCmd(true); // enable stencil test
-			}
-
-			if (clip.vertex.vCount && antiAlias && !_DeviceMsaa) {
-				clip.aaclip = true;
-				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width);
-				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
-					clip.aafuzz = path.getAAFuzzStrokeTriangle(_phy2Pixel*aa_fuzz_width);
-				}
-				_state->aaclip++;
-			}
-
-			if (clip.op == kDifference_ClipOp) {
-				if (_stencilRefDrop == 0) {
-					Qk_Warn(" clip stencil ref drop value exceeds limit 0"); return;
-				}
-				_stencilRefDrop--;
+			clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType, false);
+			clip->range = range;
+			// adjust range to actual allocated texture size
+			clip->range.end = clip->range.begin + clip->mask->size();
+			if (antiAlias && !_DeviceMsaa) {
+				drawClipCmd(vertex, _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width), lastClip, clip, rawOp);
 			} else {
-				if (_stencilRef == 255) {
-					Qk_Warn(" clip stencil ref value exceeds limit 255"); return;
-				}
-				_stencilRef++;
+				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
 			}
-
-			drawClipCmd(clip, _stencilRef, false);
-			_state->clips.push(std::move(clip));
-			zDepthNext();
+			_state->clip = clip;
+			_clipState = clip; // set current clip state
+			zDepthNextCount(2);
 		}
 
 		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
@@ -207,7 +232,7 @@ namespace qk {
 		GC_BlurFilter(GPUCanvas *host, const Paint &paint, const Path *path)
 			: _host(host), _radius(paint.filter->val0), _bounds(path->getBounds(&host->_state->matrix))
 		{
-			begin();
+			begin(paint);
 		}
 		GC_BlurFilter(GPUCanvas *host, const Paint &paint, const Rect *rect)
 			: _host(host), _radius(paint.filter->val0), _bounds{rect->begin,rect->begin+rect->size}
@@ -226,31 +251,46 @@ namespace qk {
 					_bounds.end += translate;
 				}
 			}
-			begin();
+			begin(paint);
 		}
 
 		int getBlurSampling(float radius, int &imageLod) {
-			const int N[] = { 3,3,3,3, 7,7,7,7, 13,13,13,13,13,13, 19,19,19,19,19,19 };
+			const int maxN = 13; // 13 samples is enough for 99% blur effect,
+			// and more samples will cause performance loss
+			const int N[] = { 3,3,3,3,5,5,7,7,9,9,11,11,13,13,15,15,17,17,19,19 };
 			radius *= _host->_surfaceScale;
-			int sample = ceilf(radius); // sampling rate
-			sample = N[Qk_Min(sample,19)];
+			int sample = ceilf(radius*2); // sampling rate is radius*2
+			sample = N[Qk_Min(sample,maxN)]; // sample count for blur filter
 			imageLod = ceilf(Float32::max(0,log2f(radius/sample)));
 			return sample;
 		}
 
 		~GC_BlurFilter() override {
-			_host->blurFilterEndCmd(_bounds, _radius, _clearPad, _sample, _imageLod);
-			_inl(_host)->zDepthNextCount(_imageLod + 2);
+			if (_sample) {
+				_host->blurFilterEndCmd(_bounds, _radius, _clearPad, _sample, _imageLod);
+				_inl(_host)->zDepthNextCount(_imageLod + 2);
+			}
 		}
 
 	private:
-		void begin() {
+		void begin(const Paint &paint) {
 			_radius *= _host->_scale; // * logical scale
-			_bounds = {_bounds.begin - _radius, _bounds.end + _radius};
 			_sample = getBlurSampling(_radius, _imageLod);
-			_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScale;
-			_host->blurFilterBeginCmd(_bounds, _radius, _clearPad);
-			_inl(_host)->zDepthNext();
+			int w = _host->_surfaceSize.x(), h = _host->_surfaceSize.y();
+			if (w >> _imageLod && h >> _imageLod) {
+				if (paint.style != Paint::kFill_Style && paint.strokeWidth) {
+					// add padding for stroke width, to avoid stroke being cut by blur edge
+					auto halfStroke = paint.strokeWidth * _host->_scale * 0.5f;
+					_bounds.begin -= Vec2(halfStroke, halfStroke);
+					_bounds.end += Vec2(halfStroke, halfStroke);
+				}
+				_bounds = {_bounds.begin - _radius, _bounds.end + _radius};
+				_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScale;
+				_host->blurFilterBeginCmd(_bounds, _radius, _clearPad);
+				_inl(_host)->zDepthNext();
+			} else { // blur area too small, skip blur filter
+				_sample = 0;
+			}
 		}
 		GPUCanvas *_host;
 		float  _radius; // blur radius
@@ -269,7 +309,7 @@ namespace qk {
 		}
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
-				if (host->_allScale * paint.filter->val0 >= 1.0) {
+				if (host->_allScale * paint.filter->val0 >= 0.5f) { // limit min blur radius to 0.5 pixel
 					return new GC_BlurFilter(host, paint, args...);
 				}
 				break;
@@ -279,15 +319,14 @@ namespace qk {
 	}
 
 	GPUCanvas::GPUCanvas(Render *render, Render::Options opts)
-		: _state(nullptr), _cache(nullptr)
-		, _stencilRef(127), _stencilRefDrop(127)
+		: _state(nullptr), _cache(nullptr), _render(render)
 		, _zDepth(0)
 		, _surfaceScale(1), _scale(1), _allScale(1), _phy2Pixel(1)
 		, _size(), _surfaceSize()
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
 		, _DeviceMsaa(0)
-		, _clipState(false)
+		, _clipState(nullptr)
 		, _opts(opts)
 	{
 		_opts.msaaSample = massSample(_opts.msaaSample);
@@ -296,12 +335,38 @@ namespace qk {
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
 		capacity = Uint32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/);
 		_cache = new PathvCache(capacity, render);
-		_stateStack.push({ .matrix=Mat(), .aaclip=0 });
+		_stateStack.push({ .matrix=Mat() });
 		_state = &_stateStack.back();
 	}
 
 	GPUCanvas::~GPUCanvas() {
+		_texPools.clear();
 		Releasep(_cache);
+	}
+
+	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, bool mipmap) {
+		int w = Int32::min(upPow2(Int32::min(size.x(), _surfaceSize.x())), Qk_Limit_TEXTURE_SIZE);
+		int h = Int32::min(upPow2(Int32::min(size.y(), _surfaceSize.y())), Qk_Limit_TEXTURE_SIZE);
+		// limit texture aspect ratio to 4:1,
+		// to avoid memory waste and performance loss on large render targets
+		if (w > h * 4) h = w / 4;
+		if (h > w * 4) w = h / 4;
+
+		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | type << 1 | mipmap;
+		auto &pool = _texPools[key];
+		for (auto &tex : pool) {
+			if (tex->ref_count() == 1)
+				return tex;
+		}
+		auto src = ImageSource::Make(PixelInfo{w, h, type, kPremul_AlphaType}, nullptr);
+		pool.push(src.get());
+		// create texture stat and set texture source
+		_render->post_message(Cb([render=_render, src=src.get(), w, h, type, mipmap](auto e) {
+			auto stat = render->createTextureStat(Vec2(w, h), type, mipmap);
+			src->set_mipmap(mipmap);
+			setTexUnsafe_SourceImage(src, &stat);
+		}, src.get())); // ref src to ensure texture stat is valid when cb is called
+		return src;
 	}
 
 	PathvCache* GPUCanvas::getPathvCache() {
@@ -317,8 +382,9 @@ namespace qk {
 	}
 
 	int GPUCanvas::save() {
-		auto &state = _stateStack.back();
-		_stateStack.push({ .matrix=state.matrix,.aaclip=state.aaclip,.output=state.output});
+		auto &back = _stateStack.back();
+		// copy current state to stack, and set state pointer to new state
+		_stateStack.push({.matrix=back.matrix, .clip=back.clip, .output=back.output});
 		_state = &_stateStack.back();
 		return _stateStack.length();
 	}
@@ -330,21 +396,6 @@ namespace qk {
 
 		if (count > 0) {
 			do {
-				for (int i = Qk_Minus(_state->clips.length(), 1); i >= 0; i--) {
-					auto &clip = _state->clips[i];
-					if (clip.op == kDifference_ClipOp) {
-						_stencilRefDrop++;
-					} else {
-						_stencilRef--;
-					}
-					setMatrix(clip.matrix);
-					drawClipCmd(clip, _stencilRef, true);
-					_this->zDepthNext();
-
-					if (clip.aaclip) {
-						_state->aaclip--;
-					}
-				}
 				auto exit = _state->output; // save output image before pop state
 				_stateStack.pop();
 				_state = &_stateStack.back();
@@ -353,12 +404,11 @@ namespace qk {
 				}
 				count--;
 			} while (count > 0);
-
-			if (_clipState && _stencilRef == _stencilRefDrop) { // not stencil test
-				_clipState = false;
-				enableStencilTestCmd(false); // disable stencil test
+			if (_clipState != _state->clip.get()) {
+				restoreClipCmd(_state->clip.get()); // restore clip state if changed
 			}
-			setMatrix(_state->matrix);
+			setMatrix(_state->matrix); // restore matrix
+			_clipState = _state->clip.get(); // restore clip state
 		}
 	}
 
@@ -653,12 +703,14 @@ namespace qk {
 			surfaceSize *= msaa;
 			scale *= msaa;
 		}
+		Qk_ASSERT_GT(surfaceSize.x(), 0, "Invalid surface size width");
+		Qk_ASSERT_GT(surfaceSize.y(), 0, "Invalid surface size height");
 		auto chSize = surfaceSize != _surfaceSize;
 		// clear all state
 		_stateStack.clear();
-		_stateStack.push({ .matrix=Mat(), .aaclip=0 });
+		_stateStack.push({ .matrix=Mat() });
 		_state = &_stateStack.back(); // reset state
-		_stencilRef = _stencilRefDrop = 127; // reset stencil ref
+		_clipState = _state->clip.get(); // current clip state
 		// set surface scale
 		_surfaceSize = surfaceSize;
 		_size = surfaceSize / scale;
@@ -668,7 +720,6 @@ namespace qk {
 		_phy2Pixel = 2 / _allScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 		_zDepth = 0;
-		_clipState = false; // clear clip state
 		setSurfaceCmd(chSize); // set buffers
 	}
 }

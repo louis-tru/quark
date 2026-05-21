@@ -5,9 +5,9 @@
 #import "_image.glsl"
 
 #frag
-// layout(binding=4) uniform sampler2D image;   // y of yuv
-layout(binding=5) uniform sampler2D image_uv; // 420p u or 420sp uv
-layout(binding=6) uniform sampler2D image_v; // 420p v
+// layout(binding=1,set=1) uniform sampler2D image;   // y of yuv
+layout(binding=2,set=1) uniform sampler2D image_uv; // 420p u or 420sp uv
+layout(binding=3,set=1) uniform sampler2D image_v; // 420p v
 
 void main() {
 	float y = texture(image, coords).r;
@@ -20,7 +20,5 @@ void main() {
 										y + 1.779  * (u - 0.5), 1.0) * pc.color;
 	fragColor *= 1.0 - abs(aafuzz); // premultiplied alpha
 
-	Qk_IF_AACLIP {
-		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-	}
+	Qk_CLIP(); // apply clip mask if needed
 }

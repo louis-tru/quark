@@ -52,9 +52,9 @@ namespace qk {
 	 */
 	struct VertexData {
 		struct ID;
-		const ID   *id;     ///< Backend-local GPU cache id, if uploaded.
-		uint32_t    vCount; ///< Number of vertices.
-		Array<Vec3> vertex; ///< CPU-side vertices: {x, y, aafuzz/z}.
+		const ID   *id = nullptr; ///< Backend-local GPU cache id, if uploaded.
+		uint32_t    vCount = 0;   ///< Number of vertices.
+		Array<Vec3> vertex;       ///< CPU-side vertices: {x, y, aafuzz/z}.
 	};
 
 	class Qk_EXPORT Path: public Reference {

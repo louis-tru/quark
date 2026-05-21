@@ -594,8 +594,8 @@ namespace qk {
 
 	MTLSampler MetalRender::get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap) {
 		PaintImage img;
-		img.tileModeX = PaintImage::kClamp_TileMode;
-		img.tileModeY = PaintImage::kClamp_TileMode;
+		img.tileModeX = PaintImage::kDecal_TileMode;
+		img.tileModeY = PaintImage::kDecal_TileMode;
 		img.filterMode = filter;
 		img.mipmapMode = mipmap;
 		return get_sampler(&img);

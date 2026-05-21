@@ -15,14 +15,14 @@ void main() {
 }
 
 #frag
-#define Qk_FLAG_COUNT2 (1u << 1)
+#define Qk_FLAG_COUNT2 (1u << 2)
 
 layout(location=1) in vec2 position;
 
-layout(std140, binding=3) uniform Colors {
+layout(binding=4, set=0, std140) uniform Colors {
 	vec4  colors[64];
 };
-layout(std140, binding=4) uniform Positions {
+layout(binding=5, set=0, std140) uniform Positions {
 	vec4 positions[16];
 };
 
@@ -54,8 +54,5 @@ void main() {
 	fragColor *= pc.color;
 	fragColor *= 1.0 - abs(aafuzz); // premultiplied alpha
 
-	Qk_IF_AACLIP {
-		// premultiplied alpha
-		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-	}
+	Qk_CLIP(); // apply clip mask if needed
 }

@@ -61,10 +61,12 @@ namespace qk {
 		bool use_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
 		void set_texture_param(GLuint tex, int slot, const PaintImage* paint);
 		GLuint get_tex_sampler(const PaintImage* paint);
+		TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) override;
 	protected:
 		explicit GLRender(Options opts);
 		// define props
-		GLuint _ubo0,_ubo1,_ubo2,_ubo3; // ubo: rootMatrixBlock,viewportBlock,Other0,Other1
+		GLuint _uboRMat,_ubovMat,_uboClip; // ubo: rootMatrixBlock,viewportBlock,clipBlock
+		GLuint _ubo0,_ubo1; // temp ubo for draw call
 		GLuint _ebo; // temp ebo, GL_ELEMENT_ARRAY_BUFFER
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders

@@ -38,13 +38,12 @@ namespace qk {
 	GLenum gl_CheckFramebufferStatus(GLenum target);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	void  gl_set_color_renderbuffer(GLuint rbo, GLuint orTex, ColorType type, Vec2 size);
-	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
-	void  gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
-	GLuint gl_new_tex_stat();
+	GLuint gl_new_texid();
 	void clear_PathvCache(PathvCache *cache, int flags);
 	void clearExec_PathvCache(PathvCache *cache);
 	GLint gl_get_texture_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
+	TexStat gl_new_texture_stat_with(int width, int height, ColorType type, bool mipmap);
 
 	constexpr GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
@@ -53,7 +52,7 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
 		: GPUCanvas(render, opts)
 		, _render(render)
-		, _fbo(0), _outTex(0), _outDepth(0), _outAaclipTex(0), _outTexA(0), _outTexB(0)
+		, _fbo(0), _outTex(0), _outDepth(0)
 		, _matrixFlag(false)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
@@ -64,11 +63,11 @@ namespace qk {
 	GLCanvas::~GLCanvas() {
 		GLuint fbo = _fbo,
 					rbo[] = { _outDepth },
-					tex[] = { _outTex, _outAaclipTex, _outTexA, _outTexB };
+					tex[] = { _outTex };
 		_render->post_message(Cb([render=_render,fbo,rbo,tex](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteRenderbuffers(1, rbo);
-			glDeleteTextures(4, tex);
+			glDeleteTextures(1, tex);
 		}));
 		_mutex.lock();
 		Releasep(_cmdPackFront);
@@ -83,15 +82,13 @@ namespace qk {
 		auto type = _opts.colorType;
 		auto init = !_fbo;
 
+		// update shader root matrix and clear all save state buffers
+		_render->set_viewport(surfaceSize);
+
 		if (init) {
-			// Create a color renderbuffer of texture
-			_outTex = gl_new_tex_stat();
-			// Create the framebuffer
-			glGenFramebuffers(1, &_fbo);
-			// Create depth buffer
-			glGenRenderbuffers(1, &_outDepth);
-			// gen aaclip buffer tex
-			// gl_set_aaclip_buffer(_outAaclipTex, size);
+			_outTex = gl_new_texid(); // Create a color renderbuffer of texture
+			glGenFramebuffers(1, &_fbo); // Create the framebuffer
+			glGenRenderbuffers(1, &_outDepth); // Create depth buffer
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -101,20 +98,6 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _outDepth);
 
 		Qk_DLog("setBuffers: %f, %f", w, h);
-
-		if (init) {
-			Color4f color{0,0,0,0};
-			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
-		}
-		if (_outAaclipTex) {
-			gl_set_aaclip_buffer(_outAaclipTex, surfaceSize);
-		}
-		if (_outTexA) {
-			gl_set_tex_renderbuffer(_outTexA, surfaceSize);
-		}
-		if (_outTexB) {
-			gl_set_tex_renderbuffer(_outTexB, surfaceSize);
-		}
 
 		glDrawBuffers(1, DrawBuffers);
 		gl_CheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -148,28 +131,25 @@ namespace qk {
 		clearExec_PathvCache(_cache); // clear @clear mark
 	}
 
-	void GLCanvas::vportFullCopy(GLuint dstFBO) {
+	void GLCanvas::vportCopy(GLuint dstFBO) {
 		if (!_outTex)
 			return; // no output texture
 		auto dest = _render->surfaceSize();
-		auto chVport = _surfaceSize != dest;
-		GLint filter = chVport ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_NEAREST;
-		if (chVport) {
-			glViewport(0, 0, dest.x(), dest.y());
-		}
+		auto chvPort = _surfaceSize != dest;
+		GLint filter = chvPort ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_NEAREST;
+		_render->set_viewport(dest);
 		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, dstFBO);
-		glUseProgram(_render->_shaders.vportFullCp.shader);
-		glBindVertexArray(_render->_shaders.vportFullCp.vao);
 		glActiveTexture(Qk_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, _outTex);
+		Qk_BindSampler(0, 0);
+		glUseProgram(_render->_shaders.vportCp.shader);
+		glBindVertexArray(_render->_shaders.vportCp.vao);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo); // recover fbo
 		glEnable(GL_BLEND);
-		if (chVport) {
-			glViewport(0, 0, _surfaceSize.x(), _surfaceSize.y());
-		}
+		_render->set_viewport(_surfaceSize);
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
@@ -216,9 +196,10 @@ namespace qk {
 		_cmdPack->switchState(GL_STENCIL_TEST, enable);
 	}
 
-	void GLCanvas::drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) {
+	void GLCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aafuzz,
+			GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) {
 		checkMatrix();
-		_cmdPack->drawClip(clip, ref, _state->output.get(), revoke);
+		_cmdPack->drawClip(vertex, aafuzz, lastClip, clip, rawOp);
 	}
 
 	void GLCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
@@ -285,5 +266,9 @@ namespace qk {
 	void GLCanvas::outputImageEndCmd(ImageSource* exit) {
 		checkMatrix();
 		_cmdPack->outputImageEnd(exit, _state->output.get());
+	}
+
+	void GLCanvas::restoreClipCmd(GC_State::Clip* clip) {
+		_cmdPack->restoreClip(clip);
 	}
 }

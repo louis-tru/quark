@@ -49,7 +49,7 @@ namespace qk {
 	class GLC_CmdPack {
 		Qk_DISABLE_COPY(GLC_CmdPack);
 	public:
-		enum CmdType { // gl canvas cmd type
+		enum CmdType: uint8_t { // gl canvas cmd type
 			kEmpty_CmdType, // empty cmd
 			kMatrix_CmdType,
 			kBlend_CmdType,
@@ -72,6 +72,8 @@ namespace qk {
 			kFlushCanvas_CmdType,
 			kSetSurface_CmdType,
 			kDrawBuffers_CmdType,
+			kRestoreClip_CmdType,
+			kCmdTypeCount,
 		};
 
 		struct PipelineState {
@@ -82,14 +84,14 @@ namespace qk {
 		};
 
 		struct Cmd { // Cmd list
-			CmdType        type;
 			uint32_t       size; // cmd size
+			CmdType        type; // cmd type
+			bool           isClip; // is cmd with clip state
 		};
 
-		struct DrawCmd: Cmd {
+		struct DrawCmd: Cmd { // draw base cmd
 			VertexData     vertex;
 			float          depth;
-			bool           aaclip;
 		};
 
 		struct alignas(void*) MatrixCmd: Cmd {
@@ -108,22 +110,24 @@ namespace qk {
 		struct alignas(void*) ClearCmd: Cmd {
 			float          depth;
 			Color4f        color;
+			Vec2           surfaceSize;
 			GC_ClearFlags  flags; // 0-clear and blend, 1-clear color, 2-clear color/depth/stencil
 		};
 
-		struct alignas(void*) ClipCmd: Cmd { //!
-			GC_State::Clip clip;
-			float          depth;
-			uint32_t       ref;
+		struct alignas(void*) ClipCmd: DrawCmd { //!
+			VertexData      aafuzz;
+			Sp<GC_State::Clip> lastClip;
+			Sp<GC_State::Clip> clip;
 			Sp<ImageSource> recover;
-			bool           revoke;
+			float           surfaceScale;
+			Canvas::ClipOp  rawOp;
 		};
 
 		struct alignas(void*) BlurFilterBeginCmd: Cmd {
 			float           depth;
 			Range           bounds;
 			float           radius, clearPad; // blur radius, clear padding for blur edge
-			bool            clipState;
+			Vec2            surfaceSize; // canvas surface size
 		};
 
 		struct alignas(void*) BlurFilterEndCmd: Cmd {
@@ -132,10 +136,8 @@ namespace qk {
 			float           radius, clearPad; // blur radius, clear padding for blur edge
 			float           surfaceScale; // canvas surface scale
 			Vec2            surfaceSize; // canvas surface size
-			int             sample,imageLod; // sample size and image lod for blur filter
+			int             sample,imageLod; // sample size and image lod
 			Sp<ImageSource> recover; // recover output dest
-			BlendMode       backMode;
-			bool            clipState;
 		};
 
 		struct alignas(void*) ColorCmd: DrawCmd { //!
@@ -148,7 +150,6 @@ namespace qk {
 			float      radius[4];
 			Color4f    color;
 			float      blur;
-			bool       aaclip;
 		};
 
 		struct alignas(void*) GradientCmd: DrawCmd { //!
@@ -186,7 +187,6 @@ namespace qk {
 			Option         *opts;  // subcmd option
 			uint32_t       vCount; // vertex count
 			int            subcmd; // subcmd count
-			bool           aaclip;
 		};
 
 		struct alignas(void*) TrianglesCmd: Cmd {
@@ -194,7 +194,7 @@ namespace qk {
 			PaintImage     paint;
 			float          depth;
 			Color4f        color;
-			bool           aaclip, copyData;
+			bool           copyData;
 			~TrianglesCmd();
 		};
 
@@ -234,6 +234,10 @@ namespace qk {
 			GLenum  buffers[2];
 		};
 
+		struct alignas(void*) RestoreClipCmd: Cmd {
+			Sp<GC_State::Clip> clip;
+		};
+
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
 		bool isEmpty();
@@ -249,7 +253,8 @@ namespace qk {
 				const Color4f &strokeColor, float stroke);
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color);
-		void drawClip(const GC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
+		void drawClip(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *lastClip,
+				GC_State::Clip *clip, Canvas::ClipOp rawOp);
 		void clearColor(const Color4f &color, GC_ClearFlags flags);
 		void blurFilterBegin(Range bounds, float radius, float clearPad);
 		void blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod);
@@ -259,6 +264,7 @@ namespace qk {
 		void setSurface(bool changeSize);
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 		void savePipelineState();
+		void restoreClip(GC_State::Clip *clip);
 	private:
 		typedef ColorBatchCmd::Option CGOpt;
 		template<class T> struct MemBlock {

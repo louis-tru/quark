@@ -20,6 +20,9 @@ Notable render-side state:
 - Old `src/render/gl/gl_cmd.*` is deleted.
 - New `src/render/gl/gl_command.*` exists and owns GL command packing/calls.
 - New `src/render/gpu_canvas.*` exists and owns shared Canvas logic.
+- Troubleshooting notes are recorded in `docs/TROUBLESHOOTING.md`, including
+  the GL UBO storage issue where `_uboClip` was bound but had no data store
+  until clipping first ran, causing misleading black/gradient output.
 - `Canvas::swapBuffer()` now returns `bool` to signal backend back-pressure/busy state.
 - `Canvas::drawTriangles()` accepts `copyData`; GL deferred commands must copy transient triangle data when requested.
 - `RenderResource` now exposes upload/unload resource ownership APIs (`uploadTexture`, `unloadTexture`, `uploadVertexData`, `unloadVertexData`) plus `RenderResource::useVertexData()`.

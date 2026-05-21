@@ -39,16 +39,14 @@
 namespace qk {
 
 	struct GC_State { // gpu canvas state
-		struct Clip { // canvas clip
-			Mat             matrix;
-			VertexData      vertex,aafuzz;
-			Canvas::ClipOp  op;
-			bool            aaclip; // is aaclip
+		struct Clip: Reference { // clip state
+			Range           range; // clip offset for clip path bounds
+			Sp<ImageSource> mask; // clip mask texture
+			Canvas::ClipOp  op; // clip op
 		};
-		Mat         matrix;
-		uint32_t    aaclip; // Is there a aa clip area and aaclip count
-		Array<Clip> clips; // clip queue
-		Sp<ImageSource> output; // output dest texture, null for default framebuffer
+		Mat             matrix; // current state matrix
+		Sp<Clip>        clip; // clip state, null for no clip
+		Sp<ImageSource> output; // output dest texture, null for to main color buffer
 	};
 
 	enum GC_ClearFlags {
@@ -104,7 +102,8 @@ namespace qk {
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
 		virtual void enableStencilTestCmd(bool enable) = 0;
-		virtual void drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) = 0;
+		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aafuzz,
+				GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
 		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
@@ -119,11 +118,14 @@ namespace qk {
 		virtual void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dst) = 0;
 		virtual void outputImageBeginCmd(ImageSource* dst) = 0;
 		virtual void outputImageEndCmd(ImageSource* exit) = 0;
+		virtual void restoreClipCmd(GC_State::Clip* clip) = 0;
+		// get texture count from pool and add ref count
+		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, bool mipmap);
 	// fields:
 		Array<GC_State> _stateStack; // state
 		GC_State    *_state; // state pointer
 		PathvCache *_cache;
-		uint32_t _stencilRef, _stencilRefDrop; // stencil clip state
+		Render 	 *_render; // render backend
 		float  _zDepth;
 		float  _surfaceScale, _scale;
 		float  _allScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
@@ -131,10 +133,12 @@ namespace qk {
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa
-		bool   _clipState; // clip state
+		GC_State::Clip  *_clipState; // clip state
 		Render::Options _opts;
 		Mutex _mutex; // submit swap mutex
-
+		// texture pool, key(w << 40 | h << 8 | colorType << 1 | mipmap),
+		// value is texture handle and ref count
+		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
 		Qk_DEFINE_INLINE_CLASS(Inl);

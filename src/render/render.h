@@ -251,6 +251,11 @@ namespace qk {
 		// Override Object
 		virtual void destroy() override;
 
+		/**
+		 * Create a GPU texture and return its backend-local handle or pointer wrapped in TexStat.
+		 */
+		virtual TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) = 0;
+
 	protected:
 		RenderBackend(Options opts);
 

@@ -37,11 +37,12 @@ namespace qk {
 		Array<MTLCommandBuffer> flushBuffer(); // flush front buffer and return mtl command buffers
 		void flushSubcanvas(MetalCanvas *sub); // flush subcanvas to current canvas
 	private:
+		virtual void setBuffers(Vec2 size);
 		inline MTLPipeline getPipeline(MSLShader& shader) {
 			return shader.getPipeline(_blendMode, _opts.colorType, _opts.msaaSample);
 		}
 		inline void setPipeline(MTLRenderEncoder enc, MSLShader& shader);
-		virtual void setBuffers(Vec2 size);
+		inline MTLRenderEncoder setPipeline(MSLShader& shader);
 		MTLPassDescriptor beginPass();
 		MTLPassDescriptor beginPass(int level, bool loadColor);
 		MTLRenderEncoder getEncoder();
@@ -56,7 +57,8 @@ namespace qk {
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
 		void enableStencilTestCmd(bool enable) override;
-		void drawClipCmd(const GC_State::Clip &clip, uint32_t ref, bool revoke) override;
+		void drawClipCmd(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *lastClip,
+				GC_State::Clip *clip, ClipOp rawOp) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
 		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;

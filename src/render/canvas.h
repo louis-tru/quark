@@ -58,8 +58,28 @@ namespace qk {
 		 * @brief Defines how new clipping regions combine with existing ones.
 		 */
 		enum ClipOp {
-			kDifference_ClipOp,  ///< Subtract new region from current clip.
-			kIntersect_ClipOp,   ///< Intersect new region with current clip.
+			/**
+			 * Intersect the incoming clip region with the current clip region.
+			 *
+			 * newClip = currentClip ∩ incomingClip
+			 *
+			 * This is the default hierarchical clipping behavior used by most UI systems.
+			 */
+			kIntersect_ClipOp,
+			/**
+			 * Subtract the incoming clip region from the current clip region.
+			 *
+			 * newClip = currentClip - incomingClip
+			 */
+			kDifference_ClipOp,
+			/**
+			 * Discard the current clip and use the incoming region directly.
+			 *
+			 * newClip = incomingClip
+			 *
+			 * Subsequent draw operations use the new region as an intersect clip.
+			 */
+			kReplace_ClipOp,
 		};
 
 		/**

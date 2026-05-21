@@ -289,7 +289,7 @@ namespace qk {
 				glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // restore default framebuffer
 #else
-				_glcanvas->vportFullCopy(0); // copy pixels to default color buffer
+				_glcanvas->vportCopy(0); // copy pixels to default color buffer
 #endif
 
 				glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync

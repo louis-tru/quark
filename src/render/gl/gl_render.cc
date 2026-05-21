@@ -345,7 +345,7 @@ namespace qk {
 		}
 	}
 	
-	GLuint gl_new_tex_stat() {
+	GLuint gl_new_texid() {
 		GLuint id;
 		glGenTextures(1, &id);
 		glActiveTexture(Qk_TEXTURE0);
@@ -357,7 +357,25 @@ namespace qk {
 		return id;
 	}
 
-	bool gl_new_texture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
+	void gl_tex_image2D_null(GLuint tex, int w, int h, ColorType type, GLint slot, bool mipmap) {
+		glActiveTexture(Qk_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		Qk_BindSampler(slot, 0);
+		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
+		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
+		GLint iformat = gl_get_texture_internalformat(type);
+		GLint format = gl_get_texture_format(type);
+		GLenum dtype = gl_get_texture_data_type(type);
+		int levels = mipmap ? 64 : 1, level = 0;
+		while (level < levels && w && h) {
+			glTexImage2D(GL_TEXTURE_2D, level++, iformat, w, h, 0, format, dtype, nullptr);
+			w >>= 1; h >>= 1;
+		}
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Qk_Max(level - 1, 0));
+		// glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	bool gl_new_texture_stat(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
 		Qk_ASSERT_GT(levels, 0, "Levels must be greater than 0");
 		if ( !pix || pix->length() == 0 ) {
 			return false;
@@ -370,7 +388,7 @@ namespace qk {
 
 		GLuint id = tex->id();
 		if (!id) { // new texture
-			id = gl_new_tex_stat();
+			id = gl_new_texid();
 			tex->set_id(id);
 		}
 		glActiveTexture(Qk_TEXTURE0);
@@ -421,16 +439,14 @@ namespace qk {
 		return true;
 	}
 
-	void gl_tex_image2D_null(GLuint tex, Vec2 size, ColorType type, GLint slot) {
-		glActiveTexture(Qk_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		Qk_BindSampler(slot, 0);
-		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
-		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
-		GLint iformat = gl_get_texture_internalformat(type);
-		GLint format = gl_get_texture_format(type);
-		GLenum dtype = gl_get_texture_data_type(type);
-		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, format, dtype, nullptr);
+	TexStat gl_new_texture_stat_with(int width, int height, ColorType type, bool mipmap) {
+		auto id = gl_new_texid();
+		gl_tex_image2D_null(id, width, height, type, 0, mipmap);
+		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
+		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		return TexStat(id);
 	}
 
 	void gl_set_framebuffer_renderbuffer(GLuint rbo, Vec2 size, GLenum iformat, GLenum attachment) {
@@ -442,45 +458,12 @@ namespace qk {
 
 	void gl_set_color_renderbuffer(GLuint rbo, GLuint orTex, ColorType type, Vec2 size) {
 		if (orTex) {
-			// use texture render buffer
-			gl_tex_image2D_null(orTex, size, type, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			gl_tex_image2D_null(orTex, size[0], size[1], type, 0, false);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, orTex, 0);
-			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, orTex, 0);
 		} else {
 			GLenum iformat = gl_get_texture_internalformat(type);
 			gl_set_framebuffer_renderbuffer(rbo, size, iformat, GL_COLOR_ATTACHMENT0);
 		}
-	}
-
-	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
-		// clip anti alias buffer
-		GLint slot = -1; // 0 permanently occupied slots
-#if Qk_iOS || Qk_LINUX || Qk_ANDROID
-		ColorType type = kRGBA_8888_ColorType;
-#else
-		ColorType type = kLuminance_8_ColorType;
-#endif
-		gl_tex_image2D_null(tex, size, type, slot);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		// attach to framebuffer
-		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
-	}
-
-	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size) {
-		gl_tex_image2D_null(tex, size, kRGBA_8888_ColorType, 0);
-		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
-		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		glGenerateMipmap(GL_TEXTURE_2D);
-#if DEBUG && defined(GL_TEXTURE_WIDTH)
-		int texDims;
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 4, GL_TEXTURE_WIDTH, &texDims);
-		Qk_DLog("glGetTexLevelParameteriv: %d", texDims);
-#endif
 	}
 
 	void gl_new_vertex_data(VertexData::ID *id) {
@@ -513,21 +496,13 @@ namespace qk {
 		_glcanvas = NewRetain<GLCanvas>(this, _opts);
 		_canvas = _glcanvas; // set default canvas
 
-		glGenBuffers(5, &_ubo0); // _ubo0, _ubo1, _ubo2, _ubo3, _ebo
-		// _rootMatrixBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo0);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _ubo0);
-		// glBindBufferRange(GL_UNIFORM_BUFFER, 0, _ubo0, 0, sizeof(Mat4));
-		// _viewMatrixBlock
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo1);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 1, _ubo1);
-		// Other options block 0
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo2);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, _ubo2);
-		// Other options block 1
-		glBindBuffer(GL_UNIFORM_BUFFER, _ubo3);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 3, _ubo3);
-
+		glGenBuffers(6, &_uboRMat); // rootMatrixBlock,viewportBlock,clipBlock,ubo0,ubo1,ebo
+		// bind uniform buffer to binding point
+		for (int i = 0; i < 5; i++) {
+			glBindBuffer(GL_UNIFORM_BUFFER, (&_uboRMat)[i]);
+			glBindBufferBase(GL_UNIFORM_BUFFER, i, (&_uboRMat)[i]);
+			glBufferData(GL_UNIFORM_BUFFER, 128, nullptr, GL_DYNAMIC_DRAW);
+		}
 #if DEBUG
 		int64_t st = time_microsecond();
 #endif
@@ -539,15 +514,13 @@ namespace qk {
 		glEnable(GL_BLEND); // enable color blend
 		set_blend_mode(kSrcOver_BlendMode); // set default color blend mode
 		// enable and disable test function
-		glClearStencil(127);
 		glStencilMask(0xFFFFFFFF);
-		glStencilFunc(GL_LEQUAL, 127, 0xFFFFFFFF); // Equality passes the test
+		glStencilFunc(GL_LEQUAL, 0, 0xFFFFFFFF); // Equality passes the test
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
-		// set depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
-		glClearDepthf(0.0f); // set depth clear value to -1.0
+		glClearDepthf(0.0f); // set depth clear value to 0.0
 	}
 
 	GLRender::~GLRender() {
@@ -557,14 +530,11 @@ namespace qk {
 	void GLRender::release() {
 		Qk_CHECK(_glcanvas->ref_count() == 1,
 			"GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
-		GLuint ubo[] = {
-			_ubo0,_ubo1,_ubo2,_ubo3,_ebo
-		};
+		GLuint ubo[] = { _uboRMat,_ubovMat,_uboClip,_ubo0,_ubo1,_ebo };
 		post_message(Cb([ubo,samplers=std::move(_texSamplers)](auto &e) {
-			for (auto &i: samplers) {
+			for (auto &i: samplers)
 				glDeleteSamplers(1, &i.second);
-			}
-			glDeleteBuffers(5, ubo);
+			glDeleteBuffers(6, ubo);
 		}));
 		Releasep(_glcanvas); // release canvas and set to nullptr
 		_canvas = nullptr;
@@ -644,9 +614,15 @@ namespace qk {
 		return new GLCanvas(this, opts);
 	}
 
+	TexStat GLRender::createTextureStat(Vec2 size, ColorType type, bool mipmap) {
+		if (isReleased())
+			return TexStat(); // Render is release, do not create new texture
+		return gl_new_texture_stat_with(size[0], size[1], type, mipmap);
+	}
+
 	bool GLRender::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
 		if (isReleased()) return false; // Render is release, do not create new texture
-		return gl_new_texture(pix, levels, tex, mipmap);
+		return gl_new_texture_stat(pix, levels, tex, mipmap);
 	}
 
 	void GLRender::unloadTexture(TexStat *tex) {
@@ -660,7 +636,6 @@ namespace qk {
 
 	bool GLRender::uploadVertexData(VertexData::ID *id) {
 		if (isReleased()) return false;
-		// Qk_ASSERT_EQ(id->host->_render, this, "VertexData host render mismatch");
 		if (!id->a)
 			gl_new_vertex_data(id);
 		return true;
@@ -668,7 +643,6 @@ namespace qk {
 
 	void GLRender::unloadVertexData(VertexData::ID *id) {
 		if (isReleased()) return;
-		// Qk_ASSERT_EQ(id->host->_render, this, "VertexData host render mismatch");
 		if (id->a) {
 			gl_delete_vertex_data(id);
 		}
@@ -677,7 +651,7 @@ namespace qk {
 	// --------------------------------------------------
 
 	bool GLRenderResource::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
-		return gl_new_texture(pix, levels, tex, mipmap);
+		return gl_new_texture_stat(pix, levels, tex, mipmap);
 	}
 
 	void GLRenderResource::unloadTexture(TexStat *tex) {

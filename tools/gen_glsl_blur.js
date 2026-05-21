@@ -31,11 +31,11 @@ console.log(`const float gk_t = ${(gk_t-1).toFixed(fixed)};`);
 // }`);
 
 console.log(`void main() {`);
-console.log(`	vec2  coord = gl_FragCoord.xy / pc.oResolution;`);
-console.log(`	vec4  o = textureLod(image, coord, pc.imageLod);`);
+console.log(`	vec2  uv = gl_FragCoord.xy / pc.oResolution;`);
+console.log(`	vec4  o = textureLod(image, uv, pc.imageLod);`);
 console.log(`	float x = stepping;`);
 for (var i = 1, x = stepping; i < N; i++) {
-	console.log(`	o += tex(coord, pc.size * x) * ${gk(x).toFixed(fixed)}; x += stepping;`);
+	console.log(`	o += tex(uv, pc.radius_uv * x) * ${gk(x).toFixed(fixed)}; x += stepping;`);
 	x += stepping;
 }
 console.log(`	fragColor = blend(o, gk_t*2.0+1.0);`);

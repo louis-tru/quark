@@ -59,12 +59,27 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
-		void setTex(cPixelInfo &info, const TexStat *tex);
+		void setTex(cPixelInfo &info, const TexStat *tex) {
+			AutoSharedMutexExclusive ame(_onState);
+			setTexUnsafe(tex);
+			_info = info;
+		}
+		void setTexUnsafe(const TexStat *tex) {
+			if (!_res)
+				_res = getSharedRenderResource();
+			if (_tex != tex && _tex[0].id())
+				_res->unloadTexture(_tex);
+			_tex[0] = *tex;
+			_state = kSTATE_LOAD_COMPLETE;
+		}
 	};
 
-	void setTex_SourceImage(ImageSource* img, cPixelInfo &i, const TexStat *tex)
-	{
+	void setTex_SourceImage(ImageSource* img, cPixelInfo &i, const TexStat *tex) {
 		static_cast<ImageSource::Inl*>(img)->setTex(i, tex);
+	}
+
+	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex) {
+		static_cast<ImageSource::Inl*>(img)->setTexUnsafe(tex);
 	}
 
 	ImageSource::ImageSource(RunLoop *loop): Qk_Init_Event(State)
@@ -481,18 +496,6 @@ namespace qk {
 		for (auto &pix: pixels) {
 			premultipliedAlphaFromPixel(pix);
 		}
-	}
-
-	void ImageSource::Inl::setTex(cPixelInfo &info, const TexStat *tex) {
-		AutoSharedMutexExclusive ame(_onState);
-		if (!_res)
-			_res = getSharedRenderResource(); // mark as texture use shared render resource if not exist
-		Qk_ASSERT(_res, "No render resource, can't set texture");
-		if (_tex != tex && _tex[0].id())
-			_res->unloadTexture(_tex); // release old texture if exist
-		_tex[0] = *tex; // copy texture state
-		_state = kSTATE_LOAD_COMPLETE; //
-		_info = info; //
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------

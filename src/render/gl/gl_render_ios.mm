@@ -153,7 +153,7 @@ class IosGLRender final: public GLRender, public RenderSurface {
 			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // restore default framebuffer
  #else
-			_glcanvas->vportFullCopy(_fbo_0); // copy pixels to fob_0/rbo_0 color buffer
+			_glcanvas->vportCopy(_fbo_0); // copy pixels to fob_0/rbo_0 color buffer
  #endif
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 

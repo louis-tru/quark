@@ -153,7 +153,7 @@ class MacGLRender final: public GLRender, public RenderSurface {
 
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmds
-			_glcanvas->vportFullCopy(0); // copy pixels to default color buffer
+			_glcanvas->vportCopy(0); // copy pixels to default color buffer
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 			// [_ctx flushBuffer]; // swap double buffer
 		}

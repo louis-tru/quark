@@ -52,7 +52,5 @@ void main() {
 	fragColor = pc.color;
 	fragColor *= z; // premultiplied alpha
 
-	Qk_IF_AACLIP {
-		fragColor *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-	}
+	Qk_CLIP(); // apply clip mask if needed
 }

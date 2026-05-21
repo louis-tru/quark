@@ -68,7 +68,7 @@ Qk_TEST_Func(spine) {
 		m0->set_action(act);
 		//act->play();
 	}
-	{ // box / spine
+	if (1) { // box / spine
 		auto b0 = m0->append_new<Box>();
 		b0->set_background_color({255,255,0});
 		b0->set_width({150});
@@ -81,9 +81,9 @@ Qk_TEST_Func(spine) {
 		//b0->set_clip(true);
 
 		auto sp1 = b0->append_new<Spine>();
-		//auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
-		//auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
-		auto data = SkeletonData::Make(fs_resources("jsapi/res/loading/loading.skel"), "", 0.5f);
+		auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
+		// auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
+		// auto data = SkeletonData::Make(fs_resources("jsapi/res/loading/loading.skel"), "", 0.5f);
 		sp1->set_skel(data.get());
 		sp1->set_skin("default");
 		//sp1->set_animation(0, "death", true);

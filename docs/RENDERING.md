@@ -64,6 +64,9 @@ Important GL notes after the refactor:
 - `gl_command.*` replaces the old `gl_cmd.*` files.
 - Matrix and blend changes are recorded through backend command hooks from `GPUCanvas`.
 - Deferred commands must respect data lifetime. `drawTriangles(copyData=true)` is the explicit signal to copy transient vertex/index buffers.
+- See `docs/TROUBLESHOOTING.md` for rendering failure modes, especially the
+  requirement that persistent UBO/VBO objects have storage allocated before any
+  shader using their binding point draws.
 - GL remains the main behavior reference for Metal, but not every GL state-machine operation should be mirrored literally.
 
 Use GL as a behavior reference for Metal, especially for:
