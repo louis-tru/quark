@@ -26,10 +26,10 @@ layout(location=1) in      float aafuzzIn; // anti alias fuzz or z depth plus
 layout(location=0) out     float aafuzz;
 
 #frag
-#define Qk_FLAG_PREMUL_ALPHA (1u << 1)
-#define Qk_IF_CLIP if ((pc.flags & (1u << 0)) != 0)
+#define Qk_FLAG_CLIP (1u << 0)
+#define Qk_FLAG_PMA (1u << 1)
 #define Qk_CLIP_(offset) \
-Qk_IF_CLIP { \
+if ((pc.flags & Qk_FLAG_CLIP) != 0) { \
 	float mask = texelFetch(clipTex, ivec2(gl_FragCoord.xy - offset), 0).r; \
 	if (clipStat.op == 1) \
 		mask = 1.0 - mask; /* difference mode: invert mask*/ \
@@ -40,6 +40,10 @@ Qk_IF_CLIP { \
 	fragColor *= mask; \
 }
 #define Qk_CLIP() Qk_CLIP_(clipStat.range.xy)
+
+// #define Qk_BLEND() if ((pc.flags & Qk_FLAG_PMA) != 0) { \
+// 	fragColor.rgb *= fragColor.a; \
+// }
 
 precision mediump float; // lowp/highp
 precision mediump sampler2D;

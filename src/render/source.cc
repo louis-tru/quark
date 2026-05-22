@@ -223,7 +223,7 @@ namespace qk {
 				if (pix.alphaType() == kUnpremul_AlphaType) {
 					if (self->_premulFlags == kConvert_PremulFlags)
 						premultipliedAlphaFromPixel(pix);
-					else if (self->_premulFlags == kOnlyMark_PremulFlags)
+					else if (self->_premulFlags == kAlready_PremulFlags)
 						pix._alphaType = kPremul_AlphaType; // mark as premultiplied
 				}
 			}

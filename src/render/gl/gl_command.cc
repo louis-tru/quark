@@ -81,6 +81,7 @@ namespace qk {
 			_lastCmd = (Cmd*)(((char*)block->val) + block->size);
 			_lastCmd->size = size;
 			_lastCmd->isClip = _canvas->_clipState;
+			// _lastCmd->isPMA = _canvas->_blendMode < kSrcOverLegacy_BlendMode;
 			block->size = newSize;
 			return _lastCmd;
 		}
@@ -1030,6 +1031,11 @@ namespace qk {
 			free(i.val);
 	}
 
+	inline Color4f GLC_CmdPack::premul_alpha(const Color4f &color) const {
+		// return _canvas->_blendMode < kSrcOverLegacy_BlendMode ? color : color.premul_alpha();
+		return color.premul_alpha();
+	}
+
 	void GLC_CmdPack::flush() {
 		if (!isEmpty())
 			_this->callCmds();
@@ -1063,7 +1069,7 @@ namespace qk {
 			cmd->type = kColor_CmdType;
 			cmd->vertex = vertex;
 			cmd->depth = _canvas->_zDepth;
-			cmd->color = color;
+			cmd->color = premul_alpha(color);
 #if Qk_USE_ColorBatch
 		} else {
 			// add multi color subcmd
@@ -1073,7 +1079,7 @@ namespace qk {
 				auto cmd = _this->getColorBatchCmd();
 				cmd->opts[cmd->subcmd] = { // setting vertex option data
 					.flags  = 0,                       .depth = _canvas->_zDepth,
-					.matrix = _canvas->_state->matrix, .color = color,
+					.matrix = _canvas->_state->matrix, .color = premul_alpha(color),
 				};
 				auto vertexs = _vertexBlocks.currentBlock;
 				auto prevSize = vertexs->size;
@@ -1128,7 +1134,7 @@ namespace qk {
 		cmd->radius[1] = radius[1];
 		cmd->radius[2] = radius[2];
 		cmd->radius[3] = radius[3];
-		cmd->color = color;
+		cmd->color = premul_alpha(color);
 		cmd->blur = blur;
 	}
 
@@ -1139,7 +1145,7 @@ namespace qk {
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
 		cmd->allScale = _canvas->_allScale;
-		cmd->color = color;
+		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
 	}
@@ -1151,7 +1157,7 @@ namespace qk {
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
 		cmd->allScale = _canvas->_allScale;
-		cmd->color = color;
+		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
 	}
@@ -1164,9 +1170,9 @@ namespace qk {
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
 		cmd->allScale = _canvas->_allScale;
-		cmd->color = color;
+		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
-		cmd->strokeColor = strokeColor;
+		cmd->strokeColor = premul_alpha(strokeColor);
 		cmd->strokeWidth = stroke;
 		paint->image->retain();
 	}
@@ -1204,10 +1210,13 @@ namespace qk {
 		auto positions = reinterpret_cast<float*>(cmdp + cmdSize + colorsSize);
 		memcpy(colors, paint->colors, colorsSize); // copy colors
 		memcpy(positions, paint->positions, positionsSize); // copy positions
+		for (uint32_t i = 0; i < paint->count; i++) {
+			colors[i] = premul_alpha(colors[i]); // premul alpha
+		}
 		cmd->type = kGradient_CmdType;
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
-		cmd->color = color;
+		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		cmd->paint.colors = colors;
 		cmd->paint.positions = positions;
@@ -1230,7 +1239,7 @@ namespace qk {
 	void GLC_CmdPack::clearColor(const Color4f &color, GC_ClearFlags flags) {
 		auto cmd = new(_this->allocCmd(sizeof(ClearCmd))) ClearCmd;
 		cmd->type = kClear_CmdType;
-		cmd->color = color;
+		cmd->color = color; // clear don't need premul_alpha
 		cmd->surfaceSize = _canvas->_surfaceSize;
 		cmd->depth = _canvas->_zDepth;
 		cmd->flags = flags;

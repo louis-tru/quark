@@ -276,11 +276,6 @@ namespace qk {
 		paint.fill.image = &img;
 		paint.fill.color = painter->color();
 
-		if (!src->premultipliedAlpha()) {
-			paint.fill.color = paint.fill.color.recover_unpremul_alpha();
-			paint.blendMode = kSrcOverStraight_BlendMode;
-		}
-
 		auto aaShrink = aa() ? painter->AAShrink() : 0;
 		Rect rect{-origin_value(), {_width, _height}};
 		Rect rectAA{

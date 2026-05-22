@@ -133,9 +133,9 @@ namespace qk {
 		 * @enum PremulFlags premultiplied alpha flags
 		*/
 		enum PremulFlags: uint8_t {
-			kNone_PremulFlags, //!< no convert to premultiplied alpha
-			kConvert_PremulFlags, //!< convert to premultiplied alpha
-			kOnlyMark_PremulFlags, //!< only mark as premultiplied alpha
+			kNone_PremulFlags,          //!< Keep source data unchanged.
+			kConvert_PremulFlags,       //!< Convert source data to premultiplied alpha.
+			kAlready_PremulFlags,       //!< Source data is already premultiplied alpha.
 		};
 
 		/**

@@ -33,62 +33,77 @@
 
 
 namespace qk {
-
 	/**
-	 * Blend modes used by Qk rendering pipeline.
+	 * Blend modes used by the Qk rendering pipeline.
 	 *
-	 * Qk internally prefers premultiplied-alpha (PMA) rendering.
-	 *
-	 * In PMA mode:
+	 * Qk internally uses premultiplied-alpha (PMA) rendering:
 	 *
 	 *   src.rgb = original.rgb * src.a
 	 *   src.a   = src.a
 	 *
-	 * Most rendering paths, framebuffer accumulation, antialiasing coverage
-	 * (such as aafuzz), and compositing operations are designed around PMA.
+	 * Most rendering paths, framebuffer accumulation, filtering,
+	 * antialiasing coverage (such as aafuzz), and compositing
+	 * operations are designed around PMA behavior.
 	 *
-	 * Blend modes without the "Straight" suffix assume premultiplied-alpha
-	 * source color input.
+	 * Blend modes without the "Legacy" suffix assume PMA source
+	 * color input and produce correct Porter-Duff compositing
+	 * results in the PMA framebuffer pipeline.
 	 *
-	 * Blend modes with the "Straight" suffix are legacy compatibility modes
-	 * for straight-alpha source color input:
+	 * Blend modes with the "Legacy" suffix are legacy straight-alpha
+	 * compatibility modes:
 	 *
 	 *   src.rgb = original.rgb
 	 *   src.a   = src.a
 	 *
-	 * Straight-alpha modes may produce incorrect edge blending results when
-	 * combined with coverage-based antialiasing (for example aafuzz), because
-	 * fragment coverage naturally behaves as premultiplied-alpha contribution.
+	 * These modes are mainly intended for artistic blending
+	 * operations such as modulate, screen, and multiply.
 	 *
-	 * Framebuffer contents are treated as premultiplied-alpha accumulated data.
+	 * Since the framebuffer is accumulated in PMA form, and AA
+	 * coverage naturally behaves as premultiplied-alpha contribution,
+	 * legacy straight-alpha modes are not mathematically exact under
+	 * fixed-function blending and may produce incorrect edge blending
+	 * results when combined with coverage-based antialiasing
+	 * (for example aafuzz).
 	 *
-	 * Blend equations below describe the resulting PMA framebuffer output.
+	 * Legacy modes should therefore be treated as approximate visual
+	 * effects rather than strict Photoshop-style blend behavior.
 	 *
 	 * References:
 	 *   Porter-Duff compositing operators
 	 *   Premultiplied alpha compositing
 	 */
 	enum BlendMode {
-		kInvalid_BlendMode,       //!< Invalid blend mode, used for error handling
-		kClear_BlendMode,         //!< r = 0
-		kSrc_BlendMode,           //!< r = s
-		kSrcOverStraight_BlendMode,//!< r = sa*s + (1-sa)*d, recommended to use kSrcOver_BlendMode
-		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
-		kDst_BlendMode,           //!< r = d
-		kDstOver_BlendMode,       //!< r = (1-da)*s + d
-		kSrcIn_BlendMode,         //!< r = da*s
-		kDstIn_BlendMode,         //!< r = sa*d
-		kSrcOut_BlendMode,        //!< r = (1-da)*s
-		kDstOut_BlendMode,        //!< r = (1-sa)*d
-		kSrcATop_BlendMode,       //!< r = da*s + (1-sa)*d
-		kDstATop_BlendMode,       //!< r = (1-da)*s + sa*d
-		kXor_BlendMode,           //!< r = (1-da)*s + (1-sa)*d
-		kPlus_BlendMode,          //!< r = s + d
-		kModulateStraight_BlendMode, //!< r = s*d
-		kScreenStraight_BlendMode,  //!< r = s + (1-s)*d
-		kMultiplyStraight_BlendMode, //!< r = d*s + (1-sa)*d
-		kPlusStraight_BlendMode,  //!< r = sa*s + d, recommended to use kPlus_BlendMode
+		kInvalid_BlendMode, //!< Invalid blend mode, used for error handling
+
+		kClear_BlendMode,   //!< r = 0
+		kSrc_BlendMode,     //!< r = s
+		kSrcOver_BlendMode, //!< r = s + (1-sa)*d
+
+		kDst_BlendMode,     //!< r = d
+		kDstOver_BlendMode, //!< r = (1-da)*s + d
+
+		kSrcIn_BlendMode,   //!< r = da*s
+		kDstIn_BlendMode,   //!< r = sa*d
+
+		kSrcOut_BlendMode,  //!< r = (1-da)*s
+		kDstOut_BlendMode,  //!< r = (1-sa)*d
+
+		kSrcATop_BlendMode, //!< r = da*s + (1-sa)*d
+		kDstATop_BlendMode, //!< r = (1-da)*s + sa*d
+
+		kXor_BlendMode,     //!< r = (1-da)*s + (1-sa)*d
+		kPlus_BlendMode,    //!< r = s + d
+
+		// Legacy straight-alpha artistic blend modes.
+		// These are approximate under the PMA framebuffer pipeline.
+		kSrcOverLegacy_BlendMode,  //!< r = sa*s + (1-sa)*d
+		kPlusLegacy_BlendMode,     //!< r = sa*s + d
+
+		// These modes are not mathematically exact under fixed-function blending
+		// and may produce incorrect edge blending results when combined with coverage-based antialiasing.
+		kModulateLegacy_BlendMode, //!< r = s*d
+		kScreenLegacy_BlendMode,   //!< r = s + (1-s)*d
+		kMultiplyLegacy_BlendMode, //!< r = d*s + (1-sa)*d
 	};
 }
-
 #endif

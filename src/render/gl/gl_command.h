@@ -86,7 +86,7 @@ namespace qk {
 		struct Cmd { // Cmd list
 			uint32_t       size; // cmd size
 			CmdType        type; // cmd type
-			bool           isClip; // is cmd with clip state
+			bool           isClip, isPMA; // is cmd with clip state, is premultiplied alpha
 		};
 
 		struct DrawCmd: Cmd { // draw base cmd
@@ -270,6 +270,7 @@ namespace qk {
 		void savePipelineState();
 		void restoreClip(GC_State::Clip *clip);
 	private:
+		inline Color4f premul_alpha(const Color4f &color) const;
 		typedef ColorBatchCmd::Option CGOpt;
 		template<class T> struct MemBlock {
 			T *val; uint32_t size,capacity;

@@ -1,6 +1,5 @@
 Qk_CONSTANT(
 	vec4 color;
-	// float premultipliedAlpha;
 );
 
 #vert
@@ -19,6 +18,8 @@ void main() {
 	texCoords = texCoordsIn;
 	light = lightColorIn * pc.color;
 	dark = darkColorIn;
+	light.rgb *= light.a; // apply premultiplied alpha
+	dark.rgb *= dark.a;
 }
 
 #frag

@@ -144,9 +144,6 @@ namespace qk {
 			case kSrc_BlendMode:           //!< r = s
 				glBlendFunc(GL_ONE, GL_ZERO);
 				break;
-			case kSrcOverStraight_BlendMode: //!< r = sa*s + (1-sa)*d
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-				break;
 			case kSrcOver_BlendMode:       //!< r = s + (1-sa)*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
@@ -180,17 +177,20 @@ namespace qk {
 			case kPlus_BlendMode:          //!< r = s + d
 				glBlendFunc(GL_ONE, GL_ONE);
 				break;
-			case kModulateStraight_BlendMode: //!< r = s*d
+			case kSrcOverLegacy_BlendMode: //!< r = sa*s + (1-sa)*d
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kPlusLegacy_BlendMode:
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //!< r = sa*s + d
+				break;
+			case kModulateLegacy_BlendMode: //!< r = s*d
 				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 				break;
-			case kScreenStraight_BlendMode: //!< r = s + (1-s)*d
+			case kScreenLegacy_BlendMode: //!< r = s + (1-s)*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
 				break;
-			case kMultiplyStraight_BlendMode: //!< r = d*s + (1-sa)*d
+			case kMultiplyLegacy_BlendMode: //!< r = d*s + (1-sa)*d
 				glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-				break;
-			case kPlusStraight_BlendMode:
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //!< r = sa*s + d
 				break;
 			default: break;
 		}

@@ -89,23 +89,17 @@ namespace qk {
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorZero;
 				break;
-			case kDst_BlendMode: // r = d
-				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
-				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
-				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
-				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
-				break;
-			case kSrcOverStraight_BlendMode: // r = sa*s + (1-sa)*d
-				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
-				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-				break;
 			case kSrcOver_BlendMode: // r = s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+				break;
+			case kDst_BlendMode: // r = d
+				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
+				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
+				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
+				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
 			case kDstOver_BlendMode: // r = (1-da)*s + d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOneMinusDestinationAlpha;
@@ -161,29 +155,35 @@ namespace qk {
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
-			case kModulateStraight_BlendMode: // r = s*d
+			case kSrcOverLegacy_BlendMode: // r = sa*s + (1-sa)*d
+				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
+				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+				break;
+			case kPlusLegacy_BlendMode: // r = sa*s + d
+				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
+				ca.sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
+				break;
+			case kModulateLegacy_BlendMode: // r = s*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorZero;
 				ca.destinationRGBBlendFactor = MTLBlendFactorSourceColor;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorZero;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorSourceAlpha;
 				break;
-			case kScreenStraight_BlendMode: // r = s + (1-s)*d
+			case kScreenLegacy_BlendMode: // r = s + (1-s)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorOne;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceColor;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorOne;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				break;
-			case kMultiplyStraight_BlendMode: // r = d*s + (1-sa)*d
+			case kMultiplyLegacy_BlendMode: // r = d*s + (1-sa)*d
 				ca.sourceRGBBlendFactor = MTLBlendFactorDestinationColor;
 				ca.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 				ca.sourceAlphaBlendFactor = MTLBlendFactorDestinationAlpha;
 				ca.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-				break;
-			case kPlusStraight_BlendMode: // r = sa*s + d
-				ca.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-				ca.destinationRGBBlendFactor = MTLBlendFactorOne;
-				ca.sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
-				ca.destinationAlphaBlendFactor = MTLBlendFactorOne;
 				break;
 			default:
 				ca.blendingEnabled = NO;

@@ -25,7 +25,7 @@ public:
 		//canvas->clearColor(Color4f(1,1,1));
 		//canvas->drawColor(Color4f(1,0,0));
 		Paint paint;
-		paint.blendMode = kSrcOverStraight_BlendMode;
+		paint.blendMode = kSrcOverLegacy_BlendMode;
 
 		// -------- clip ------
 		canvas->save();

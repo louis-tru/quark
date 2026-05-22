@@ -43,7 +43,7 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage({rect.begin-radius,width+radius*2}, {width}, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
+		auto img = canvas->readImage({rect.begin-radius,width+radius*2}, {width}, kInvalid_ColorType, kSrcOverLegacy_BlendMode, true);
 		// auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
 		// paint.blendMode = kSrcOverStraight_BlendMode;
 		paint.fill.color = Color4f(1, 1, 1, 1);
@@ -55,8 +55,8 @@ public:
 		pimg.tileModeY = PaintImage::kRepeat_TileMode;
 		// pimg.tileModeX = PaintImage::kDecal_TileMode;
 		// pimg.tileModeY = PaintImage::kDecal_TileMode;
-		pimg.mipmapMode = PaintImage::kLinear_MipmapMode;
 		pimg.filterMode = PaintImage::kLinear_FilterMode;
+		pimg.mipmapMode = PaintImage::kLinearNearest_MipmapMode;
 		pimg.setImage(*img, {{0},{width*0.25f}});
 		// paint.mask = &pimg;
 		paint.fill.image = &pimg;

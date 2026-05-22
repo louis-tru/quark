@@ -216,6 +216,7 @@ namespace qk {
 
 	void AppInl::triggerUnload() {
 		_loop->post_sync(Callback<RunLoop::PostSyncData>([this](auto &d) {
+		//_loop->post(Cb([this](auto d) {
 			if (_isLoaded) {
 				_isLoaded = false;
 				Qk_Trigger(Unload);

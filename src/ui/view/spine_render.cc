@@ -48,7 +48,7 @@ namespace qk {
 		_paint.filterMode = page->magFilter == TextureFilter_Linear ?
 			PaintImage::kLinear_FilterMode: PaintImage::kNearest_FilterMode;
 		if (page->pma)
-			_source->set_premulFlags(ImageSource::kOnlyMark_PremulFlags);
+			_source->set_premulFlags(ImageSource::kAlready_PremulFlags);
 
 		switch (page->minFilter) {
 			case TextureFilter_MipMapLinearNearest:
@@ -126,16 +126,20 @@ namespace qk {
 	static BlendMode getBlendMode(Slot *slot, bool premultipliedAlpha) {
 		switch (slot->getData().getBlendMode()) {
 			case BlendMode_Additive:
-				return premultipliedAlpha ? kPlus_BlendMode: kPlusStraight_BlendMode;
+				// Qk uses PMA internally, so additive blending uses PMA source directly.
+				return kPlus_BlendMode;
 			case BlendMode_Multiply:
-				// Multiply/Screen are legacy straight-alpha fixed-function blend modes.
-				// They require straight source rgb. If the source is PMA, the source color
-				// should be unpremultiplied before drawing, or the result is only approximate.
-				return kMultiplyStraight_BlendMode;
+				// Multiply/Screen are legacy fixed-function approximations.
+				// Qk framebuffer data is PMA, while these artistic blend formulas
+				// are normally defined for straight RGB. Without reading and
+				// unpremultiplying the destination color, they cannot be exact.
+				return kMultiplyLegacy_BlendMode;
 			case BlendMode_Screen:
-				return kScreenStraight_BlendMode;
+				// Approximate under Qk's PMA framebuffer pipeline.
+				return kScreenLegacy_BlendMode;
 			default:
-				return premultipliedAlpha ? kSrcOver_BlendMode: kSrcOverStraight_BlendMode;
+				// Qk uses PMA internally, so normal compositing uses PMA SrcOver.
+				return kSrcOver_BlendMode;
 		}
 	}
 
@@ -192,7 +196,7 @@ namespace qk {
 		}
 		auto skeleton = &skel->_skeleton;
 		auto clipper = _clipper.get();
-		Color4f color = toColor4f(skel->_skeleton.getColor()).premul_alpha().mul(painter->_color);
+		Color4f color = toColor4f(skel->_skeleton.getColor()).mul(painter->_color);
 		Color4f light, dark;
 		AttachmentEx *ex, *lastEx = nullptr;
 		TrianglesEx cmdTriangles;
@@ -263,14 +267,7 @@ namespace qk {
 			} else {
 				dark = Color4f();
 			}
-			if (ex->_source->premultipliedAlpha()) { // premultiplied alpha
-				if (slot->hasDarkColor())
-					dark = dark.premul_alpha();
-				light = light.premul_alpha().mul(color);
-			} else {
-				// unpremultiplied alpha
-				light = light.mul(color.recover_unpremul_alpha());
-			}
+			light = light.mul(color);
 
 			auto triangles = ex->_triangles;
 			if (clipper->isClipping()) {
