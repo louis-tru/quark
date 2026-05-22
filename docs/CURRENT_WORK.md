@@ -20,6 +20,7 @@ Notable render-side state:
 - Old `src/render/gl/gl_cmd.*` is deleted.
 - New `src/render/gl/gl_command.*` exists and owns GL command packing/calls.
 - New `src/render/gpu_canvas.*` exists and owns shared Canvas logic.
+- GL blur has been refactored from fixed full-surface temporary textures to pooled dynamic textures. The GL path now keeps temporary blur textures alive through `GC_BlurFilter`, offsets the root matrix for local rendering, downsamples/mip-copies into the pooled texture, and uses shader UV offsets for final writeback.
 - Troubleshooting notes are recorded in `docs/TROUBLESHOOTING.md`, including
   the GL UBO storage issue where `_uboClip` was bound but had no data store
   until clipping first ran, causing misleading black/gradient output.

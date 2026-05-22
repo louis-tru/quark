@@ -126,8 +126,8 @@ namespace qk {
 		struct alignas(void*) BlurFilterBeginCmd: Cmd {
 			float           depth;
 			Range           bounds;
-			float           radius, clearPad; // blur radius, clear padding for blur edge
-			Vec2            surfaceSize; // canvas surface size
+			Mat4            blurRootMatrix;
+			Sp<ImageSource> tmpA; // temporary blur textures
 		};
 
 		struct alignas(void*) BlurFilterEndCmd: Cmd {
@@ -136,8 +136,11 @@ namespace qk {
 			float           radius, clearPad; // blur radius, clear padding for blur edge
 			float           surfaceScale; // canvas surface scale
 			Vec2            surfaceSize; // canvas surface size
+			Mat4            rootMatrix; // recover root matrix
 			int             sample,imageLod; // sample size and image lod
+			BlendMode       recoverMode; // recover blend mode
 			Sp<ImageSource> recover; // recover output dest
+			Sp<ImageSource> tmpA, tmpB; // temporary blur textures
 		};
 
 		struct alignas(void*) ColorCmd: DrawCmd { //!
@@ -256,8 +259,9 @@ namespace qk {
 		void drawClip(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *lastClip,
 				GC_State::Clip *clip, Canvas::ClipOp rawOp);
 		void clearColor(const Color4f &color, GC_ClearFlags flags);
-		void blurFilterBegin(Range bounds, float radius, float clearPad);
-		void blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod);
+		void blurFilterBegin(Range bounds, Mat4 &rootMat, ImageSource *tmpA);
+		void blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod,
+				ImageSource *tmpA, ImageSource *tmpB);
 		void readImage(const Rect &srcRect, ImageSource* src, ImageSource* dst);
 		void outputImageBegin(ImageSource* dst);
 		void outputImageEnd(ImageSource* exit, ImageSource* next);

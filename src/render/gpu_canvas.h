@@ -112,9 +112,11 @@ namespace qk {
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
 				const Color4f &strokeColor, float stroke) = 0;
-		virtual void blurFilterBeginCmd(Range bounds, float radius, float clearPad) = 0;
-		virtual void blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) = 0;
-		virtual void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) = 0;
+		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
+		virtual void blurFilterEndCmd(Range bounds, float radius, float clearPad,
+				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) = 0;
+		virtual void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint,
+				const Color4f &color, bool copyData) = 0;
 		virtual void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dst) = 0;
 		virtual void outputImageBeginCmd(ImageSource* dst) = 0;
 		virtual void outputImageEndCmd(ImageSource* exit) = 0;

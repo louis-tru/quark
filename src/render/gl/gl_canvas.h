@@ -65,8 +65,9 @@ namespace qk {
 		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
 		void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
 				const Color4f &strokeColor, float stroke) override;
-		void blurFilterBeginCmd(Range bounds, float radius, float clearPad) override;
-		void blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) override;
+		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
+		void blurFilterEndCmd(Range bounds, float radius, float clearPad,
+				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) override;
 		void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) override;
 		void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dest) override;
 		void outputImageBeginCmd(ImageSource* img) override;

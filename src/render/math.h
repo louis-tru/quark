@@ -286,9 +286,9 @@ namespace qk {
 
 	struct Qk_EXPORT Vec3: Vec<float,3> {
 		Qk_Default_Vec_Operator(Vec3,float,3);
-		Vec3(float a, float b, float c = 0.0);
-		Vec3(const Vec<float, 2> &vec2, float f = 0.0);
-		Vec3(float f, const Vec<float, 2> &vec2);
+		Vec3(float x, float y, float z = 0.0);
+		Vec3(const Vec<float, 2> &xy, float z = 0.0);
+		Vec3(float z, const Vec<float, 2> &yz);
 		float length() const;
 		float dot(const Vec<float,3>& b) const;
 		Vec3  det(const Vec<float,3>& b) const;

@@ -26,14 +26,15 @@ public:
 		i+=Qk_PI_RATIO_180*0.1;
 
 		float c = abs(sinf(i));
+		float radius = c*50;
 		float width = 300;
 
 		Paint paint;
 		paint.fill.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
 		paint.stroke.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
-		PaintFilter filter{PaintFilter::kBlur_Type,c*50};
+		PaintFilter filter{PaintFilter::kBlur_Type,radius};
 		paint.filter = &filter;
-		paint.style = Paint::kStroke_Style;
+		// paint.style = Paint::kStroke_Style;
 		paint.strokeWidth = 5;
 		// paint.antiAlias = false;
 		Rect rect{size/2-width*0.5,width};
@@ -42,8 +43,8 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		// auto img = canvas->readImage({0,width}, {width}, kInvalid_ColorType, kSrcOverStraight_BlendMode);
-		auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
+		auto img = canvas->readImage({rect.begin-radius,width+radius*2}, {width}, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
+		// auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
 		// paint.blendMode = kSrcOverStraight_BlendMode;
 		paint.fill.color = Color4f(1, 1, 1, 1);
 		paint.stroke.color = Color4f(1, 1, 1, 1);

@@ -121,7 +121,8 @@ namespace qk {
 			_cmdPack.enc = [_cmdPack.current renderCommandEncoderWithDescriptor:_cmdPack.pass];
 			Qk_ASSERT(_cmdPack.enc, "Failed to create render command encoder for new pass");
 			// set root matrix for new encoder
-			[_cmdPack.enc setVertexBytes:_rootMatrix.val length: sizeof(Mat4) atIndex:1];
+			auto root = _rootMatrix.transpose();
+			[_cmdPack.enc setVertexBytes:root.val length: sizeof(Mat4) atIndex:1];
 			// set view matrix for new encoder
 			setvMatrixFromEnc(_cmdPack.enc, _state->matrix);
 			// set aaclip texture if needed
@@ -496,7 +497,10 @@ namespace qk {
 		}, depth);
 	}
 
-	void MetalCanvas::blurFilterBeginCmd(Range bounds, float radius, float clearPad) {
+	void MetalCanvas::blurFilterBeginCmd(Range bounds, float radius, float clearPad,
+			ImageSource *tmpA, ImageSource *tmpB) {
+		(void)tmpA;
+		(void)tmpB;
 		if (!_outTexA) {
 			_outTexA = mtl_new_tex_renderbuffer(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), 1, 1, 1);
@@ -540,7 +544,10 @@ namespace qk {
 		*   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		*   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		*/
-	void MetalCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) {
+	void MetalCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad,
+			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
+		(void)tmpA;
+		(void)tmpB;
 		float x1 = bounds.begin.x(), y1 = bounds.begin.y();
 		float x2 = bounds.end.x(), y2 = bounds.end.y();
 		float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
@@ -697,7 +704,8 @@ namespace qk {
 			// set pipeline state for viewport copy shader and set texture for shader
 			auto enc = [_cmdPack.current renderCommandEncoderWithDescriptor:pass];
 			enc.viewport = MTLViewportMake(0, 0, w, h, 0, 1);
-			[enc setVertexBytes:_rootMatrix.val length:sizeof(Mat4) atIndex:1];
+			auto root = _rootMatrix.transpose();
+			[enc setVertexBytes:root.val length:sizeof(Mat4) atIndex:1];
 			enc.renderPipelineState = cp.getPipeline(_blendMode, dst->type(), 1);
 			// set texture and sampler for shader
 			PaintImage sampler;

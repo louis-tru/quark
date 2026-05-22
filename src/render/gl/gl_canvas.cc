@@ -238,14 +238,15 @@ namespace qk {
 		_cmdPack->drawSDFImageMask(vertex, paint, color, strokeColor, stroke);
 	}
 
-	void GLCanvas::blurFilterBeginCmd(Range bounds, float radius, float clearPad) {
+	void GLCanvas::blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) {
 		checkMatrix();
-		_cmdPack->blurFilterBegin(bounds, radius, clearPad);
+		_cmdPack->blurFilterBegin(bounds, rootMat, tmpA);
 	}
 
-	void GLCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad, int sample, int imageLod) {
+	void GLCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad,
+			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
 		checkMatrix();
-		_cmdPack->blurFilterEnd(bounds, radius, clearPad, sample, imageLod);
+		_cmdPack->blurFilterEnd(bounds, radius, clearPad, sample, imageLod, tmpA, tmpB);
 	}
 
 	void GLCanvas::drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) {

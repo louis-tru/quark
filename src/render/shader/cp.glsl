@@ -1,6 +1,6 @@
 Qk_CONSTANT(
-	vec2 iResolution; // viewport resolution
-	vec2 oResolution; // output image resolution, the <= iResolution
+	vec2 iResolution; // input resolution
+	vec2 oResolution; // output image resolution, this <= iResolution
 	// frag
 	vec4 coord; // vec4(texture offset coord, scale coefficient)
 	float imageLod; // input image lod level

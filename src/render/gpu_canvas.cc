@@ -31,7 +31,6 @@
 #include "./gpu_canvas.h"
 
 #define isMoreSofterAA 1 // 1 is softer aa, 0 is more radical aa
-#define Qk_Limit_TEXTURE_SIZE (4096) // limit texture size to 4096 for better performance and compatibility
 
 namespace qk {
 	uint32_t massSample(uint32_t n);
@@ -255,47 +254,72 @@ namespace qk {
 		}
 
 		int getBlurSampling(float radius, int &imageLod) {
-			const int maxN = 13; // 13 samples is enough for 99% blur effect,
+			constexpr int maxN = 13; // 13 samples is enough for 99% blur effect,
 			// and more samples will cause performance loss
 			const int N[] = { 3,3,3,3,5,5,7,7,9,9,11,11,13,13,15,15,17,17,19,19 };
 			radius *= _host->_surfaceScale;
-			int sample = ceilf(radius*2); // sampling rate is radius*2
+			float diameter = radius * 2.0f;
+			int sample = ceilf(diameter); // sampling rate is diameter
 			sample = N[Qk_Min(sample,maxN)]; // sample count for blur filter
-			imageLod = ceilf(Float32::max(0,log2f(radius/sample)));
+			// imageLod is intentionally estimated from radius instead of diameter.
+			// Diameter is the theoretical full blur coverage, but using it here makes
+			// mip levels increase too aggressively and causes visible jumps when blur
+			// radius changes. Using radius keeps mip transitions smoother and avoids
+			// excessive downsampling.
+			// This is a visual/performance tradeoff: high-frequency images may retain
+			// slightly more detail than a diameter-based estimate, but in practice the
+			// result is usually smoother and requires fewer downsample passes.
+			constexpr float lodRadiusFactor = 1.0f; // maybe 1.5f for high-frequency content
+			imageLod = ceilf(Float32::max(0, log2f(radius * lodRadiusFactor / sample)));
 			return sample;
 		}
 
 		~GC_BlurFilter() override {
-			if (_sample) {
-				_host->blurFilterEndCmd(_bounds, _radius, _clearPad, _sample, _imageLod);
-				_inl(_host)->zDepthNextCount(_imageLod + 2);
-			}
+			_host->_clipState = _host->_state->clip.get(); // restore clip state for blur filter
+			_host->blurFilterEndCmd(_bounds, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);
+			_inl(_host)->zDepthNextCount(_imageLod + 2);
 		}
 
 	private:
 		void begin(const Paint &paint) {
 			_radius *= _host->_scale; // * logical scale
 			_sample = getBlurSampling(_radius, _imageLod);
-			int w = _host->_surfaceSize.x(), h = _host->_surfaceSize.y();
-			if (w >> _imageLod && h >> _imageLod) {
-				if (paint.style != Paint::kFill_Style && paint.strokeWidth) {
-					// add padding for stroke width, to avoid stroke being cut by blur edge
-					auto halfStroke = paint.strokeWidth * _host->_scale * 0.5f;
-					_bounds.begin -= Vec2(halfStroke, halfStroke);
-					_bounds.end += Vec2(halfStroke, halfStroke);
-				}
-				_bounds = {_bounds.begin - _radius, _bounds.end + _radius};
-				_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScale;
-				_host->blurFilterBeginCmd(_bounds, _radius, _clearPad);
-				_inl(_host)->zDepthNext();
-			} else { // blur area too small, skip blur filter
-				_sample = 0;
+			if (paint.style != Paint::kFill_Style && paint.strokeWidth) {
+				// add padding for stroke width, to avoid stroke being cut by blur edge
+				auto halfStroke = paint.strokeWidth * _host->_scale * 0.5f;
+				_bounds.begin -= Vec2(halfStroke, halfStroke);
+				_bounds.end += Vec2(halfStroke, halfStroke);
 			}
+			_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScale;
+			// add padding for blur radius and clear pad
+			auto padding = _clearPad + _radius + _radius;
+			// expand bounds by padding for blur filter,
+			// blur filter will read and write the texture in the area of bounds + padding
+			// |r|r|rrrrrr|r|r|
+			// |r|r|rrrrrr|r|r|
+			// |r|r| body |r|r|
+			// |r|r|rrrrrr|r|r|
+			// |r|r|rrrrrr|r|r|
+			_bounds = {_bounds.begin - padding, _bounds.end + padding};
+			// save root matrix before blur
+			_blurRootMatrix = _rootMatrix = _host->_rootMatrix;
+			// adjust root matrix for blur filter, to keep the same visual position after expanding bounds
+			_blurRootMatrix.translate(Vec3(-_bounds.begin.max(0), 0));
+			// compute texture size for blur filter, limit to surface size
+			auto texS = (_bounds.end.min(_host->_size) - _bounds.begin.max(0)) * _host->_surfaceScale;
+			_tmpA = _host->getTextureFromPool(texS, _host->_opts.colorType, true);
+			_tmpB = _host->getTextureFromPool(texS, _host->_opts.colorType, true);
+			// disable clip for blur filter, to avoid blur being cut by clip
+			_host->_clipState = nullptr;
+			_host->blurFilterBeginCmd(_bounds, _blurRootMatrix, *_tmpA);
+			_inl(_host)->zDepthNext();
 		}
 		GPUCanvas *_host;
 		float  _radius; // blur radius
 		float _clearPad; // clear padding for blur edge
 		Range _bounds; // bounds for draw path
+		Mat4	_rootMatrix, _blurRootMatrix; // root matrix before blur, and root matrix for blur filter
+		Sp<ImageSource> _tmpA, _tmpB; // temporary blur textures, retained for async GL commands
 		int _sample, _imageLod;
 	};
 
@@ -345,14 +369,16 @@ namespace qk {
 	}
 
 	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, bool mipmap) {
-		int w = Int32::min(upPow2(Int32::min(size.x(), _surfaceSize.x())), Qk_Limit_TEXTURE_SIZE);
-		int h = Int32::min(upPow2(Int32::min(size.y(), _surfaceSize.y())), Qk_Limit_TEXTURE_SIZE);
+		// limit texture size to surface size,
+		// to avoid memory waste and performance loss on large render targets
+		int w = Int32::clamp(upPow2(size.x()), 1, _surfaceSize[0]);
+		int h = Int32::clamp(upPow2(size.y()), 1, _surfaceSize[1]);
 		// limit texture aspect ratio to 4:1,
 		// to avoid memory waste and performance loss on large render targets
-		if (w > h * 4) h = w / 4;
-		if (h > w * 4) w = h / 4;
+		if (w > h * 4) h = Int32::min(w / 4, _surfaceSize[1]);
+		if (h > w * 4) w = Int32::min(h / 4, _surfaceSize[0]);
 
-		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | type << 1 | mipmap;
+		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | (type << 1) | mipmap;
 		auto &pool = _texPools[key];
 		for (auto &tex : pool) {
 			if (tex->ref_count() == 1)
@@ -718,8 +744,9 @@ namespace qk {
 		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
 		_allScale = _surfaceScale * _scale;
 		_phy2Pixel = 2 / _allScale;
-		_rootMatrix = root.transpose(); // transpose matrix
+		_rootMatrix = root;
 		_zDepth = 0;
+		_texPools.clear(); // clear texture pool when surface size changed
 		setSurfaceCmd(chSize); // set buffers
 	}
 }

@@ -6,10 +6,11 @@
 //   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 
 Qk_CONSTANT(
-	vec2           iResolution; // viewport resolution
-	vec2           oResolution; // generate image resolution, this <= iResolution
+	vec2           iResolution; // input resolution
+	vec2           oResolution; // output image resolution, this <= iResolution
 	// frag
-	vec2           radius_uv; // radius/resolution, used for offset distance in texture sampling
+	vec2           uv_radius; // radius/resolution, used for texture sampling offset
+	vec2           uv_offset; // base uv offset for texture sampling
 	float          sample_inv; // N target sampling rate, sample_inv = 1.0 / ((sample-1)*0.5)
 	float          imageLod; // image image lod
 );

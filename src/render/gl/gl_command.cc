@@ -162,6 +162,9 @@ namespace qk {
 						case kTriangles_CmdType:
 							((TrianglesCmd*)cmd)->~TrianglesCmd();
 							break;
+						case kBlurFilterBegin_CmdType:
+							((BlurFilterBeginCmd*)cmd)->~BlurFilterBeginCmd();
+							break;
 						case kBlurFilterEnd_CmdType:
 							((BlurFilterEndCmd*)cmd)->~BlurFilterEndCmd();
 							break;
@@ -218,6 +221,7 @@ namespace qk {
 						case kBlurFilterBegin_CmdType: {
 							auto c = (BlurFilterBeginCmd*)cmd;
 							blurFilterBeginCall(c);
+							c->~BlurFilterBeginCmd();
 							break;
 						}
 						case kBlurFilterEnd_CmdType: {
@@ -360,8 +364,9 @@ namespace qk {
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
+			auto matrix = root.transpose();
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboRMat);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, root.val, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, matrix.val, GL_DYNAMIC_DRAW);
 		}
 
 		void setMatrixCall(const Mat &mat) {
@@ -665,40 +670,25 @@ namespace qk {
 			}
 		}
 
-		void blurFilterBeginCall(BlurFilterBeginCmd* cmd) {/*
-			if (!_canvas->_outTexA) {
-				glGenTextures(1, &_canvas->_outTexA); // ready the blur buffer
-				gl_set_tex_renderbuffer(_canvas->_outTexA, cmd->surfaceSize);
-			}
-			if (!_canvas->_outTexB) {
-				glGenTextures(1, &_canvas->_outTexB); // ready the blur buffer
-				gl_set_tex_renderbuffer(_canvas->_outTexB, cmd->surfaceSize);
-			}
-
+		void blurFilterBeginCall(BlurFilterBeginCmd* cmd) {
+			auto texA = cmd->tmpA->texture(0)->id();
+			Qk_ASSERT(texA, "blurFilterBeginCall tmpA texture is null");
 			auto blend = _render->_blendMode; // save current blend mode
-			if (cmd->clip_state)
-				glDisable(GL_STENCIL_TEST); // close clip
 			_render->set_blend_mode(kSrc_BlendMode); // switch blend mode to src
 			// output to texture buffer then do post processing
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTexA, 0);
-
-			// bounds already includes the blur radius,
-			// extra padding for scaled/mipmapped blur samples
-			// |r|r|rrrrrr|r|r|
-			// |r|r|rrrrrr|r|r|
-			// |r|r| body |r|r|
-			// |r|r|rrrrrr|r|r|
-			// |r|r|rrrrrr|r|r|
-			float padding = cmd->radius + cmd->clearPad; // extra padding for scaled/mipmapped blur samples
-			clearColor({0,0,0,0}, {
-				{cmd->bounds.begin.x() - padding, cmd->bounds.begin.y() - padding},
-				{cmd->bounds.end.x() + padding, cmd->bounds.end.y() + padding},
-			}, cmd->depth);
-
-			if (cmd->clip_state)
-				glEnable(GL_STENCIL_TEST); // restore clip state
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texA, 0);
+			// adjust root matrix to blur region for correct texture sampling
+			setRootMatrixCall(cmd->blurRootMatrix);
+			clearColor({0,0,0,0}, cmd->bounds, cmd->depth);
 			_render->set_blend_mode(blend); // restore blend mode
-			*/
+		}
+
+		void recoverStatFromBlurFilter(BlurFilterEndCmd *cmd) {
+			glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+				cmd->recover ? cmd->recover->texture(0)->id(): _canvas->_outTex, 0
+			);
+			_render->set_blend_mode(cmd->recoverMode); // restore blend mode
 		}
 
 		/**
@@ -709,49 +699,49 @@ namespace qk {
 		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
-		void blurFilterEndCall(BlurFilterEndCmd *cmd) {/*
-			auto imageLod = cmd->imageLod;
+		void blurFilterEndCall(BlurFilterEndCmd *cmd) {
+			auto texA = cmd->tmpA->texture(0)->id();
+			auto texB = cmd->tmpB->texture(0)->id();
+			Qk_ASSERT(texA && texB, "blurFilterEndCall temp texture is null");
+			auto offset = cmd->bounds.begin.max(0);
+			auto begin = cmd->bounds.begin, end = cmd->bounds.end;
+			float x1 = begin.x() - offset.x(), y1 = begin.y() - offset.y(),
+						x2 = end.x() - offset.x(), y2 = end.y() - offset.y();
 			float radius = cmd->radius, depth = cmd->depth;
-			float x1 = cmd->bounds.begin.x(), y1 = cmd->bounds.begin.y();
-			float x2 = cmd->bounds.end.x(), y2 = cmd->bounds.end.y();
-			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
-			x1 -= cmd->clearPad, y1 -= cmd->clearPad; // extra padding for scaled/mipmapped blur samples
-			x2 += cmd->clearPad, y2 += cmd->clearPad;
 			float radius2 = radius * cmd->surfaceScale; // radius in pixel unit
-			Vec2 R = cmd->surfaceSize; // viewport resolution of the vport_cp shader
-			int oRw = R.x(), oRh = R.y();
+			auto imageLod = cmd->imageLod;
+			Vec2 iR = cmd->tmpA->size(); // input resolution
+			int oRw = iR.x(), oRh = iR.y();
 
-			auto blend = _render->_blendMode; // save current blend mode
-			if (cmd->clip_state)
-				glDisable(GL_STENCIL_TEST); // close clip
-			_render->set_blend_mode(kSrc_BlendMode); // switch blend mode to src
+			// switch blend mode to src
+			_render->set_blend_mode(kSrc_BlendMode);
 			glActiveTexture(Qk_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, _canvas->_outTexA);
+			glBindTexture(GL_TEXTURE_2D, texA);
 			Qk_BindSampler(0, 0);
-			auto &cp = _render->_shaders.vportCp;
+			setRootMatrixCall(cmd->rootMatrix); // restore root matrix
+			auto &cp = _render->_shaders.cp;
 			// Choosing the right blur shader
 			auto blur = &_render->_shaders.blur;
 
 			if (imageLod) { // copy image, gen mipmap texture
+				if (oRw >> imageLod == 0 || oRh >> imageLod == 0)
+					return recoverStatFromBlurFilter(cmd); // if imageLod too large, skip blur and recover stat directly
 				// |r|r|rrrrrr|r|r|
 				// |r|r|rrrrrr|r|r|
 				// |r|r| body |r|r|
 				// |r|r|rrrrrr|r|r|
 				// |r|r|rrrrrr|r|r|
 				int level = 0;
-				float vertex[] = {
-					x1-radius,y1-radius,0, x2+radius,y1-radius,0,
-					x1-radius,y2+radius,0, x2+radius,y2+radius,0,
-				};
+				float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 				cp.use(sizeof(float) * 12, vertex);
-				glUniform2f(cp.pc_iResolution, R.x(), R.y());
+				glUniform2fv(cp.pc_iResolution, 1, iR.val);
 				glUniform4f(cp.pc_coord, 0, 0, 1, 1);
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
 					glUniform1f(cp.pc_depth, depth);
 					glUniform1f(cp.pc_imageLod, level++);
 					glUniform2f(cp.pc_oResolution, oRw, oRh);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTexA, level);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texA, level);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					depth += zDepthNextUnit;
 				} while(level < imageLod);
@@ -764,15 +754,16 @@ namespace qk {
 				// |r|rrrrrr|r|
 				// |r|rrrrrr|r|
 				// Setting target buffer B and flush blur texture buffer A
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTexB, imageLod);
-				float vertex_x[] = { x1,y1-radius,0, x2,y1-radius,0, x1,y2+radius,0, x2,y2+radius,0 };
-				// Making blur of the x-axis direction
-				blur->use(sizeof(float) * 12, vertex_x);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texB, imageLod);
+				float vertex[] = { x1+radius,y1,0, x2-radius,y1,0, x1+radius,y2,0, x2-radius,y2,0 };
+				// // Making blur of the x-axis direction
+				blur->use(sizeof(float) * 12, vertex);
 				glUniform1f(blur->pc_depth, depth);
-				glUniform2f(blur->pc_iResolution, R.x(), R.y());
+				glUniform2fv(blur->pc_iResolution, 1, iR.val);
 				glUniform2f(blur->pc_oResolution, oRw, oRh);
 				glUniform1f(blur->pc_sample_inv, 1.0f/(cmd->sample-1));
-				glUniform2f(blur->pc_radius_uv, radius2 / R.x(), 0); // horizontal blur
+				glUniform2f(blur->pc_uv_radius, radius2 / iR.x(), 0); // horizontal blur
+				glUniform2f(blur->pc_uv_offset, 0, 0);
 				glUniform1f(blur->pc_imageLod, imageLod);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
 				depth += zDepthNextUnit;
@@ -782,21 +773,21 @@ namespace qk {
 				// |r|rrrrrr|r|
 				// |r| body |r|
 				// |r|rrrrrr|r|
-				glFramebufferTexture2D(
-					GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-					cmd->recover ? cmd->recover->texture(0)->id(): _canvas->_outTex, 0
-				);
-				if (cmd->clip_state)
-					glEnable(GL_STENCIL_TEST); // recover clip state
-				_render->set_blend_mode(blend);// restore blend mode
-				glBindTexture(GL_TEXTURE_2D, _canvas->_outTexB);
+				float padding = radius + cmd->clearPad;
+				x1 = begin.x() + padding, y1 = begin.y() + padding;
+				x2 = end.x() - padding, y2 = end.y() - padding;
+				float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+				auto uv_radius = -offset * cmd->surfaceScale / iR;
+				recoverStatFromBlurFilter(cmd);
+				glBindTexture(GL_TEXTURE_2D, texB);
 				// Making blur of the y-axis direction
 				blur->use(sizeof(float) * 12, vertex);
 				glUniform1f(blur->pc_depth, depth);
-				glUniform2f(blur->pc_oResolution, R.x(), R.y());
-				glUniform2f(blur->pc_radius_uv, 0, radius2 / R.y()); // vertical blur
+				glUniform2fv(blur->pc_oResolution, 1, iR.val);
+				glUniform2f(blur->pc_uv_radius, 0, radius2 / iR.y()); // vertical blur
+				glUniform2fv(blur->pc_uv_offset, 1, uv_radius.val);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
-			}*/
+			}
 		}
 
 		void readImageCall(ReadImageCmd *cmd) {
@@ -960,8 +951,8 @@ namespace qk {
 				_canvas->setBuffers(surfaceSize);
 			setColorBuffer(nullptr); // set default color output target
 			setRootMatrixCall(rootMatrix); // root matrix buffer
-			// glClearBufferfv(GL_COLOR, 0, emptyColor); // clear GL_COLOR_ATTACHMENT0
-			// glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 0); // clear depth and stencil
+			glClearBufferfv(GL_COLOR, 0, emptyColor); // clear GL_COLOR_ATTACHMENT0
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 0); // clear depth and stencil
 		}
 
 		void drawBuffersCall(GLsizei num, const GLenum buffers[2]) {
@@ -1245,17 +1236,17 @@ namespace qk {
 		cmd->flags = flags;
 	}
 
-	void GLC_CmdPack::blurFilterBegin(Range bounds, float radius, float clearPad) {
+	void GLC_CmdPack::blurFilterBegin(Range bounds, Mat4 &rootMat, ImageSource *tmpA) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterBeginCmd))) BlurFilterBeginCmd;
 		cmd->type = kBlurFilterBegin_CmdType;
 		cmd->bounds = bounds;
-		cmd->radius = radius;
-		cmd->clearPad = clearPad;
-		cmd->surfaceSize = _canvas->_surfaceSize;
 		cmd->depth = _canvas->_zDepth;
+		cmd->tmpA = tmpA;
+		cmd->blurRootMatrix = rootMat;
 	}
 
-	void GLC_CmdPack::blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod) {
+	void GLC_CmdPack::blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod,
+			ImageSource *tmpA, ImageSource *tmpB) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;
@@ -1265,8 +1256,12 @@ namespace qk {
 		cmd->surfaceScale = _canvas->_allScale;
 		cmd->surfaceSize = _canvas->_surfaceSize;
 		cmd->recover = _canvas->_state->output;
+		cmd->recoverMode = _canvas->_blendMode;
 		cmd->sample = sample;
 		cmd->imageLod = imageLod;
+		cmd->rootMatrix = _canvas->_rootMatrix;
+		cmd->tmpA = tmpA;
+		cmd->tmpB = tmpB;
 	}
 
 	void GLC_CmdPack::readImage(const Rect &srcRect, ImageSource* src, ImageSource* dst) {
