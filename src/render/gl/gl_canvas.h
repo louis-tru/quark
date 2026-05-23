@@ -54,7 +54,6 @@ namespace qk {
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
-		void enableStencilTestCmd(bool enable) override;
 		void drawClipCmd(const VertexData &vertex, const VertexData &aafuzz, GC_State::Clip *lastClip,
 				GC_State::Clip *clip, ClipOp rawOp) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
@@ -66,7 +65,7 @@ namespace qk {
 		void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
 				const Color4f &strokeColor, float stroke) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
-		void blurFilterEndCmd(Range bounds, float radius, float clearPad,
+		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) override;
 		void drawTrianglesCmd(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) override;
 		void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dest) override;

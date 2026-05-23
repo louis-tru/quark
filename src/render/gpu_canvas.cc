@@ -276,7 +276,7 @@ namespace qk {
 
 		~GC_BlurFilter() override {
 			_host->_clipState = _host->_state->clip.get(); // restore clip state for blur filter
-			_host->blurFilterEndCmd(_bounds, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);
+			_host->blurFilterEndCmd(_bounds, _rootMatrix, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);
 			_inl(_host)->zDepthNextCount(_imageLod + 2);
 		}
 
@@ -495,14 +495,9 @@ namespace qk {
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
-		auto needBlend = mode != kSrc_BlendMode;// || color.a() != 1;
-		if (needBlend) { // draw color
-			_this->setBlendMode(mode); // switch blend mode
-			clearColorCmd(color, kBlend_ClearFlags); // 0: clear color and blending color
-			_this->zDepthNext();
-		} else { // clear color
-			clearColor(color);
-		}
+		_this->setBlendMode(mode); // switch blend mode
+		clearColorCmd(color, kBlend_ClearFlags); // 0: clear color and blending color
+		_this->zDepthNext();
 	}
 
 	void GPUCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
@@ -747,6 +742,9 @@ namespace qk {
 		_rootMatrix = root;
 		_zDepth = 0;
 		_texPools.clear(); // clear texture pool when surface size changed
+
+		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
+
 		setSurfaceCmd(chSize); // set buffers
 	}
 }

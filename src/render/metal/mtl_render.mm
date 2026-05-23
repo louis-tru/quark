@@ -14,10 +14,13 @@
 #import <Metal/Metal.h>
 
 namespace qk {
-	uint32_t massSample(uint32_t n);
 
-	MTLTextureID mtl_get_texture(TexStat *stat) {
+	MTLTextureID mtl_get_texture(cTexStat *stat) {
 		return (__bridge MTLTextureID)stat->ptr();
+	}
+
+	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else) {
+		return src ? (__bridge MTLTextureID)src->texture(0).ptr() : _else;
 	}
 
 	MTLPixelFormat mtl_pixel_format(ColorType type) {
@@ -251,7 +254,9 @@ namespace qk {
 		;
 	}
 
-	TexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, TexStat* texStat, TexStat &newStat, bool mipmap) {
+	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type,
+			cTexStat* texStat, TexStat &storeStat, bool mipmap)
+	{
 		auto fmt = mtl_pixel_format(type);
 		auto tex = mtl_get_texture(texStat);
 		if (fmt == MTLPixelFormatInvalid)
@@ -268,8 +273,8 @@ namespace qk {
 			tex = [device newTextureWithDescriptor:desc];
 			if (!tex)
 				return nullptr;
-			texStat = &newStat; // update texStat to newStat
-			newStat.set_ptr(CFBridgingRetain(tex)); // retain new texture and set to texStat
+			texStat = &storeStat; // update texStat to storeStat
+			storeStat.set_ptr(CFBridgingRetain(tex)); // retain new texture and set to texStat
 		}
 		return texStat;
 	}
@@ -392,7 +397,7 @@ namespace qk {
 	}
 
 	bool MetalRenderResource::uploadVertexData(VertexData::ID *vid) {
-		if (vid->c)
+		if (vid->ptr)
 			return true;
 		auto &vertex = vid->data->vertex;
 		if (!vertex.length())
@@ -506,14 +511,14 @@ namespace qk {
 		_mtlcanvas = NewRetain<MetalCanvas>(this, _opts); // new and retain canvas for render backend
 		_canvas = _mtlcanvas; // set default canvas
 		_shaders = _resource->_shaders; // copy shader cache reference for render thread use
-		// pre-create sampler for aa clip image
-		_aaclipSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
+		// pre-create sampler for clip image
+		_clipSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 
-		// MTLDepthStencilDescriptor *desc = [MTLDepthStencilDescriptor new];
-		// desc.depthCompareFunction = MTLCompareFunctionGreater;
-		// desc.depthWriteEnabled = YES;
-		// id<MTLDepthStencilState> depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
-		// desc.frontFaceStencil.stencilCompareFunction = MTLCompareFunctionEqual;
+		MTLDepthStencilDescriptor *desc = [MTLDepthStencilDescriptor new];
+		desc.depthCompareFunction = MTLCompareFunctionGreater;
+		desc.depthWriteEnabled = YES;
+		desc.frontFaceStencil.stencilCompareFunction = MTLCompareFunctionEqual;
+		id<MTLDepthStencilState> depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
 	}
 
 	MetalRender::~MetalRender() {
@@ -526,7 +531,7 @@ namespace qk {
 
 		for (int i = 0; i < 12; i++) {
 			if (_texStat[i])
-				CFBridgingRelease(_texStat[i]->ptr); // release texture
+				CFBridgingRelease(_texStat[i]->ptr()); // release texture
 		}
 		delete[] _texStat;
 		_texStat = nullptr;
@@ -554,7 +559,7 @@ namespace qk {
 		return new MetalCanvas(this, opts);
 	}
 
-	bool MetalRender::uploadTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) {
+	bool MetalRender::uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) {
 		return _resource->MetalRenderResource::uploadTexture(pix, levels, out, mipmap);
 	}
 
@@ -574,7 +579,7 @@ namespace qk {
 		auto index = paint->srcIndex + srcSlot;
 		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
 		auto tex = src->texture(index);
-		if (!tex.ptr()) {
+		if (!tex->ptr()) {
 			// mark texture for this render, and try to create texture immediately
 			src->markAsTexture(this);
 			if (!tex->ptr()) {

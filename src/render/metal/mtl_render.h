@@ -69,7 +69,7 @@ namespace qk {
 		MSLShaders _shaders; // shader source and pipeline state cache, for render thread use
 		MTLDeviceID _device; // Metal device
 		MTLCommandQueueID _commandQueue; // Metal command queue
-		MTLSampler _aaclipSampler; // sampler state for aaclip texture
+		MTLSampler _clipSampler; // sampler state for clip texture
 		Dict<uint32_t, MTLSampler> _texSamplers; // PaintImage => Sampler, indexed by PaintImage bitfields (tile/filter/mipmap modes)
 		friend class MetalCanvas;
 	};

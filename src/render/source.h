@@ -73,6 +73,8 @@ namespace qk {
 		TexStat(const TexStat& other): handle(other.handle.load(std::memory_order_acquire)) {}
 	};
 
+	typedef const TexStat cTexStat;
+
 	/**
 	 * @class ImageSource
 	 *
@@ -249,7 +251,7 @@ namespace qk {
 		/**
 		 * @method texture(index) get  image texture with index
 		*/
-		inline const TexStat* texture(uint32_t index) const {
+		inline cTexStat* texture(uint32_t index) const {
 			Qk_ASSERT_LT(index, 8, "TexStat size must be equal to atomic uint32_t");
 			return _tex + index;
 		}

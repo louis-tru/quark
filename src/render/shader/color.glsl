@@ -1,6 +1,6 @@
 Qk_CONSTANT(
 	vec4 color;
-	vec4 surface; // surface offset xy, surface rMat scale_inv zw: surface.zw = 1 / surfaceScale
+	vec4 surfaceOffset; // offset xy, surface rMat scale_inv zw: surface.zw = 1 / surfaceScale
 );
 
 #vert
@@ -8,7 +8,7 @@ void main() {
 	// gl_InstanceID, gl_VertexID
 	aafuzz = aafuzzIn;
 	vec4 pos = vMat.value * vec4(vertexIn.xy, pc.depth, 1.0);
-	pos.xy += pc.surface.xy * pc.surface.zw; // apply surface offset
+	pos.xy += pc.surfaceOffset.xy * pc.surfaceOffset.zw; // apply surface offset
 	gl_Position = rMat.value * pos;
 }
 
@@ -36,5 +36,5 @@ void main() {
 		fragColor *= (1.0 - abs(aafuzz)); // premultiplied alpha
 	}
 
-	Qk_CLIP_(clipStat.range.xy - pc.surface.xy); // apply clip mask if needed
+	Qk_CLIP_(clipStat.range.xy - pc.surfaceOffset.xy); // apply clip mask if needed
 }

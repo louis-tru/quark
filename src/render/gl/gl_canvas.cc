@@ -78,7 +78,6 @@ namespace qk {
 	// --------------------------------------------------------
 
 	void GLCanvas::setBuffers(Vec2 surfaceSize) {
-		auto w = surfaceSize.x(), h = surfaceSize.y();
 		auto type = _opts.colorType;
 		auto init = !_fbo;
 
@@ -96,8 +95,6 @@ namespace qk {
 		gl_set_color_renderbuffer(0, _outTex, type, surfaceSize);
 		gl_set_framebuffer_renderbuffer(_outDepth, surfaceSize, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _outDepth);
-
-		Qk_DLog("setBuffers: %f, %f", w, h);
 
 		glDrawBuffers(1, DrawBuffers);
 		gl_CheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -192,10 +189,6 @@ namespace qk {
 		_cmdPack->setBlendMode();
 	}
 
-	void GLCanvas::enableStencilTestCmd(bool enable) {
-		_cmdPack->switchState(GL_STENCIL_TEST, enable);
-	}
-
 	void GLCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aafuzz,
 			GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) {
 		checkMatrix();
@@ -243,7 +236,7 @@ namespace qk {
 		_cmdPack->blurFilterBegin(bounds, rootMat, tmpA);
 	}
 
-	void GLCanvas::blurFilterEndCmd(Range bounds, float radius, float clearPad,
+	void GLCanvas::blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
 		checkMatrix();
 		_cmdPack->blurFilterEnd(bounds, radius, clearPad, sample, imageLod, tmpA, tmpB);

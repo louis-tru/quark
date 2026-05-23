@@ -30,14 +30,15 @@ Notable render-side state:
 - `ImageSource` / `TexStat` were reworked around caller-owned texture state and multiple texture slots; do not reintroduce backend-owned `TexStat` allocation lifetimes.
 - Metal `MTL_CmdPack` contains a `recorded` flag and tracks command buffers, current command buffer, pass descriptor, encoder, and pipeline.
 - Metal `MetalCanvas::endPass()` centralizes ending the current encoder/pass and marking the command pack recorded.
-- Metal `readImageCmd()` currently has a blit fast path when source/destination size and pixel format match, otherwise it uses `vportCp`.
+- Metal `readImageCmd()` currently has a blit fast path when source/destination size and pixel format match, otherwise it uses the parameterized `cp` shader path.
 - Metal `outputImageBeginCmd()` and `outputImageEndCmd()` are implemented at least partially through `mtl_rebuild_texture()`, render-target switching, and mipmap generation.
-- Metal blur begin/end has an active ping-pong/mipmap implementation and uses `clearPad` from `GPUCanvas` for scaled/mipmapped edge sampling; it is still part of the migration and needs careful validation.
+- Metal `drawClipCmd()` now renders clip masks into pooled `ImageSource` textures, restores clip state through shader clip texture/stat bindings, and follows GL intersect/difference mask combination semantics.
+- Metal blur begin/end now uses pooled `tmpA`/`tmpB` textures from `GPUCanvas`, restores the root matrix after temp rendering, and uses the `cp`/`blur` shader paths for mip downsample and ping-pong blur; it still needs visual validation.
 
 Remaining Metal TODO / high-risk areas observed in `src/render/metal/mtl_canvas.mm`:
 
-- `drawClipCmd`
-- blur filter end path still contains GL-style calls/comments and should be ported/validated as Metal commands before being trusted.
+- Visually validate `drawClipCmd`, especially anti-aliased difference clips and nested clip restore behavior.
+- Visually validate Metal blur output against GL for scaled/mipmapped edge sampling and clipped/backdrop scenarios.
 - `drawTrianglesCmd()` currently allocates Metal buffers directly from provided data; revisit `copyData` and lifetime behavior after the command model settles.
 
 ## Important Cautions
@@ -53,8 +54,7 @@ Remaining Metal TODO / high-risk areas observed in `src/render/metal/mtl_canvas.
 
 ## Suggested Next Render Tasks
 
-- Finish Metal clipping support by matching GL stencil/aaclip semantics.
-- Finish/validate Metal blur filter begin/end behavior and remove remaining GL-style calls from the Metal path.
+- Add visual regression coverage for Metal clipping and blur against GL reference output.
 - Audit Metal `readImageCmd()` coordinate math against GL `readImageCall()`.
 - Confirm `outputImage()` restore behavior with nested `save()` / `restore()`.
 - Add a small render regression/demo if the project has an existing lightweight path for it.

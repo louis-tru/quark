@@ -53,7 +53,7 @@ namespace qk {
 	typedef id<MTLRenderCommandEncoder> MTLRenderEncoder;
 	typedef id<MTLTexture> MTLTextureID;
 	typedef id<MTLCommandBuffer> MTLCommandBuffer;
-	typedef id<MTLRenderPassDescriptor> MTLPassDescriptor;
+	typedef MTLRenderPassDescriptor* MTLPassDesc;
 #else
 	typedef void* MTLPipeline;
 	typedef void* MTLFunctionID;
@@ -63,7 +63,7 @@ namespace qk {
 	typedef void* MTLRenderEncoder;
 	typedef void* MTLTextureID;
 	typedef void* MTLCommandBuffer;
-	typedef void* MTLPassDescriptor;
+	typedef void* MTLPassDesc;
 #endif
 
 	struct Vec3Padding {
