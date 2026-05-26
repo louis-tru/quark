@@ -302,7 +302,7 @@ namespace qk {
 		auto region = _surfaceDisplayRange;
 		Vec2 start = -region.begin / Vec2(_scale);
 		Vec2 end   = region.size / Vec2(_scale) + start;
-		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
+		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), 0.0f, 1.0f);
 
 		reload_root();
 
@@ -316,12 +316,11 @@ namespace qk {
 		auto range = getDisplayRange(size);
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DLog("Window::onRenderBackendReload defaultScale:%f, w:%f, h: %f",
-				size.x(), size.y(), defaultScale);
+					size.x(), size.y(), defaultScale);
 			UILock lock(this);
 			if ( _surfaceDisplayRange.begin != range.begin
 				|| _surfaceDisplayRange.end != range.end
-				|| _surfaceDisplayRange.size != size
-				|| _defaultScale != defaultScale
+				|| _surfaceDisplayRange.size != size || _defaultScale != defaultScale
 			) {
 				_surfaceDisplayRange = { range.begin, range.end, size };
 				_defaultScale = defaultScale;

@@ -36,6 +36,10 @@
 
 using namespace qk;
 
+namespace qk {
+	void post_message_main(Cb cb, bool sync);
+}
+
 class IosGLRender;
 @interface GLView: UIView {
 	CADisplayLink *_displayLink;
@@ -220,7 +224,9 @@ class IosGLRender final: public GLRender, public RenderSurface {
 
 	- (void) renderDisplay:(CADisplayLink*)displayLink {
 		if (_isRun) {
-			_render->renderDisplay();
+			@autoreleasepool {
+				_render->renderDisplay();
+			}
 		}
 	}
 

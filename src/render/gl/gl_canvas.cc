@@ -43,7 +43,6 @@ namespace qk {
 	void clearExec_PathvCache(PathvCache *cache);
 	GLint gl_get_texture_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	TexStat gl_new_texture_stat_with(int width, int height, ColorType type, bool mipmap);
 
 	constexpr GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
@@ -79,12 +78,10 @@ namespace qk {
 
 	void GLCanvas::setBuffers(Vec2 surfaceSize) {
 		auto type = _opts.colorType;
-		auto init = !_fbo;
-
 		// update shader root matrix and clear all save state buffers
 		_render->set_viewport(surfaceSize);
 
-		if (init) {
+		if (!_fbo) {
 			_outTex = gl_new_texid(); // Create a color renderbuffer of texture
 			glGenFramebuffers(1, &_fbo); // Create the framebuffer
 			glGenRenderbuffers(1, &_outDepth); // Create depth buffer

@@ -24,10 +24,12 @@ public:
 
 		canvas->save();
 		auto img = canvas->outputImage(nullptr, false);
+		canvas->clearColor({0,0,0,0});
 		canvas->drawPath(path, paint);
 		canvas->restore();
 
 		PaintImage ipaint;
+		paint.fill.color = Color4f(1, 1, 1);
 		paint.fill.image = &ipaint;
 		ipaint.setImage(*img, {size*-0.5,size});
 		canvas->drawRect({size*-0.5,size}, paint);

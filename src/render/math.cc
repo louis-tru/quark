@@ -1820,6 +1820,10 @@ namespace qk {
 		
 		m[8]  = 0.0;
 		m[9]  = 0.0;
+		// 0 to 1 for z forward
+		// m[10] = 1.0f / (far - near);
+		// m[11] = -near / (far - near);
+		// -1 to 1 for z forward
 		m[10] = 2.0f  / (far - near);
 		m[11] = -(far + near) / (far - near);
 		

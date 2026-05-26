@@ -18,4 +18,6 @@ void main() {
 	} while(x < -0.01); // x < -0.01 to avoid precision issue when x is close to 0
 
 	fragColor = blend(o, t*2.0+1.0);
+
+	// fragColor.a += 0.1; // debug
 }

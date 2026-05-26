@@ -34,6 +34,22 @@ namespace qk {
 	RunLoop        *__first_loop = nullptr;
 	Array<RunLoop*> *__loops = nullptr;
 
+#if Qk_APPLE
+	void autoreleasepool_call(void (*cb)(void*,void*), void* a, void* b);
+#else
+	inline void autoreleasepool_call(void (*cb)(void*,void*), void* a, void* b) {
+		cb(a, b);
+	}
+#endif
+	template<typename Arg0, typename Arg1>
+	struct ARCFun {
+		typedef void (*Exec)(Arg0*, Arg1*);
+	};
+	template<typename Arg0, typename Arg1 = int>
+	void autoreleasepool(typename ARCFun<Arg0, Arg1>::Exec cb, Arg0* arg0, Arg1* arg1 = nullptr) {
+		autoreleasepool_call((void(*)(void*,void*))cb, arg0, arg1);
+	}
+
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 	public:
 		#define _this _inl(this)
@@ -45,13 +61,14 @@ namespace qk {
 			auto repeatTimeout = timer->repeatCount ? (timeout ? timeout: 1): 0;
 			Qk_ASSERT_EQ(0, uv_timer_init(_uv_loop, timer));
 			Qk_ASSERT_EQ(0, uv_timer_start(timer, [](uv_timer_t *h) {
-				auto timer = static_cast<timer_t*>(h);
-				auto rc = timer->cb->resolve();
-				if (rc != 0 || timer->repeatCount == 0) {
-					_inl(timer->data)->timer_stop(timer);
-				} else if (timer->repeatCount > 0) {
-					timer->repeatCount--;
-				}
+				autoreleasepool([](auto timer, auto _) {
+					auto rc = timer->cb->resolve();
+					if (rc != 0 || timer->repeatCount == 0) {
+						_inl(timer->data)->timer_stop(timer);
+					} else if (timer->repeatCount > 0) {
+						timer->repeatCount--;
+					}
+				}, static_cast<timer_t*>(h));
 			}, timeout, repeatTimeout));
 		}
 
@@ -74,12 +91,15 @@ namespace qk {
 			if (_msg.length()) {
 				auto msg = std::move(_msg);
 				lock.unlock();
-				for (auto &m: msg) {
-					if (m.timer)
-						timer_start((timer_t*)m.timer);
-					else
-						m.cb->resolve(this);
-				}
+				autoreleasepool([](auto msgs, auto self) {
+					for (auto &m: *msgs) {
+						if (m.timer) {
+							self->timer_start((timer_t*)m.timer);
+						} else {
+							m.cb->resolve(self);
+						}
+					}
+				}, &msg, this);
 				lock.lock();
 			}
 			if (_msg.length()) {
@@ -218,13 +238,14 @@ namespace qk {
 
 		struct Func {
 			static void cb(uv_handle_t *h) {
-				auto self = (check_t*)(h->data);
-				self->cb->resolve();
-				if (self->repeatCount == 0) {
-					self->stop_check();
-				} else if (self->repeatCount > 0) {
-					self->repeatCount--;
-				}
+				autoreleasepool([](auto self, auto _) {
+					self->cb->resolve();
+					if (self->repeatCount == 0) {
+						self->stop_check();
+					} else if (self->repeatCount > 0) {
+						self->repeatCount--;
+					}
+				}, (check_t*)(h->data));
 			};
 		};
 
@@ -262,17 +283,19 @@ namespace qk {
 		host->_work.set(id, this);
 		retain(); // retain for _work.set
 		Qk_ASSERT_EQ(0, uv_queue_work(host->_uv_loop, &uv_req, [](uv_work_t* req) {
-			auto self = static_cast<work_t*>(req->data);
-			self->work->resolve(self->host);
+			autoreleasepool([](auto self, auto _) {
+				self->work->resolve(self->host);
+			}, static_cast<work_t*>(req->data));
 		}, [](uv_work_t* req, int status) {
-			auto self = static_cast<work_t*>(req->data);
-			auto host = _inl(self->host);
-			Qk_ASSERT_EQ(thread_self_id(), host->_tid);
-			host->_work.erase(self->id);
-			if (UV_ECANCELED != status) // no cancel
-				self->done->resolve(host);
-			host->async_send();
-			self->release(); // release hold for _work.set
+			autoreleasepool([](auto self, auto status) {
+				auto host = _inl(self->host);
+				Qk_ASSERT_EQ(thread_self_id(), host->_tid);
+				host->_work.erase(self->id);
+				if (UV_ECANCELED != *status) // no cancel
+					self->done->resolve(host);
+				host->async_send();
+				self->release(); // release hold for _work.set
+			}, static_cast<work_t*>(req->data), &status);
 		}));
 	}
 

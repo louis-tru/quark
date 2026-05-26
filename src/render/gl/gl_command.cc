@@ -52,7 +52,6 @@ namespace qk {
 	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
 	GLuint gl_new_texid();
-	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 	void clearExec_PathvCache(PathvCache *cache);
 
 	constexpr float whiteColor[] = {1.0f,1.0f,1.0f,1.0f};
@@ -300,6 +299,7 @@ namespace qk {
 							glUseProgram(s->shader);
 							glUniform1ui(s->pc_flags, Qk_CLIP(c->isClip));
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
+							// glDrawArrays(GL_LINE_LOOP, 0, c->vCount);
 							break;
 						}
 						case kReadImage_CmdType: {
@@ -339,7 +339,7 @@ namespace qk {
 						}
 						case kRestoreClip_CmdType: {
 							auto c = (RestoreClipCmd*)cmd;
-							restoreClip(c->clip.get());
+							restoreClipCall(c->clip.get());
 							c->~RestoreClipCmd();
 							break;
 						}
@@ -394,6 +394,16 @@ namespace qk {
 
 		void setBlendModeCall(BlendMode mode) {
 			_render->set_blend_mode(mode);
+		}
+
+		void clearColorCall(ClearCmd *cmd) {
+			if (cmd->flags == kClearAll_ClearFlags) // clear stencil and depth
+				glClearBufferfi(GL_DEPTH_STENCIL, 0, -1, 0); // depth=-1, stencil = 0
+			//glClearStencil(0);
+			//glClearDepthf(cmd->depth);
+			//glClearColor(color.r(), color.g(), color.b(), color.a());
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			glClearBufferfv(GL_COLOR, 0, cmd->color.val); // clear GL_COLOR_ATTACHMENT0
 		}
 
 		void drawRRectBlurColorCall(ColorRRectBlurCmd *cmd) {
@@ -581,7 +591,7 @@ namespace qk {
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
 				// clear clipTex with black color
-				clearColor({0,0,0,0}, {0,size}, depth);
+				clearColor({0,0,0,0}, nullptr);
 				// draw clip shape to clipTex with white color
 				drawClip(false, last);
 			} else { // if (cmd->rawOp == Canvas::kDifference_ClipOp)
@@ -591,22 +601,21 @@ namespace qk {
 				// or black color if last op equal intersect
 				auto black = last->op == Canvas::kIntersect_ClipOp;
 				// draw clip shape to clipTex with color
-				drawClip(black, last);
+				drawClip(black, true);
 			}
 			_render->set_blend_mode(blend); // restore blend mode
 			// restore framebuffer and blend mode
 			setColorBuffer(cmd->recover.get()); // restore color output target
-			restoreClip(clip); // set clip data
+			restoreClipCall(clip); // set clip data
 		}
 
-		void restoreClip(GC_State::Clip *clip) {
+		void restoreClipCall(GC_State::Clip *clip) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindSampler(0, 0);
 			if (clip) {
 				GLSLColor::ClipStatBlock clipStat = {
 					clip->range.begin.x(), clip->range.begin.y(),
-					clip->range.end.x(), clip->range.end.y(),
-					clip->op,
+					clip->range.end.x(), clip->range.end.y(), clip->op,
 				};
 				glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboClip);
 				glBufferData(GL_UNIFORM_BUFFER, sizeof(clipStat), &clipStat, GL_DYNAMIC_DRAW);
@@ -645,49 +654,38 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
 
-		void clearColor(const Color4f &color, const Range &range, float depth) {
-			float x1 = range.begin.x(), y1 = range.begin.y();
-			float x2 = range.end.x(), y2 = range.end.y();
-			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0, };
-			auto &clear = _render->_shaders.clear;
-			clear.use(sizeof(float) * 12, vertex);
-			glUniform1f(clear.pc_depth, depth);
-			glUniform4fv(clear.pc_color, 1, color.val);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		}
-
-		void clearColorCall(ClearCmd *cmd) {
-			if (cmd->flags) {
-				if (cmd->flags == kClearAll_ClearFlags) // clear stencil and depth
-					glClearBufferfi(GL_DEPTH_STENCIL, 0, cmd->depth, 0); // depth=0, stencil = 0
-				//glClearStencil(0);
-				//glClearDepthf(cmd->depth);
-				//glClearColor(color.r(), color.g(), color.b(), color.a());
-				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-				glClearBufferfv(GL_COLOR, 0, cmd->color.val); // clear GL_COLOR_ATTACHMENT0
+		void clearColor(const Color4f &color, const Range *surfaceRange) {
+			if (!surfaceRange) {
+				return glClearBufferfv(GL_COLOR, 0, color.val); // clear full buffer
 			} else {
-				clearColor(cmd->color, {0, cmd->surfaceSize}, cmd->depth); // clear full screen with shader
+				auto begin = surfaceRange->begin.floor();
+				auto end = surfaceRange->end.ceil();
+				// float x1 = begin.x(), y1 = begin.y(), x2 = end.x(), y2 = end.y();
+				// float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0, };
+				// auto &clear = _render->_shaders.clear;
+				// clear.use(sizeof(float) * 12, vertex);
+				// glUniform1f(clear.pc_depth, depth);
+				// glUniform4fv(clear.pc_color, 1, color.val);
+				// glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				glEnable(GL_SCISSOR_TEST);
+				glScissor(begin.x(), begin.y(), end.x() - begin.x(), end.y() - begin.y());
+				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
+				glDisable(GL_SCISSOR_TEST);
 			}
 		}
 
 		void blurFilterBeginCall(BlurFilterBeginCmd* cmd) {
 			auto texA = cmd->tmpA->texture(0)->id();
 			Qk_ASSERT(texA, "blurFilterBeginCall tmpA texture is null");
-			auto blend = _render->_blendMode; // save current blend mode
-			_render->set_blend_mode(kSrc_BlendMode); // switch blend mode to src
 			// output to texture buffer then do post processing
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texA, 0);
 			// adjust root matrix to blur region for correct texture sampling
 			setRootMatrixCall(cmd->blurRootMatrix);
-			clearColor({0,0,0,0}, cmd->bounds, cmd->depth);
-			_render->set_blend_mode(blend); // restore blend mode
+			clearColor({0,0,0,0}, nullptr);
 		}
 
-		void recoverStatFromBlurFilter(BlurFilterEndCmd *cmd) {
-			glFramebufferTexture2D(
-				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-				cmd->recover ? cmd->recover->texture(0)->id(): _canvas->_outTex, 0
-			);
+		void recoverStatFromBlur(BlurFilterEndCmd *cmd) {
+			setColorBuffer(cmd->recover.get()); // restore color output target
 			_render->set_blend_mode(cmd->recoverMode); // restore blend mode
 		}
 
@@ -715,17 +713,17 @@ namespace qk {
 
 			// switch blend mode to src
 			_render->set_blend_mode(kSrc_BlendMode);
+			setRootMatrixCall(cmd->rootMatrix); // restore root matrix
 			glActiveTexture(Qk_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texA);
 			Qk_BindSampler(0, 0);
-			setRootMatrixCall(cmd->rootMatrix); // restore root matrix
 			auto &cp = _render->_shaders.cp;
 			// Choosing the right blur shader
 			auto blur = &_render->_shaders.blur;
 
 			if (imageLod) { // copy image, gen mipmap texture
 				if (oRw >> imageLod == 0 || oRh >> imageLod == 0)
-					return recoverStatFromBlurFilter(cmd); // if imageLod too large, skip blur and recover stat directly
+					return recoverStatFromBlur(cmd); // if imageLod too large, skip blur and recover stat directly
 				// |r|r|rrrrrr|r|r|
 				// |r|r|rrrrrr|r|r|
 				// |r|r| body |r|r|
@@ -777,74 +775,71 @@ namespace qk {
 				x1 = begin.x() + padding, y1 = begin.y() + padding;
 				x2 = end.x() - padding, y2 = end.y() - padding;
 				float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
-				auto uv_radius = -offset * cmd->surfaceScale / iR;
-				recoverStatFromBlurFilter(cmd);
+				auto uv_offset = -offset * cmd->surfaceScale / iR;
+				recoverStatFromBlur(cmd);
 				glBindTexture(GL_TEXTURE_2D, texB);
 				// Making blur of the y-axis direction
 				blur->use(sizeof(float) * 12, vertex);
 				glUniform1f(blur->pc_depth, depth);
 				glUniform2fv(blur->pc_oResolution, 1, iR.val);
 				glUniform2f(blur->pc_uv_radius, 0, radius2 / iR.y()); // vertical blur
-				glUniform2fv(blur->pc_uv_offset, 1, uv_radius.val);
+				glUniform2fv(blur->pc_uv_offset, 1, uv_offset.val);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
 			}
 		}
 
 		void readImageCall(ReadImageCmd *cmd) {
 			auto dst = cmd->dest.get();
-			auto tex = dst->texture(0);
-			auto w = dst->width(), h = dst->height();
-			auto iformat = gl_get_texture_internalformat(dst->type());
-			auto format = gl_get_texture_format(dst->type());
-			auto type = gl_get_texture_data_type(dst->type());
-
-			TexStat newTex;
-			GLuint id = tex->id();
-			if (!id) {
-				tex = &newTex;
-				id = gl_new_texid();
-				newTex.set_id(id);
-			}
-			glActiveTexture(Qk_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, id);
-			Qk_BindSampler(0, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
-
-			auto origin = cmd->srcRect.begin, size = cmd->srcRect.size;
+			float w = dst->width(), h = dst->height();
+			auto dstSize = Vec2(w, h);
 			auto srcTex = cmd->src ? cmd->src->texture(0)->id(): _canvas->_outTex;
 			Qk_ASSERT(srcTex, "readImageCall src texture is null");
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+			auto texStat = dst->texture(0);
+			TexStat storeStat;
+			GLuint tex = texStat->id();
+			if (!tex) {
+				texStat = &storeStat;
+				tex = gl_new_texid();
+				storeStat.set_id(tex);
+			}
+			auto iformat = gl_get_texture_internalformat(dst->type());
+			auto format = gl_get_texture_format(dst->type());
+			auto type = gl_get_texture_data_type(dst->type());
+			glActiveTexture(Qk_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, srcTex); // read image source
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, size == Vec2(w,h) ? GL_NEAREST: GL_LINEAR);
+			Qk_BindSampler(0, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, cmd->srcRect.size == dstSize ? GL_NEAREST: GL_LINEAR);
 			// always use nearest filter because scTex levels 1 only
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 
 			// use shader and set vertex data to draw a rect
 			float x2 = cmd->canvasSize[0], y2 = cmd->canvasSize[1];
 			float vertex[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
+			auto begin = cmd->srcRect.begin / cmd->surfaceSize;
+			auto scale = cmd->srcRect.size / cmd->surfaceSize;
 			auto &cp = _render->_shaders.cp;
 			cp.use(sizeof(float) * 12, vertex);
 			glUniform1f(cp.pc_depth, cmd->depth);
 			glUniform2f(cp.pc_iResolution, cmd->surfaceSize.x(), cmd->surfaceSize.y());
-			glUniform2f(cp.pc_oResolution, w, h);
+			glUniform2fv(cp.pc_oResolution, 1, dstSize.val);
 			glUniform1f(cp.pc_imageLod, 0);
-			origin /= cmd->surfaceSize;
-			size /= cmd->surfaceSize;
-			glUniform4f(cp.pc_coord, origin[0], origin[1], size[0], size[1]);
+			glUniform4f(cp.pc_coord, begin.x(), begin.y(), scale.x(), scale.y());
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, srcTex, 0);
 
 			// generate mipmap if needed
 			if (dst->mipmap()) {
-				glBindTexture(GL_TEXTURE_2D, id);
+				glBindTexture(GL_TEXTURE_2D, tex);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			setTex_SourceImage(dst, dst->info(), tex);
+			setTex_SourceImage(dst, dst->info(), texStat);
 		}
 
 		void outputImageBeginCall(ImageSource* dst) {
@@ -952,7 +947,7 @@ namespace qk {
 			setColorBuffer(nullptr); // set default color output target
 			setRootMatrixCall(rootMatrix); // root matrix buffer
 			glClearBufferfv(GL_COLOR, 0, emptyColor); // clear GL_COLOR_ATTACHMENT0
-			glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 0); // clear depth and stencil
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, -1, 0); // clear depth and stencil
 		}
 
 		void drawBuffersCall(GLsizei num, const GLenum buffers[2]) {
@@ -1238,9 +1233,7 @@ namespace qk {
 	void GLC_CmdPack::clearColor(const Color4f &color, GC_ClearFlags flags) {
 		auto cmd = new(_this->allocCmd(sizeof(ClearCmd))) ClearCmd;
 		cmd->type = kClear_CmdType;
-		// only premul alpha when kBlend_ClearFlags, otherwise use original color for glClearColor
-		cmd->color = flags ? color : premul_alpha(color);
-		cmd->surfaceSize = _canvas->_surfaceSize;
+		cmd->color = color;
 		cmd->depth = _canvas->_zDepth;
 		cmd->flags = flags;
 	}

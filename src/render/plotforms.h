@@ -41,6 +41,7 @@
 #define UIWindow NSWindow
 #define UIView NSView
 #define CGRect NSRect
+#define CGSize NSSize
 #define UIColor NSColor
 #define UIScreen NSScreen
 #define UIViewController NSViewController

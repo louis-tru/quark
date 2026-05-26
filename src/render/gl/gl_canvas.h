@@ -72,6 +72,7 @@ namespace qk {
 		void outputImageBeginCmd(ImageSource* img) override;
 		void outputImageEndCmd(ImageSource* exit) override;
 		void restoreClipCmd(GC_State::Clip* clip) override;
+	private:
 	// fields:
 		GLRender *_render; // render backend
 		GLC_CmdPack *_cmdPack;

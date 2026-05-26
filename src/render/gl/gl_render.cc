@@ -444,7 +444,7 @@ namespace qk {
 		gl_tex_image2D_null(id, width, height, type, 0, mipmap);
 		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
 		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		return TexStat(id);
 	}
@@ -495,6 +495,7 @@ namespace qk {
 
 		_glcanvas = NewRetain<GLCanvas>(this, _opts);
 		_canvas = _glcanvas; // set default canvas
+		_opts.colorType = _glcanvas->opts().colorType; // sync color type
 
 		glGenBuffers(6, &_uboRMat); // rootMatrixBlock,viewportBlock,clipBlock,ubo0,ubo1,ebo
 		// bind uniform buffer to binding point
@@ -520,7 +521,7 @@ namespace qk {
 		// glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
-		glClearDepthf(0.0f); // set depth clear value to 0.0
+		glClearDepthf(-1.0f); // set depth clear value to -1.0
 	}
 
 	GLRender::~GLRender() {

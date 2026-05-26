@@ -53,15 +53,17 @@ void layout_scroll(Window* win) {
 
 	// v->set_clip(false);
 	// v->set_width({ 150, BoxSizeKind::Match });
-	v->set_width({ 1, BoxSizeKind::Match });
-	v->set_height({ 1, BoxSizeKind::Match });
+	v->set_width({ 0.5, BoxSizeKind::Match });
+	v->set_height({ 0.8, BoxSizeKind::Match });
 	// v->set_margin_left(100);
 	// v->set_margin_top(100);
 	v->set_margin({10});
+	// v->set_margin_top(10);
 	v->set_align(Align::Center);
 	// v->set_background_color(Color(255,0,128));
-	v->set_border_radius({100});
+	v->set_border_radius({50,50,150,150});
 	v->set_scrollbar_width(4);
+	// v->set_border({ {1,Color(255,0,0,255)} });
 
 	auto a = v->append_new<Box>();
 	//a->set_margin_top(10);

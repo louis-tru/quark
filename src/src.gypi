@@ -215,11 +215,13 @@
 				'sources': [
 					'render/metal/mtl_canvas.h',
 					'render/metal/mtl_canvas.mm',
+					'render/metal/mtl_canvas_cmd.mm',
 					'render/metal/mtl_render.h',
 					'render/metal/mtl_render.mm',
+					'render/metal/mtl_shader.h',
 					'render/metal/mtl_shaders.h',
 					'render/metal/mtl_shaders.mm',
-					# 'render/metal/mtl_apple.mm',
+					'render/metal/mtl_apple.mm',
 				],
 				'link_settings': {
 					'libraries': [

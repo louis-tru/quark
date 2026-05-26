@@ -17,14 +17,20 @@
 namespace qk {
 	class MetalRender;
 
+	// Specialized Objective-C objects for Metal rendering.
+	template<> struct IsPointer<MTLCommandBuffer> {
+		static constexpr bool value = false;
+	};
+
 	struct MTL_CmdPack {
 		inline bool isRecorded() const {
 			return recorded || cmds.length();
 		}
+		Sp<MemBlockAllocator<MTLBufferID>> buffer = nullptr; // vertex/index buffers allocator
 		Array<MTLCommandBuffer> cmds; // command buffers
 		MTLCommandBuffer current = nullptr; // current command buffer for render pass
 		MTLPassDesc pass = nullptr; // current render pass descriptor for enc
-		MTLRenderEncoder enc = nullptr; // current encoder for render
+		MTLEncoder enc = nullptr; // current encoder for render
 		MTLPipeline pipeline = nullptr; // current pipeline state for render
 		bool recorded = false; // whether current command buffer has recorded commands
 	};
@@ -36,25 +42,34 @@ namespace qk {
 		bool swapBuffer() override;
 		Array<MTLCommandBuffer> flushBuffer(); // flush front buffer and return mtl command buffers
 		void flushSubcanvas(MetalCanvas *sub); // flush subcanvas to current canvas
+		// inline MTLTextureID outTex() { return _outTex; }
+		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
+		void vportCopy(MTLCommandBuffer cmd, MTLDrawableID dst);
 	private:
 		inline Color4f premul_alpha(const Color4f &color) const {
 			return color.premul_alpha();
 		}
-		inline MTLPipeline getPipeline(MSLShader& shader) {
-			return shader.getPipeline(_blendMode, _opts.colorType, _opts.msaaSample);
-		}
-		void setPipeline(MTLRenderEncoder enc, MSLShader& shader);
-		MTLPassDesc beginPass();
-		MTLPassDesc beginPassFrom(int level, bool loadColor = true, bool disableDepth = false);
-		MTLRenderEncoder getEncoder();
-		void endPass();
+		bool use_texture(MTLEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
+		void set_texture_param(MTLEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint);
+		MTLSampler get_sampler(const PaintImage* paint);
+		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
+		MTLPassDesc beginPass(int level = 0, bool loadColor = true);
+		MTLEncoder getEncoder();
+		void endPass(); // end current render pass
+		void setPipeline(MTLEncoder enc, MTLPipeline pipeline);
+		void setPipeline(MTLEncoder enc, MSLShader& shader);
 		// set enc pipeline state for shader
 		// get encoder and set pipeline state for shader, also ensure vertex data is valid and set for draw call
 		// if vertex data is invalid, return nullptr and skip draw call
-		MTLRenderEncoder usePipeline(MSLShader& shader, const VertexData &vertex);
-		MTLRenderEncoder usePipeline(MSLShader& shader, const VertexData &vertex, MTLRenderEncoder enc);
-		MTLRenderEncoder usePipeline(MSLShader& shader);
-		MTLRenderEncoder useTextureSlot0(const PaintImage *paint, int dstSlot, bool* isYuv = nullptr);
+		inline MTLEncoder usePipeline(MSLShader& shader, const VertexData &vertex) {
+			return usePipeline(shader, vertex, getEncoder());
+		}
+		inline MTLEncoder usePipeline(MSLShader& shader) {
+			auto enc = getEncoder();
+			return setPipeline(enc, shader), enc;
+		}
+		MTLEncoder usePipeline(MSLShader& shader, const VertexData &vertex, MTLEncoder enc);
+		MTLEncoder useTextureSlot0(const PaintImage *paint, int dstSlot, bool* isYuv = nullptr);
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
@@ -76,8 +91,11 @@ namespace qk {
 		void readImageCmd(const Rect &srcRect, ImageSource* src, ImageSource* dest) override;
 		void outputImageBeginCmd(ImageSource* img) override;
 		void outputImageEndCmd(ImageSource* exit) override;
+		void clearColor(const Color4f &color, const Range *range);
 		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution, float depth);
-		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, int flags);
+		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, uint32_t flags);
+		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
+	private:
 	// fields:
 		MetalRender *_render; // render backend
 		MTLDeviceID  _device; // Metal device
@@ -92,6 +110,9 @@ namespace qk {
 		// actual render passes always write into _outColorTex.
 		MTLTextureID _outColorTex; //
 		MTLTextureID _outDepthTex; // Depth stencil buffer object of texture
+		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
+		Dict<uint32_t, MTLSampler> _texSamplers;
+		MTLBufferID _gradientBuf; // temp buffer for gradient pos and color data
 	};
 
 } // namespace qk

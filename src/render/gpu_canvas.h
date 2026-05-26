@@ -37,6 +37,63 @@
 #include "./canvas.h"
 
 namespace qk {
+	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
+
+	constexpr bool isAlignUp(uint32_t ptr) {
+		constexpr auto alignment = alignof(void*);
+		return ((ptr + (alignment - 1)) & ~(alignment - 1)) == ptr;
+	}
+
+	/**
+	 * @class MemBlockAllocator - A simple memory allocator for GPU buffers, managing memory in blocks.
+	 * Allocates memory in fixed-size blocks and provides an interface for allocating memory within those blocks.
+	*/
+	template<class T> struct MemBlockAllocator {
+		struct MemBlock {
+			T val; uint32_t begin = 0, end = 0, capacity = 0;
+		};
+		MemBlockAllocator(uint32_t blockCapacity = 65536)
+				: blockCapacity(blockCapacity), blockIndex(0) {
+			Qk_ASSERT(isAlignUp(blockCapacity), "Block capacity must be aligned.");
+			blocks.push(createBlock(blockCapacity));
+			currentBlock = blocks.val();
+		}
+		~MemBlockAllocator() {
+			for (auto &block: blocks)
+				deleteBlock(block);
+		}
+		MemBlock createBlock(uint32_t capacity);
+		void deleteBlock(MemBlock &block);
+		void clear() {
+			currentBlock = blocks.val();
+			currentBlock->begin = currentBlock->end = 0;
+			blockIndex = 0;
+		}
+		MemBlock* alloc(uint32_t size, uint32_t reserve) {
+			Qk_ASSERT(reserve >= size, "Reserve size must be greater than requested size.");
+			Qk_ASSERT(reserve <= blockCapacity, "Requested size exceeds block capacity.");
+			size = alignUp(size);
+			auto block = currentBlock;
+			auto newEnd = block->end + size;
+			if (block->end + reserve > block->capacity) {
+				if (++blockIndex == blocks.length()) {
+					blocks.push(createBlock(blockCapacity));
+				}
+				block = blocks.val() + blockIndex;
+				block->end = 0; // reset block end for new block
+				newEnd = size;
+				currentBlock = block;
+			}
+			block->begin = block->end;
+			block->end = newEnd;
+			return block;
+		}
+		Qk_DISABLE_COPY(MemBlockAllocator);
+		Array<MemBlock> blocks; // memory blocks
+		MemBlock        *currentBlock; // current block for alloc
+		uint32_t        blockIndex; // current block index
+		uint32_t        blockCapacity; // default block capacity, should be aligned
+	};
 
 	struct GC_State { // gpu canvas state
 		struct Clip: Reference { // clip state
@@ -50,8 +107,7 @@ namespace qk {
 	};
 
 	enum GC_ClearFlags {
-		kBlend_ClearFlags, // only clear blend mode, not clear color and depth and stencil
-		kOnlyColor_ClearFlags, // only clear color, not clear depth and stencil
+		kOnlyColor_ClearFlags, // only clear color
 		kClearAll_ClearFlags, // clear color and depth and stencil
 	};
 
@@ -97,6 +153,7 @@ namespace qk {
 		PathvCache* getPathvCache() override;
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 		Vec2 surfaceSize() { return _surfaceSize; }
+		const Render::Options& opts() const { return _opts; }
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;

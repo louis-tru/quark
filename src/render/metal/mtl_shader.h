@@ -50,20 +50,29 @@ namespace qk {
 	typedef id<MTLDevice> MTLDeviceID;
 	typedef id<MTLCommandQueue> MTLCommandQueueID;
 	typedef id<MTLSamplerState> MTLSampler;
-	typedef id<MTLRenderCommandEncoder> MTLRenderEncoder;
+	typedef id<MTLRenderCommandEncoder> MTLEncoder;
 	typedef id<MTLTexture> MTLTextureID;
 	typedef id<MTLCommandBuffer> MTLCommandBuffer;
 	typedef MTLRenderPassDescriptor* MTLPassDesc;
+	typedef id<CAMetalDrawable> MTLDrawable;
+	typedef id<MTLBuffer> MTLBufferID;
+	typedef id<CAMetalDrawable> MTLDrawableID;
+	typedef id<MTLDepthStencilState> MTLDepthStencilStateID;
 #else
 	typedef void* MTLPipeline;
 	typedef void* MTLFunctionID;
 	typedef void* MTLDeviceID;
 	typedef void* MTLCommandQueueID;
 	typedef void* MTLSampler;
-	typedef void* MTLRenderEncoder;
+	typedef void* MTLEncoder;
 	typedef void* MTLTextureID;
 	typedef void* MTLCommandBuffer;
 	typedef void* MTLPassDesc;
+	typedef void* MTLDrawable;
+	typedef void* MTLBufferID;
+	typedef int MTLPixelFormat;
+	typedef void* MTLDrawableID;
+	typedef void* MTLDepthStencilStateID;
 #endif
 
 	struct Vec3Padding {
@@ -92,13 +101,16 @@ namespace qk {
 		uint32_t sizeOf; // for example: sizeof(float)*4 for vec4
 	};
 
+	struct MSLShaders;
+
 	struct MSLShader {
 		MSLShaderSource source; // shader source
 		Array<MSLShaderAttr> attributes; // vertex attributes format
 		uint32_t bufferIndex; // vertex buffer index
-		MTLPipeline getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount);
+		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount);
 	protected:
 		Dict<uint32_t, MTLPipeline> _pipelines;
+		friend class MSLShaders;
 	};
 }
 

@@ -53,7 +53,6 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	// 0: intersect  -> keep masked area
 	// 1: difference -> reject masked area
 	int op;
-	vec3 _pad; // std140 alignment padding
 } clipStat;
 layout(binding=0, set=1)  uniform sampler2D clipTex; // clip texture buffer
 layout(location=0) in     float     aafuzz;

@@ -41,11 +41,6 @@ namespace qk {
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
 
-	constexpr bool isAlignUp(uint32_t ptr) {
-		constexpr auto alignment = alignof(void*);
-		return ((ptr + (alignment - 1)) & ~(alignment - 1)) == ptr;
-	}
-
 	class GLC_CmdPack {
 		Qk_DISABLE_COPY(GLC_CmdPack);
 	public:
@@ -110,7 +105,6 @@ namespace qk {
 		struct alignas(void*) ClearCmd: Cmd {
 			float          depth;
 			Color4f        color;
-			Vec2           surfaceSize;
 			GC_ClearFlags  flags; // 0-clear and blend, 1-clear color, 2-clear color/depth/stencil
 		};
 

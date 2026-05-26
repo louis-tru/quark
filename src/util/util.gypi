@@ -128,6 +128,7 @@
 			['os in "mac ios"', {
 				'sources': [
 					'fs/fs_path_apple.mm',
+					'thread/loop_apple.mm',
 				],
 				'link_settings': {'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ]},
 			}],

@@ -27,7 +27,11 @@ namespace qk {
 		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadTexture(TexStat *tex) override;
 		void unloadVertexData(VertexData::ID *id) override;
-		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount);
+		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount);
+		MTLSampler get_sampler(const PaintImage* paint);
+		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
+		MSLShaders& shaders() { return _shaders; }
+		MTLDeviceID device() { return _device; }
 	private:
 		explicit MetalRenderResource();
 		MTLFunctionID getShaderFunction(MSLPipelineKind kind, bool vertex);
@@ -39,7 +43,8 @@ namespace qk {
 		Dict<uint32_t, MTLFunctionID> _functions; // key = (kind << 1) | vertex, value = MTLFunctionID
 		// key = (kind << 16) | (blendMode << 8) | (outputType << 4) | sampleCount, value = MTLPipeline
 		Dict<uint32_t, MTLPipeline> _pipelines;
-		friend RenderResource* getSharedRenderResource();
+		Dict<uint32_t, MTLSampler> _texSamplers; // PaintImage => Sampler, indexed by PaintImage bitfields (tile/filter/mipmap modes)
+		friend MetalRenderResource* getSharedRenderMetalResource();
 		friend class MetalRender;
 	};
 
@@ -50,27 +55,25 @@ namespace qk {
 		void release() override;
 		void reload() override;
 		Canvas* createCanvas(Options opts) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) override;
 		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
 		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadTexture(TexStat *tex) override;
 		void unloadVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
-		bool use_texture(MTLRenderEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
-		void set_texture_param(MTLRenderEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint);
-		MTLSampler get_sampler(const PaintImage* paint);
-		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
 	protected:
 		explicit MetalRender(Options opts);
 	// fields:
 		MetalRenderResource* _resource; // shared render resource, used for texture/vertex data creation
 		MetalCanvas *_mtlcanvas; // current main canvas, owned by this backend
-		TexStat **_texStat; // temp cache for texture state, indexed by slot (0-11)
-		MSLShaders _shaders; // shader source and pipeline state cache, for render thread use
 		MTLDeviceID _device; // Metal device
 		MTLCommandQueueID _commandQueue; // Metal command queue
-		MTLSampler _clipSampler; // sampler state for clip texture
-		Dict<uint32_t, MTLSampler> _texSamplers; // PaintImage => Sampler, indexed by PaintImage bitfields (tile/filter/mipmap modes)
+		MTLBufferID _emptyBuffer; // empty vertex buffer 128 bytes
+		MTLSampler _nearestSampler; // sampler state for nearest filter mode
+		MTLSampler _linearSampler; // sampler state for linear filter mode, kLinear_FilterMode and kLinearNearest_MipmapMode
+		MTLPipeline _vportCpPipeline; // pipeline for viewport copy
+		MTLDepthStencilStateID _depthOnly; // depth-only stencil state
 		friend class MetalCanvas;
 	};
 

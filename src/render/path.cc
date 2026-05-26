@@ -136,7 +136,7 @@ namespace qk {
 		Qk_ReturnLocal(path);
 	}
 
-	Path::Path(Vec2 move): _IsNormalized(true) {
+	Path::Path(Vec2 move): _IsNormalized(true), _sealed(false) {
 		moveTo(move);
 	}
 
@@ -427,7 +427,8 @@ namespace qk {
 						// Qk_ASSERT(verb == kVerb_Close);
 						closeAdd();
 						break;
-					default: Qk_Fatal("Path::getVertexsFromPaths");
+					default:
+						Qk_Fatal("Path::getTriangles() invalid verb");
 				}
 			}
 			closeAdd(); // auto close
@@ -697,6 +698,13 @@ namespace qk {
 			}
 		}
 		
+		/*if (out->_pts.length() > 1) {
+			if (out->_pts.front() == out->_pts.back()) {
+				out->_pts.pop();
+				out->_verbs.pop();
+			}
+		}*/
+
 		return out;
 	}
 

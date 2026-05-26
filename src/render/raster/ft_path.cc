@@ -104,30 +104,30 @@ static void qk_ft_outline_end(Qk_FT_Outline* ft)
 Qk_FT_Outline* qk_ft_outline_convert(const Path* path)
 {
 	auto verbs = path->verbs();
-	auto pts = path->pts();
+	auto pts = path->pts().val();
 	int ptsLen = path->ptsLen();
 	Qk_FT_Outline* outline = qk_ft_outline_create(ptsLen,ptsLen);
 
 	for (int i = 0, len = path->verbsLen(); i < len; i++)
 	{
 		switch(verbs[i]) {
-			case Path::kVerb_Move:
+			case Path::kMove_Verb:
 				qk_ft_outline_move_to(outline, *pts);
 				pts++;
 				break;
-			case Path::kVerb_Line:
+			case Path::kLine_Verb:
 				qk_ft_outline_line_to(outline, *pts);
 				pts++;
 				break;
-			case Path::kVerb_Quad:
+			case Path::kQuad_Verb:
 				qk_ft_outline_conic_to(outline, pts[0],pts[1]);
 				pts += 2;
 				break;
-			case Path::kVerb_Cubic:
+			case Path::kCubic_Verb:
 				qk_ft_outline_cubic_to(outline, pts[0],pts[1],pts[2]);
 				pts += 3;
 				break;
-			case Path::kVerb_Close:
+			case Path::kClose_Verb:
 				qk_ft_outline_close(outline);
 				break;
 		}

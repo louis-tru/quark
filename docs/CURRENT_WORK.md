@@ -35,11 +35,12 @@ Notable render-side state:
 - Metal `drawClipCmd()` now renders clip masks into pooled `ImageSource` textures, restores clip state through shader clip texture/stat bindings, and follows GL intersect/difference mask combination semantics.
 - Metal blur begin/end now uses pooled `tmpA`/`tmpB` textures from `GPUCanvas`, restores the root matrix after temp rendering, and uses the `cp`/`blur` shader paths for mip downsample and ping-pong blur; it still needs visual validation.
 
-Remaining Metal TODO / high-risk areas observed in `src/render/metal/mtl_canvas.mm`:
+Current Metal backend state:
 
-- Visually validate `drawClipCmd`, especially anti-aliased difference clips and nested clip restore behavior.
-- Visually validate Metal blur output against GL for scaled/mipmapped edge sampling and clipped/backdrop scenarios.
-- `drawTrianglesCmd()` currently allocates Metal buffers directly from provided data; revisit `copyData` and lifetime behavior after the command model settles.
+- Metal canvas command implementations have been split into `src/render/metal/mtl_canvas_cmd.mm`.
+- The Metal backend now covers the GL-aligned draw path, including color/image/YUV/mask/SDF/gradient/rrect blur/triangles, clip masks, blur filters, `readImage()`, `outputImage()`, and viewport present copy.
+- Metal command encoding now tracks explicit render-pass/encoder lifetime, front/current command packs, transient buffer allocation, sampler caching, depth state, and pipelines keyed by Metal pixel format.
+- Visual validation is still useful for anti-aliased difference clips, nested clip restore behavior, blur edge sampling, and output-image mipmap use.
 
 ## Important Cautions
 
@@ -54,10 +55,9 @@ Remaining Metal TODO / high-risk areas observed in `src/render/metal/mtl_canvas.
 
 ## Suggested Next Render Tasks
 
-- Add visual regression coverage for Metal clipping and blur against GL reference output.
-- Audit Metal `readImageCmd()` coordinate math against GL `readImageCall()`.
-- Confirm `outputImage()` restore behavior with nested `save()` / `restore()`.
-- Add a small render regression/demo if the project has an existing lightweight path for it.
+- Add visual regression coverage for Metal clipping, blur, readback, and output-image behavior against the GL reference output.
+- Exercise macOS Metal window resizing/presentation behavior and decide whether to keep the custom `CAMetalLayer` path or move to `MTKView`.
+- Add or refresh small render regression demos if the project has an existing lightweight path for them.
 
 ## Verification Preference
 

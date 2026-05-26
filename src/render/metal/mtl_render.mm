@@ -20,7 +20,7 @@ namespace qk {
 	}
 
 	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else) {
-		return src ? (__bridge MTLTextureID)src->texture(0).ptr() : _else;
+		return src ? (__bridge MTLTextureID)src->texture(0)->ptr() : _else;
 	}
 
 	MTLPixelFormat mtl_pixel_format(ColorType type) {
@@ -71,6 +71,35 @@ namespace qk {
 		#endif
 			default:
 				return MTLPixelFormatInvalid;
+		}
+	}
+
+	ColorType mtl_color_type(MTLPixelFormat format) {
+		switch (format) {
+			case MTLPixelFormatR8Unorm:
+				return kAlpha_8_ColorType; // or kLuminance_8_ColorType, both are single channel 8-bit
+			case MTLPixelFormatRG8Unorm:
+				return kLuminance_Alpha_88_ColorType; // or kYUV420SP_UV_88_ColorType, both are two channel 8-bit
+			case MTLPixelFormatBGRA8Unorm:
+				return kBGRA_8888_ColorType; // BGRA order, used by windows d3d and macos metal, optimal for metal performance
+			case MTLPixelFormatRGBA8Unorm:
+				return kRGBA_8888_ColorType; // RGBA order, used by opengl and vulkan, but not optimal for metal performance
+			case MTLPixelFormatRGB10A2Unorm:
+				return kRGBA_1010102_ColorType;
+			case MTLPixelFormatR32Float:
+				return kSDF_F32_ColorType; // or kSDF_Unsigned_F32_ColorType, both are single channel 32-bit float
+		#if Qk_iOS
+			case MTLPixelFormatPVRTC_RGB_2BPP:
+				return kPVRTCI_2BPP_RGB_ColorType;
+			case MTLPixelFormatPVRTC_RGBA_2BPP:
+				return kPVRTCI_2BPP_RGBA_ColorType; // or kPVRTCII_2BPP_ColorType, both are 2bpp RGBA PVRTC
+			case MTLPixelFormatPVRTC_RGB_4BPP:
+				return kPVRTCI_4BPP_RGB_ColorType;
+			case MTLPixelFormatPVRTC_RGBA_4BPP:
+				return kPVRTCI_4BPP_RGBA_ColorType; // or kPVRTCII_4BPP_ColorType, both are 4bpp RGBA PVRTC
+		#endif
+			default:
+				return kInvalid_ColorType;
 		}
 	}
 
@@ -245,32 +274,46 @@ namespace qk {
 		}
 	}
 
-	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
+	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
 		// kind: 8 bits, mode: 8 bits, outputType: 8 bits, sampleCount: 4 bits
-		return ((uint32_t)kind << 20) | // 8 bits for pipeline kind
-			((uint32_t)mode << 12) | // 8 bits for blend mode
-			((uint32_t)outputType << 4) | // 8 bits for output type
+		return ((uint32_t)kind << 22) | // 8 bits for pipeline kind
+			((uint32_t)mode << 14) | // 8 bits for blend mode
+			((uint32_t)format << 4) | // 10 bits for output type
 			(uint32_t)(sampleCount & 0b1111) // 4 bits for sample count, max 16 samples
 		;
 	}
 
-	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type,
-			cTexStat* texStat, TexStat &storeStat, bool mipmap)
-	{
+	uint32_t mtl_get_sampler_key(const PaintImage* paint) {
+		constexpr uint32_t bitfields = (
+			// 0 | // src index default zero
+			(0b11 << 8)  | // 2 bits for tile mode x
+			(0b11 << 10) | // 2 bits for tile mode y
+			(0b1  << 12) | // 1 bit for filter mode
+			(0b111 << 13)| // 3 bits for mipmap mode
+			0
+		);
+		return bitfields & paint->bitfields;
+	}
+
+	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool gpuRead, bool cpuRead, bool mipmap) {
+		auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
+																																		width:size.x()
+																																	height:size.y()
+																																mipmapped:mipmap];
+		desc.usage = MTLTextureUsageRenderTarget | (gpuRead ? MTLTextureUsageShaderRead : 0);
+		desc.storageMode = cpuRead ? MTLStorageModeShared : MTLStorageModePrivate;
+		return [device newTextureWithDescriptor:desc];
+	}
+
+	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &storeStat, bool mipmap) {
 		auto fmt = mtl_pixel_format(type);
 		auto tex = mtl_get_texture(texStat);
 		if (fmt == MTLPixelFormatInvalid)
 			return nullptr;
-		if (!tex || tex.width != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
+		if (!tex || Vec2(tex.width, tex.height) != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
 				(mipmap && tex.mipmapLevelCount <= 1)
 		) {
-			auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:fmt
-																																		 width:size.x()
-																																		height:size.y()
-																																mipmapped:mipmap];
-			desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
-			desc.storageMode = MTLStorageModePrivate;
-			tex = [device newTextureWithDescriptor:desc];
+			tex = mtl_new_texture(device, size, fmt, true, false, mipmap);
 			if (!tex)
 				return nullptr;
 			texStat = &storeStat; // update texStat to storeStat
@@ -279,19 +322,33 @@ namespace qk {
 		return texStat;
 	}
 
-	MTLTextureID mtl_new_tex_renderbuffer(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool read, bool priv, bool mipmap) {
-		auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
-																																		width:size.x()
-																																	height:size.y()
-																																mipmapped:mipmap];
-		desc.usage = MTLTextureUsageRenderTarget | (read ? MTLTextureUsageShaderRead : 0);
-		desc.storageMode = priv ? MTLStorageModePrivate : MTLStorageModeShared;
-		return [device newTextureWithDescriptor:desc];
+	MetalRenderResource* getSharedRenderMetalResource() {
+		static MetalRenderResource *g_sharedRenderResource = new MetalRenderResource();
+		return g_sharedRenderResource;
 	}
 
 	RenderResource* getSharedRenderResource() {
-		static MetalRenderResource *g_sharedRenderResource = new MetalRenderResource();
-		return g_sharedRenderResource;
+		return getSharedRenderMetalResource();
+	}
+
+	template<>
+	MemBlockAllocator<MTLBufferID>::MemBlock
+	MemBlockAllocator<MTLBufferID>::createBlock(uint32_t capacity) {
+		// get MTLDevice from shared render resource to create MTLBuffer for memory block
+		auto device = getSharedRenderMetalResource()->device();
+		MemBlock block {
+			// buffer will be created later when data is available
+			.val = [device newBufferWithLength:capacity options:MTLResourceStorageModeShared],
+			.begin = 0,
+			.end = 0,
+			.capacity = capacity,
+		};
+		Qk_ASSERT(block.val, "Failed to create MTLBuffer with capacity: %u", capacity);
+		return block;
+	}
+	template<> 
+	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock &block) {
+		block.val = nil;
 	}
 
 	MetalRenderResource::MetalRenderResource()
@@ -402,12 +459,11 @@ namespace qk {
 		auto &vertex = vid->data->vertex;
 		if (!vertex.length())
 			return false;
-		// create id<MTLBuffer>
 		auto buf = [_device newBufferWithBytes:vertex.val()
 																		length:vertex.size()
 																		options:MTLResourceStorageModeShared];
-		if (!buf) return false;
-		// vid->ptr = (__bridge_retained void*)buf;
+		if (!buf)
+			return false;
 		vid->ptr = (void*)CFBridgingRetain(buf);
 		return true;
 	}
@@ -443,9 +499,9 @@ namespace qk {
 		return _functions[key] = fn;
 	}
 
-	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, ColorType outputType, uint32_t sampleCount) {
+	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
 		ScopeLock lock(_mutex); // protect shader function cache
-		auto key = mtl_pipeline_key(kind, mode, outputType, sampleCount);
+		auto key = mtl_pipeline_key(kind, mode, format, sampleCount);
 		MTLPipeline pso = nil;
 		if (_pipelines.get(key, pso))
 			return pso;
@@ -453,10 +509,11 @@ namespace qk {
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
 
-		desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
-		desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+		desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+		// desc.stencilAttachmentPixelFormat = MTLPixelFormatInvalid;
+		// desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 
-		desc.colorAttachments[0].pixelFormat = mtl_pixel_format(outputType);
+		desc.colorAttachments[0].pixelFormat = format;
 		mtl_set_blend(desc.colorAttachments[0], mode);
 
 		uint32_t offset = 0,
@@ -480,16 +537,41 @@ namespace qk {
 		return pso;
 	}
 
-	MTLPipeline MSLShader::getPipeline(BlendMode mode, ColorType outputType, uint32_t sampleCount) {
-		uint32_t key = ((uint32_t)mode << 12) | // 8 bits for blend mode
-			((uint32_t)outputType << 4) | // 8 bits for output type
+	MTLSampler MetalRenderResource::get_sampler(const PaintImage* paint) {
+		ScopeLock lock(_mutex); // protect shader function cache
+		uint32_t key = mtl_get_sampler_key(paint);
+		MTLSampler sampler;
+		if (!_texSamplers.get(key, sampler)) {
+			auto desc = [MTLSamplerDescriptor new];
+			desc.sAddressMode = mtl_sampler_address_mode(paint->tileModeX);
+			desc.tAddressMode = mtl_sampler_address_mode(paint->tileModeY);
+			desc.magFilter = mtl_sampler_mag_filter(paint->filterMode);
+			mtl_set_sampler_min_mip_filter(desc, paint->mipmapMode);
+			sampler = [_device newSamplerStateWithDescriptor:desc];
+			_texSamplers.set(key, sampler);
+		}
+		return sampler;
+	}
+
+	MTLSampler MetalRenderResource::get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap) {
+		PaintImage img;
+		img.tileModeX = PaintImage::kDecal_TileMode;
+		img.tileModeY = PaintImage::kDecal_TileMode;
+		img.filterMode = filter;
+		img.mipmapMode = mipmap;
+		return get_sampler(&img);
+	}
+
+	MTLPipeline MSLShader::getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
+		uint32_t key = ((uint32_t)mode << 14) | // 8 bits for blend mode
+			((uint32_t)format << 4) | // 10 bits for output type
 			(uint32_t)sampleCount; // 4 bits for sample count, max 16 samples
 		MTLPipeline pso;
 		if (_pipelines.get(key, pso))
 			return pso;
 		// get pipeline from render resource by pipeline kind
 		pso = ((MetalRenderResource*)getSharedRenderResource())->
-			getPipeline(source.kind, mode, outputType, sampleCount);
+			getPipeline(source.kind, mode, format, sampleCount);
 		return _pipelines[key] = pso;
 	}
 
@@ -499,26 +581,32 @@ namespace qk {
 		: RenderBackend(opts)
 		, _resource(nil)
 		, _mtlcanvas(nil)
-		, _texStat(new TexStat*[12]{0})
-		, _device(nil)
-		, _commandQueue(nil)
+		, _device(nil), _commandQueue(nil), _emptyBuffer(nil)
+		, _nearestSampler(nil), _linearSampler(nil), _vportCpPipeline(nil), _depthOnly(nil)
 	{
-		_resource = (MetalRenderResource*)getSharedRenderResource();
+		_resource = getSharedRenderMetalResource();
 		_device = _resource->_device;
 		id<MTLCommandQueue> commandQueue = [_device newCommandQueue];
 		Qk_CHECK(commandQueue, "Failed to create Metal command queue");
 		_commandQueue = commandQueue;
 		_mtlcanvas = NewRetain<MetalCanvas>(this, _opts); // new and retain canvas for render backend
+		_opts.colorType = _mtlcanvas->opts().colorType; // sync color type
 		_canvas = _mtlcanvas; // set default canvas
-		_shaders = _resource->_shaders; // copy shader cache reference for render thread use
-		// pre-create sampler for clip image
-		_clipSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
+		// _shaders = _resource->_shaders; // copy shader cache reference for render thread use
 
-		MTLDepthStencilDescriptor *desc = [MTLDepthStencilDescriptor new];
+		_emptyBuffer = [_device newBufferWithLength:128 options:MTLResourceStorageModeShared];
+		// pre-create sampler for nearest filter mode, which is commonly used for non-scaling image rendering
+		_nearestSampler = _resource->get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
+		_linearSampler = _resource->get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kLinearNearest_MipmapMode);
+		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm, 1);
+
+		// pre-create depth stencil state for depth-only rendering
+		auto *desc = [MTLDepthStencilDescriptor new];
 		desc.depthCompareFunction = MTLCompareFunctionGreater;
 		desc.depthWriteEnabled = YES;
-		desc.frontFaceStencil.stencilCompareFunction = MTLCompareFunctionEqual;
-		id<MTLDepthStencilState> depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
+		desc.frontFaceStencil = nil; // No stencil test.
+		desc.backFaceStencil = nil;
+		_depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
 	}
 
 	MetalRender::~MetalRender() {
@@ -528,15 +616,10 @@ namespace qk {
 	void MetalRender::release() {
 		Qk_CHECK(_mtlcanvas->ref_count() == 1,
 			"MetalCanvas still has reference, ref count: %d", _mtlcanvas->ref_count());
-
-		for (int i = 0; i < 12; i++) {
-			if (_texStat[i])
-				CFBridgingRelease(_texStat[i]->ptr()); // release texture
-		}
-		delete[] _texStat;
-		_texStat = nullptr;
-		_aaclipSampler = nil; // release aa clip sampler reference
-		_texSamplers.clear(); // clear sampler cache
+		_nearestSampler = nil; // release aa clip sampler reference
+		_linearSampler = nil;
+		_vportCpPipeline = nil;
+		_depthOnly = nil;
 		Releasep(_mtlcanvas); // release canvas and set to nullptr
 		_canvas = nullptr; // clear canvas reference
 		_commandQueue = nil; // release command queue reference
@@ -559,6 +642,11 @@ namespace qk {
 		return new MetalCanvas(this, opts);
 	}
 
+	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, bool mipmap) {
+		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), true, false, mipmap);
+		return TexStat(CFBridgingRetain(tex));
+	}
+
 	bool MetalRender::uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) {
 		return _resource->MetalRenderResource::uploadTexture(pix, levels, out, mipmap);
 	}
@@ -574,59 +662,4 @@ namespace qk {
 	void MetalRender::unloadVertexData(VertexData::ID *vid) {
 		_resource->MetalRenderResource::unloadVertexData(vid);
 	}
-
-	bool MetalRender::use_texture(MTLRenderEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint) {
-		auto index = paint->srcIndex + srcSlot;
-		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
-		auto tex = src->texture(index);
-		if (!tex->ptr()) {
-			// mark texture for this render, and try to create texture immediately
-			src->markAsTexture(this);
-			if (!tex->ptr()) {
-				Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
-				return false; // texture not ready
-			}
-		}
-		set_texture_param(enc, mtl_get_texture(tex), dstSlot, paint);
-		return true;
-	}
-
-	void MetalRender::set_texture_param(MTLRenderEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint) {
-		auto sampler = get_sampler(paint); // get sampler state for paint image
-		[enc setFragmentTexture:tex atIndex:dstSlot];
-		[enc setFragmentSamplerState:sampler atIndex:dstSlot];
-	}
-
-	MTLSampler MetalRender::get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap) {
-		PaintImage img;
-		img.tileModeX = PaintImage::kDecal_TileMode;
-		img.tileModeY = PaintImage::kDecal_TileMode;
-		img.filterMode = filter;
-		img.mipmapMode = mipmap;
-		return get_sampler(&img);
-	}
-
-	MTLSampler MetalRender::get_sampler(const PaintImage* paint) {
-		constexpr uint32_t bitfields = (
-			// 0 | // src index default zero
-			(0b11 << 8)  | // 2 bits
-			(0b11 << 10) | // 2 bits
-			(0b1  << 12) | // 1 bit
-			(0b111 << 13)| // 3 bits
-			0
-		);
-		uint32_t key = bitfields & paint->bitfields;
-		MTLSampler sampler;
-		if (!_texSamplers.get(key, sampler)) {
-			auto desc = [MTLSamplerDescriptor new];
-			desc.sAddressMode = mtl_sampler_address_mode(paint->tileModeX);
-			desc.tAddressMode = mtl_sampler_address_mode(paint->tileModeY);
-			desc.magFilter = mtl_sampler_mag_filter(paint->filterMode);
-			mtl_set_sampler_min_mip_filter(desc, paint->mipmapMode);
-			sampler = [_device newSamplerStateWithDescriptor:desc];
-			_texSamplers.set(key, sampler);
-		}
-		return sampler;
-	}
-
 } // namespace qk

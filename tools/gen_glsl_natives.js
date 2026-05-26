@@ -115,13 +115,13 @@ const informationsForTypes = {
 };
 
 // for example: float for float, vec4 for Vec4, int for int32_t, ivec3 for IVec3, ...
-const typesForCC_Vec = {
+// because in metal, vec3 is not 12 bytes, but 16 bytes, 
+// so we need to use Vec3Padding for vec3, and IVec3Padding for ivec3
+const typesForMSL_Vec = {
 	vec2: 'Vec2',
-	// std140/std430 requires vec3 to be aligned to 4 float, so add a padding float after vec3
 	vec3: 'Vec3Padding',
 	vec4: 'Vec4',
 	ivec2: 'IVec2',
-	// std140/std430 requires ivec3 to be aligned to 4 int, so add a padding int after ivec3
 	ivec3: 'IVec3Padding',
 	ivec4: 'IVec4',
 };
@@ -660,10 +660,10 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 		// write hpp
 		write(hpp, `	struct MSL${doc.className}: MSLShader {`,
 			doc.structs.concat(doc.uniform_blocks).map(s=>[
-				`		struct ${s.type} {`,
+				`		struct alignas(16) ${s.type} {`,
 					s.block.map(b=>
-						typesForCC_Vec[b.type] ?
-						`			${typesForCC_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}` :
+						typesForMSL_Vec[b.type] ?
+						`			${typesForMSL_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}` :
 						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}`),
 				`		};`
 			]),

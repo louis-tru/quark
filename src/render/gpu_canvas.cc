@@ -422,19 +422,19 @@ namespace qk {
 
 		if (count > 0) {
 			do {
-				auto exit = _state->output; // save output image before pop state
-				_stateStack.pop();
+				auto lastOut = _state->output; // save current output before pop
+				_stateStack.pop(); // exit current state
 				_state = &_stateStack.back();
-				if (exit != _state->output) { // restore region draw, only when output changed
-					outputImageEndCmd(exit.get());
+				if (lastOut != _state->output) { // restore region draw, only when output changed
+					outputImageEndCmd(lastOut.get());
 				}
 				count--;
 			} while (count > 0);
 			if (_clipState != _state->clip.get()) {
 				restoreClipCmd(_state->clip.get()); // restore clip state if changed
 			}
-			setMatrix(_state->matrix); // restore matrix
 			_clipState = _state->clip.get(); // restore clip state
+			setMatrix(_state->matrix); // restore matrix
 		}
 	}
 
@@ -488,15 +488,24 @@ namespace qk {
 
 	void GPUCanvas::clearColor(const Color4f& color) {
 		auto clearDepth = _stateStack.length() == 1;
-		if (clearDepth)
-			_zDepth = 0; // set z depth state
+		if (clearDepth) {
+			// Depth is cleared to 0 and the depth test uses Greater.
+			// Start the next draw at one depth unit instead of 0, otherwise
+			// the first primitive after a full clear would fail the depth test.
+			// This also avoids needing a tiny backend-specific z epsilon in the
+			// root matrix.
+			_zDepth = zDepthNextUnit;
+		}
 		// 2: clear color/clip/depth, 1: clear color only
 		clearColorCmd(color, clearDepth ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		_this->setBlendMode(mode); // switch blend mode
-		clearColorCmd(color, kBlend_ClearFlags); // 0: clear color and blending color
+		drawColorCmd({0,6, {
+			{0,0,0}, {_size[0],0,0}, {_size[0],_size[1],0}, // triangle 1
+			{_size[0],_size[1],0}, {0,_size[1],0}, { 0,0,0 } // triangle 2
+		}}, color);
 		_this->zDepthNext();
 	}
 
@@ -740,7 +749,7 @@ namespace qk {
 		_allScale = _surfaceScale * _scale;
 		_phy2Pixel = 2 / _allScale;
 		_rootMatrix = root;
-		_zDepth = 0;
+		_zDepth = zDepthNextUnit; // reset start z depth
 		_texPools.clear(); // clear texture pool when surface size changed
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());

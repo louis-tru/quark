@@ -67,7 +67,7 @@ namespace qk {
 			handle.store(other.handle.load(std::memory_order_acquire), std::memory_order_release);
 			return *this;
 		}
-		explicit TexStat(void *h): handle(reinterpret_cast<uintptr_t>(h)) {}
+		explicit TexStat(const void *h): handle(reinterpret_cast<uintptr_t>(h)) {}
 		explicit TexStat(uint32_t id): handle(id) {}
 		explicit TexStat(): handle(0) {}
 		TexStat(const TexStat& other): handle(other.handle.load(std::memory_order_acquire)) {}

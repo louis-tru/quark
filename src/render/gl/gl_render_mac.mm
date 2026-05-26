@@ -57,7 +57,6 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	MacGLRender(Options opts, NSOpenGLContext *ctx)
 		: GLRender(opts), _view(nil), _ctx(ctx)
 	{
-		CFBridgingRetain(_ctx);
 	}
 
 	~MacGLRender() override {
@@ -67,25 +66,12 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	void release() override {
 		lock();
 		if (_view) {
-			[_view stopDisplay]; // thread task must be forced to end
+			[_view stopDisplay];
 			_view = nil;
 		}
 		unlock();
-
-		GLRender::release(); // Destroy the pre object first
-
-		// Perform the final message task
-		_mutexMsg.lock();
-		if (_msg.length()) {
-			lock();
-			for (auto &i : _msg)
-				i->resolve();
-			_msg.clear();
-			unlock();
-		}
-		_mutexMsg.unlock();
-
-		CFBridgingRelease((__bridge void*)_ctx);
+		GLRender::release();
+		resolvedMsg(true);
 		_ctx = nil;
 		Object::release(); // final destruction
 	}
@@ -130,6 +116,24 @@ class MacGLRender final: public GLRender, public RenderSurface {
 		}
 	}
 
+	void resolvedMsg(bool destroy) {
+		if (destroy) {
+			_mutexMsg.lock();
+			if (_msg.length()) {
+				lock();
+				for (auto &i : _msg) i->resolve();
+				_msg.clear();
+				unlock();
+			}
+			_mutexMsg.unlock();
+		} else if (_msg.length()) {
+			_mutexMsg.lock();
+			auto msg(std::move(_msg));
+			_mutexMsg.unlock();
+			for ( auto &i : msg ) i->resolve();
+		}
+	}
+
 	Vec2 getSurfaceSize() override {
 		if (!_view) return {};
 		CGSize size = _view.frame.size;
@@ -144,12 +148,7 @@ class MacGLRender final: public GLRender, public RenderSurface {
 		_threadId = thread_self_id();
 		Qk_ASSERT_EQ(NSOpenGLContext.currentContext, _ctx, "Failed to set current OpenGL context");
 
-		if (_msg.length()) { //
-			_mutexMsg.lock();
-			auto msg(std::move(_msg));
-			_mutexMsg.unlock();
-			for ( auto &i : msg ) i->resolve();
-		}
+		resolvedMsg(false); // resolve messages before display
 
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmds
@@ -223,18 +222,26 @@ private:
 		CVDisplayLinkStart(_displayLink);
 	}
 
-	- (void)drawRect:(NSRect)dirtyRect {
+	 - (void)drawRect:(NSRect)dirtyRect {
 		if (_isRun) {
 			CVDisplayLinkStop(_displayLink);
-			_render->reload();
-			_render->renderDisplay();
+			@autoreleasepool {
+				_render->reload();
+				_render->renderDisplay();
+			}
 			CVDisplayLinkStart(_displayLink);
 		}
+	 }
+
+	- (void)setFrameSize:(CGSize)newSize {
+		[super setFrameSize:newSize];
 	}
 
 	- (void)renderDisplay {
 		if (_isRun) {
-			_render->renderDisplay();
+			@autoreleasepool {
+				_render->renderDisplay();
+			}
 		}
 	}
 

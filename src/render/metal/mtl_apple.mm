@@ -42,7 +42,14 @@
 
 using namespace qk;
 
-@interface MTLSurfaceView: UIView
+namespace qk {
+	void post_message_main(Cb cb, bool sync);
+}
+
+class AppleMetalRender;
+
+@interface MTLSurfaceView: UIView<CALayerDelegate>
+@property (nonatomic,assign) AppleMetalRender *render;
 @end
 
 class AppleMetalRender final: public MetalRender, public RenderSurface {
@@ -58,11 +65,18 @@ public:
 	}
 
 	void release() override {
+		lock();
 		stopDisplay();
+		unlock();
 		MetalRender::release();
+		resolvedMsg(true);
 		_view       = nil;
 		_metalLayer = nil;
 		Object::release();
+	}
+
+	bool isRenderThread() {
+		return _threadId == thread_self_id();
 	}
 
 	RenderSurface* surface() override {
@@ -78,7 +92,42 @@ public:
 	}
 
 	void post_message(Cb cb) override {
+#if Qk_iOS
 		post_message_main(cb, false);
+#else
+		if (_view && isRenderThread()) {
+			cb->resolve(); // immediately resolve
+		} else if (!_isRun) { // is not running
+			if (_mutexMsg.try_lock()) { // releaseing render, try to lock msg mutex
+				_msg.push(cb);
+				_mutexMsg.unlock();
+			} else {
+				cb->resolve(); // if failed to lock, immediately resolve the message
+			}
+		} else {
+			_mutexMsg.lock();
+			_msg.push(cb);
+			_mutexMsg.unlock();
+		}
+#endif
+	}
+
+	void resolvedMsg(bool destroy) {
+		if (destroy) {
+			_mutexMsg.lock();
+			if (_msg.length()) {
+				lock();
+				for (auto &i : _msg) i->resolve();
+				_msg.clear();
+				unlock();
+			}
+			_mutexMsg.unlock();
+		} else if (_msg.length()) {
+			_mutexMsg.lock();
+			auto msg(std::move(_msg));
+			_mutexMsg.unlock();
+			for ( auto &i : msg ) i->resolve();
+		}
 	}
 
 	Vec2 getSurfaceSize() override {
@@ -87,60 +136,48 @@ public:
 		CGSize size  = _view.bounds.size;
 		float  scale = UIScreen.mainScreen.scale;
 #else
-		CGRect frame  = _view.frame;
-		CGSize size   = frame.size;
+		CGSize size   = _view.frame.size;
 		float  scale  = _view.window ? _view.window.backingScaleFactor: UIScreen.mainScreen.backingScaleFactor;
 #endif
 		return Vec2(size.width * scale, size.height * scale);
 	}
 
 	void renderDisplay() {
+		// _metalLayer.drawableSize = CGSizeMake(_mtlcanvas->surfaceSize().x(), _mtlcanvas->surfaceSize().y());
+		// id<CAMetalDrawable> drawable = _metalLayer.nextDrawable;
+		// if (!drawable || !drawable.texture) return;
+		// _mtlcanvas->_outTex = _mtlcanvas->_outColorTex = drawable.texture;
 		lock();
-		if (_delegate->onRenderBackendDisplay()) {
-			_mtlcanvas->flushBuffer();
+		_threadId = thread_self_id();
 
-			// Present canvas content to the CAMetalLayer drawable
-			if (!_metalLayer) return;
-			auto canvas = static_cast<MTLCanvas*>(mtlCanvas());
-			if (!canvas || !canvas->colorTexture()) return;
+		resolvedMsg(false);
 
-#if Qk_iOS
-			auto scale = UIScreen.mainScreen.scale;
-#else
-			auto scale = _view.window ? _view.window.backingScaleFactor : UIScreen.mainScreen.backingScaleFactor;
-#endif
-			_metalLayer.drawableSize = CGSizeMake(_view.bounds.size.width * scale, _view.bounds.size.height * scale);
-
-			id<CAMetalDrawable> drawable = [_metalLayer nextDrawable];
-			if (!drawable) return;
-
-			// Copy from offscreen color texture to drawable using vportFullCp shader
-			auto cb  = [_commandQueue commandBuffer];
-			auto rpd = [MTLRenderPassDescriptor new];
-			rpd.colorAttachments[0].texture     = drawable.texture;
-			rpd.colorAttachments[0].loadAction  = MTLLoadActionDontCare;
-			rpd.colorAttachments[0].storeAction = MTLStoreActionStore;
-
-			auto enc = [cb renderCommandEncoderWithDescriptor:rpd];
-			auto pso = blitPipeline(surfacePixelFormat());
-			if (pso) {
-				[enc setRenderPipelineState:pso];
-				// vportFullCp vert: uses vertex_id only (no buffers)
-				// frag: tex(0) = image (no PcArgs)
-				[enc setFragmentTexture:canvas->colorTexture() atIndex:0];
-				[enc setFragmentSamplerState:mtlSampler() atIndex:0];
-				[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-			}
-			[enc endEncoding];
-			[cb presentDrawable:drawable];
-			[cb commit];
+		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {
+			Qk_ASSERT(_metalLayer, "Metal layer is null");
+			// update drawable size before rendering
+			_metalLayer.drawableSize = CGSizeMake(_mtlcanvas->surfaceSize().x(), _mtlcanvas->surfaceSize().y());
+			// get next drawable for current frame
+			id<CAMetalDrawable> drawable = _metalLayer.nextDrawable;
+			// flush command buffers and present drawable if available
+			if (drawable) {
+				auto cmds = _mtlcanvas->flushBuffer();
+				if (cmds.length()) {
+					// [cmds.back() presentDrawable: drawable];
+					_mtlcanvas->vportCopy(cmds.back(), drawable);
+					for (auto cmd: cmds) {
+						[cmd commit];
+					}
+				} // if (cmds.length())
+			} // if (drawable)
 		}
+		_threadId = qk::ThreadID();
 		unlock();
 	}
 
 	UIView* surfaceView() override {
 		if (_view) return _view;
 		_view = [[MTLSurfaceView alloc] initWithFrame:CGRectZero];
+		_view.render = this;
 #if Qk_iOS
 		_metalLayer = (CAMetalLayer*)_view.layer;
 #else
@@ -149,12 +186,27 @@ public:
 		_metalLayer = (CAMetalLayer*)_view.layer;
 #endif
 		_metalLayer.device      = _device;
-		_metalLayer.pixelFormat = (MTLPixelFormat)surfacePixelFormat();
+		_metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 		_metalLayer.opaque      = YES;
 		_metalLayer.framebufferOnly = YES;
 		_metalLayer.drawableSize = CGSizeMake(1, 1);
 		startDisplay();
 		return _view;
+	}
+
+	void onResize() {
+		if (_isRun) {
+#if Qk_MacOS
+			CVDisplayLinkStop(_displayLink);
+#endif
+			@autoreleasepool {
+				reload();
+				renderDisplay();
+			}
+#if Qk_MacOS
+			CVDisplayLinkStart(_displayLink);
+#endif
+		}
 	}
 
 private:
@@ -165,8 +217,10 @@ private:
 #if Qk_iOS
 		_displayLink = [CADisplayLink displayLinkWithTarget:
 			[NSBlockOperation blockOperationWithBlock:^{
-				if (self->_isRun)
-					self->renderDisplay();
+				@autoreleasepool {
+					if (self->_isRun)
+						self->renderDisplay();
+				}
 			}]
 			selector:@selector(main)];
 		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
@@ -175,10 +229,10 @@ private:
 		CVDisplayLinkSetOutputHandler(_displayLink, ^CVReturn(CVDisplayLinkRef, const CVTimeStamp *,
 																													const CVTimeStamp *, CVOptionFlags,
 																													CVOptionFlags *) {
-			// dispatch_async(dispatch_get_main_queue(), ^{
-			if (self->_isRun)
-				self->renderDisplay();
-			// });
+			@autoreleasepool {
+				if (self->_isRun)
+					self->renderDisplay();
+			}
 			return kCVReturnSuccess;
 		});
 		CVDisplayLinkStart(_displayLink);
@@ -201,7 +255,10 @@ private:
 	MTLSurfaceView *_view;
 	CAMetalLayer   *_metalLayer;
 	bool            _isRun;
+	Array<Cb>       _msg;
+	Mutex           _mutexMsg;
 	Mutex           _mutex;
+	qk::ThreadID    _threadId;
 #if Qk_iOS
 	CADisplayLink  *_displayLink;
 #else
@@ -215,9 +272,21 @@ private:
 @implementation MTLSurfaceView
 #if Qk_iOS
 + (Class)layerClass { return CAMetalLayer.class; }
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	// self.render->onResize(self.bounds.size);
+}
 #else // macOS
-- (CALayer*)makeBackingLayer { return [CAMetalLayer layer]; }
-- (BOOL)wantsUpdateLayer { return YES; }
+- (CALayer*)makeBackingLayer {
+	return [CAMetalLayer layer];
+}
+- (BOOL)wantsUpdateLayer {
+	return YES;
+}
+- (void)setFrameSize:(CGSize)newSize {
+	[super setFrameSize:newSize];
+	self.render->onResize();
+}
 #endif
 @end
 
