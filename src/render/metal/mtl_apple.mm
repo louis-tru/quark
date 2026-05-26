@@ -143,10 +143,6 @@ public:
 	}
 
 	void renderDisplay() {
-		// _metalLayer.drawableSize = CGSizeMake(_mtlcanvas->surfaceSize().x(), _mtlcanvas->surfaceSize().y());
-		// id<CAMetalDrawable> drawable = _metalLayer.nextDrawable;
-		// if (!drawable || !drawable.texture) return;
-		// _mtlcanvas->_outTex = _mtlcanvas->_outColorTex = drawable.texture;
 		lock();
 		_threadId = thread_self_id();
 
@@ -162,7 +158,6 @@ public:
 			if (drawable) {
 				auto cmds = _mtlcanvas->flushBuffer();
 				if (cmds.length()) {
-					// [cmds.back() presentDrawable: drawable];
 					_mtlcanvas->vportCopy(cmds.back(), drawable);
 					for (auto cmd: cmds) {
 						[cmd commit];
@@ -274,7 +269,6 @@ private:
 + (Class)layerClass { return CAMetalLayer.class; }
 - (void)layoutSubviews {
 	[super layoutSubviews];
-	// self.render->onResize(self.bounds.size);
 }
 #else // macOS
 - (CALayer*)makeBackingLayer {
