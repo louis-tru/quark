@@ -4,12 +4,13 @@ This file is short-term memory for the current development thread. Update it whe
 
 ## Active Theme
 
-The current major thread is the GPU rendering refactor and backend alignment:
+The current major thread is GPU rendering quality after the GL/Metal backend alignment:
 
 - Common Canvas behavior has moved into `src/render/gpu_canvas.*`.
 - GL backend behavior lives in `src/render/gl/gl_canvas.*` and `src/render/gl/gl_command.*`.
 - Metal backend behavior lives in `src/render/metal/mtl_canvas.*` and `src/render/metal/mtl_render.*`.
 - GL is usually the behavior reference; Metal should match semantics without copying GL state-machine habits blindly.
+- The next exploratory theme is replacing or improving the current directionless `AAfuzz` system with a GPU-only directional edge AA path. Detailed notes live in `docs/GPU_2D_ANTIALIASING.md`.
 
 ## Recent Local State Observed
 
@@ -42,6 +43,18 @@ Current Metal backend state:
 - Metal command encoding now tracks explicit render-pass/encoder lifetime, front/current command packs, transient buffer allocation, sampler caching, depth state, and pipelines keyed by Metal pixel format.
 - Visual validation is still useful for anti-aliased difference clips, nested clip restore behavior, blur edge sampling, and output-image mipmap use.
 
+macOS live-resize note:
+
+- The window-resize shimmer/jitter was investigated across `CAMetalLayer`, `MTKView`, main-thread redraw, `CATransaction`/`presentsWithTransaction`, `drawRect`/`setNeedsDisplay`, and freeze-during-resize variants.
+- None of those experiments clearly improved the resize experience; GL and Metal now appear roughly comparable. Treat this as a low-priority macOS live-resize polish issue, not a blocking Metal backend bug.
+- Keep the current `src/render/metal/mtl_apple.mm` baseline simple unless a new resize strategy is tested in isolation.
+
+AA direction discussed:
+
+- Do not pursue software AA / CPU coverage rasterization as the primary route. Quark should keep AA GPU-oriented.
+- The promising direction is to improve `AAfuzz` into a GPU-only directional edge AA system, tentatively "EdgeAA".
+- See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, body-over-edge depth ordering, and hard cases.
+
 ## Important Cautions
 
 - Do not assume earlier conversation state is still true; inspect the current file before patching. The user may have edited between turns.
@@ -56,7 +69,8 @@ Current Metal backend state:
 ## Suggested Next Render Tasks
 
 - Add visual regression coverage for Metal clipping, blur, readback, and output-image behavior against the GL reference output.
-- Exercise macOS Metal window resizing/presentation behavior and decide whether to keep the custom `CAMetalLayer` path or move to `MTKView`.
+- Audit existing `AAfuzz` generation and shader consumption in GL/Metal before changing behavior.
+- Prototype GPU-only directional edge AA for simple straight-edge polygons, using shader-side `fwidth` coverage and body-over-edge depth ordering.
 - Add or refresh small render regression demos if the project has an existing lightweight path for them.
 
 ## Verification Preference

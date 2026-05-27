@@ -44,6 +44,28 @@ The current fuzzy band is useful but not exact enough:
 
 In short: the renderer draws a soft edge, but it does not yet compute high-fidelity pixel coverage.
 
+## Current Direction
+
+The next AA track should stay GPU-first. Do not make CPU coverage rasterization
+or software AA the primary route; many renderers already solve quality that way,
+but Quark's current direction is to keep path filling in the GPU pipeline.
+
+Important constraints from the current renderer:
+
+- Curves are flattened before they reach the GPU, so the AA problem can be
+  treated primarily as directed straight-edge coverage.
+- A coverage mask is only a storage or compositing mechanism. It still needs an
+  accurate coverage calculation.
+- If the final path body is drawn only with the original fill triangles, pixels
+  whose centers lie just outside those triangles will not run the fragment
+  shader. Any mask-based path renderer would need to draw conservative expanded
+  bounds, not just reuse the body triangles.
+- The existing directionless `aafuzz` geometry cannot be drawn before the body
+  safely because it does not know which side of the edge is inside or outside.
+
+This points toward a directional GPU edge-AA system rather than a software mask
+rasterizer.
+
 ## Design Goals
 
 Future antialiasing work should aim for:
@@ -95,6 +117,59 @@ Risks:
 - Still heuristic unless coverage is derived from geometry/pixel overlap.
 - May struggle with extreme transforms or very small shapes.
 
+### Directional Edge AA
+
+This is the most promising replacement for the current directionless `aafuzz`
+path.
+
+The CPU would generate conservative edge coverage geometry, but not final
+per-pixel coverage. Each edge primitive should carry enough edge-local data for
+the shader to know the true directed edge, for example:
+
+- Edge start/end or equivalent line equation.
+- Inside/outside orientation, usually via edge normal or signed winding side.
+- A conservative maximum AA expansion width.
+- Optional edge/join metadata if the join policy cannot be inferred locally.
+
+The fragment shader then computes coverage from the directed edge:
+
+- Compute signed distance from the pixel to the true edge in screen/device
+  space.
+- Use shader derivatives such as `fwidth`, `dfdx`, and `dfdy` to derive the
+  current device-pixel AA width instead of relying on CPU-computed fuzz width.
+- Convert distance to alpha coverage with a calibrated ramp.
+- Keep premultiplied-alpha behavior explicit and consistent across GL, Metal,
+  and Vulkan.
+
+The intended draw order becomes:
+
+1. Draw the directional AA edge band first.
+2. Draw the solid body afterward.
+3. Use depth so the body covers the inner half of the AA band.
+
+This is different from the current `aafuzz` model. Direction matters because the
+edge pass needs to know which side should be preserved for the outside coverage
+ramp and which side will be covered by the body.
+
+Benefits:
+
+- Keeps the expensive per-pixel coverage decision on the GPU.
+- Avoids CPU rasterization of every affected edge pixel.
+- Allows AA width to respond naturally to transforms through shader
+  derivatives.
+- Can reuse the existing idea of edge expansion while making the coverage
+  calculation more geometric and deterministic.
+
+Risks:
+
+- Joins and corners need a precise overlap policy.
+- Very small shapes may have little or no stable body area, so they need a
+  special fallback or unified edge/body treatment.
+- Fill-rule and winding behavior must stay consistent with the body triangles.
+- Difference clips, inverted clips, and nested clips need explicit validation.
+- The body depth-over-edge strategy must not break batching or render-target
+  switching.
+
 ### MSAA Or Hybrid AA
 
 Use MSAA where available, possibly combined with shader AA for specific primitives.
@@ -109,6 +184,9 @@ Risks:
 - Costly for offscreen surfaces and render-to-texture.
 - Does not solve all shader mask/image/filter edges.
 - Backend support and resolve behavior must be kept consistent.
+
+This is not a primary direction for Quark right now. It can remain a fallback
+or comparison point, but the AA quality track should not depend on MSAA.
 
 ### Distance Field / Coverage Masks
 
