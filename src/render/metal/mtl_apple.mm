@@ -38,9 +38,14 @@
 #import <QuartzCore/CAMetalLayer.h>
 #if Qk_MacOS
 #import <QuartzCore/CVDisplayLink.h>
+#import <QuartzCore/CAMetalDisplayLink.h>
 #endif
 
 using namespace qk;
+
+inline CGSize CGSizeMakeFrom(const Vec2 &vec2) {
+	return CGSizeMake(vec2.x(), vec2.y());
+}
 
 namespace qk {
 	void post_message_main(Cb cb, bool sync);
@@ -49,6 +54,10 @@ namespace qk {
 class AppleMetalRender;
 
 @interface MTLSurfaceView: UIView
+#if Qk_MacOS
+<CAMetalDisplayLinkDelegate>
+- (void)stopMetalDisplayLink:(id)displayLink;
+#endif
 @property (nonatomic,assign) AppleMetalRender *render;
 @property (nonatomic,readonly) Vec2 surfaceSize;
 @end
@@ -58,6 +67,9 @@ public:
 	AppleMetalRender(Options opts)
 		: MetalRender(opts)
 		, _view(nil), _metalLayer(nil), _displayLink(nil), _isRun(false)
+#if Qk_MacOS
+		, _metalDisplayLink(nil), _metalDisplayThread(nil)
+#endif
 	{}
 
 	void release() override {
@@ -132,17 +144,21 @@ public:
 		return _view ? _view.surfaceSize : Vec2();
 	}
 
-	void renderDisplay() {
+	void renderDisplay(id<CAMetalDrawable> drawable = nil) {
+		if (!_isRun)
+			return;
 		lock();
 		_threadId = thread_self_id();
 		resolvedMsg(false);
 
 		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {
 			Qk_ASSERT(_metalLayer, "Metal layer is null");
-			// update drawable size before rendering
-			_metalLayer.drawableSize = CGSizeMake(_mtlcanvas->surfaceSize().x(), _mtlcanvas->surfaceSize().y());
 			// get next drawable for current frame
-			id<CAMetalDrawable> drawable = _metalLayer.nextDrawable;
+			if (!drawable) {
+				// update drawable size before rendering
+				_metalLayer.drawableSize = CGSizeMakeFrom(_view.surfaceSize);
+				drawable = _metalLayer.nextDrawable;
+			}
 			// flush command buffers and present drawable if available
 			if (drawable) {
 				auto cmds = _mtlcanvas->flushBuffer();
@@ -172,51 +188,87 @@ public:
 		return _view;
 	}
 
-	void onResize() {
+#if Qk_MacOS
+	void onResize(CGSize newSize) {
 		if (_isRun) {
-		#if Qk_MacOS
-			CVDisplayLinkStop(_displayLink);
-		#endif
+			pauseDisplay();
 			@autoreleasepool {
+				_metalLayer.drawableSize = newSize;
 				reload();
-				renderDisplay(); // immediately render display after resize
+				if (!_metalDisplayThread) {
+					renderDisplay(); // immediately render display after resize
+				}
 			}
-		#if Qk_MacOS
-			CVDisplayLinkStart(_displayLink);
-		#endif
+			resumeDisplay();
 		}
 	}
+#endif
 
 private:
-	void renderDisplayIf() {
-		if (_isRun) {
-			@autoreleasepool {
-				renderDisplay();
-			}
-		}
-	}
-
 	void startDisplay() {
 		if (_isRun) return;
 		_isRun = true;
 #if Qk_iOS
 		_displayLink = [CADisplayLink displayLinkWithTarget:
 			[NSBlockOperation blockOperationWithBlock:^{
-				renderDisplayIf();
+				@autoreleasepool { renderDisplay(); }
 			}]
 			selector:@selector(main)];
 		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 #else
+		// if (@available(macOS 14.0, *)) {
+		// 	startMetalDisplayLink();
+		// 	return;
+		// }
 		CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
 		CVDisplayLinkSetOutputHandler(_displayLink, ^CVReturn(CVDisplayLinkRef, const CVTimeStamp *,
 																													const CVTimeStamp *, CVOptionFlags,
 																													CVOptionFlags *) {
-			renderDisplayIf();
+			@autoreleasepool { renderDisplay(); }
 			return kCVReturnSuccess;
 		});
 		CVDisplayLinkStart(_displayLink);
 #endif
 	}
+
+#if Qk_MacOS
+	void pauseDisplay() {
+		if (_metalDisplayThread) {
+			if (@available(macOS 14.0, *))
+				((CAMetalDisplayLink*)_metalDisplayLink).paused = YES;
+		} else {
+			CVDisplayLinkStop(_displayLink);
+		}
+	}
+
+	void resumeDisplay() {
+		if (_metalDisplayThread) {
+			if (@available(macOS 14.0, *))
+				((CAMetalDisplayLink*)_metalDisplayLink).paused = NO;
+		} else {
+			CVDisplayLinkStart(_displayLink);
+		}
+	}
+
+	void startMetalDisplayLink() API_AVAILABLE(macos(14.0)) {
+		_metalDisplayThread = [[NSThread alloc] initWithBlock:^{
+			@autoreleasepool {
+				auto link = [[CAMetalDisplayLink alloc] initWithMetalLayer:_metalLayer];
+				link.delegate = _view;
+				link.preferredFrameLatency = 1;
+				_metalDisplayLink = link;
+				[link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+				while (![NSThread currentThread].cancelled) {
+					@autoreleasepool {
+						[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+							beforeDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
+					}
+				}
+			}
+		}];
+		[_metalDisplayThread start];
+	}
+#endif
 
 	void stopDisplay() {
 		if (!_isRun) return;
@@ -224,8 +276,18 @@ private:
 #if Qk_iOS
 		[_displayLink invalidate];
 #else
-		CVDisplayLinkStop(_displayLink);
-		CVDisplayLinkRelease(_displayLink);
+		if (_metalDisplayThread) {
+			Qk_ASSERT([NSThread currentThread] != _metalDisplayThread, "Metal display link must stop on another thread");
+			[_view performSelector:@selector(stopMetalDisplayLink:)
+				onThread:_metalDisplayThread
+				withObject:_metalDisplayLink
+				waitUntilDone:YES];
+			_metalDisplayLink = nil;
+			_metalDisplayThread = nil;
+		} else {
+			CVDisplayLinkStop(_displayLink);
+			CVDisplayLinkRelease(_displayLink);
+		}
 #endif
 		_displayLink = nil;
 	}
@@ -242,12 +304,15 @@ private:
 	CADisplayLink  *_displayLink;
 #else
 	CVDisplayLinkRef _displayLink;
+	id          _metalDisplayLink;
+	NSThread   *_metalDisplayThread;
 #endif
 };
 
 // -----------------------------------------------------------------------
 // MTLSurfaceView implementation
 // -----------------------------------------------------------------------
+
 @implementation MTLSurfaceView
 #if Qk_iOS
 + (Class)layerClass {
@@ -280,7 +345,21 @@ private:
 }
 - (void)setFrameSize:(CGSize)newSize {
 	[super setFrameSize:newSize];
-	self.render->onResize();
+	self.render->onResize(newSize);
+}
+- (void)metalDisplayLink:(CAMetalDisplayLink *)link
+						 needsUpdate:(CAMetalDisplayLinkUpdate *)update API_AVAILABLE(macos(14.0)) {
+	self.render->renderDisplay(update.drawable);
+}
+- (void)stopMetalDisplayLink:(id)displayLink {
+	Qk_ASSERT(![NSThread isMainThread], "Metal display link should stop on its own thread");
+	if (@available(macOS 14.0, *)) {
+		auto link = (CAMetalDisplayLink*)displayLink;
+		link.delegate = nil;
+		link.paused = YES;
+		[link invalidate];
+	}
+	[[NSThread currentThread] cancel];
 }
 #endif
 @end
