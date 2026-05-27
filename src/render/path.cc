@@ -39,6 +39,7 @@ namespace qk {
 	Path Path::MakeOval(const Rect& r, bool ccw) {
 		Path path;
 		path.ovalTo(r, ccw);
+		path.close();
 		Qk_ReturnLocal(path);
 	}
 

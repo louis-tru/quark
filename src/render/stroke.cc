@@ -113,6 +113,10 @@ namespace qk {
 	typedef void BeforeAdding(bool close, int size, int subpath, void *ctx);
 	typedef void AfterDone(bool close, int size, int subpath, void *ctx);
 
+	static bool strokePointEquals(Vec2 a, Vec2 b) {
+		return (a - b).lengthSq() < 0.0001f;
+	}
+
 	static void strokeExec(
 		const Path *self, AddPoint add,
 		BeforeAdding before, AfterDone after, bool closeAll, void *ctx
@@ -121,8 +125,10 @@ namespace qk {
 		auto addSubpath = [&](const Vec2 *pts, int size, bool close) {
 			if (size > 1) { // size > 1
 				if (close) { // close path
-					if (*pts == pts[size-1]) { // start == end, exclude duplicates
+					if (strokePointEquals(*pts, pts[size-1])) { // start == end, exclude duplicates
 						size--;
+						if (size < 2)
+							return;
 					}
 					close = size > 2; // Must have at least 3 vertices
 				}
@@ -144,15 +150,15 @@ namespace qk {
 		};
 
 		Array<Vec2> pts(self->ptsLen());
-		auto pts0 = &self->pts().front();
-		auto pts1 = pts.val();
+		auto pts0 = &self->pts().front(); // input buffer
+		auto pts1 = pts.val(); // output buffer
 		int  size = 0;
 
 		for (auto v: self->verbs()) {
 			switch(v) {
 				case Path::kLine_Verb:
 					if (size != 0) {
-						if (pts1[size-1] != *pts0++) // exclude duplicates
+						if (!strokePointEquals(pts1[size-1], *pts0++)) // exclude duplicates
 							pts1[size++] = pts0[-1];
 						break;
 					}
@@ -202,8 +208,8 @@ namespace qk {
 				normals = fromPrev.rotate90z().normalized() * _->width;
 			} else {
 				auto angleLen = normals.angleTo(*prev - from);
-				auto len = _->width / sinf(angleLen);
-				normals *= len;
+				auto sinLen = fabsf(sinf(angleLen));
+				normals *= sinLen < 1e-4f ? _->width: _->width / sinLen;
 			}
 			Vec3 a(from + normals, -1), b(from - normals, 1);
 			if (idx) {
@@ -318,10 +324,11 @@ namespace qk {
 
 			float angle    = normals.angle();
 			float angleLen = angle - Vec2(-fromPrev[0],-fromPrev[1]).angle();
-			float len = width / sinf(angleLen);
 
 			if (angleLen < 0)
 				angleLen += Qk_PI_2;
+			float sinLen = fabsf(sinf(angleLen));
+			float len = sinLen < 1e-4f ? _->miterLimit: width / sinLen;
 
 			switch (_->join) {
 				case Path::Join::kRound_Join: {// adds circle
