@@ -68,10 +68,8 @@ class IosGLRender final: public GLRender, public RenderSurface {
 
 	void release() override {
 		lock();
-		if (_view) {
+		if (_view)
 			[_view stopDisplay]; // thread task must be forced to end
-			_view = nil;
-		}
 		unlock();
 
 		GLRender::release(); // Destroy the pre object first
@@ -87,7 +85,7 @@ class IosGLRender final: public GLRender, public RenderSurface {
 
 		_ctx = nil;
 		_layer = nil;
-
+		_view = nil;
 		Object::release(); // final destruction
 	}
 
@@ -231,8 +229,8 @@ class IosGLRender final: public GLRender, public RenderSurface {
 	}
 
 	- (void) stopDisplay {
-		[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 		_isRun = false;
+		[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 	}
 
 @end

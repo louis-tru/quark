@@ -48,21 +48,17 @@ namespace qk {
 
 class AppleMetalRender;
 
-@interface MTLSurfaceView: UIView<CALayerDelegate>
+@interface MTLSurfaceView: UIView
 @property (nonatomic,assign) AppleMetalRender *render;
+@property (nonatomic,readonly) Vec2 surfaceSize;
 @end
 
 class AppleMetalRender final: public MetalRender, public RenderSurface {
 public:
 	AppleMetalRender(Options opts)
 		: MetalRender(opts)
-		, _view(nil), _metalLayer(nil), _isRun(false)
-		, _displayLink(nil)
+		, _view(nil), _metalLayer(nil), _displayLink(nil), _isRun(false)
 	{}
-
-	~AppleMetalRender() {
-		Qk_CHECK(!_isRun);
-	}
 
 	void release() override {
 		lock();
@@ -93,6 +89,8 @@ public:
 
 	void post_message(Cb cb) override {
 #if Qk_iOS
+		// on iOS, we can post message to main thread directly,
+		// since CADisplayLink will callback on main thread
 		post_message_main(cb, false);
 #else
 		if (_view && isRenderThread()) {
@@ -131,21 +129,12 @@ public:
 	}
 
 	Vec2 getSurfaceSize() override {
-		if (!_view) return {};
-#if Qk_iOS
-		CGSize size  = _view.bounds.size;
-		float  scale = UIScreen.mainScreen.scale;
-#else
-		CGSize size   = _view.frame.size;
-		float  scale  = _view.window ? _view.window.backingScaleFactor: UIScreen.mainScreen.backingScaleFactor;
-#endif
-		return Vec2(size.width * scale, size.height * scale);
+		return _view ? _view.surfaceSize : Vec2();
 	}
 
 	void renderDisplay() {
 		lock();
 		_threadId = thread_self_id();
-
 		resolvedMsg(false);
 
 		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {
@@ -162,7 +151,7 @@ public:
 					for (auto cmd: cmds) {
 						[cmd commit];
 					}
-				} // if (cmds.length())
+				}
 			} // if (drawable)
 		}
 		_threadId = qk::ThreadID();
@@ -171,15 +160,9 @@ public:
 
 	UIView* surfaceView() override {
 		if (_view) return _view;
-		_view = [[MTLSurfaceView alloc] initWithFrame:CGRectZero];
+		_view = [MTLSurfaceView new];
 		_view.render = this;
-#if Qk_iOS
 		_metalLayer = (CAMetalLayer*)_view.layer;
-#else
-		_view.wantsLayer = YES;
-		_view.layer = [CAMetalLayer layer];
-		_metalLayer = (CAMetalLayer*)_view.layer;
-#endif
 		_metalLayer.device      = _device;
 		_metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 		_metalLayer.opaque      = YES;
@@ -191,31 +174,35 @@ public:
 
 	void onResize() {
 		if (_isRun) {
-#if Qk_MacOS
+		#if Qk_MacOS
 			CVDisplayLinkStop(_displayLink);
-#endif
+		#endif
 			@autoreleasepool {
 				reload();
-				renderDisplay();
+				renderDisplay(); // immediately render display after resize
 			}
-#if Qk_MacOS
+		#if Qk_MacOS
 			CVDisplayLinkStart(_displayLink);
-#endif
+		#endif
 		}
 	}
 
 private:
+	void renderDisplayIf() {
+		if (_isRun) {
+			@autoreleasepool {
+				renderDisplay();
+			}
+		}
+	}
+
 	void startDisplay() {
 		if (_isRun) return;
 		_isRun = true;
-		auto self = this;
 #if Qk_iOS
 		_displayLink = [CADisplayLink displayLinkWithTarget:
 			[NSBlockOperation blockOperationWithBlock:^{
-				@autoreleasepool {
-					if (self->_isRun)
-						self->renderDisplay();
-				}
+				renderDisplayIf();
 			}]
 			selector:@selector(main)];
 		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
@@ -224,10 +211,7 @@ private:
 		CVDisplayLinkSetOutputHandler(_displayLink, ^CVReturn(CVDisplayLinkRef, const CVTimeStamp *,
 																													const CVTimeStamp *, CVOptionFlags,
 																													CVOptionFlags *) {
-			@autoreleasepool {
-				if (self->_isRun)
-					self->renderDisplay();
-			}
+			renderDisplayIf();
 			return kCVReturnSuccess;
 		});
 		CVDisplayLinkStart(_displayLink);
@@ -239,21 +223,21 @@ private:
 		_isRun = false;
 #if Qk_iOS
 		[_displayLink invalidate];
-		_displayLink = nil;
 #else
 		CVDisplayLinkStop(_displayLink);
 		CVDisplayLinkRelease(_displayLink);
-		_displayLink = nullptr;
 #endif
+		_displayLink = nil;
 	}
 
+//fields:
 	MTLSurfaceView *_view;
 	CAMetalLayer   *_metalLayer;
-	bool            _isRun;
 	Array<Cb>       _msg;
 	Mutex           _mutexMsg;
 	Mutex           _mutex;
 	qk::ThreadID    _threadId;
+	bool            _isRun;
 #if Qk_iOS
 	CADisplayLink  *_displayLink;
 #else
@@ -266,11 +250,28 @@ private:
 // -----------------------------------------------------------------------
 @implementation MTLSurfaceView
 #if Qk_iOS
-+ (Class)layerClass { return CAMetalLayer.class; }
++ (Class)layerClass {
+	return CAMetalLayer.class;
+}
+-(Vec2)surfaceSize {
+	CGSize size  = self.bounds.size;
+	float  scale = UIScreen.mainScreen.scale;
+	return Vec2(size.width * scale, size.height * scale);
+}
 - (void)layoutSubviews {
 	[super layoutSubviews];
 }
 #else // macOS
+- (id)init {
+	self = [super init];
+	self.wantsLayer = YES;
+	return self;
+}
+-(Vec2)surfaceSize {
+	CGSize size  = self.frame.size;
+	float  scale = self.window ? self.window.backingScaleFactor : UIScreen.mainScreen.backingScaleFactor;
+	return Vec2(size.width * scale, size.height * scale);
+}
 - (CALayer*)makeBackingLayer {
 	return [CAMetalLayer layer];
 }
