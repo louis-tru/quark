@@ -129,6 +129,8 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void renderDisplay() {
+		if (!_isRun)
+			return;
 		CGLLockContext(_ctx.CGLContextObj);
 		// Make the context current
 		[_ctx makeCurrentContext];
@@ -165,25 +167,16 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void onResize() {
-		if (_isRun) {
-			CVDisplayLinkStop(_displayLink);
-			@autoreleasepool {
-				reload();
-				renderDisplay(); // immediately render display after resize
-			}
-			CVDisplayLinkStart(_displayLink);
+		if (!_isRun) return;
+		CVDisplayLinkStop(_displayLink);
+		@autoreleasepool {
+			reload();
+			renderDisplay(); // immediately render display after resize
 		}
+		CVDisplayLinkStart(_displayLink);
 	}
 
 private:
-	void renderDisplayIf() {
-		if (_isRun) {
-			@autoreleasepool {
-				renderDisplay();
-			}
-		}
-	}
-
 	void startDisplay() {
 		if (_isRun) return;
 		_isRun = true;
@@ -193,7 +186,7 @@ private:
 		CVDisplayLinkSetOutputHandler(_displayLink, ^CVReturn(CVDisplayLinkRef, const CVTimeStamp *,
 																													const CVTimeStamp *, CVOptionFlags,
 																													CVOptionFlags *) {
-			renderDisplayIf();
+			@autoreleasepool { renderDisplay(); }
 			return kCVReturnSuccess;
 		});
 		// Set the display link for the current renderer

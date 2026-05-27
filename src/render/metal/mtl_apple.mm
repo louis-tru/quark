@@ -43,8 +43,12 @@
 
 using namespace qk;
 
-inline CGSize CGSizeMakeFrom(const Vec2 &vec2) {
+inline CGSize CGSizeFromVec2(const Vec2 &vec2) {
 	return CGSizeMake(vec2.x(), vec2.y());
+}
+
+inline Vec2 Vec2FromCGSize(const CGSize &size) {
+	return Vec2(size.width, size.height);
 }
 
 namespace qk {
@@ -141,7 +145,9 @@ public:
 	}
 
 	Vec2 getSurfaceSize() override {
-		return _view ? _view.surfaceSize : Vec2();
+		Vec2 size = _view ? _view.surfaceSize : Vec2();
+		Qk_ASSERT(!size.is_zero_axis());
+		return size;
 	}
 
 	void renderDisplay(id<CAMetalDrawable> drawable = nil) {
@@ -156,7 +162,7 @@ public:
 			// get next drawable for current frame
 			if (!drawable) {
 				// update drawable size before rendering
-				_metalLayer.drawableSize = CGSizeMakeFrom(_view.surfaceSize);
+				_metalLayer.drawableSize = CGSizeFromVec2(_mtlcanvas->surfaceSize());
 				drawable = _metalLayer.nextDrawable;
 			}
 			// flush command buffers and present drawable if available
@@ -188,19 +194,22 @@ public:
 		return _view;
 	}
 
+	void reload() override {
+		_metalLayer.drawableSize = CGSizeFromVec2(getSurfaceSize());
+		MetalRender::reload();
+	}
+
 #if Qk_MacOS
-	void onResize(CGSize newSize) {
-		if (_isRun) {
-			pauseDisplay();
-			@autoreleasepool {
-				_metalLayer.drawableSize = newSize;
-				reload();
-				if (!_metalDisplayThread) {
-					renderDisplay(); // immediately render display after resize
-				}
+	void onResize() {
+		if (!_isRun) return;
+		pauseDisplay();
+		@autoreleasepool {
+			reload();
+			if (!_metalDisplayThread) {
+				renderDisplay(); // immediately render display after resize
 			}
-			resumeDisplay();
 		}
+		resumeDisplay();
 	}
 #endif
 
@@ -319,9 +328,7 @@ private:
 	return CAMetalLayer.class;
 }
 -(Vec2)surfaceSize {
-	CGSize size  = self.bounds.size;
-	float  scale = UIScreen.mainScreen.scale;
-	return Vec2(size.width * scale, size.height * scale);
+	return Vec2FromCGSize(size) * UIScreen.mainScreen.scale;
 }
 - (void)layoutSubviews {
 	[super layoutSubviews];
@@ -333,19 +340,15 @@ private:
 	return self;
 }
 -(Vec2)surfaceSize {
-	CGSize size  = self.frame.size;
-	float  scale = self.window ? self.window.backingScaleFactor : UIScreen.mainScreen.backingScaleFactor;
-	return Vec2(size.width * scale, size.height * scale);
+	float scale = self.window ? self.window.backingScaleFactor : NSScreen.mainScreen.backingScaleFactor;
+	return Vec2FromCGSize(self.frame.size) * scale;
 }
 - (CALayer*)makeBackingLayer {
 	return [CAMetalLayer layer];
 }
-- (BOOL)wantsUpdateLayer {
-	return YES;
-}
-- (void)setFrameSize:(CGSize)newSize {
-	[super setFrameSize:newSize];
-	self.render->onResize(newSize);
+- (void)setFrameSize:(CGSize)size {
+	[super setFrameSize:size];
+	self.render->onResize();
 }
 - (void)metalDisplayLink:(CAMetalDisplayLink *)link
 						 needsUpdate:(CAMetalDisplayLinkUpdate *)update API_AVAILABLE(macos(14.0)) {

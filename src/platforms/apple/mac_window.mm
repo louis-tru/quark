@@ -46,6 +46,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 	id _keyDownId;
 }
 @property (assign, atomic) BOOL isClose;
+@property (assign, nonatomic) Render* render;
 @end
 
 @implementation QkWindowDelegate
@@ -95,25 +96,24 @@ QkWindowDelegate* WindowImpl::delegate() {
 																							alpha:color[3]
 	];*/
 
+	self.render = render;
 	self.isClose = NO;
 	self.qkwin = win;
 	self.uiwin = uiwin;
 	self.uiwin.contentViewController = self;
 	self.ime = qk_make_ime_helper(win);
 
-	//[uiwin center];
 	[uiwin setFrame:rect display:NO];
 
 	UIView *rootView = self.view;
-	UIView *view = render->surface()->surfaceView();
+	UIView *surfaceView = render->surface()->surfaceView();
+	surfaceView.frame = rootView.bounds;
+	surfaceView.translatesAutoresizingMaskIntoConstraints = NO;
 
-	view.frame = rootView.bounds;
-	view.translatesAutoresizingMaskIntoConstraints = NO;
-
-	[rootView addSubview:view];
+	[rootView addSubview:surfaceView];
 	[rootView addSubview:self.ime.view];
 	[rootView addConstraint:[NSLayoutConstraint
-													constraintWithItem:view
+													constraintWithItem:surfaceView
 													attribute:NSLayoutAttributeWidth
 													relatedBy:NSLayoutRelationEqual
 													toItem:rootView
@@ -121,7 +121,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 													multiplier:1
 													constant:0]];
 	[rootView addConstraint:[NSLayoutConstraint
-													constraintWithItem:view
+													constraintWithItem:surfaceView
 													attribute:NSLayoutAttributeHeight
 													relatedBy:NSLayoutRelationEqual
 													toItem:rootView

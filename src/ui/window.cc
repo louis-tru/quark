@@ -315,8 +315,7 @@ namespace qk {
 		auto defaultScale = getDefaultScale();
 		auto range = getDisplayRange(size);
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
-			Qk_DLog("Window::onRenderBackendReload defaultScale:%f, w:%f, h: %f",
-					size.x(), size.y(), defaultScale);
+			Qk_DLog("Window::onRenderBackendReload w:%f, h: %f, defaultScale:%f", size.x(), size.y(), defaultScale);
 			UILock lock(this);
 			if ( _surfaceDisplayRange.begin != range.begin
 				|| _surfaceDisplayRange.end != range.end
