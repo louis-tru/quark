@@ -54,6 +54,8 @@ def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4':
 																'--arm-vfp=VAL  enable arm vfp options vfpv2/vfpv3/vfpv4/none [{0}]');
 def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp,
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
+def_opts('arm-ffp', 'fast',     '--arm-ffp=VAL  arm64 floating-point contraction mode off/on/fast [{0}], maps to: -ffp-contract=VAL');
+def_opts('arm-fmath', 0,        '--arm-fmath=VAL enable arm64 aggressive floating-point optimizations 0/1 [{0}], maps to: -ffast-math');
 def_opts(['emulator', 'em'], 0, '--emulator,-em enable the emulator [{0}]');
 def_opts('clang', isApple(opts.os) ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
@@ -712,6 +714,8 @@ async function configure() {
 			arm_neon: opts.arm_neon,
 			arm_vfp: opts.arm_vfp,
 			arm_fpu: opts.arm_fpu,
+			arm_ffp: opts.arm_ffp,
+			arm_fmath: opts.arm_fmath,
 			cross_compiling: bi(cross_compiling),
 			media: opts.media,
 			use_system_zlib: bi(os.match(/^(android|linux|ios|mac)$/)),

@@ -81,7 +81,9 @@
 		'armv7s%': 0,  # armv7s form apple iphone
 		'arm_neon%': 0,
 		'arm_vfp%': 'vfpv3',
-		'arm_fpu%': 'neon',
+		'arm_fpu%': 'neon', # arm fpu options neon/vfpv2/vfpv3/vfpv4/none, maps to: -mfpu=VAL
+		'arm_ffp%': 'fast', # arm64 floating-point contraction mode off/on/fast, maps to: -ffp-contract=VAL
+		'arm_fmath%': 0, # enable arm64 aggressive floating-point optimizations, maps to: -ffast-math
 		'arm64%': 0,
 
 		# Default MIPS variable settings.
@@ -241,10 +243,12 @@
 						'cflags!': [ '-Wno-old-style-declaration' ],
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
-					['arch=="arm" and arm_vfp!="none"', {
-						'cflags': [ '-mfpu=<(arm_vfp)', '-mfloat-abi=softfp' ],
+					['arch=="arm" and arm_fpu!="none"', {
+						'cflags': [ '-mfpu=<(arm_fpu)', '-mfloat-abi=softfp' ],
 					}],
 					['arch=="arm"', { 'ldflags': [ '-Wl,--icf=safe' ] }], # Remove Duplicated Code
+					['arch=="arm64"', { 'cflags': [ '-ffp-contract=<(arm_ffp)' ] }],
+					['arch=="arm64" and arm_fmath', { 'cflags': [ '-ffast-math' ] }],
 				],
 			}],
 			['os=="linux"', {

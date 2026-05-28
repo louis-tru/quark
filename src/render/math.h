@@ -294,6 +294,8 @@ namespace qk {
 		Vec3  det(const Vec<float,3>& b) const;
 	};
 
+	#undef Qk_Default_Vec_Operator
+
 	// ------------------------------------------
 
 	template<typename T> struct MRect { T begin,size; }; // rect
@@ -452,13 +454,11 @@ namespace qk {
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};
 
-	#undef Qk_Default_Vec_Operator
-	Qk_DEF_ARRAY_SPECIAL(Vec2);
-	Qk_DEF_ARRAY_SPECIAL(Vec3);
-	Qk_DEF_ARRAY_SPECIAL(Color);
-
 	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
 	Qk_EXPORT float math_sqrt(float x);
 
+	Qk_DEF_ARRAY_SPECIAL(Vec2);
+	Qk_DEF_ARRAY_SPECIAL(Vec3);
+	Qk_DEF_ARRAY_SPECIAL(Color);
 }
 #endif

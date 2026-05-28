@@ -33,7 +33,7 @@
 #define isMoreSofterAA 1 // 1 is softer aa, 0 is more radical aa
 
 namespace qk {
-	uint32_t massSample(uint32_t n);
+	uint32_t msaaSample(uint32_t n);
 	float get_level_font_size(float fontSize);
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 	uint32_t upPow2(uint32_t size);
@@ -353,7 +353,7 @@ namespace qk {
 		, _clipState(nullptr)
 		, _opts(opts)
 	{
-		_opts.msaaSample = massSample(_opts.msaaSample);
+		_opts.msaaSample = msaaSample(_opts.msaaSample);
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;

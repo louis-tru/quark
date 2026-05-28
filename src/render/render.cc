@@ -40,10 +40,12 @@ namespace qk {
 		return (uint32_t) powf(2, floor(log2(n)));
 	}
 
-	uint32_t massSample(uint32_t n) {
-		n = integerExp(n);
-		n = Qk_Min(n, 9); // max sample count is 9
-		return n > 1 ? n: 1;
+	uint32_t msaaSample(uint32_t n) {
+		// n = integerExp(n);
+		// n = Qk_Min(n, 9); // max sample count is 9
+		// return n > 1 ? n: 1;
+		// disable MSAA for now
+		return 1;
 	}
 
 	// setting and use gpu vertex data
@@ -128,7 +130,7 @@ namespace qk {
 	Render* Render::Make(Options opts, Delegate *delegate) {
 		Render* r = nullptr;
 
-		opts.msaaSample = massSample(opts.msaaSample);
+		opts.msaaSample = msaaSample(opts.msaaSample);
 
 #if Qk_ENABLE_VULKAN
 		if (!r) r = make_vulkan_render();

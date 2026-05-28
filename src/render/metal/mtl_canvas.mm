@@ -76,7 +76,7 @@ namespace qk {
 			_cmdPack.recorded = true;
 			_cmdPack.enc = nil;
 		}
-		_cmdPack.pass = nil;
+		 _cmdPack.pass = nil;
 		_cmdPack.pipeline = nil;
 	}
 
@@ -92,7 +92,7 @@ namespace qk {
 	 #endif
 		endPass();
 		// new pass descriptor
-		auto pass = [MTLRenderPassDescriptor new];
+		auto pass = _cmdPack.pass ? _cmdPack.pass: [MTLRenderPassDescriptor new];
 		auto recorded = _cmdPack.isRecorded();
 
 		Qk_ASSERT(_outColorTex, "Output color texture should be created before beginning a pass");
