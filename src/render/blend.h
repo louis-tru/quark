@@ -42,7 +42,7 @@ namespace qk {
 	 *   src.a   = src.a
 	 *
 	 * Most rendering paths, framebuffer accumulation, filtering,
-	 * antialiasing coverage (such as aafuzz), and compositing
+	 * antialiasing coverage (such as aadist), and compositing
 	 * operations are designed around PMA behavior.
 	 *
 	 * Blend modes without the "Legacy" suffix assume PMA source
@@ -63,7 +63,7 @@ namespace qk {
 	 * legacy straight-alpha modes are not mathematically exact under
 	 * fixed-function blending and may produce incorrect edge blending
 	 * results when combined with coverage-based antialiasing
-	 * (for example aafuzz).
+	 * (for example aadist).
 	 *
 	 * Legacy modes should therefore be treated as approximate visual
 	 * effects rather than strict Photoshop-style blend behavior.

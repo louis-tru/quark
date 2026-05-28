@@ -18,7 +18,7 @@ void main() {
 	//gl_Position = rMat.value * vec4(round(pos.xy * pd.allScale) / pd.allScale, pos.zw);
 	gl_Position = rMat.value * vec4(pos.xy, pos.zw);
 
-	aafuzz = aafuzzIn;
+	aadist = aadistIn;
 	// Qk uses screen-space coordinates internally.
 	// Intermediate render targets keep the same memory orientation as uploaded images.
 	// Do not flip Y here; backend-specific Y correction is applied only at final present.

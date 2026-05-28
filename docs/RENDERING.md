@@ -33,7 +33,7 @@ Key files:
 - clip stack orchestration and stencil ref accounting
 - surface size, root matrix, scale values
 - z-depth sequencing
-- path normalization, fill/stroke selection, software AA fuzz paths
+- path normalization, fill/stroke selection, software AA dist paths
 - text image selection and SDF text path
 - blur filter lifetime wrapper
 - high-level `readImage()` and `outputImage()` flow

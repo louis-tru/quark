@@ -22,8 +22,8 @@ layout(binding=2, set=0, std140) uniform ViewMatrixBlock { \
 Qk_RootMatrixBlock
 Qk_ViewMatrixBlock
 layout(location=0) in      vec2  vertexIn;
-layout(location=1) in      float aafuzzIn; // anti alias fuzz or z depth plus
-layout(location=0) out     float aafuzz;
+layout(location=1) in      float aadistIn; // anti alias distance or z depth plus
+layout(location=0) out     float aadist;
 
 #frag
 #define Qk_FLAG_CLIP (1u << 0)
@@ -55,5 +55,5 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	int op;
 } clipStat;
 layout(binding=0, set=1)  uniform sampler2D clipTex; // clip texture buffer
-layout(location=0) in     float     aafuzz;
+layout(location=0) in     float     aadist;
 layout(location=0) out    vec4      fragColor;

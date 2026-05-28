@@ -15,18 +15,18 @@ After the Metal and Vulkan backends become stable, antialiasing quality should b
 
 ## Current Approach
 
-The current GPU path uses an `aafuzz` style method for many vector edges:
+The current GPU path uses an `aadist` style method for many vector edges:
 
 - Geometry is drawn normally for the solid interior.
 - An extra soft band is generated around the path edge.
 - The soft band behaves somewhat like a simple SDF-like expansion.
-- Fragment alpha is reduced across this fuzzy outer band to hide jagged edges.
+- Fragment alpha is reduced across this AA distance band to hide jagged edges.
 - It does not precisely compute the true coverage/opacity of every affected pixel.
 
 Relevant areas:
 
 - `src/render/gpu_canvas.*`: shared path draw/fill/stroke behavior and `_phy2Pixel` scale handling.
-- `src/render/pathv_cache.*`: cached path triangles and AA fuzz stroke geometry.
+- `src/render/pathv_cache.*`: cached path triangles and AA dist stroke geometry.
 - `src/render/shader/_util.glsl`: shared AA clip and fragment helpers.
 - `src/render/shader/color*.glsl`, `image*.glsl`, `triangles.glsl`: fragment paths that consume AA-related fields.
 - `src/render/gl/gl_command.*`: current GL behavior reference.
@@ -60,7 +60,7 @@ Important constraints from the current renderer:
   whose centers lie just outside those triangles will not run the fragment
   shader. Any mask-based path renderer would need to draw conservative expanded
   bounds, not just reuse the body triangles.
-- The existing directionless `aafuzz` geometry cannot be drawn before the body
+- The existing directionless `aadist` geometry cannot be drawn before the body
   safely because it does not know which side of the edge is inside or outside.
 
 This points toward a directional GPU edge-AA system rather than a software mask
@@ -119,7 +119,7 @@ Risks:
 
 ### Directional Edge AA
 
-This is the most promising replacement for the current directionless `aafuzz`
+This is the most promising replacement for the current directionless `aadist`
 path.
 
 The CPU would generate conservative edge coverage geometry, but not final
@@ -136,7 +136,7 @@ The fragment shader then computes coverage from the directed edge:
 - Compute signed distance from the pixel to the true edge in screen/device
   space.
 - Use shader derivatives such as `fwidth`, `dfdx`, and `dfdy` to derive the
-  current device-pixel AA width instead of relying on CPU-computed fuzz width.
+  current device-pixel AA width instead of relying on CPU-computed aadist width.
 - Convert distance to alpha coverage with a calibrated ramp.
 - Keep premultiplied-alpha behavior explicit and consistent across GL, Metal,
   and Vulkan.
@@ -147,7 +147,7 @@ The intended draw order becomes:
 2. Draw the solid body afterward.
 3. Use depth so the body covers the inner half of the AA band.
 
-This is different from the current `aafuzz` model. Direction matters because the
+This is different from the current `aadist` model. Direction matters because the
 edge pass needs to know which side should be preserved for the outside coverage
 ramp and which side will be covered by the body.
 
@@ -242,4 +242,4 @@ Useful checks:
 
 ## Current Priority
 
-This is intentionally parked until the Metal and Vulkan backends are stable enough to compare behavior. The next serious AA pass should be treated as a major quality project, not a small tweak to `aafuzz`.
+This is intentionally parked until the Metal and Vulkan backends are stable enough to compare behavior. The next serious AA pass should be treated as a major quality project, not a small tweak to `aadist`.

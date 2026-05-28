@@ -82,7 +82,7 @@ This split is important. New Canvas-level behavior usually belongs in `GPUCanvas
 - `RenderResource` owns backend-local upload/unload operations for textures and vertex data.
 - `PaintImage::setCanvas()` consumes an already rendered canvas as a texture source.
 - `Canvas::outputImage()` changes where subsequent drawing goes.
-- `PathvCache` caches generated path vertices and anti-alias fuzz geometry.
+- `PathvCache` caches generated path vertices and anti-alias distance geometry.
 - `zDepthNextUnit` is used to order draw calls in GPU depth.
 
 ## Documentation Maintenance

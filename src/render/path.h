@@ -54,7 +54,7 @@ namespace qk {
 		struct ID;
 		const ID   *id = nullptr; ///< Backend-local GPU cache id, if uploaded.
 		uint32_t    vCount = 0;   ///< Number of vertices.
-		Array<Vec3> vertex;       ///< CPU-side vertices: {x, y, aafuzz/z}.
+		Array<Vec3> vertex;       ///< CPU-side vertices: {x, y, aadist/z}.
 	};
 
 	class Qk_EXPORT Path: public Reference {
@@ -128,10 +128,10 @@ namespace qk {
 		VertexData getTriangles(float epsilon = 1.0) const;
 
 		/**
-		 * @method getAAFuzzStrokeTriangle() returns aa fuzz value stroke triangle vertices
-		 * @return {VertexData} {.vertex={ x, y, aa fuzz value renge 1 to -1 }[]}
+		 * @method getAADistStrokeTriangle() returns aa dist value stroke triangle vertices
+		 * @return {VertexData} {.vertex={ x, y, aa dist value renge 1 to -1 }[]}
 		*/
-		VertexData getAAFuzzStrokeTriangle(float width, float epsilon = 1.0) const;
+		VertexData getAADistStrokeTriangle(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path

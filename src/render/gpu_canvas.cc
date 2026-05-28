@@ -41,14 +41,14 @@ namespace qk {
 	extern const Range ZeroRange;
 #if isMoreSofterAA
 	// Softer:
-	//extern const float  aa_fuzz_weight = 0.9; // softer
-	//extern const float  aa_fuzz_width = 0.6;
-	extern const float  aa_fuzz_weight = 0.9; // medium
-	extern const float  aa_fuzz_width = 0.55;
+	//extern const float  aa_dist_weight = 0.9; // softer
+	//extern const float  aa_dist_width = 0.6;
+	extern const float  aa_dist_weight = 0.9; // medium
+	extern const float  aa_dist_width = 0.55;
 #else
 	// More radical:
-	extern const float  aa_fuzz_weight = 1; // more radical, hard
-	extern const float  aa_fuzz_width = 0.5;
+	extern const float  aa_dist_weight = 1; // more radical, hard
+	extern const float  aa_dist_width = 0.5;
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 
@@ -153,7 +153,7 @@ namespace qk {
 			// adjust range to actual allocated texture size
 			clip->range.end = clip->range.begin + clip->mask->size();
 			if (antiAlias && !_DeviceMsaa) {
-				drawClipCmd(vertex, _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width), lastClip, clip, rawOp);
+				drawClipCmd(vertex, _cache->getAADistStrokeTriangle(path,_phy2Pixel*aa_dist_width), lastClip, clip, rawOp);
 			} else {
 				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
 			}
@@ -168,7 +168,7 @@ namespace qk {
 			if (vertex.vCount) {
 				fillv(vertex, paint, style);
 				if (aa) {
-					drawAAFuzzStroke(path, paint, style, aa_fuzz_weight, aa_fuzz_width);
+					drawAADistStroke(path, paint, style, aa_dist_weight, aa_dist_width);
 				}
 			}
 			zDepthNext();
@@ -199,7 +199,7 @@ namespace qk {
 				} else {
 					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					drawAAFuzzStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
+					drawAADistStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
 					zDepthNext();
 				}
 			} else {
@@ -207,18 +207,18 @@ namespace qk {
 			}
 		}
 
-		void drawAAFuzzStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaFuzzWeight, float aaFuzzWidth) {
+		void drawAADistStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaDistWeight, float aaDistWidth) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			// _phy2Pixel*0.6=1.2/_Scale, 2.4px
-			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _phy2Pixel*aaFuzzWidth);
+			auto &vertex = _cache->getAADistStrokeTriangle(path, _phy2Pixel*aaDistWidth);
 			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color.mul_alpha_only(aaFuzzWeight));
+				drawImageCmd(vertex, style.image, style.color.mul_alpha_only(aaDistWeight));
 			} else if (style.gradient) {
-				drawGradientCmd(vertex, style.gradient, style.color.mul_alpha_only(aaFuzzWeight));
+				drawGradientCmd(vertex, style.gradient, style.color.mul_alpha_only(aaDistWeight));
 			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color.mul_alpha_only(aaFuzzWeight));
+				drawImageMaskCmd(vertex, paint.mask, style.color.mul_alpha_only(aaDistWeight));
 			} else {
-				drawColorCmd(vertex, style.color.mul_alpha_only(aaFuzzWeight));
+				drawColorCmd(vertex, style.color.mul_alpha_only(aaDistWeight));
 			}
 		}
 
@@ -513,8 +513,8 @@ namespace qk {
 		_this->setBlendMode(mode); // switch blend mode
 		drawColorCmd(path, color);
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
-			drawColorCmd(vertex, color.mul_alpha_only(aa_fuzz_weight));
+			auto &vertex = _cache->getAADistStrokeTriangle(path.path, _phy2Pixel*aa_dist_width);
+			drawColorCmd(vertex, color.mul_alpha_only(aa_dist_weight));
 		}
 		_this->zDepthNext();
 	}
@@ -527,9 +527,9 @@ namespace qk {
 			drawColorCmd(*paths[i], color);
 		}
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto c2 = color.mul_alpha_only(aa_fuzz_weight);
+			auto c2 = color.mul_alpha_only(aa_dist_weight);
 			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAAFuzzStrokeTriangle(paths[i]->path, _phy2Pixel*aa_fuzz_width);
+				auto &vertex = _cache->getAADistStrokeTriangle(paths[i]->path, _phy2Pixel*aa_dist_width);
 				drawColorCmd(vertex, c2);
 			}
 		}
@@ -571,7 +571,7 @@ namespace qk {
 				Qk_ASSERT(path.path.isNormalized());
 				self->fillv(path, paint, paint.fill);
 				if (aa) {
-					self->drawAAFuzzStroke(path.path, paint, paint.fill, aa_fuzz_weight, aa_fuzz_width);
+					self->drawAADistStroke(path.path, paint, paint.fill, aa_dist_weight, aa_dist_width);
 				}
 				self->zDepthNext();
 			}

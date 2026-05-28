@@ -12,7 +12,7 @@ void main() {
 	float alpha = smoothstep(1.2 + stroke, stroke, dist);
 
 	fragColor = mix(pc.color, pc.strokeColor, dist);
-	fragColor *= alpha * (1.0 - abs(aafuzz)); // premultiplied alpha
+	fragColor *= alpha * (1.0 - abs(aadist)); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

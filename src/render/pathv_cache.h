@@ -122,9 +122,9 @@ namespace qk
 		const VertexData& getPathTriangles(const Path &path);
 
 		/**
-		 * @dev get aa fuzz stroke path triangle cache
+		 * @dev get aa dist stroke path triangle cache
 		*/
-		const VertexData& getAAFuzzStrokeTriangle(const Path &path, float width);
+		const VertexData& getAADistStrokeTriangle(const Path &path, float width);
 
 		/**
 		 * @dev get radius rect path cache from hash code
@@ -203,7 +203,7 @@ namespace qk
 		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Wrap<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles
+		Dict<uint64_t, Wrap<VertexData>*> _AADistStrokeTriangleCache; // path hash => aa dist stroke triangles
 		Dict<uint64_t, Wrap<RectPath>*> _RectPathCache; // rect hash => rect path
 		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
 

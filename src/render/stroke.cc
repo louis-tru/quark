@@ -185,7 +185,7 @@ namespace qk {
 	 * @method getSDFStrokeTriangleStrip() returns sdf stroke triangle vertices
 	 * @return {Array<Vec3>} points { x, y, sdf value renge 0.5 to -0.5 }[]
 	*/
-	VertexData Path::getAAFuzzStrokeTriangle(float width, float epsilon) const {
+	VertexData Path::getAADistStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		VertexData out{0};

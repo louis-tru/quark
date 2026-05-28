@@ -215,7 +215,7 @@ export declare class Path {
 	 * @param epsilon Approximation tolerance (default = 1.0).
 	 * @returns Array of Vec3 triangles for fuzzy stroke rendering.
 	 */
-	getAAFuzzStrokeTriangle(width: number, epsilon?: number): Vec3[];
+	getAADistStrokeTriangle(width: number, epsilon?: number): Vec3[];
 
 	/**
 	 * Convert the path into a dashed path.

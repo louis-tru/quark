@@ -41,7 +41,7 @@
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 
 namespace qk {
-	extern const float aa_fuzz_weight;
+	extern const float aa_dist_weight;
 	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void gl_set_blend_mode(BlendMode mode);
@@ -578,15 +578,15 @@ namespace qk {
 				Vec4 surface = {-begin.x(), -begin.y(), scale, scale};
 				// Difference clip cannot directly render solid black with AA,
 				// otherwise edge blending becomes incorrect.
-				// Instead, invert the aafuzz alpha curve:
-				//   normal:   alpha = 1 - abs(aafuzz)
-				//   inverted: alpha = abs(aafuzz)
+				// Instead, invert the aadist alpha curve:
+				//   normal:   alpha = 1 - abs(aadist)
+				//   inverted: alpha = abs(aadist)
 				// This produces a smooth subtractive mask edge.
-				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AAFUZZ_Inverted
+				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AADIST_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
 				drawColor(cmd->vertex, {1,1,1,1}, surface, depth, flags);
-				if (cmd->aafuzz.vCount) { // draw aa fuzz if have
-					drawColor(cmd->aafuzz, {1,1,1,1}, surface, depth, flags);
+				if (cmd->aadist.vCount) { // draw aa dist if have
+					drawColor(cmd->aadist, {1,1,1,1}, surface, depth, flags);
 				}
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
@@ -1216,12 +1216,12 @@ namespace qk {
 		cmd->paint.positions = positions;
 	}
 
-	void GLC_CmdPack::drawClip(const VertexData &vertex, const VertexData &aafuzz,
+	void GLC_CmdPack::drawClip(const VertexData &vertex, const VertexData &aadist,
 			GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp) {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
 		cmd->vertex = vertex;
-		cmd->aafuzz = aafuzz;
+		cmd->aadist = aadist;
 		cmd->lastClip = lastClip; // last clip state
 		cmd->clip = clip;
 		cmd->rawOp = rawOp;

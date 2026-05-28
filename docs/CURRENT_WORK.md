@@ -10,7 +10,7 @@ The current major thread is GPU rendering quality after the GL/Metal backend ali
 - GL backend behavior lives in `src/render/gl/gl_canvas.*` and `src/render/gl/gl_command.*`.
 - Metal backend behavior lives in `src/render/metal/mtl_canvas.*` and `src/render/metal/mtl_render.*`.
 - GL is usually the behavior reference; Metal should match semantics without copying GL state-machine habits blindly.
-- The next exploratory theme is replacing or improving the current directionless `AAfuzz` system with a GPU-only directional edge AA path. Detailed notes live in `docs/GPU_2D_ANTIALIASING.md`.
+- The next exploratory theme is replacing or improving the current directionless `AADist` system with a GPU-only directional edge AA path. Detailed notes live in `docs/GPU_2D_ANTIALIASING.md`.
 
 ## Recent Local State Observed
 
@@ -53,7 +53,7 @@ macOS live-resize note:
 AA direction discussed:
 
 - Do not pursue software AA / CPU coverage rasterization as the primary route. Quark should keep AA GPU-oriented.
-- The promising direction is to improve `AAfuzz` into a GPU-only directional edge AA system, tentatively "EdgeAA".
+- The promising direction is to improve `AADist` into a GPU-only directional edge AA system, tentatively "EdgeAA".
 - See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, body-over-edge depth ordering, and hard cases.
 
 ## Important Cautions
@@ -70,7 +70,7 @@ AA direction discussed:
 ## Suggested Next Render Tasks
 
 - Add visual regression coverage for Metal clipping, blur, readback, and output-image behavior against the GL reference output.
-- Audit existing `AAfuzz` generation and shader consumption in GL/Metal before changing behavior.
+- Audit existing `AADist` generation and shader consumption in GL/Metal before changing behavior.
 - Prototype GPU-only directional edge AA for simple straight-edge polygons, using shader-side `fwidth` coverage and body-over-edge depth ordering.
 - Add or refresh small render regression demos if the project has an existing lightweight path for them.
 

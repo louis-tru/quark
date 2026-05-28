@@ -76,7 +76,7 @@ namespace qk {
 		// no need to set blend mode for Metal, it will be set in pipeline state when encoding draw calls
 	}
 
-	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aafuzz,
+	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aadist,
 			GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
 		auto begin = clip->range.begin,
 				 end = clip->range.end, size = end - begin;
@@ -96,15 +96,15 @@ namespace qk {
 			Vec4 surface = {-begin.x(), -begin.y(), scale, scale};
 			// Difference clip cannot directly render solid black with AA,
 			// otherwise edge blending becomes incorrect.
-			// Instead, invert the aafuzz alpha curve:
-			//   normal:   alpha = 1 - abs(aafuzz)
-			//   inverted: alpha = abs(aafuzz)
+			// Instead, invert the aadist alpha curve:
+			//   normal:   alpha = 1 - abs(aadist)
+			//   inverted: alpha = abs(aadist)
 			// This produces a smooth subtractive mask edge.
-			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AAFUZZ_Inverted
+			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AADIST_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
 			drawColor(vertex, {1,1,1,1}, surface, depth, flags);
-			if (aafuzz.vCount) { // draw aa fuzz if have
-				drawColor(aafuzz, {1,1,1,1}, surface, depth, flags);
+			if (aadist.vCount) { // draw aa dist if have
+				drawColor(aadist, {1,1,1,1}, surface, depth, flags);
 			}
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {

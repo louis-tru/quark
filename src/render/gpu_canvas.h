@@ -158,7 +158,7 @@ namespace qk {
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
-		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aafuzz,
+		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aadist,
 				GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
 		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
