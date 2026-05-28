@@ -9,7 +9,7 @@ Qk_CONSTANT(
 layout(location=1) out vec2 position;
 
 void main() {
-	aadist = aadistIn;
+	aaSide = aaSideIn;
 	position = vertexIn.xy;
 	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
 }
@@ -52,7 +52,7 @@ void main() {
 		fragColor = mix(colors[s], colors[e], w);
 	}
 	fragColor *= pc.color;
-	fragColor *= 1.0 - abs(aadist); // premultiplied alpha
+	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

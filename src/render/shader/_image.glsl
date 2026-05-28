@@ -3,7 +3,6 @@
 	vec4  texCoords; /*offset,scale*/\
 	vec4  color; /* color */\
 	block \
-	float allScale; /* surface scale * view matrix scale*/\
 )
 
 _CONSTANT_IMAGE(Qk_CONSTANT_Fields);
@@ -15,10 +14,9 @@ void main() {
 	vec4 pos = (vMat.value * vec4(vertexIn.xy, pc.depth, 1.0));
 	// fix draw image tearing with round function
 	// Align the image pixels exactly onto the drawing surface
-	//gl_Position = rMat.value * vec4(round(pos.xy * pd.allScale) / pd.allScale, pos.zw);
-	gl_Position = rMat.value * vec4(pos.xy, pos.zw);
+		gl_Position = rMat.value * vec4(pos.xy, pos.zw);
 
-	aadist = aadistIn;
+	aaSide = aaSideIn;
 	// Qk uses screen-space coordinates internally.
 	// Intermediate render targets keep the same memory orientation as uploaded images.
 	// Do not flip Y here; backend-specific Y correction is applied only at final present.

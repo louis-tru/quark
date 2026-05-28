@@ -41,7 +41,7 @@
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 
 namespace qk {
-	extern const float aa_dist_weight;
+	extern const float aa_side_weight;
 	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void gl_set_blend_mode(BlendMode mode);
@@ -479,7 +479,6 @@ namespace qk {
 						glUniform1i(yuv->pc_format, 0); // yuv420sp
 					}
 					glUniform1f(yuv->pc_depth, cmd->depth);
-					glUniform1f(yuv->pc_allScale, cmd->allScale);
 					glUniform4fv(yuv->pc_color, 1, cmd->color.val);
 					glUniform4fv(yuv->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(yuv->pc_flags, Qk_CLIP(cmd->isClip));
@@ -487,7 +486,6 @@ namespace qk {
 					auto s = &_render->_shaders.image;
 					useShaderProgram(s, cmd->vertex);
 					glUniform1f(s->pc_depth, cmd->depth);
-					glUniform1f(s->pc_allScale, cmd->allScale);
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
@@ -504,7 +502,6 @@ namespace qk {
 				glUniform1f(s->pc_depth, cmd->depth);
 				glUniform1i(s->pc_alphaIndex, type == kAlpha_8_ColorType ? 0 :
 						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
-				glUniform1f(s->pc_allScale, cmd->allScale);
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
 				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
 				glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
@@ -574,19 +571,19 @@ namespace qk {
 
 			auto drawClip = [&](bool black, bool clip) {
 				depth += zDepthNextUnit;
-				auto scale = 1 / cmd->surfaceScale;
-				Vec4 surface = {-begin.x(), -begin.y(), scale, scale};
+				auto scale = Vec2(1) / cmd->surfaceScale;
+				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
 				// otherwise edge blending becomes incorrect.
-				// Instead, invert the aadist alpha curve:
-				//   normal:   alpha = 1 - abs(aadist)
-				//   inverted: alpha = abs(aadist)
+				// Instead, invert the aaSide alpha curve:
+				//   normal:   alpha = 1 - abs(aaSide)
+				//   inverted: alpha = abs(aaSide)
 				// This produces a smooth subtractive mask edge.
-				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AADIST_Inverted
+				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
 				drawColor(cmd->vertex, {1,1,1,1}, surface, depth, flags);
-				if (cmd->aadist.vCount) { // draw aa dist if have
-					drawColor(cmd->aadist, {1,1,1,1}, surface, depth, flags);
+				if (cmd->aaSide.vCount) { // draw aa side if have
+					drawColor(cmd->aaSide, {1,1,1,1}, surface, depth, flags);
 				}
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
@@ -1138,7 +1135,6 @@ namespace qk {
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
-		cmd->allScale = _canvas->_allScale;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1150,7 +1146,6 @@ namespace qk {
 		cmd->type = kImageMask_CmdType;
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
-		cmd->allScale = _canvas->_allScale;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1163,7 +1158,6 @@ namespace qk {
 		cmd->type = kSDFImageMask_CmdType;
 		cmd->vertex = vertex;
 		cmd->depth = _canvas->_zDepth;
-		cmd->allScale = _canvas->_allScale;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		cmd->strokeColor = premul_alpha(strokeColor);
@@ -1216,12 +1210,12 @@ namespace qk {
 		cmd->paint.positions = positions;
 	}
 
-	void GLC_CmdPack::drawClip(const VertexData &vertex, const VertexData &aadist,
+	void GLC_CmdPack::drawClip(const VertexData &vertex, const VertexData &aaSide,
 			GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp) {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
 		cmd->vertex = vertex;
-		cmd->aadist = aadist;
+		cmd->aaSide = aaSide;
 		cmd->lastClip = lastClip; // last clip state
 		cmd->clip = clip;
 		cmd->rawOp = rawOp;
@@ -1255,7 +1249,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->radius = radius;
 		cmd->clearPad = clearPad;
-		cmd->surfaceScale = _canvas->_allScale;
+		cmd->surfaceScale = _canvas->_surfaceScaleAverage;
 		cmd->surfaceSize = _canvas->_surfaceSize;
 		cmd->recover = _canvas->_state->output;
 		cmd->recoverMode = _canvas->_blendMode;

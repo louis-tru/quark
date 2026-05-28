@@ -64,10 +64,10 @@ namespace qk {
 		return false;
 	}
 
-	void Canvas::setSurface(Vec2 surfaceSize, float scale) {
-		auto size = surfaceSize / scale;
+	void Canvas::setSurface(Vec2 surfaceSize, float surfaceScale) {
+		auto size = surfaceSize / surfaceScale;
 		auto root = Mat4::ortho(0, size.x(), 0, size.y(), 0.0f, 1.0f);
-		setSurface(root, surfaceSize, scale);
+		setSurface(root, surfaceSize, surfaceScale);
 	}
 
 	// ---------------------------------------------------------------------

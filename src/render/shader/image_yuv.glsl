@@ -18,7 +18,7 @@ void main() {
 	fragColor = vec4(	y + 1.4075 * (v - 0.5),
 										y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),
 										y + 1.779  * (u - 0.5), 1.0) * pc.color;
-	fragColor *= 1.0 - abs(aadist); // premultiplied alpha
+	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

@@ -76,7 +76,7 @@ namespace qk {
 		// no need to set blend mode for Metal, it will be set in pipeline state when encoding draw calls
 	}
 
-	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aadist,
+	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
 			GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
 		auto begin = clip->range.begin,
 				 end = clip->range.end, size = end - begin;
@@ -92,19 +92,19 @@ namespace qk {
 
 		auto drawClip = [&](bool black, bool clip) {
 			depth += zDepthNextUnit;
-			auto scale = 1 / _surfaceScale;
-			Vec4 surface = {-begin.x(), -begin.y(), scale, scale};
+			auto scale = Vec2(1) / _surfaceScale;
+			Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 			// Difference clip cannot directly render solid black with AA,
 			// otherwise edge blending becomes incorrect.
-			// Instead, invert the aadist alpha curve:
-			//   normal:   alpha = 1 - abs(aadist)
-			//   inverted: alpha = abs(aadist)
+			// Instead, invert the aaSide alpha curve:
+			//   normal:   alpha = 1 - abs(aaSide)
+			//   inverted: alpha = abs(aaSide)
 			// This produces a smooth subtractive mask edge.
-			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AADIST_Inverted
+			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
 			drawColor(vertex, {1,1,1,1}, surface, depth, flags);
-			if (aadist.vCount) { // draw aa dist if have
-				drawColor(aadist, {1,1,1,1}, surface, depth, flags);
+			if (aaSide.vCount) { // draw aa side if have
+				drawColor(aaSide, {1,1,1,1}, surface, depth, flags);
 			}
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {
@@ -262,7 +262,6 @@ namespace qk {
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
 				format,
-				_allScale,
 				_zDepth,
 				Qk_CLIP(_clipState)
 			};
@@ -275,7 +274,6 @@ namespace qk {
 			MSLImage::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				_allScale,
 				_zDepth,
 				Qk_CLIP(_clipState)
 			};
@@ -295,7 +293,6 @@ namespace qk {
 			*((Vec4*)paint->coord.begin.val),
 			premul_alpha(color),
 			type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3,
-			_allScale,
 			_zDepth,
 			Qk_CLIP(_clipState)
 		};
@@ -315,7 +312,6 @@ namespace qk {
 			premul_alpha(color),
 			premul_alpha(strokeColor),
 			stroke,
-			_allScale,
 			_zDepth,
 			Qk_CLIP(_clipState)
 		};
@@ -461,7 +457,7 @@ namespace qk {
 		auto begin = bounds.begin, end = bounds.end;
 		float x1 = begin.x() - offset.x(), y1 = begin.y() - offset.y(),
 					x2 = end.x() - offset.x(), y2 = end.y() - offset.y();
-		float radius2 = radius * _surfaceScale; // radius in pixel unit
+		float radius2 = radius * _surfaceScaleAverage; // radius in pixel unit
 		Vec2 iR = tmpA->size(); // input resolution
 		int oRw = iR.x(), oRh = iR.y();
 		float depth = _zDepth;

@@ -318,14 +318,14 @@ namespace qk {
 		 * ⚠️ Not thread-safe — must be called from the same thread as draw operations,
 		 * or guarded by external synchronization.
 		 */
-		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) = 0;
+		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) = 0;
 
 		/** Simplified overload of setSurface(). */
-		void setSurface(Vec2 surfaceSize, float scale = 1);
+		void setSurface(Vec2 surfaceSize, float surfaceScale = 1);
 
 		/**
 		 * Returns the drawable surface size in pixels.
-		 * size = surfaceSize / scale (as set by setSurface())
+		 * size = surfaceSize / surfaceScale (as set by setSurface())
 		 */
 		virtual Vec2 size() = 0;
 

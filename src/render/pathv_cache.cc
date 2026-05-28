@@ -102,18 +102,18 @@ namespace qk {
 		return _PathTrianglesCache.set(hash, gb)->base;
 	}
 
-	const VertexData& PathvCache::getAADistStrokeTriangle(const Path &path, float width) {
+	const VertexData& PathvCache::getAASideStrokeTriangle(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash = (hash << 5) + (int32_t&)width;
-		//Qk_DLog("getAADistTriangle, %lu", hash);
+		//Qk_DLog("getAASideTriangle, %lu", hash);
 		Wrap<VertexData> *const *out;
-		if (_AADistStrokeTriangleCache.get(hash, out))
+		if (_AASideStrokeTriangleCache.get(hash, out))
 			return (*out)->base;
-		auto gb = new Wrap<VertexData>{path.getAADistStrokeTriangle(width, 1),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getAASideStrokeTriangle(width, 1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
-		return _AADistStrokeTriangleCache.set(hash, gb)->base;
+		return _AASideStrokeTriangleCache.set(hash, gb)->base;
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
@@ -260,7 +260,7 @@ namespace qk {
 			for (auto &i: _PathTrianglesCache) {
 				delete i.second;
 			}
-			for (auto &i: _AADistStrokeTriangleCache) {
+			for (auto &i: _AASideStrokeTriangleCache) {
 				delete i.second;
 			}
 			for (auto &i: _RectPathCache) {
@@ -270,14 +270,14 @@ namespace qk {
 				delete i.second;
 			}
 			_PathTrianglesCache.clear();
-			_AADistStrokeTriangleCache.clear();
+			_AASideStrokeTriangleCache.clear();
 			_RectPathCache.clear();
 			_RectOutlinePathCache.clear();
 			return; // No render backend, skip GPU resource deletion
 		}
 
 		auto a0 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_PathTrianglesCache));
-		auto a1 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_AADistStrokeTriangleCache));
+		auto a1 = new Dict<uint64_t, Wrap<VertexData>*>(std::move(_AASideStrokeTriangleCache));
 		auto b = new Dict<uint64_t, Wrap<RectPath>*>(std::move(_RectPathCache));
 		auto c = new Dict<uint64_t, Wrap<RectOutlinePath,4>*>(std::move(_RectOutlinePathCache));
 
@@ -327,7 +327,7 @@ namespace qk {
 		Qk_CHECK(_NormalizedPathCache.length() == 0);
 		Qk_CHECK(_StrokePathCache.length() == 0);
 		Qk_CHECK(_PathTrianglesCache.length() == 0);
-		Qk_CHECK(_AADistStrokeTriangleCache.length() == 0);
+		Qk_CHECK(_AASideStrokeTriangleCache.length() == 0);
 		Qk_CHECK(_RectPathCache.length() == 0);
 		Qk_CHECK(_RectOutlinePathCache.length() == 0);
 	}

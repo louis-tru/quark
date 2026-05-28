@@ -15,21 +15,21 @@ After the Metal and Vulkan backends become stable, antialiasing quality should b
 
 ## Current Approach
 
-The current GPU path uses an `aadist` style method for many vector edges:
+The current GPU path uses an `aaSide` style method for many vector edges:
 
 - Geometry is drawn normally for the solid interior.
 - An extra soft band is generated around the path edge.
 - The soft band behaves somewhat like a simple SDF-like expansion.
-- Fragment alpha is reduced across this AA distance band to hide jagged edges.
+- Fragment alpha is reduced across this AA edge band to hide jagged edges.
 - It does not precisely compute the true coverage/opacity of every affected pixel.
-- The data is currently still a `Vec3` triplet: `{x, y, aadist}`. The current
-  research direction is to improve the meaning of `aadist`, not to add more
+- The data is currently still a `Vec3` triplet: `{x, y, aaSide}`. The current
+  research direction is to improve the meaning of `aaSide`, not to add more
   vertex attributes.
 
 Relevant areas:
 
 - `src/render/gpu_canvas.*`: shared path draw/fill/stroke behavior and `_phy2Pixel` scale handling.
-- `src/render/pathv_cache.*`: cached path triangles and AA dist stroke geometry.
+- `src/render/pathv_cache.*`: cached path triangles and AA side stroke geometry.
 - `src/render/shader/_util.glsl`: shared AA clip and fragment helpers.
 - `src/render/shader/color*.glsl`, `image*.glsl`, `triangles.glsl`: fragment paths that consume AA-related fields.
 - `src/render/gl/gl_command.*`: current GL behavior reference.
@@ -63,24 +63,24 @@ Important constraints from the current renderer:
   whose centers lie just outside those triangles will not run the fragment
   shader. Any mask-based path renderer would need to draw conservative expanded
   bounds, not just reuse the body triangles.
-- The old `aadist` behavior is still too close to a heuristic alpha ramp. The
-  next version should give `aadist` a signed-distance meaning so the shader can
+- The old `aaSide` behavior is still too close to a heuristic alpha ramp. The
+  next version should make `aaSide` a signed edge coordinate so the shader can
   distinguish inside, edge, and outside without adding new vertex fields.
 
-This points toward a GPU signed-distance edge-AA system rather than a software
-mask rasterizer.
+This points toward a GPU signed-side edge-AA system rather than a software mask
+rasterizer.
 
 Current naming and data contract:
 
-- `aadist < 0`: inside the shape.
-- `aadist = 0`: the true geometric edge.
-- `aadist > 0`: outside the shape.
-- The existing triplet `{x, y, aadist}` should remain the primary vertex format
+- `aaSide < 0`: inside the shape.
+- `aaSide = 0`: the true geometric edge.
+- `aaSide > 0`: outside the shape.
+- The existing triplet `{x, y, aaSide}` should remain the primary vertex format
   while prototyping. Avoid expanding the vertex layout unless the simple model
   fails for a concrete case.
-- Fragment shaders should derive the local 1-pixel distance using
-  `fwidth(aadist)` and convert signed distance to coverage with a calibrated
-  smooth/clamp function.
+- Fragment shaders should derive the local 1-pixel transition width using
+  `fwidth(aaSide)` and convert the signed side coordinate to coverage with a
+  calibrated smooth/clamp function.
 
 ## Design Goals
 
@@ -119,7 +119,7 @@ Keep the current extra-band approach but compute a better alpha ramp.
 Possible improvements:
 
 - Generate edge distance or normalized coverage parameters in vertices.
-- Calibrate the ramp using `_allScale` / `_phy2Pixel`.
+- Calibrate the ramp using `_allScaleAverage` / `_allScaleMin` / `_phy2Pixel`.
 - Treat per-pixel coverage explicitly rather than assuming a generic soft band.
 - Improve corner and join handling.
 
@@ -133,26 +133,26 @@ Risks:
 - Still heuristic unless coverage is derived from geometry/pixel overlap.
 - May struggle with extreme transforms or very small shapes.
 
-### Signed AADist Edge AA
+### Signed AASide Edge AA
 
-This is the most promising replacement for the current heuristic `aadist` path.
+This is the most promising replacement for the current heuristic `aaSide` path.
 
 The CPU would generate conservative edge coverage geometry, but not final
 per-pixel coverage. The important point is that the existing interpolated
-`aadist` value should become a signed distance-like parameter:
+`aaSide` value should become a signed edge-side coordinate:
 
-- The edge itself has `aadist = 0`.
-- Inner expanded vertices carry negative `aadist`.
-- Outer expanded vertices carry positive `aadist`.
+- The edge itself has `aaSide = 0`.
+- Inner expanded vertices carry negative `aaSide`.
+- Outer expanded vertices carry positive `aaSide`.
 - For straight edges, interpolation of this value across the band is enough for
-  the shader to estimate signed edge distance.
+  the shader to locate the true edge at `aaSide = 0`.
 
 The fragment shader then computes coverage from the directed edge:
 
-- Use shader derivatives such as `fwidth(aadist)`, `dfdx`, and `dfdy` to derive
+- Use shader derivatives such as `fwidth(aaSide)`, `dfdx`, and `dfdy` to derive
   the current device-pixel AA width instead of relying only on CPU-computed
-  aadist width.
-- Convert distance to alpha coverage with a calibrated ramp.
+  edge-band width.
+- Convert the signed side coordinate to alpha coverage with a calibrated ramp.
 - Keep premultiplied-alpha behavior explicit and consistent across GL, Metal,
   and Vulkan.
 
@@ -162,7 +162,7 @@ The intended draw order becomes:
 2. Draw the solid body afterward.
 3. Use depth so the body covers the inner half of the AA band.
 
-This is different from the old `aadist` model. The sign of `aadist` matters
+This is different from the old `aaSide` model. The sign of `aaSide` matters
 because the edge pass needs to know which side is inside and which side is
 outside, even though that sign can still be carried by the existing third vertex
 component.
@@ -173,7 +173,7 @@ Benefits:
 - Avoids CPU rasterization of every affected edge pixel.
 - Allows AA width to respond naturally to transforms through shader
   derivatives.
-- Reuses the existing `{x, y, aadist}` vertex format while making the coverage
+- Reuses the existing `{x, y, aaSide}` vertex format while making the coverage
   calculation more geometric and deterministic.
 
 Risks:
@@ -243,7 +243,7 @@ Useful checks:
 - Keep shared AA policy in `GPUCanvas` or path/cache code when possible.
 - Backend shaders should receive explicit coverage/AA parameters rather than inferring magic constants.
 - Avoid backend-specific fixes that make GL, Metal, and Vulkan diverge.
-- Be careful with `_surfaceScale`, `_scale`, `_allScale`, and `_phy2Pixel`; these decide how logical units map to physical pixels.
+- Be careful with `_surfaceScale`, `_scale`, `_allScaleAverage`, `_allScaleMin`, and `_phy2Pixel`; these decide how logical units map to physical pixels.
 - If changing fragment alpha, verify premultiplied-alpha blending and image/mask paths together.
 - Clip AA and path AA should be considered together; mismatched edge behavior is very visible in GUI scenes.
 
@@ -258,4 +258,4 @@ Useful checks:
 
 ## Current Priority
 
-This is intentionally parked until the Metal and Vulkan backends are stable enough to compare behavior. The next serious AA pass should be treated as a major quality project, not a small tweak to `aadist`.
+This is intentionally parked until the Metal and Vulkan backends are stable enough to compare behavior. The next serious AA pass should be treated as a major quality project, not a small tweak to `aaSide`.

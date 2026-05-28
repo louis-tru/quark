@@ -7,7 +7,7 @@
 void main() {
 	fragColor = texture(image, coords) * pc.color;
 
-	fragColor *= 1.0 - abs(aadist); // premultiplied alpha
+	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

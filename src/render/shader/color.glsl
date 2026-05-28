@@ -6,34 +6,34 @@ Qk_CONSTANT(
 #vert
 void main() {
 	// gl_InstanceID, gl_VertexID
-	aadist = aadistIn;
+	aaSide = aaSideIn;
 	vec4 pos = vMat.value * vec4(vertexIn.xy, pc.depth, 1.0);
 	pos.xy += pc.surfaceOffset.xy * pc.surfaceOffset.zw; // apply surface offset
 	gl_Position = rMat.value * pos;
 }
 
 #frag
-#define Qk_FLAG_AADIST_Inverted (1u << 2)
+#define Qk_FLAG_AASIDE_Inverted (1u << 2)
 
 void main() {
 	fragColor = pc.color;
 
-	if ((pc.flags & Qk_FLAG_AADIST_Inverted) != 0) {
-		// Inverted AA dist coverage.
+	if ((pc.flags & Qk_FLAG_AASIDE_Inverted) != 0) {
+		// Inverted AA side coverage.
 		//
-		// Normal AA dist:
-		//   alpha = 1 - abs(aadist)
+		// Normal AA side:
+		//   alpha = 1 - abs(aaSide)
 		//
 		// Inverted mode:
-		//   alpha = abs(aadist)
+		//   alpha = abs(aaSide)
 		//
 		// Used by subtractive/difference clip masks to produce
 		// smooth anti-aliased mask edges without directly drawing
 		// solid black coverage.
-		fragColor *= abs(aadist);
+		fragColor *= abs(aaSide);
 	} else {
-		// aadist value range: 1 => 0, alpha range: 0 => 1
-		fragColor *= (1.0 - abs(aadist)); // premultiplied alpha
+		// aaSide value range: 1 => 0, alpha range: 0 => 1
+		fragColor *= (1.0 - abs(aaSide)); // premultiplied alpha
 	}
 
 	Qk_CLIP_(clipStat.range.xy - pc.surfaceOffset.xy); // apply clip mask if needed

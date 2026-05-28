@@ -41,14 +41,14 @@ namespace qk {
 	extern const Range ZeroRange;
 #if isMoreSofterAA
 	// Softer:
-	//extern const float  aa_dist_weight = 0.9; // softer
-	//extern const float  aa_dist_width = 0.6;
-	extern const float  aa_dist_weight = 0.9; // medium
-	extern const float  aa_dist_width = 0.55;
+	//extern const float  aa_side_weight = 0.9; // softer
+	//extern const float  aa_side_width = 0.6;
+	extern const float  aa_side_weight = 0.9; // medium
+	extern const float  aa_side_width = 0.55;
 #else
 	// More radical:
-	extern const float  aa_dist_weight = 1; // more radical, hard
-	extern const float  aa_dist_width = 0.5;
+	extern const float  aa_side_weight = 1; // more radical, hard
+	extern const float  aa_side_width = 0.5;
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 
@@ -75,13 +75,23 @@ namespace qk {
 		}
 
 		void computeScale(const Mat& mat) {
-			// is translation only matrix
-			auto scale = mat.is_translation_matrix() ? 1.0f:
-				mat.mul_vec2_no_translate(1.0f).length() * (1.0f / Qk_SQRT_2);
-			if (_scale != scale) {
-				_scale = scale;
-				_allScale = _surfaceScale * scale;
-				_phy2Pixel = 2.0f / _allScale;
+			if (mat.is_translation_matrix()) { // is translation matrix only
+				if (_scale != Vec2(1.0f)) {
+					_scale = 1.0f;
+					_scaleAverage = 1.0f;
+					_allScaleAverage = _surfaceScaleAverage;
+					_allScaleMin = _surfaceScaleAverage;
+					_phy2Pixel = 2.0f / _allScaleMin;
+				}
+			} else {
+				Vec2 scale(Vec2(mat[0], mat[3]).length(), Vec2(mat[1], mat[4]).length());
+				if (_scale != scale) {
+					_scale = scale;
+					_scaleAverage = sqrtf(scale.x() * scale.y());
+					_allScaleAverage = _surfaceScaleAverage * _scaleAverage;
+					_allScaleMin = _surfaceScaleAverage * Float32::min(scale.x(), scale.y());
+					_phy2Pixel = 2.0f / _allScaleMin;
+				}
 			}
 		}
 
@@ -99,7 +109,7 @@ namespace qk {
 				Qk_DLog("Invalid ClipOp: %d, expected kIntersect_ClipOp, kDifference_ClipOp, or kReplace_ClipOp", rawOp);
 				return;
 			}
-			const float pad = _surfaceScale; // 1 pixel pad for anti-aliasing
+			const Vec2 pad = _surfaceScale; // 1 pixel pad for anti-aliasing
 			auto clip = new GC_State::Clip;
 			auto range = path.getBounds(&_state->matrix);
 			auto lastClip = _clipState;
@@ -115,8 +125,8 @@ namespace qk {
 			// last clip state range, default as surface size
 			auto lastRange = lastClip ? lastClip->range : Range{{0},_surfaceSize};
 			// apply surface scale and padding
-			range.begin = (range.begin * Vec2(_surfaceScale) - Vec2(pad)).floor();
-			range.end = (range.end * Vec2(_surfaceScale) + Vec2(pad)).ceil();
+			range.begin = (range.begin * _surfaceScale - pad).floor();
+			range.end = (range.end * _surfaceScale + pad).ceil();
 			// rawOp: requested operation for this clip command.
 			// clip->op: how the resulting mask should be interpreted by fragment shader.
 			clip->op = rawOp;
@@ -153,7 +163,7 @@ namespace qk {
 			// adjust range to actual allocated texture size
 			clip->range.end = clip->range.begin + clip->mask->size();
 			if (antiAlias && !_DeviceMsaa) {
-				drawClipCmd(vertex, _cache->getAADistStrokeTriangle(path,_phy2Pixel*aa_dist_width), lastClip, clip, rawOp);
+				drawClipCmd(vertex, _cache->getAASideStrokeTriangle(path,_phy2Pixel*aa_side_width), lastClip, clip, rawOp);
 			} else {
 				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
 			}
@@ -168,7 +178,7 @@ namespace qk {
 			if (vertex.vCount) {
 				fillv(vertex, paint, style);
 				if (aa) {
-					drawAADistStroke(path, paint, style, aa_dist_weight, aa_dist_width);
+					drawAASideStroke(path, paint, style, aa_side_weight, aa_side_width);
 				}
 			}
 			zDepthNext();
@@ -199,7 +209,7 @@ namespace qk {
 				} else {
 					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					drawAADistStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
+					drawAASideStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
 					zDepthNext();
 				}
 			} else {
@@ -207,18 +217,16 @@ namespace qk {
 			}
 		}
 
-		void drawAADistStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaDistWeight, float aaDistWidth) {
-			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
-			// _phy2Pixel*0.6=1.2/_Scale, 2.4px
-			auto &vertex = _cache->getAADistStrokeTriangle(path, _phy2Pixel*aaDistWidth);
+		void drawAASideStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWeight, float aaSideWidth) {
+			auto &vertex = _cache->getAASideStrokeTriangle(path, _phy2Pixel*aaSideWidth);
 			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color.mul_alpha_only(aaDistWeight));
+				drawImageCmd(vertex, style.image, style.color.mul_alpha_only(aaSideWeight));
 			} else if (style.gradient) {
-				drawGradientCmd(vertex, style.gradient, style.color.mul_alpha_only(aaDistWeight));
+				drawGradientCmd(vertex, style.gradient, style.color.mul_alpha_only(aaSideWeight));
 			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color.mul_alpha_only(aaDistWeight));
+				drawImageMaskCmd(vertex, paint.mask, style.color.mul_alpha_only(aaSideWeight));
 			} else {
-				drawColorCmd(vertex, style.color.mul_alpha_only(aaDistWeight));
+				drawColorCmd(vertex, style.color.mul_alpha_only(aaSideWeight));
 			}
 		}
 
@@ -257,7 +265,7 @@ namespace qk {
 			constexpr int maxN = 13; // 13 samples is enough for 99% blur effect,
 			// and more samples will cause performance loss
 			const int N[] = { 3,3,3,3,5,5,7,7,9,9,11,11,13,13,15,15,17,17,19,19 };
-			radius *= _host->_surfaceScale;
+			radius *= _host->_allScaleAverage;
 			float diameter = radius * 2.0f;
 			int sample = ceilf(diameter); // sampling rate is diameter
 			sample = N[Qk_Min(sample,maxN)]; // sample count for blur filter
@@ -282,15 +290,15 @@ namespace qk {
 
 	private:
 		void begin(const Paint &paint) {
-			_radius *= _host->_scale; // * logical scale
+			_radius *= _host->_scaleAverage; // * logical scale
 			_sample = getBlurSampling(_radius, _imageLod);
 			if (paint.style != Paint::kFill_Style && paint.strokeWidth) {
 				// add padding for stroke width, to avoid stroke being cut by blur edge
-				auto halfStroke = paint.strokeWidth * _host->_scale * 0.5f;
+				auto halfStroke = paint.strokeWidth * _host->_scaleAverage * 0.5f;
 				_bounds.begin -= Vec2(halfStroke, halfStroke);
 				_bounds.end += Vec2(halfStroke, halfStroke);
 			}
-			_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScale;
+			_clearPad = ((1 << _imageLod) + 1.0f) / _host->_allScaleAverage;
 			// add padding for blur radius and clear pad
 			auto padding = _clearPad + _radius + _radius;
 			// expand bounds by padding for blur filter,
@@ -333,7 +341,7 @@ namespace qk {
 		}
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
-				if (host->_allScale * paint.filter->val0 >= 0.5f) { // limit min blur radius to 0.5 pixel
+				if (host->_allScaleAverage * paint.filter->val0 >= 0.5f) { // limit min blur radius to 0.5 pixel
 					return new GC_BlurFilter(host, paint, args...);
 				}
 				break;
@@ -344,9 +352,12 @@ namespace qk {
 
 	GPUCanvas::GPUCanvas(Render *render, Render::Options opts)
 		: _state(nullptr), _cache(nullptr), _render(render)
+		, _surfaceSize(), _surfaceScale(1)
+		, _size(), _scale(1)
+		, _surfaceScaleAverage(1), _scaleAverage(1), _allScaleAverage(1)
+		, _allScaleMin(1)
+		, _phy2Pixel(1)
 		, _zDepth(0)
-		, _surfaceScale(1), _scale(1), _allScale(1), _phy2Pixel(1)
-		, _size(), _surfaceSize()
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
 		, _DeviceMsaa(0)
@@ -513,8 +524,8 @@ namespace qk {
 		_this->setBlendMode(mode); // switch blend mode
 		drawColorCmd(path, color);
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAADistStrokeTriangle(path.path, _phy2Pixel*aa_dist_width);
-			drawColorCmd(vertex, color.mul_alpha_only(aa_dist_weight));
+			auto &vertex = _cache->getAASideStrokeTriangle(path.path, _phy2Pixel*aa_side_width);
+			drawColorCmd(vertex, color.mul_alpha_only(aa_side_weight));
 		}
 		_this->zDepthNext();
 	}
@@ -527,9 +538,9 @@ namespace qk {
 			drawColorCmd(*paths[i], color);
 		}
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto c2 = color.mul_alpha_only(aa_dist_weight);
+			auto c2 = color.mul_alpha_only(aa_side_weight);
 			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAADistStrokeTriangle(paths[i]->path, _phy2Pixel*aa_dist_width);
+				auto &vertex = _cache->getAASideStrokeTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
 				drawColorCmd(vertex, c2);
 			}
 		}
@@ -571,7 +582,7 @@ namespace qk {
 				Qk_ASSERT(path.path.isNormalized());
 				self->fillv(path, paint, paint.fill);
 				if (aa) {
-					self->drawAADistStroke(path.path, paint, paint.fill, aa_dist_weight, aa_dist_width);
+					self->drawAASideStroke(path.path, paint, paint.fill, aa_side_weight, aa_side_width);
 				}
 				self->zDepthNext();
 			}
@@ -642,20 +653,20 @@ namespace qk {
 		if (offsetIn) {
 			offset = *offsetIn;
 			offsetP = &offset;
-			for (auto &o: offset) o *= _allScale;
+			for (auto &o: offset) o *= _allScaleAverage;
 		}
 		auto isSDF = paint.style != Paint::kFill_Style;
 		auto tf = glyphs.typeface();
 		auto img = isSDF ?
-			tf->getSDFImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offsetP, false):
-			tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offsetP);
+			tf->getSDFImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP, false):
+			tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP);
 		img.image->set_mipmap(false); // disable mipmap for text
-		auto scale = _this->drawTextImage(img, _allScale, origin, paint);
+		auto scale = _this->drawTextImage(img, _allScaleAverage, origin, paint);
 		return scale * img.width;
 	}
 
 	void GPUCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
-		auto fixedFSize = get_level_font_size(_scale * fontSize) * _surfaceScale;
+		auto fixedFSize = get_level_font_size(_scaleAverage * fontSize) * _surfaceScaleAverage;
 		if (fixedFSize == 0.0)
 			return;
 		auto scale = fixedFSize / fontSize;
@@ -727,11 +738,11 @@ namespace qk {
 		Qk_ReturnLocal(img);
 	}
 
-	void GPUCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
+	void GPUCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) {
 		if (_DeviceMsaa) {
 			auto msaa = ceilf(sqrtf(_DeviceMsaa));
 			surfaceSize *= msaa;
-			scale *= msaa;
+			surfaceScale *= msaa;
 		}
 		Qk_ASSERT_GT(surfaceSize.x(), 0, "Invalid surface size width");
 		Qk_ASSERT_GT(surfaceSize.y(), 0, "Invalid surface size height");
@@ -741,13 +752,13 @@ namespace qk {
 		_stateStack.push({ .matrix=Mat() });
 		_state = &_stateStack.back(); // reset state
 		_clipState = _state->clip.get(); // current clip state
-		// set surface scale
+		// set surface data
 		_surfaceSize = surfaceSize;
-		_size = surfaceSize / scale;
-		_surfaceScale = (scale[0] + scale[1]) * 0.5;
-		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
-		_allScale = _surfaceScale * _scale;
-		_phy2Pixel = 2 / _allScale;
+		_surfaceScale = surfaceScale;
+		_size = surfaceSize / surfaceScale;
+		_surfaceScaleAverage = sqrtf(surfaceScale.x() * surfaceScale.y());
+		_scale = 0; // force computeScale()
+		_this->computeScale(_state->matrix);
 		_rootMatrix = root;
 		_zDepth = zDepthNextUnit; // reset start z depth
 		_texPools.clear(); // clear texture pool when surface size changed

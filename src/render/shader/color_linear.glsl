@@ -12,7 +12,7 @@ void main() {
 	vec2 bo = vertexIn.xy - pc.range.xy;
 	/*indexed = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/
 	weight = dot(ao,bo) / dot(ao,ao);
-	aadist = aadistIn;
+	aaSide = aaSideIn;
 	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
 }
 
@@ -53,7 +53,7 @@ void main() {
 		fragColor = mix(colors[s], colors[e], w);
 	}
 	fragColor *= pc.color;
-	fragColor *= 1.0 - abs(aadist); // premultiplied alpha
+	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

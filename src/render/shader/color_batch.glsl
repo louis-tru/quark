@@ -26,7 +26,7 @@ layout(location=1) out vec4  color;
 
 void main() {
 	Option opt = opts[optidxIn];
-	aadist = aadistIn;
+	aaSide = aaSideIn;
 	color = opt.color;
 	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
 }
@@ -42,8 +42,8 @@ Qk_CONSTANT(
 
 void main() {
 	fragColor = color;
-	// aadist value range: 1 => 0, alpha range: 0 => 1
-	fragColor *= 1.0 - abs(aadist); // premultiplied alpha
+	// aaSide value range: 1 => 0, alpha range: 0 => 1
+	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
 	Qk_CLIP(); // apply clip mask if needed
 }

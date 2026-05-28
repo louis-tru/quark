@@ -151,14 +151,14 @@ namespace qk {
 		Sp<ImageSource> readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) override;
 		Sp<ImageSource> outputImage(ImageSource* dst, bool mipmap) override;
 		PathvCache* getPathvCache() override;
-		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
+		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) override;
 		Vec2 surfaceSize() { return _surfaceSize; }
 		const Render::Options& opts() const { return _opts; }
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
-		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aadist,
+		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
 				GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
 		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
@@ -184,10 +184,12 @@ namespace qk {
 		GC_State    *_state; // state pointer
 		PathvCache *_cache;
 		Render 	 *_render; // render backend
-		float  _zDepth;
-		float  _surfaceScale, _scale;
-		float  _allScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
-		Vec2   _size, _surfaceSize; // canvas size and surface size
+		Vec2  _surfaceSize, _surfaceScale; // surface scale and size, surfaceSize = surfaceScale * size
+		Vec2   _size, _scale; // size=surfaceSize/surfaceScale, _scale = matrix scale extracted
+		float  _surfaceScaleAverage, _scaleAverage, _allScaleAverage; // average of x/y scale
+		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
+		float  _phy2Pixel; // _phy2Pixel = 2 / _allScaleMin
+		float  _zDepth; // z depth for draw order
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa

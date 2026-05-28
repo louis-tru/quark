@@ -74,7 +74,7 @@ namespace qk {
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
-		void drawClipCmd(const VertexData &vertex, const VertexData &aadist, GC_State::Clip *lastClip,
+		void drawClipCmd(const VertexData &vertex, const VertexData &aaSide, GC_State::Clip *lastClip,
 				GC_State::Clip *clip, ClipOp rawOp) override;
 		void restoreClipCmd(GC_State::Clip* clip) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
