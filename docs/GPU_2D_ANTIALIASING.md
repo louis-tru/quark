@@ -22,6 +22,9 @@ The current GPU path uses an `aadist` style method for many vector edges:
 - The soft band behaves somewhat like a simple SDF-like expansion.
 - Fragment alpha is reduced across this AA distance band to hide jagged edges.
 - It does not precisely compute the true coverage/opacity of every affected pixel.
+- The data is currently still a `Vec3` triplet: `{x, y, aadist}`. The current
+  research direction is to improve the meaning of `aadist`, not to add more
+  vertex attributes.
 
 Relevant areas:
 
@@ -60,11 +63,24 @@ Important constraints from the current renderer:
   whose centers lie just outside those triangles will not run the fragment
   shader. Any mask-based path renderer would need to draw conservative expanded
   bounds, not just reuse the body triangles.
-- The existing directionless `aadist` geometry cannot be drawn before the body
-  safely because it does not know which side of the edge is inside or outside.
+- The old `aadist` behavior is still too close to a heuristic alpha ramp. The
+  next version should give `aadist` a signed-distance meaning so the shader can
+  distinguish inside, edge, and outside without adding new vertex fields.
 
-This points toward a directional GPU edge-AA system rather than a software mask
-rasterizer.
+This points toward a GPU signed-distance edge-AA system rather than a software
+mask rasterizer.
+
+Current naming and data contract:
+
+- `aadist < 0`: inside the shape.
+- `aadist = 0`: the true geometric edge.
+- `aadist > 0`: outside the shape.
+- The existing triplet `{x, y, aadist}` should remain the primary vertex format
+  while prototyping. Avoid expanding the vertex layout unless the simple model
+  fails for a concrete case.
+- Fragment shaders should derive the local 1-pixel distance using
+  `fwidth(aadist)` and convert signed distance to coverage with a calibrated
+  smooth/clamp function.
 
 ## Design Goals
 
@@ -117,26 +133,25 @@ Risks:
 - Still heuristic unless coverage is derived from geometry/pixel overlap.
 - May struggle with extreme transforms or very small shapes.
 
-### Directional Edge AA
+### Signed AADist Edge AA
 
-This is the most promising replacement for the current directionless `aadist`
-path.
+This is the most promising replacement for the current heuristic `aadist` path.
 
 The CPU would generate conservative edge coverage geometry, but not final
-per-pixel coverage. Each edge primitive should carry enough edge-local data for
-the shader to know the true directed edge, for example:
+per-pixel coverage. The important point is that the existing interpolated
+`aadist` value should become a signed distance-like parameter:
 
-- Edge start/end or equivalent line equation.
-- Inside/outside orientation, usually via edge normal or signed winding side.
-- A conservative maximum AA expansion width.
-- Optional edge/join metadata if the join policy cannot be inferred locally.
+- The edge itself has `aadist = 0`.
+- Inner expanded vertices carry negative `aadist`.
+- Outer expanded vertices carry positive `aadist`.
+- For straight edges, interpolation of this value across the band is enough for
+  the shader to estimate signed edge distance.
 
 The fragment shader then computes coverage from the directed edge:
 
-- Compute signed distance from the pixel to the true edge in screen/device
-  space.
-- Use shader derivatives such as `fwidth`, `dfdx`, and `dfdy` to derive the
-  current device-pixel AA width instead of relying on CPU-computed aadist width.
+- Use shader derivatives such as `fwidth(aadist)`, `dfdx`, and `dfdy` to derive
+  the current device-pixel AA width instead of relying only on CPU-computed
+  aadist width.
 - Convert distance to alpha coverage with a calibrated ramp.
 - Keep premultiplied-alpha behavior explicit and consistent across GL, Metal,
   and Vulkan.
@@ -147,9 +162,10 @@ The intended draw order becomes:
 2. Draw the solid body afterward.
 3. Use depth so the body covers the inner half of the AA band.
 
-This is different from the current `aadist` model. Direction matters because the
-edge pass needs to know which side should be preserved for the outside coverage
-ramp and which side will be covered by the body.
+This is different from the old `aadist` model. The sign of `aadist` matters
+because the edge pass needs to know which side is inside and which side is
+outside, even though that sign can still be carried by the existing third vertex
+component.
 
 Benefits:
 
@@ -157,7 +173,7 @@ Benefits:
 - Avoids CPU rasterization of every affected edge pixel.
 - Allows AA width to respond naturally to transforms through shader
   derivatives.
-- Can reuse the existing idea of edge expansion while making the coverage
+- Reuses the existing `{x, y, aadist}` vertex format while making the coverage
   calculation more geometric and deterministic.
 
 Risks:
