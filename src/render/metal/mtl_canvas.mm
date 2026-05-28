@@ -45,8 +45,8 @@ namespace qk {
 			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
 		_device = _render->_device;
 		_commandQueue = _render->_commandQueue; // share command queue with render
-		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_shaders = _render->_resource->shaders(); // copy shader cache reference for render thread use
+		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
 	}
@@ -68,21 +68,21 @@ namespace qk {
 	}
 
 	void MetalCanvas::endPass() {
-		if (_cmdPack.pass && !_cmdPack.enc) {
+		if (_cmdPack.beginPass && !_cmdPack.enc) {
 			_cmdPack.enc = [_cmdPack.current renderCommandEncoderWithDescriptor:_cmdPack.pass];
 		}
 		if (_cmdPack.enc) {
 			[_cmdPack.enc endEncoding]; // end current pass
-			_cmdPack.recorded = true;
 			_cmdPack.enc = nil;
+			_cmdPack.recorded = true;
+			_cmdPack.beginPass = false;
 		}
-		 _cmdPack.pass = nil;
 		_cmdPack.pipeline = nil;
 	}
 
 	MTLPassDesc MetalCanvas::beginPass(int level, bool isLoadColor) {
 	 #if DEBUG
-		if (_cmdPack.pass) {
+		if (_cmdPack.beginPass) {
 			if (_cmdPack.pass.colorAttachments[0].texture == _outColorTex &&
 					_cmdPack.pass.colorAttachments[0].level == level
 			) {
@@ -91,7 +91,6 @@ namespace qk {
 		}
 	 #endif
 		endPass();
-		// new pass descriptor
 		auto pass = _cmdPack.pass ? _cmdPack.pass: [MTLRenderPassDescriptor new];
 		auto recorded = _cmdPack.isRecorded();
 
@@ -111,13 +110,14 @@ namespace qk {
 		// pass.stencilAttachment.storeAction = MTLStoreActionStore;
 
 		_cmdPack.pass = pass;
+		_cmdPack.beginPass = true;
 		return pass;
 	}
 
 	MTLEncoder MetalCanvas::getEncoder() {
 		if (_cmdPack.enc)
 			return _cmdPack.enc;
-		if (!_cmdPack.pass)
+		if (!_cmdPack.beginPass)
 			beginPass();
 		_cmdPack.enc = [_cmdPack.current renderCommandEncoderWithDescriptor:_cmdPack.pass];
 		Qk_ASSERT(_cmdPack.enc, "Failed to create render command encoder for new pass");
@@ -189,7 +189,8 @@ namespace qk {
 			// add command buffer to cmds for flush if it has recorded commands
 			cmds.push(_cmdPackFront.current);
 		}
-		_cmdPackFront = {_cmdPackFront.buffer}; // reset front cmd pack
+		// reset front cmd pack
+		_cmdPackFront = {.buffer=_cmdPackFront.buffer};
 		_mutex.unlock();
 		clearExec_PathvCache(_cache); // clear @clear marked cache after flush
 		Qk_ReturnLocal(cmds); // return command buffers for flush

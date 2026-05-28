@@ -8,6 +8,10 @@ AI 助手进入项目后，先读：
 2. `docs/CURRENT_WORK.md`：当前正在推进的改动和风险
 3. `docs/RENDERING.md`：渲染系统结构和 GL/Metal 对齐规则
 
+如果任务涉及 GPU 2D 反走样 / AADist / coverage，请再读：
+
+4. `docs/GPU_2D_ANTIALIASING.md`：GPU AA 研究记录、AADist 语义和后续方向
+
 不要默认阅读这些依赖/产物目录，通常会浪费上下文：
 
 - `deps/`
@@ -60,6 +64,7 @@ quark/
 - 渲染相关改动要注意命令编码器、纹理所有权、mipmap、blend mode、clip 和 z depth 的状态恢复。
 - 如果只是补 TODO 或修局部 bug，避免跑过重检查；能做轻量编译或局部 grep 验证即可。
 - 完成重要改动后，必要时更新 `docs/CURRENT_WORK.md` 或相关模块文档，让下一次 AI 会话能接上。
+- 用户说“提交”时，默认含义是提交并推送到服务器；只有用户明确说“不推送”时才只本地提交。
 
 ## 渲染代码提示
 

@@ -33,6 +33,7 @@ namespace qk {
 		MTLEncoder enc = nullptr; // current encoder for render
 		MTLPipeline pipeline = nullptr; // current pipeline state for render
 		bool recorded = false; // whether current command buffer has recorded commands
+		bool beginPass = false; // whether call beginPass, used to determine whether need to create encoder for current pass
 	};
 
 	class MetalCanvas: public GPUCanvas {
