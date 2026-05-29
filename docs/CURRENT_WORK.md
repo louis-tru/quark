@@ -58,8 +58,25 @@ AA direction discussed:
 - Planned `aaSide` semantics: `aaSide < 0` means inside, `aaSide = 0` means the true edge, and `aaSide > 0` means outside. Vertex data currently stores side values at the two expanded band edges, not physical distance.
 - The shader should use derivatives such as `fwidth(aaSide)` to estimate the device-pixel transition width and convert the signed side coordinate into coverage.
 - The promising direction is to improve `AASide` into a GPU-only signed-side edge AA system, not a CPU/software coverage mask.
-- `Path::getAASideStrokeTriangle()` now treats AA subpaths as closed when possible and signs generated `aaSide` from each closed contour's winding: inner side negative, outer side positive. Fragment shaders still mostly consume `abs(aaSide)`, so shader-side signed coverage remains a follow-up.
+- `Path::getAASideStrokeTriangle()` now treats AA subpaths as closed when possible and signs generated `aaSide` from contour winding plus nesting depth: inner side negative, outer side positive. Fragment shaders still mostly consume `abs(aaSide)`, so shader-side signed coverage remains a follow-up.
 - See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, body-over-edge depth ordering, and hard cases.
+
+Active AASide experiment branch:
+
+- Branch `aa-side-refactor` was created from `master` and pushed to `origin/aa-side-refactor`.
+- Baseline commit: `3f4400674` (`wip(render): experiment with signed aa side`).
+- This branch is intentionally experimental; do not merge into `master` until the AA model is stable.
+- `clip.glsl` was split out so clip mask drawing no longer overloads `color.glsl` with clip-only parameters such as `surfaceOffset`.
+- `color.glsl` and other fragment shaders now call shared `aaSideCoverage()` from `_util.glsl`.
+- `aa_side_weight` was removed from the experiment; the goal is to get coverage from signed `aaSide`, not from CPU-side alpha weighting.
+
+Current AASide findings:
+
+- Confirmed problem 1: `aaSide` direction is not reliable enough when inferred only from each contour's winding. `Path::getAASideStrokeTriangle()` now collects closed subpaths, samples a point just inside each contour, counts how many other contours contain that point, and flips the local side sign on odd nesting depths. This preserves depth 0 normal, depth 1 reversed, depth 2 normal, and so on.
+- Confirmed problem 2: drawing the AA band before the body can reserve pixels/depth for AA geometry when a path has multiple subpaths. Turning depth writes off for AA was tested conceptually but is not acceptable for the current pipeline; it can cause edge overlap and Metal pass/state churn.
+- The desired long-term model is still: body should ideally draw only fully covered pixels, while partially covered boundary pixels are handled by `aaSide`. Current body triangles do not have that coverage information, so this remains unresolved.
+- For now, keep the existing depth pipeline intact. Avoid adding depth-write toggles or new Metal pass churn as an AA workaround.
+- Degenerate/limit path cases remain for later cleanup. One known case is a full-circle arc with `useCenter = true`: center-to-boundary segments can become overlapping/parallel internal edges, and `getAASideStrokeTriangle()` / `strokePath()` do not currently have special handling for those seams. Extremely small contours, tiny angles, and repeated/near-repeated edges should be addressed together after the main AASide model is stable.
 
 Metal upload performance note:
 

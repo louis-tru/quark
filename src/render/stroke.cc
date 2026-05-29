@@ -93,6 +93,7 @@ namespace qk {
 #endif
 
 namespace qk {
+	bool test_overlap_from_polygon(cArray<Vec2>& polygon, Vec2 point);
 
 	/*
 	 * Append `right` to `left` in reverse drawing order.
@@ -170,9 +171,9 @@ namespace qk {
 	 * callbacks, and add() receives wrapped neighbors for the first/last point.
 	 */
 	static void strokeExec(
-		const Path *self, AddPoint add,
-		BeforeAdding before, AfterDone after, bool closeAll, void *ctx
+		const Path *self, AddPoint add, BeforeAdding before, AfterDone after, bool closeAll, void *ctx
 	) {
+		Qk_ASSERT(self->isNormalized(), "Path::strokeExec requires normalized input");
 		int subpath = 0;
 		auto addSubpath = [&](const Vec2 *pts, int size, bool close) {
 			// Ignore empty/single-point subpaths. They do not have a stable edge
@@ -193,14 +194,17 @@ namespace qk {
 				if (before) {
 					before(close, pts, size, subpath, ctx);
 				}
-				// First and last vertices receive null neighbors for open
-				// subpaths, or wrapped neighbors for closed contours.
-				add(close ? pts+size-1: NULL, *pts, pts+1, 0, ctx); pts++;
 
-				for (int i = 1, l = size-1; i < l; i++, pts++) {
-					add(pts-1, *pts, pts+1, i, ctx);
+				if (add) {
+					// First and last vertices receive null neighbors for open
+					// subpaths, or wrapped neighbors for closed contours.
+					add(close ? pts+size-1: nullptr, *pts, pts+1, 0, ctx); pts++;
+
+					for (int i = 1, l = size-1; i < l; i++, pts++) {
+						add(pts-1, *pts, pts+1, i, ctx);
+					}
+					add(pts-1, *pts, close? pts-size+1: nullptr, size-1, ctx);
 				}
-				add(pts-1, *pts, close? pts-size+1: NULL, size-1, ctx);
 
 				if (after) {
 					after(close, size, subpath, ctx);
@@ -239,6 +243,113 @@ namespace qk {
 	}
 
 	/**
+	 * Calculate the signed area of a closed contour using the shoelace formula.
+	 * Positive area indicates counter-clockwise winding, negative area indicates
+	 * clockwise winding.
+	 */
+	static float contourArea2(const Vec2 *pts, int size) {
+		float area = 0.0f;
+		for (int i = 0; i < size; i++) {
+			auto a = pts[i], b = pts[(i + 1) % size];
+			area += a.x() * b.y() - a.y() * b.x();
+		}
+		return area;
+	}
+
+	/**
+	 * Determine if a point is inside a closed contour.
+	*/
+	static bool pointInContour(Vec2 p, const Vec2 *pts, int size) {
+		return test_overlap_from_polygon(ArrayWeak<Vec2>(pts, size).buffer(), p);
+	}
+
+	/**
+	 * Find a point that is just inside the contour.
+	 */
+	static Vec2 contourInteriorProbe(const Vec2 *pts, int size, float normalSide) {
+		auto a = pts[size-1];
+		for (int i = 0; i < size; i++) {
+			auto b = pts[i];
+			auto edge = b - a;
+			float edgeLenSq = edge.lengthSq();
+
+			if (edgeLenSq > 1e-5f) {
+				auto normal = edge.normalized().rotate90z();
+				auto mid = (a + b) * 0.5f;
+				float probe = Float32::clamp(edgeLenSq * 1e-4f, 1e-5f, 0.25f);
+
+				// `normalSide` is the sign assigned to the +normal side. For an
+				// isolated contour, the filled side is negative, so this steps
+				// just inside the contour instead of sampling exactly on an edge.
+				auto sample = mid + normal * (normalSide < 0.0f ? probe: -probe);
+
+				if (pointInContour(sample, pts, size))
+					return sample;
+
+				sample = mid - normal * (normalSide < 0.0f ? probe: -probe);
+				if (pointInContour(sample, pts, size))
+					return sample;
+
+				return mid;
+			}
+			a = b; // advance to next edge
+		}
+
+		return pts[0];
+	}
+
+	struct AASideContour {
+		uint32_t start;
+		int      size;
+		bool     close;
+		float    area;
+		float    normalSide;
+		Vec2     sample;
+		int      depth;
+	};
+
+	static Array<AASideContour> collectAASideContours(const Path *self, Array<Vec2> *contourPts) {
+		Array<AASideContour> contours;
+
+		struct Ctx {
+			Array<AASideContour> *contours;
+			Array<Vec2>         *pts;
+		} ctx = { &contours, contourPts };
+
+		strokeExec(self, nullptr, [](bool close, const Vec2 *pts, int size, int, void *ctx) {
+			auto _ = static_cast<Ctx*>(ctx);
+			AASideContour contour = { _->pts->length(), size, close, 0.0f, -1.0f, pts[0], 0 };
+
+			if (close) {
+				contour.area = contourArea2(pts, size);
+				contour.normalSide = contour.area < 0.0f ? 1.0f: -1.0f;
+				contour.sample = contourInteriorProbe(pts, size, contour.normalSide);
+			}
+			_->pts->write(pts, size);
+			_->contours->push(contour);
+		}, nullptr, true, &ctx);
+
+		for (auto &contour: contours) {
+			if (!contour.close)
+				continue;
+
+			int depth = 0;
+			for (auto &parent: contours) {
+				if (&contour != &parent && parent.close) {
+					auto pts = contourPts->val() + parent.start;
+					if (pointInContour(contour.sample, pts, parent.size))
+						depth++;
+				}
+			}
+			contour.depth = depth;
+			if (depth & 1)
+				contour.normalSide = -contour.normalSide;
+		}
+
+		Qk_ReturnLocal(contours);
+	}
+
+	/**
 	 * Build the conservative AA side band for a path.
 	 *
 	 * Each source edge produces two offset vertices. The third component is not
@@ -260,13 +371,17 @@ namespace qk {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
 		VertexData out{0};
+		Array<Vec2> contourPts;
+		auto contours = collectAASideContours(self, &contourPts);
+
 		struct Ctx {
-			Array<Vec3> *out;
-			Vec3        *ptr;
-			float       width;
-			float       normalSide; // symbol of normal direction, 1.0f outside or -1.0f inside
-			Vec3        prev_a, prev_b;
-		} ctx = { &out.vertex,0,width,-1.0f,0 };
+			Array<Vec3>        *out;
+			Array<AASideContour> *contours;
+			Vec3               *ptr;
+			float              width;
+			float              normalSide; // sign assigned to the +normal side
+			Vec3               prev_a, prev_b;
+		} ctx = { &out.vertex, &contours, 0, width, -1.0f, 0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) { // add
 			auto normals = from.normalline(prev, next); // normal line
@@ -303,18 +418,15 @@ namespace qk {
 		},
 		[](bool close, const Vec2 *pts, int size, int subpath, void *ctx) { // before
 			auto _ = static_cast<Ctx*>(ctx);
-			// Shoelace formula:
-			//   sum(cross(pts[i], pts[i+1])) == signed polygon area * 2
-			// Each term is the signed area of triangle O -> pts[i] -> pts[i+1].
-			// We only need the sign, not the real area, to detect contour
-			// winding. The normal side flips for reversed contours, including
-			// holes.
-			float area = 0.0f;
-			for (int i = 0; i < size; i++) {
-				auto a = pts[i], b = pts[(i + 1) % size];
-				area += a.x() * b.y() - a.y() * b.x();
+			if (subpath < _->contours->length()) {
+				// The local contour winding tells which side is inside for a
+				// single isolated polygon. Nested contours flip that meaning at
+				// every containment level: depth 0 normal, depth 1 reversed,
+				// depth 2 normal, and so on.
+				_->normalSide = (*_->contours)[subpath].normalSide;
+			} else {
+				_->normalSide = -1.0f;
 			}
-			_->normalSide = area < 0.0f ? 1.0f: -1.0f;
 			auto len = _->out->length();
 			size = (close ? size: size - 1) * 6;
 			_->out->extend(len + size); // alloc memory space
