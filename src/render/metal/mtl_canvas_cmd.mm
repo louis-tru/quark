@@ -90,28 +90,34 @@ namespace qk {
 
 		endPass(); // end current pass
 
-		auto drawClip = [&](bool black, bool clip) {
+		auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
+			Qk_usePipeline(_shaders.clip, vertex); // use shader and set vertex buffer for vertex data
+			MSLClip::PcArgs pc{ Color4f(1,1,1,1), offset, depth, flags };
+			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
+		};
+
+		auto drawClipMask = [&](bool black, bool clip) {
 			depth += zDepthNextUnit;
 			auto scale = Vec2(1) / _surfaceScale;
 			Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 			// Difference clip cannot directly render solid black with AA,
 			// otherwise edge blending becomes incorrect.
-			// Instead, invert the aaSide alpha curve:
-			//   normal:   alpha = 1 - abs(aaSide)
-			//   inverted: alpha = abs(aaSide)
+			// Instead, invert the AA coverage curve.
 			// This produces a smooth subtractive mask edge.
 			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
-			drawColor(vertex, {1,1,1,1}, surface, depth, flags);
+			drawClipVertex(vertex, surface, flags);
 			if (aaSide.vCount) { // draw aa side if have
-				drawColor(aaSide, {1,1,1,1}, surface, depth, flags);
+				drawClipVertex(aaSide, surface, flags);
 			}
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {
 			// clear clipTex with black color
 			clearColor({0,0,0,0}, nullptr);
 			// draw clip shape to clipTex with white color
-			drawClip(false, last);
+			drawClipMask(false, last);
 		} else { // if (rawOp == Canvas::kDifference_ClipOp)
 			beginPass(0, false); // begin a new pass with don't load color
 			// copy last clip color to clipTex as the clear color
@@ -120,7 +126,7 @@ namespace qk {
 			// or black color if last op equal intersect
 			auto black = last->op == Canvas::kIntersect_ClipOp;
 			// draw clip shape to clipTex with color
-			drawClip(black, true);
+			drawClipMask(black, true);
 		}
 		endPass();
 		// restore framebuffer and blend mode
@@ -160,10 +166,10 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 	}
 
-	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, uint32_t flags) {
+	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, float depth, uint32_t flags) {
 		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ color, surfaceOffset, depth, flags };
+		MSLColor::PcArgs pc{ color, depth, flags };
 		// set vertex bytes
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		// set fragment bytes
@@ -199,7 +205,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
-		drawColor(vertex, premul_alpha(color), {0,0,1,1}, _zDepth, Qk_CLIP(_clipState));
+		drawColor(vertex, premul_alpha(color), _zDepth, Qk_CLIP(_clipState));
 	}
 
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {

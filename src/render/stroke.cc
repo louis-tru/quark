@@ -246,10 +246,9 @@ namespace qk {
 	 *   - negative means the filled side of the contour
 	 *   - positive means the outside side of the contour
 	 *
-	 * The current shader still uses abs(aaSide) as the old coverage ramp, but
-	 * the sign is now available for the next AA pass. AASide always treats
-	 * eligible subpaths as closed, because winding and inside/outside are not
-	 * well-defined for open contours.
+	 * The shader can use this sign to place the 0 edge between inner and outer
+	 * coverage. AASide always treats eligible subpaths as closed, because
+	 * winding and inside/outside are not well-defined for open contours.
 	 *
 	 * TODO: When the included angle is extremely small, the normal can be
 	 * shifted too far and produce visual spikes.

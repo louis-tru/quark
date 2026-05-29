@@ -13,8 +13,6 @@ layout(binding=4, set=0, std140) uniform OptsBlock {
 
 #vert
 layout(location=2) in int optidxIn; // options index form uniform optsBlock
-// flat
-// smooth
 layout(location=1) out vec4  color;
 
 #define _vmatrix mat4(\
@@ -42,8 +40,7 @@ Qk_CONSTANT(
 
 void main() {
 	fragColor = color;
-	// aaSide value range: 1 => 0, alpha range: 0 => 1
-	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
+	fragColor *= aaSideCoverage();
 
 	Qk_CLIP(); // apply clip mask if needed
 }

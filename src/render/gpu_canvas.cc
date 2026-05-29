@@ -30,7 +30,7 @@
 
 #include "./gpu_canvas.h"
 
-#define isMoreSofterAA 1 // 1 is softer aa, 0 is more radical aa
+#define isMoreSofterAA 0 // 1 is softer aa, 0 is more radical aa
 
 namespace qk {
 	uint32_t msaaSample(uint32_t n);
@@ -41,14 +41,11 @@ namespace qk {
 	extern const Range ZeroRange;
 #if isMoreSofterAA
 	// Softer:
-	//extern const float  aa_side_weight = 0.9; // softer
 	//extern const float  aa_side_width = 0.6;
-	extern const float  aa_side_weight = 0.9; // medium
 	extern const float  aa_side_width = 0.55;
 #else
 	// More radical:
-	extern const float  aa_side_weight = 1; // more radical, hard
-	extern const float  aa_side_width = 0.5;
+	extern const float  aa_side_width = 5; // actual: 0.5, debug: 5
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 
@@ -176,10 +173,10 @@ namespace qk {
 			Qk_ASSERT(path.isNormalized(), "Path must be normalized before filling. Call path.normalize() first.");
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
-				fillv(vertex, paint, style);
 				if (aa) {
-					drawAASideStroke(path, paint, style, aa_side_weight, aa_side_width);
+					drawAASideStroke(path, paint, style, aa_side_width);
 				}
+				fillv(vertex, paint, style);
 			}
 			zDepthNext();
 		}
@@ -209,7 +206,7 @@ namespace qk {
 				} else {
 					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					drawAASideStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
+					drawAASideStroke(path, paint, paint.stroke, 0.5);
 					zDepthNext();
 				}
 			} else {
@@ -217,16 +214,16 @@ namespace qk {
 			}
 		}
 
-		void drawAASideStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWeight, float aaSideWidth) {
+		void drawAASideStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWidth) {
 			auto &vertex = _cache->getAASideStrokeTriangle(path, _phy2Pixel*aaSideWidth);
 			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color.mul_alpha_only(aaSideWeight));
+				drawImageCmd(vertex, style.image, style.color);
 			} else if (style.gradient) {
-				drawGradientCmd(vertex, style.gradient, style.color.mul_alpha_only(aaSideWeight));
+				drawGradientCmd(vertex, style.gradient, style.color);
 			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color.mul_alpha_only(aaSideWeight));
+				drawImageMaskCmd(vertex, paint.mask, style.color);
 			} else {
-				drawColorCmd(vertex, style.color.mul_alpha_only(aaSideWeight));
+				drawColorCmd(vertex, style.color);
 			}
 		}
 
@@ -525,7 +522,7 @@ namespace qk {
 		drawColorCmd(path, color);
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			auto &vertex = _cache->getAASideStrokeTriangle(path.path, _phy2Pixel*aa_side_width);
-			drawColorCmd(vertex, color.mul_alpha_only(aa_side_weight));
+			drawColorCmd(vertex, color);
 		}
 		_this->zDepthNext();
 	}
@@ -538,10 +535,9 @@ namespace qk {
 			drawColorCmd(*paths[i], color);
 		}
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto c2 = color.mul_alpha_only(aa_side_weight);
 			for (int i = 0; i < count; i++) {
 				auto &vertex = _cache->getAASideStrokeTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
-				drawColorCmd(vertex, c2);
+				drawColorCmd(vertex, color);
 			}
 		}
 		_this->zDepthNext();
@@ -580,10 +576,10 @@ namespace qk {
 		auto fillPathv = [](Inl* self, const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vCount) {
 				Qk_ASSERT(path.path.isNormalized());
-				self->fillv(path, paint, paint.fill);
 				if (aa) {
-					self->drawAASideStroke(path.path, paint, paint.fill, aa_side_weight, aa_side_width);
+					self->drawAASideStroke(path.path, paint, paint.fill, aa_side_width);
 				}
+				self->fillv(path, paint, paint.fill);
 				self->zDepthNext();
 			}
 		};

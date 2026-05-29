@@ -30,7 +30,7 @@ public:
 		// -------- clip ------
 		canvas->save();
 		if (1) { // clip
-			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			//canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		if (1) { // gradient
@@ -61,7 +61,7 @@ public:
 		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			//canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
 
 		canvas->translate(size*-0.5);
@@ -108,7 +108,7 @@ public:
 			//Qk_DLog("%d", sizeof(signed long));
 			paint.stroke.color = Color4f(0, 0, 0);
 			paint.style = Paint::kStroke_Style;
-			paint.strokeWidth = 4;
+			paint.strokeWidth = 10;
 			canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
 

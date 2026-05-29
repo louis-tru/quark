@@ -41,7 +41,6 @@
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 
 namespace qk {
-	extern const float aa_side_weight;
 	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void gl_set_blend_mode(BlendMode mode);
@@ -248,7 +247,7 @@ namespace qk {
 						}
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
-							drawColor(c->vertex, c->color, Vec4(0,0,1,1), c->depth, Qk_CLIP(c->isClip));
+							drawColor(c->vertex, c->color, c->depth, Qk_CLIP(c->isClip));
 							c->~ColorCmd();
 							break;
 						}
@@ -569,28 +568,36 @@ namespace qk {
 			// output to clip mask texture
 			setColorBuffer(clip->mask.get());
 
-			auto drawClip = [&](bool black, bool clip) {
+			auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
+				auto s = &_render->_shaders.clip;
+				useShaderProgram(s, vertex);
+				glUniform4fv(s->pc_color, 1, whiteColor);
+				glUniform4f(s->pc_surfaceOffset, offset[0], offset[1], offset[2], offset[3]);
+				glUniform1f(s->pc_depth, depth);
+				glUniform1ui(s->pc_flags, flags);
+				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+			};
+
+			auto drawClipMask = [&](bool black, bool clip) {
 				depth += zDepthNextUnit;
 				auto scale = Vec2(1) / cmd->surfaceScale;
 				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
 				// otherwise edge blending becomes incorrect.
-				// Instead, invert the aaSide alpha curve:
-				//   normal:   alpha = 1 - abs(aaSide)
-				//   inverted: alpha = abs(aaSide)
+				// Instead, invert the AA coverage curve.
 				// This produces a smooth subtractive mask edge.
 				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
-				drawColor(cmd->vertex, {1,1,1,1}, surface, depth, flags);
+				drawClipVertex(cmd->vertex, surface, flags);
 				if (cmd->aaSide.vCount) { // draw aa side if have
-					drawColor(cmd->aaSide, {1,1,1,1}, surface, depth, flags);
+					drawClipVertex(cmd->aaSide, surface, flags);
 				}
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
 				// clear clipTex with black color
 				clearColor({0,0,0,0}, nullptr);
 				// draw clip shape to clipTex with white color
-				drawClip(false, last);
+				drawClipMask(false, last);
 			} else { // if (cmd->rawOp == Canvas::kDifference_ClipOp)
 				// copy last clip color to clipTex as the clear color
 				copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size, depth);
@@ -598,7 +605,7 @@ namespace qk {
 				// or black color if last op equal intersect
 				auto black = last->op == Canvas::kIntersect_ClipOp;
 				// draw clip shape to clipTex with color
-				drawClip(black, true);
+				drawClipMask(black, true);
 			}
 			_render->set_blend_mode(blend); // restore blend mode
 			// restore framebuffer and blend mode
@@ -641,11 +648,10 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 
-		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, float depth, int flags) {
+		void drawColor(const VertexData &vertex, const Color4f &color, float depth, uint32_t flags) {
 			auto s = &_render->_shaders.color;
 			useShaderProgram(s, vertex);
 			glUniform4fv(s->pc_color, 1, color.val);
-			glUniform4f(s->pc_surfaceOffset, offset[0], offset[1], offset[2], offset[3]);
 			glUniform1f(s->pc_depth, depth);
 			glUniform1ui(s->pc_flags, flags);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -657,13 +663,6 @@ namespace qk {
 			} else {
 				auto begin = surfaceRange->begin.floor();
 				auto end = surfaceRange->end.ceil();
-				// float x1 = begin.x(), y1 = begin.y(), x2 = end.x(), y2 = end.y();
-				// float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0, };
-				// auto &clear = _render->_shaders.clear;
-				// clear.use(sizeof(float) * 12, vertex);
-				// glUniform1f(clear.pc_depth, depth);
-				// glUniform4fv(clear.pc_color, 1, color.val);
-				// glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				glEnable(GL_SCISSOR_TEST);
 				glScissor(begin.x(), begin.y(), end.x() - begin.x(), end.y() - begin.y());
 				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0

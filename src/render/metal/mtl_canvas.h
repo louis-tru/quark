@@ -94,7 +94,7 @@ namespace qk {
 		void outputImageEndCmd(ImageSource* exit) override;
 		void clearColor(const Color4f &color, const Range *range);
 		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution, float depth);
-		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, uint32_t flags);
+		void drawColor(const VertexData &vertex, const Color4f &color, float depth, uint32_t flags);
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 	private:
 	// fields:

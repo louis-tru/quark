@@ -14,7 +14,6 @@ layout(location=3) out vec4 dark;
 
 void main() {
 	gl_Position = matrix * vec4(vertexIn.xy, aaSideIn + pc.depth, 1.0);
-	// gl_Position.y *= -1.0; // Flip Y axis for GLSL
 	texCoords = texCoordsIn;
 	light = lightColorIn * pc.color;
 	dark = darkColorIn;
