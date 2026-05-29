@@ -370,18 +370,20 @@ namespace qk {
 	VertexData Path::getAASideStrokeTriangle(float width, float epsilon) const {
 		Path tmp;
 		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
-		VertexData out{0};
+		Path bodyPath;
+		Array<Vec3> aaSide;
 		Array<Vec2> contourPts;
 		auto contours = collectAASideContours(self, &contourPts);
 
 		struct Ctx {
 			Array<Vec3>        *out;
 			Array<AASideContour> *contours;
+			Path               *body;
 			Vec3               *ptr;
 			float              width;
 			float              normalSide; // sign assigned to the +normal side
 			Vec3               prev_a, prev_b;
-		} ctx = { &out.vertex, &contours, 0, width, -1.0f, 0 };
+		} ctx = { &aaSide, &contours, &bodyPath, 0, width, -1.0f, 0 };
 
 		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) { // add
 			auto normals = from.normalline(prev, next); // normal line
@@ -405,13 +407,18 @@ namespace qk {
 			}
 			Vec3 a(from + normals, _->normalSide);
 			Vec3 b(from - normals, -_->normalSide);
+			auto inner = a.z() < 0.0f ? a: b;
+			auto innerPt = Vec2(inner.x(), inner.y());
 			if (idx) {
+				_->body->lineTo(innerPt);
 				*(_->ptr++) = _->prev_b;
 				*(_->ptr++) = _->prev_a;
 				*(_->ptr++) = a;
 				*(_->ptr++) = a;
 				*(_->ptr++) = b;
 				*(_->ptr++) = _->prev_b;
+			} else {
+				_->body->moveTo(innerPt);
 			}
 			_->prev_a = a;
 			_->prev_b = b;
@@ -444,10 +451,13 @@ namespace qk {
 				*(_->ptr++) = *a;
 				*(_->ptr++) = *b;
 				*(_->ptr++) = _->prev_b;
+				_->body->close();
 			}
 		}, true, &ctx);
 
-		out.vCount = out.vertex.length();
+		auto out = bodyPath.getTriangles(epsilon, -1.0f);
+		out.vertex.write(aaSide.val(), aaSide.length());
+		out.vCount += aaSide.length();
 
 		Qk_ReturnLocal(out);
 	}

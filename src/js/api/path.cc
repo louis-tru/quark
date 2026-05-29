@@ -125,8 +125,9 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(pts) );
 			});
 			Js_Class_Method(getTriangles, {
-				Js_Parse_Args(float, 0, "path.getTriangles(epsilon?)", (1.0f));
-				auto vertex = self->getTriangles(arg0).vertex;
+				Js_Parse_Args(float, 0, "path.getTriangles(epsilon?,z?)", (1.0f));
+				Js_Parse_Args(float, 1, "path.getTriangles(epsilon?,z?)", (0.0f));
+				auto vertex = self->getTriangles(arg0, arg1).vertex;
 				Js_Return( worker->types()->jsvalue(vertex) );
 			});
 			Js_Class_Method(getAASideStrokeTriangle, {

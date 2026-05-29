@@ -519,7 +519,7 @@ namespace qk {
 		glStencilFunc(GL_LEQUAL, 0, 0xFFFFFFFF); // Equality passes the test
 		glDisable(GL_STENCIL_TEST); // disable stencil test
 		// glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE); // enable color
-		glEnable(GL_DEPTH_TEST); // enable depth test
+		// glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 		glClearDepthf(-1.0f); // set depth clear value to -1.0
 	}

@@ -175,8 +175,9 @@ namespace qk {
 			if (vertex.vCount) {
 				if (aa) {
 					drawAASideStroke(path, paint, style, aa_side_width);
+				} else {
+					fillv(vertex, paint, style);
 				}
-				fillv(vertex, paint, style);
 			}
 			zDepthNext();
 		}
@@ -519,10 +520,11 @@ namespace qk {
 
 	void GPUCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
-		drawColorCmd(path, color);
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			auto &vertex = _cache->getAASideStrokeTriangle(path.path, _phy2Pixel*aa_side_width);
 			drawColorCmd(vertex, color);
+		} else {
+			drawColorCmd(path, color);
 		}
 		_this->zDepthNext();
 	}
@@ -531,13 +533,14 @@ namespace qk {
 		BlendMode mode, bool antiAlias) 
 	{
 		_this->setBlendMode(mode); // switch blend mode
-		for (int i = 0; i < count; i++) {
-			drawColorCmd(*paths[i], color);
-		}
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			for (int i = 0; i < count; i++) {
 				auto &vertex = _cache->getAASideStrokeTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
 				drawColorCmd(vertex, color);
+			}
+		} else {
+			for (int i = 0; i < count; i++) {
+				drawColorCmd(*paths[i], color);
 			}
 		}
 		_this->zDepthNext();
@@ -578,8 +581,9 @@ namespace qk {
 				Qk_ASSERT(path.path.isNormalized());
 				if (aa) {
 					self->drawAASideStroke(path.path, paint, paint.fill, aa_side_width);
+				} else {
+					self->fillv(path, paint, paint.fill);
 				}
-				self->fillv(path, paint, paint.fill);
 				self->zDepthNext();
 			}
 		};

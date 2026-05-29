@@ -118,20 +118,21 @@ namespace qk {
 	// point: 待测试的点
 	// 返回值: true - 在多边形内, false - 在多边形外
 	bool test_overlap_from_polygon(cArray<Vec2>& polygon, Vec2 point) {
+		if (polygon.length() < 3) return false;
+
 		float x = point.x();
 		float y = point.y();
-		
+		auto a = polygon.back();
 		// 初始化交点计数
 		int count = 0;
 
 		// 遍历每条边
-		for (int i = 0; i < polygon.length(); ++i) {
+		for (auto &b : polygon) {
 			// 获取当前边的两个端点
-			int next = (i + 1) % polygon.length();
-			float x1 = polygon[i].x();
-			float y1 = polygon[i].y();
-			float x2 = polygon[next].x();
-			float y2 = polygon[next].y();
+			float x1 = a.x(), y1 = a.y();
+			float x2 = b.x(), y2 = b.y();
+
+			a = b; // 更新a为当前点b，为下一条边做准备
 
 			// 检查点是否在线段的水平射线与边相交
 			if (((y1 > y) != (y2 > y)) &&  // 点的y值在边的y范围内
@@ -438,7 +439,7 @@ namespace qk {
 		return { p1, p2, p3, p4 };
 	}
 
-	// ------------------------ 最近点到线段 ------------------------
+	// ------------------------ 点到线段最近点向量 ------------------------
 	// closestPointOnSegment
 	Vec2 closest_point_on_segment(Vec2 p, const Vec2 a, const Vec2 b) {
 		Vec2 ab = b - a;

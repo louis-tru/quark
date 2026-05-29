@@ -43,6 +43,10 @@ namespace qk {
 		Qk_ReturnLocal(path);
 	}
 
+	Path Path::MakeCircle(Vec2 center, float radius, bool ccw) {
+		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 }, ccw);
+	}
+
 	Path Path::MakeArc(const Rect& r, float startAngle, float sweepAngle, bool useCenter, bool close) {
 		Path path;
 		path.arcTo(r, startAngle, sweepAngle, useCenter);
@@ -55,10 +59,6 @@ namespace qk {
 		Path path;
 		path.rectTo(r,ccw);
 		Qk_ReturnLocal(path);
-	}
-
-	Path Path::MakeCircle(Vec2 center, float radius, bool ccw) {
-		return MakeOval({ Vec2(center.x() - radius, center.y() - radius), Vec2(radius) * 2 }, ccw);
 	}
 
 	static void setRRect(Path &path,
@@ -257,6 +257,7 @@ namespace qk {
 			lineTo(Vec2(cx, cy));
 			return;
 		}
+		sweepAngle = Float32::clamp(sweepAngle, -Qk_PI_2, Qk_PI_2);
 		startAngle = -startAngle;
 		float rx = radius.x();
 		float ry = radius.y();
@@ -264,6 +265,9 @@ namespace qk {
 		float y0 = sinf(startAngle);
 
 		Vec2 start(x0 * rx + cx, y0 * ry + cy);
+
+		if (abs(sweepAngle) == Qk_PI_2)
+			useCenter = false;
 
 		if (useCenter) {
 			lineTo(Vec2(cx, cy));
@@ -388,7 +392,7 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
-	VertexData Path::getTriangles(float epsilon) const {
+	VertexData Path::getTriangles(float epsilon, float z) const {
 		int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 
@@ -447,7 +451,7 @@ namespace qk {
 			out.vertex.extend(out.vCount);
 
 			for (int i = 0; i < out.vCount; i++) {
-				out.vertex[i] = { verts[*elems++], 0.0 };
+				out.vertex[i] = { verts[*elems++], z };
 			}
 		}
 

@@ -123,9 +123,9 @@ namespace qk {
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
-		 * @return {VertexData} { .vertex={ x, y, 0.0 }[] }
+		 * @return {VertexData} { .vertex={ x, y, z }[] }
 		*/
-		VertexData getTriangles(float epsilon = 1.0) const;
+		VertexData getTriangles(float epsilon = 1.0, float z = 0.0) const;
 
 		/**
 		 * @method getAASideStrokeTriangle() returns signed aa side stroke triangle vertices
