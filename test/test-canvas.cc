@@ -29,11 +29,11 @@ public:
 
 		// -------- clip ------
 		canvas->save();
-		if (0) { // clip
+		if (1) { // clip
 			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
-		if (0) { // gradient
+		if (1) { // gradient
 			Paint paint;
 			Color4f colors[] = {Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
 			float   pos[]    = {0,0.5,1};
@@ -50,7 +50,7 @@ public:
 			canvas->restore();
 		}
 
-		if (0) { // Circle
+		if (1) { // Circle
 			paint.fill.gradient = nullptr;
 			paint.fill.color = Color4f(0, 0, 1, 0.5);
 			canvas->drawPath(Path::MakeCircle(0, 100), paint);
@@ -58,7 +58,7 @@ public:
 			canvas->drawPath(Path::MakeOval({0, {100, 200}}), paint);
 		}
 
-		if (0) { // -------- clip ------
+		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
 			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
@@ -79,7 +79,7 @@ public:
 			canvas->drawPath(path, paint);
 		}
 
-		if (0) { // Arc
+		if (1) { // Arc
 			paint.fill.color = Color4f(0, 1, 0, 0.8);
 			canvas->drawPath(Path::MakeArc({Vec2(500, 420), Vec2(200, 100)}, 0, 4.5, 1), paint);
 			paint.fill.color = Color4f(1, 0, 1, 0.8);
@@ -88,7 +88,7 @@ public:
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI*0.5, 1), paint);
 		}
 
-		if (0) { // font text
+		if (1) { // font text
 			paint.fill.color = Color4f(255,0,255);
 			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
 			auto pool = shared_app()->fontPool();
@@ -100,7 +100,7 @@ public:
 			}
 		}
 
-		if (0) { // outline
+		if (1) { // outline
 			paint.fill.color = Color4f(0, 0, 0);
 			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 			paint.fill.color = Color4f(0, 1, 1);

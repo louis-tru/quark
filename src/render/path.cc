@@ -137,20 +137,21 @@ namespace qk {
 		Qk_ReturnLocal(path);
 	}
 
-	Path::Path(Vec2 move): _IsNormalized(true), _sealed(false) {
+	Path::Path(Vec2 move): _IsNormalized(true), _sealed(false), _isBoundaryPath(false) {
 		moveTo(move);
 	}
 
-	Path::Path(): _IsNormalized(true), _sealed(false) {}
+	Path::Path(): _IsNormalized(true), _sealed(false), _isBoundaryPath(false) {}
 
 	Path::Path(const Path& path)
-		: _IsNormalized(path._IsNormalized), _sealed(false)
+		: _IsNormalized(path._IsNormalized), _sealed(false), _isBoundaryPath(path._isBoundaryPath)
 		, _verbs(path._verbs), _pts(path._pts), _hash(path._hash) {}
 
 	Path& Path::operator=(const Path& path) {
 		if (this != &path) {
 			_IsNormalized = path._IsNormalized;
 			_sealed = false;
+			_isBoundaryPath = path._isBoundaryPath;
 			_verbs = path._verbs;
 			_pts = path._pts;
 			_hash = path._hash;
@@ -355,8 +356,8 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
-		Path storage;
-		const Path *self = _IsNormalized ? this: normalized(&storage,epsilon,false);
+		Path tmp;
+		const Path *self = normalized(&tmp,epsilon,false);
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
@@ -392,52 +393,87 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
+	static bool tessAddPathContours(TESStesselator *tess, const Path *self, const char *fatalMessage) {
+		auto pts = (const Vec2*)*self->pts();
+		int len = 0;
+		Array<Vec2> tmpV;
+		bool added = false;
+
+		auto closeAdd = [&]() {
+			if (len) {
+				Vec2 *point = &tmpV[tmpV.length() - len];
+				tessAddContour(tess, 2, (float*)point, sizeof(Vec2), len);
+				len = 0;
+				added = true;
+			}
+		};
+
+		for (auto verb: self->verbs()) {
+			switch(verb) {
+				case Path::kMove_Verb:
+					closeAdd();
+					tmpV.push(*pts++); len = 1;
+					break;
+				case Path::kLine_Verb:
+					tmpV.push(*pts++);
+					len++;
+					break;
+				case Path::kClose_Verb:
+					closeAdd();
+					break;
+				default:
+					Qk_Fatal(fatalMessage);
+			}
+		}
+		closeAdd();
+
+		return added;
+	}
+
+	const Path* Path::boundaryPath(Path *out, float epsilon) const {
+		Qk_ASSERT(!out->_sealed, "Path::boundaryPath() requires a non-sealed output");
+		Qk_ASSERT(out != this, "Path::boundaryPath() requires a separate output");
+		if (_isBoundaryPath)
+			return this;
+
+		Path tmp;
+		auto self = normalized(&tmp, epsilon, false);
+		auto tess = tessNewTess(nullptr);
+
+		if (tessAddPathContours(tess, self, "Path::boundaryPath() invalid verb") &&
+			tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_BOUNDARY_CONTOURS, 0, 2, 0)
+		) {
+			const int nelems = tessGetElementCount(tess);
+			const TESSindex* elems = tessGetElements(tess);
+			const Vec2* verts = (const Vec2*)tessGetVertices(tess);
+
+			for (int i = 0; i < nelems; i++) {
+				const TESSindex base = elems[i * 2];
+				const TESSindex count = elems[i * 2 + 1];
+				if (count < 3)
+					continue;
+
+				out->moveTo(verts[base]);
+				for (int j = 1; j < count; j++) {
+					out->lineTo(verts[base + j]);
+				}
+				out->close();
+			}
+		}
+
+		tessDeleteTess(tess);
+		out->_isBoundaryPath = true;
+		out->_sealed = true;
+		return out;
+	}
+
 	VertexData Path::getTriangles(float epsilon, float z) const {
 		int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 
-		{ //
-			Path storage;
-			const Path *self = _IsNormalized ? this: normalized(&storage, epsilon, false);
-
-			auto pts = (const Vec2*)*self->_pts;
-			int len = 0;
-			Array<Vec2> tmpV;
-			
-			auto closeAdd = [&]() {
-				if (len) {
-					Vec2 *point = &tmpV[tmpV.length() - len];
-					//for (int i = 0; i < len; i++) {
-					//	Qk_DLog("Vec2(%f, %f)", point[i][0], point[i][1]);
-					//}
-					tessAddContour(tess, 2, (float*)point, sizeof(Vec2), len);
-					len = 0;
-				}
-			};
-
-			for (auto verb: self->_verbs) {
-				switch(verb) {
-					case kMove_Verb:
-						closeAdd(); // auto close
-						tmpV.push(*pts++); len = 1;
-						break;
-					case kLine_Verb:
-						//if (len == 0) {
-						//	tmpV.push(Vec2(0)); len=1; // use Vec2(0,0) start point
-						//}
-						tmpV.push(*pts++);
-						len++;
-						break;
-					case kClose_Verb: // close
-						// Qk_ASSERT(verb == kVerb_Close);
-						closeAdd();
-						break;
-					default:
-						Qk_Fatal("Path::getTriangles() invalid verb");
-				}
-			}
-			closeAdd(); // auto close
-		}
+		Path tmp;
+		const Path *self = normalized(&tmp, epsilon, false);
+		tessAddPathContours(tess, self, "Path::getTriangles() invalid verb");
 
 		VertexData out{0,0};
 
@@ -462,7 +498,7 @@ namespace qk {
 
 	Path Path::dashPath(float *stageP, int stageCount, float offset) const {
 		Path tmp, out;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+		const Path *self = normalized(&tmp, 1,false);
 		auto pts = (const Vec2*)*self->_pts;
 		int  stageIdx = -1;
 		bool useStage = false; // no empty
@@ -547,9 +583,9 @@ namespace qk {
 	Path& Path::normalizedPath(float epsilon) {
 		if (_sealed) return *this;
 		if (!_IsNormalized) {
-			Path storage;
-			normalized(&storage, epsilon, true);
-			*this = std::move(storage);
+			Path tmp;
+			normalized(&tmp, epsilon, true);
+			*this = std::move(tmp);
 		}
 		return *this;
 	}
@@ -633,9 +669,11 @@ namespace qk {
 		return (a - b).length() < 0.01;
 	}
 
-	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
+	const Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Qk_ASSERT(!out->_sealed, "Path::normalized() sealed path can not be modified");
 		Qk_ASSERT(out != this, "Path::normalized() output path must be different from input path");
+		if (_IsNormalized)
+			return this;
 		Path &line = *out;
 
 		auto pts = ((Vec2*)_pts.val());

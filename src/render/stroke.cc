@@ -65,7 +65,7 @@ namespace qk {
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
 		
 		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp, 1,false);
+		const Path *self = normalized(&tmp, 1,false);
 
 		auto from_outline = qk_ft_outline_convert(self);
 		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
@@ -368,8 +368,8 @@ namespace qk {
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
 	VertexData Path::getAASideStrokeTriangle(float width, float epsilon) const {
-		Path tmp;
-		auto self = _IsNormalized ? this: normalized(&tmp, epsilon, false);
+		Path boundary;
+		auto self = boundaryPath(&boundary, epsilon);
 		Path bodyPath;
 		Array<Vec3> aaSide;
 		Array<Vec2> contourPts;
@@ -485,7 +485,7 @@ namespace qk {
 		width *= 0.5;
 
 		Path tmp,out;
-		auto self = _IsNormalized ? this: normalized(&tmp, 1, false);
+		auto self = normalized(&tmp, 1, false);
 
 		struct Ctx {
 			float width,miterLimit;

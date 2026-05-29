@@ -45,7 +45,7 @@ namespace qk {
 	extern const float  aa_side_width = 0.55;
 #else
 	// More radical:
-	extern const float  aa_side_width = 5; // actual: 0.5, debug: 5
+	extern const float  aa_side_width = 0.5; // actual: 0.5, debug: 5
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 

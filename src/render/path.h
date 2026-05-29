@@ -162,7 +162,8 @@ namespace qk {
 		// get region bounds from pts, do not check unit matrix
 		static Range getBoundsFromPoints(const Vec2 pts[], uint32_t ptsLen, const Mat* matrix = nullptr);
 	private:
-		Path* normalized(Path *out, float epsilon, bool updateHash) const;
+		const Path* normalized(Path *out, float epsilon, bool updateHash) const;
+		const Path* boundaryPath(Path *out, float epsilon) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		// Props field:
@@ -170,7 +171,7 @@ namespace qk {
 		Array<uint8_t> _verbs;
 		// Array<PathVerb> _verbs;
 		Hash5381 _hash;
-		bool _IsNormalized, _sealed;
+		bool _IsNormalized, _sealed, _isBoundaryPath;
 		friend class RectPath;
 		friend class RectOutlinePath;
 	};
