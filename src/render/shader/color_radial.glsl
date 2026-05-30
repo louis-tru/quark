@@ -11,7 +11,7 @@ layout(location=1) out vec2 position;
 void main() {
 	aaSide = aaSideIn;
 	position = vertexIn.xy;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag

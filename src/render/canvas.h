@@ -121,7 +121,6 @@ namespace qk {
 			uint16_t *indices = nullptr;      ///< Index array.
 			uint32_t vertCount = 0;           ///< Number of vertices.
 			uint32_t indexCount = 0;          ///< Number of indices.
-			float zDepthTotal = 0;            ///< Combined Z-depth for batching.
 			bool isDarkColor = false;         ///< Whether darkColor is active.
 		};
 

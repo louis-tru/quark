@@ -6,7 +6,7 @@ Qk_CONSTANT(
 #vert
 void main() {
 	aaSide = aaSideIn;
-	vec4 pos = vMat.value * vec4(vertexIn.xy, pc.depth, 1.0);
+	vec4 pos = vMat.value * vec4(vertexIn.xy, 0.0, 1.0);
 	pos.xy += pc.surfaceOffset.xy * pc.surfaceOffset.zw;
 	gl_Position = rMat.value * pos;
 }

@@ -73,7 +73,6 @@ namespace qk {
 		MTLSampler _nearestSampler; // sampler state for nearest filter mode
 		MTLSampler _linearSampler; // sampler state for linear filter mode, kLinear_FilterMode and kLinearNearest_MipmapMode
 		MTLPipeline _vportCpPipeline; // pipeline for viewport copy
-		MTLDepthStencilStateID _depthOnly; // depth-only stencil state
 		friend class MetalCanvas;
 	};
 

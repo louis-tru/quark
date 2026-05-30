@@ -108,7 +108,7 @@ namespace qk {
 
 	enum GC_ClearFlags {
 		kOnlyColor_ClearFlags, // only clear color
-		kClearAll_ClearFlags, // clear color and depth and stencil
+		kClearAll_ClearFlags, // clear color and reset render target state
 	};
 
 	class GC_Filter;
@@ -189,7 +189,6 @@ namespace qk {
 		float  _surfaceScaleAverage, _scaleAverage, _allScaleAverage; // average of x/y scale
 		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
 		float  _phy2Pixel; // _phy2Pixel = 2 / _allScaleMin
-		float  _zDepth; // z depth for draw order
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa

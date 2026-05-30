@@ -130,10 +130,10 @@ namespace qk { namespace js {
 				auto vertex = self->getTriangles(arg0, arg1).vertex;
 				Js_Return( worker->types()->jsvalue(vertex) );
 			});
-			Js_Class_Method(getAASideStrokeTriangle, {
-				Js_Parse_Args(float, 0, "path.getAASideStrokeTriangle(width,epsilon?)");
-				Js_Parse_Args(float, 1, "path.getAASideStrokeTriangle(width,epsilon?)", (1.0f));
-				auto vertex = self->getAASideStrokeTriangle(arg0, arg1).vertex;
+			Js_Class_Method(getAASideTriangle, {
+				Js_Parse_Args(float, 0, "path.getAASideTriangle(width,epsilon?)");
+				Js_Parse_Args(float, 1, "path.getAASideTriangle(width,epsilon?)", (1.0f));
+				auto vertex = self->getAASideTriangle(arg0, arg1).vertex;
 				Js_Return( worker->types()->jsvalue(vertex) );
 			});
 			Js_Class_Method(dashPath, {

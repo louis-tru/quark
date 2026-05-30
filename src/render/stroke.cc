@@ -305,7 +305,7 @@ namespace qk {
 		float    area;
 		float    normalSide;
 		Vec2     sample;
-		int      depth;
+		int      nesting;
 	};
 
 	static Array<AASideContour> collectAASideContours(const Path *self, Array<Vec2> *contourPts) {
@@ -333,16 +333,16 @@ namespace qk {
 			if (!contour.close)
 				continue;
 
-			int depth = 0;
+			int nesting = 0;
 			for (auto &parent: contours) {
 				if (&contour != &parent && parent.close) {
 					auto pts = contourPts->val() + parent.start;
 					if (pointInContour(contour.sample, pts, parent.size))
-						depth++;
+						nesting++;
 				}
 			}
-			contour.depth = depth;
-			if (depth & 1)
+			contour.nesting = nesting;
+			if (nesting & 1)
 				contour.normalSide = -contour.normalSide;
 		}
 
@@ -364,10 +364,10 @@ namespace qk {
 	 * TODO: When the included angle is extremely small, the normal can be
 	 * shifted too far and produce visual spikes.
 	 *
-	 * @method getAASideStrokeTriangle() returns signed aa side stroke triangle vertices
+	 * @method getAASideTriangle() returns signed aa side stroke triangle vertices and body triangles
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
-	VertexData Path::getAASideStrokeTriangle(float width, float epsilon) const {
+	VertexData Path::getAASideTriangle(float width, float epsilon) const {
 		Path boundary;
 		auto self = boundaryPath(&boundary, epsilon);
 		Path bodyPath;
@@ -428,8 +428,8 @@ namespace qk {
 			if (subpath < _->contours->length()) {
 				// The local contour winding tells which side is inside for a
 				// single isolated polygon. Nested contours flip that meaning at
-				// every containment level: depth 0 normal, depth 1 reversed,
-				// depth 2 normal, and so on.
+				// every containment level: nesting 0 normal, nesting 1 reversed,
+				// nesting 2 normal, and so on.
 				_->normalSide = (*_->contours)[subpath].normalSide;
 			} else {
 				_->normalSide = -1.0f;

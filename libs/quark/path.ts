@@ -211,12 +211,12 @@ export declare class Path {
 	getTriangles(epsilon?: number, z?: number): Vec3[];
 
 	/**
-	 * Generate anti-aliased fuzzy stroke triangles.
+	 * Generate anti-aliased side triangles and body triangles.
 	 * @param width Stroke width.
 	 * @param epsilon Approximation tolerance (default = 1.0).
-	 * @returns Array of Vec3 triangles for fuzzy stroke rendering.
+	 * @returns Array of Vec3 triangles for anti-aliased side and body rendering.
 	 */
-	getAADistStrokeTriangle(width: number, epsilon?: number): Vec3[];
+	getAASideTriangle(width: number, epsilon?: number): Vec3[];
 
 	/**
 	 * Convert the path into a dashed path.

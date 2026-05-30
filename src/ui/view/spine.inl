@@ -45,7 +45,6 @@ namespace spine {
 }
 
 namespace qk {
-	extern const float zDepthNextUnit;
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
 	typedef SpineEvent::Type SEType;

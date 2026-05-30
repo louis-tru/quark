@@ -41,7 +41,6 @@
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 
 namespace qk {
-	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void gl_set_blend_mode(BlendMode mode);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
@@ -247,7 +246,7 @@ namespace qk {
 						}
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
-							drawColor(c->vertex, c->color, c->depth, Qk_CLIP(c->isClip));
+							drawColor(c->vertex, c->color, Qk_CLIP(c->isClip));
 							c->~ColorCmd();
 							break;
 						}
@@ -396,12 +395,6 @@ namespace qk {
 		}
 
 		void clearColorCall(ClearCmd *cmd) {
-			if (cmd->flags == kClearAll_ClearFlags) // clear stencil and depth
-				glClearBufferfi(GL_DEPTH_STENCIL, 0, -1, 0); // depth=-1, stencil = 0
-			//glClearStencil(0);
-			//glClearDepthf(cmd->depth);
-			//glClearColor(color.r(), color.g(), color.b(), color.a());
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			glClearBufferfv(GL_COLOR, 0, cmd->color.val); // clear GL_COLOR_ATTACHMENT0
 		}
 
@@ -424,7 +417,6 @@ namespace qk {
 			glUseProgram(sh->shader); // use shader program
 			glUniform4fv(sh->pc_color, 1, cmd->color.val);
 			glUniform1f(sh->pc_min_edge, min_edge);
-			glUniform1f(sh->pc_depth, cmd->depth);
 			glUniform1f(sh->pc_s_inv, 1.0/s); // 1/s blur size reciprocal
 			glUniform1ui(sh->pc_flags, Qk_CLIP(cmd->isClip)); // clip flag
 			glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
@@ -477,14 +469,12 @@ namespace qk {
 					} else {
 						glUniform1i(yuv->pc_format, 0); // yuv420sp
 					}
-					glUniform1f(yuv->pc_depth, cmd->depth);
 					glUniform4fv(yuv->pc_color, 1, cmd->color.val);
 					glUniform4fv(yuv->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(yuv->pc_flags, Qk_CLIP(cmd->isClip));
 				} else {
 					auto s = &_render->_shaders.image;
 					useShaderProgram(s, cmd->vertex);
-					glUniform1f(s->pc_depth, cmd->depth);
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
@@ -498,7 +488,6 @@ namespace qk {
 				auto type = cmd->paint._isCanvas ? kRGBA_8888_ColorType: cmd->paint.image->type();
 				auto s = &_render->_shaders.imageMask;
 				useShaderProgram(s, cmd->vertex);
-				glUniform1f(s->pc_depth, cmd->depth);
 				glUniform1i(s->pc_alphaIndex, type == kAlpha_8_ColorType ? 0 :
 						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
@@ -512,7 +501,6 @@ namespace qk {
 			if (useTextureSlot0(cmd->paint)) {
 				auto s = &_render->_shaders.imageSdfMask;
 				useShaderProgram(s, cmd->vertex);
-				glUniform1f(s->pc_depth, cmd->depth);
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
 				glUniform4fv(s->pc_strokeColor, 1, cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
 				glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
@@ -523,14 +511,12 @@ namespace qk {
 		}
 
 		void drawTrianglesCall(TrianglesCmd *cmd) {
-			//const Triangles &triangles, const PaintImage *paint, const Color4f &color, float depth
 			if (useTextureSlot0(cmd->paint)) {
 				// auto isPre = cmd->paint.image->premultipliedAlpha();
 				auto s = &_render->_shaders.triangles;
 				Qk_ASSERT_EQ(cmd->triangles.indexCount % 3, 0, "drawTrianglesCall, indexCount must be a multiple of 3");
 				s->use(cmd->triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), cmd->triangles.verts);
 				glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip) | (cmd->triangles.isDarkColor ? (1u << 1): 0));
-				glUniform1f(s->pc_depth, cmd->depth);
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
 				// glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
@@ -546,7 +532,6 @@ namespace qk {
 
 			useShaderProgram(s, cmd->vertex);
 			glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip) | (count == 2 ? (1u << 2): 0));
-			glUniform1f(s->pc_depth, cmd->depth);
 			glUniform4fv(s->pc_color, 1, cmd->color.val);
 			glUniform4fv(s->pc_range, 1, cmd->paint.origin.val);
 			glUniform1i(s->pc_count, count);
@@ -561,7 +546,6 @@ namespace qk {
 			auto last = cmd->lastClip.get(), clip = cmd->clip.get();
 			auto begin = clip->range.begin,
 					 end = clip->range.end, size = end - begin;
-			auto depth = cmd->depth;
 			auto blend = _render->_blendMode; // save current blend mode
 			// switch blend mode to src for clip drawing
 			_render->set_blend_mode(kSrc_BlendMode);
@@ -573,13 +557,11 @@ namespace qk {
 				useShaderProgram(s, vertex);
 				glUniform4fv(s->pc_color, 1, whiteColor);
 				glUniform4f(s->pc_surfaceOffset, offset[0], offset[1], offset[2], offset[3]);
-				glUniform1f(s->pc_depth, depth);
 				glUniform1ui(s->pc_flags, flags);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			};
 
 			auto drawClipMask = [&](bool black, bool clip) {
-				depth += zDepthNextUnit;
 				auto scale = Vec2(1) / cmd->surfaceScale;
 				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
@@ -600,7 +582,7 @@ namespace qk {
 				drawClipMask(false, last);
 			} else { // if (cmd->rawOp == Canvas::kDifference_ClipOp)
 				// copy last clip color to clipTex as the clear color
-				copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size, depth);
+				copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size);
 				// draw clip shape to clipTex with white color if last op equal difference,
 				// or black color if last op equal intersect
 				auto black = last->op == Canvas::kIntersect_ClipOp;
@@ -629,7 +611,7 @@ namespace qk {
 			}
 		}
 
-		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution, float depth) {
+		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution) {
 			float x1 = dst.begin.x(), y1 = dst.begin.y();
 			float x2 = dst.end.x(), y2 = dst.end.y();
 			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0, };
@@ -644,15 +626,13 @@ namespace qk {
 			glUniform2fv(cp.pc_oResolution, 1, resolution.val);
 			glUniform4f(cp.pc_coord, offset.x(), offset.y(), scale.x(), scale.y());
 			glUniform1i(cp.pc_imageLod, 0); // src image lod
-			glUniform1f(cp.pc_depth, depth);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 
-		void drawColor(const VertexData &vertex, const Color4f &color, float depth, uint32_t flags) {
+		void drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags) {
 			auto s = &_render->_shaders.color;
 			useShaderProgram(s, vertex);
 			glUniform4fv(s->pc_color, 1, color.val);
-			glUniform1f(s->pc_depth, depth);
 			glUniform1ui(s->pc_flags, flags);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
@@ -701,7 +681,7 @@ namespace qk {
 			auto begin = cmd->bounds.begin, end = cmd->bounds.end;
 			float x1 = begin.x() - offset.x(), y1 = begin.y() - offset.y(),
 						x2 = end.x() - offset.x(), y2 = end.y() - offset.y();
-			float radius = cmd->radius, depth = cmd->depth;
+			float radius = cmd->radius;
 			float radius2 = radius * cmd->surfaceScale; // radius in pixel unit
 			auto imageLod = cmd->imageLod;
 			Vec2 iR = cmd->tmpA->size(); // input resolution
@@ -732,12 +712,10 @@ namespace qk {
 				glUniform4f(cp.pc_coord, 0, 0, 1, 1);
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
-					glUniform1f(cp.pc_depth, depth);
 					glUniform1f(cp.pc_imageLod, level++);
 					glUniform2f(cp.pc_oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texA, level);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-					depth += zDepthNextUnit;
 				} while(level < imageLod);
 			}
 			{
@@ -752,7 +730,6 @@ namespace qk {
 				float vertex[] = { x1+radius,y1,0, x2-radius,y1,0, x1+radius,y2,0, x2-radius,y2,0 };
 				// // Making blur of the x-axis direction
 				blur->use(sizeof(float) * 12, vertex);
-				glUniform1f(blur->pc_depth, depth);
 				glUniform2fv(blur->pc_iResolution, 1, iR.val);
 				glUniform2f(blur->pc_oResolution, oRw, oRh);
 				glUniform1f(blur->pc_sample_inv, 1.0f/(cmd->sample-1));
@@ -760,7 +737,6 @@ namespace qk {
 				glUniform2f(blur->pc_uv_offset, 0, 0);
 				glUniform1f(blur->pc_imageLod, imageLod);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
-				depth += zDepthNextUnit;
 			}
 			{
 				// The blur regions for y-axis
@@ -776,7 +752,6 @@ namespace qk {
 				glBindTexture(GL_TEXTURE_2D, texB);
 				// Making blur of the y-axis direction
 				blur->use(sizeof(float) * 12, vertex);
-				glUniform1f(blur->pc_depth, depth);
 				glUniform2fv(blur->pc_oResolution, 1, iR.val);
 				glUniform2f(blur->pc_uv_radius, 0, radius2 / iR.y()); // vertical blur
 				glUniform2fv(blur->pc_uv_offset, 1, uv_offset.val);
@@ -821,7 +796,6 @@ namespace qk {
 			auto scale = cmd->srcRect.size / cmd->surfaceSize;
 			auto &cp = _render->_shaders.cp;
 			cp.use(sizeof(float) * 12, vertex);
-			glUniform1f(cp.pc_depth, cmd->depth);
 			glUniform2f(cp.pc_iResolution, cmd->surfaceSize.x(), cmd->surfaceSize.y());
 			glUniform2fv(cp.pc_oResolution, 1, dstSize.val);
 			glUniform1f(cp.pc_imageLod, 0);
@@ -943,7 +917,6 @@ namespace qk {
 			setColorBuffer(nullptr); // set default color output target
 			setRootMatrixCall(rootMatrix); // root matrix buffer
 			glClearBufferfv(GL_COLOR, 0, emptyColor); // clear GL_COLOR_ATTACHMENT0
-			glClearBufferfi(GL_DEPTH_STENCIL, 0, -1, 0); // clear depth and stencil
 		}
 
 		void drawBuffersCall(GLsizei num, const GLenum buffers[2]) {
@@ -1058,7 +1031,6 @@ namespace qk {
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 			cmd->type = kColor_CmdType;
 			cmd->vertex = vertex;
-			cmd->depth = _canvas->_zDepth;
 			cmd->color = premul_alpha(color);
 #if Qk_USE_ColorBatch
 		} else {
@@ -1068,8 +1040,10 @@ namespace qk {
 			do {
 				auto cmd = _this->getColorBatchCmd();
 				cmd->opts[cmd->subcmd] = { // setting vertex option data
-					.flags  = 0,                       .depth = _canvas->_zDepth,
-					.matrix = _canvas->_state->matrix, .color = premul_alpha(color),
+					.matrix = _canvas->_state->matrix,
+					.flags = 0,
+					._pad = 0,
+					.color = premul_alpha(color),
 				};
 				auto vertexs = _vertexBlocks.currentBlock;
 				auto prevSize = vertexs->size;
@@ -1118,7 +1092,6 @@ namespace qk {
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
 		cmd->type = kRRectBlurColor_CmdType;
-		cmd->depth = _canvas->_zDepth;
 		cmd->rect = rect;
 		cmd->radius[0] = radius[0];
 		cmd->radius[1] = radius[1];
@@ -1133,7 +1106,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
-		cmd->depth = _canvas->_zDepth;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1144,7 +1116,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
 		cmd->type = kImageMask_CmdType;
 		cmd->vertex = vertex;
-		cmd->depth = _canvas->_zDepth;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1156,7 +1127,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(SDFImageMaskCmd))) SDFImageMaskCmd;
 		cmd->type = kSDFImageMask_CmdType;
 		cmd->vertex = vertex;
-		cmd->depth = _canvas->_zDepth;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		cmd->strokeColor = premul_alpha(strokeColor);
@@ -1171,7 +1141,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
 		cmd->type = kTriangles_CmdType;
 		cmd->triangles = triangles;
-		cmd->depth = _canvas->_zDepth;
 		cmd->paint = *paint;
 		cmd->color = color;
 		cmd->copyData = copyData;
@@ -1202,7 +1171,6 @@ namespace qk {
 		}
 		cmd->type = kGradient_CmdType;
 		cmd->vertex = vertex;
-		cmd->depth = _canvas->_zDepth;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
 		cmd->paint.colors = colors;
@@ -1220,14 +1188,12 @@ namespace qk {
 		cmd->rawOp = rawOp;
 		cmd->recover = _canvas->_state->output;
 		cmd->surfaceScale = _canvas->_surfaceScale;
-		cmd->depth = _canvas->_zDepth;
 	}
 
 	void GLC_CmdPack::clearColor(const Color4f &color, GC_ClearFlags flags) {
 		auto cmd = new(_this->allocCmd(sizeof(ClearCmd))) ClearCmd;
 		cmd->type = kClear_CmdType;
 		cmd->color = color;
-		cmd->depth = _canvas->_zDepth;
 		cmd->flags = flags;
 	}
 
@@ -1235,7 +1201,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterBeginCmd))) BlurFilterBeginCmd;
 		cmd->type = kBlurFilterBegin_CmdType;
 		cmd->bounds = bounds;
-		cmd->depth = _canvas->_zDepth;
 		cmd->tmpA = tmpA;
 		cmd->blurRootMatrix = rootMat;
 	}
@@ -1245,7 +1210,6 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;
-		cmd->depth = _canvas->_zDepth;
 		cmd->radius = radius;
 		cmd->clearPad = clearPad;
 		cmd->surfaceScale = _canvas->_surfaceScaleAverage;
@@ -1267,7 +1231,6 @@ namespace qk {
 		cmd->dest = dst;
 		cmd->canvasSize = _canvas->_size;
 		cmd->surfaceSize = _canvas->_surfaceSize;
-		cmd->depth = _canvas->_zDepth;
 	}
 
 	void GLC_CmdPack::outputImageBegin(ImageSource* dst) {

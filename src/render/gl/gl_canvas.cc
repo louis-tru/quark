@@ -51,7 +51,7 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
 		: GPUCanvas(render, opts)
 		, _render(render)
-		, _fbo(0), _outTex(0), _outDepth(0)
+		, _fbo(0), _outTex(0)
 		, _matrixFlag(false)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
@@ -61,11 +61,9 @@ namespace qk {
 
 	GLCanvas::~GLCanvas() {
 		GLuint fbo = _fbo,
-					rbo[] = { _outDepth },
 					tex[] = { _outTex };
-		_render->post_message(Cb([render=_render,fbo,rbo,tex](auto &e) {
+		_render->post_message(Cb([render=_render,fbo,tex](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
-			glDeleteRenderbuffers(1, rbo);
 			glDeleteTextures(1, tex);
 		}));
 		_mutex.lock();
@@ -84,14 +82,11 @@ namespace qk {
 		if (!_fbo) {
 			_outTex = gl_new_texid(); // Create a color renderbuffer of texture
 			glGenFramebuffers(1, &_fbo); // Create the framebuffer
-			glGenRenderbuffers(1, &_outDepth); // Create depth buffer
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 		// Allocate storage for it, and attach it to the framebuffer.
 		gl_set_color_renderbuffer(0, _outTex, type, surfaceSize);
-		gl_set_framebuffer_renderbuffer(_outDepth, surfaceSize, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _outDepth);
 
 		glDrawBuffers(1, DrawBuffers);
 		gl_CheckFramebufferStatus(GL_FRAMEBUFFER);

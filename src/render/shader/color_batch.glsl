@@ -1,9 +1,9 @@
 // Batch drawing color sets
 
 struct Option {
-	int   flags; // reserve
-	float depth;
 	float m0,m1,m2,m3,m4,m5; // 2d mat2x3
+	int   flags; // flags maybe used for AA, etc
+	int  _pad; // padding for std140
 	vec4  color; // color
 };
 
@@ -26,7 +26,7 @@ void main() {
 	Option opt = opts[optidxIn];
 	aaSide = aaSideIn;
 	color = opt.color;
-	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
+	gl_Position = _matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag

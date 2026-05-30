@@ -135,8 +135,8 @@ class IosGLRender final: public GLRender, public RenderSurface {
 			auto src = _glcanvas->surfaceSize();
 			auto dest = _surfaceSize;
 			auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
-			
-			GLenum attachments[] = {GL_COLOR_ATTACHMENT1,GL_STENCIL_ATTACHMENT,GL_DEPTH_ATTACHMENT};
+
+			GLenum attachments[] = {GL_COLOR_ATTACHMENT1};
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, sizeof(attachments)/sizeof(GLenum), attachments);
 
 			if (_rbo_0_size != _surfaceSize) { // re-allocate render buffer if surface size changed

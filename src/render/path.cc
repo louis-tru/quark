@@ -501,7 +501,7 @@ namespace qk {
 		const Path *self = normalized(&tmp, 1,false);
 		auto pts = (const Vec2*)*self->_pts;
 		int  stageIdx = -1;
-		bool useStage = false; // no empty
+		bool useStage = false; // false: gap, true: dash
 		bool isZero = true;
 		Vec2 move, from;
 		float stage = 0;
@@ -827,6 +827,8 @@ namespace qk {
 
 	// ------------------- R e c t . O u t l i n e . P a t h -------------------
 
+	constexpr float Z = -1.0f; // defaultAASideZ = -1.0f;
+
 	RectPath RectPath::MakeRect(const Rect &rect) {
 		RectPath out;
 		out.id = 0;
@@ -848,12 +850,12 @@ namespace qk {
 		out.vertex.extend(6);
 		auto vertex = out.vertex.val();
 
-		vertex[0] = {rect.begin, 0.0};
-		vertex[1] = {x2, rect.begin.y(), 0.0};
-		vertex[2] = {x2, y2, 0.0};
-		vertex[3] = {x2, y2, 0.0};
-		vertex[4] = {rect.begin.x(), y2, 0.0};
-		vertex[5] = {rect.begin, 0.0};
+		vertex[0] = {rect.begin, Z}; // top left
+		vertex[1] = {x2, rect.begin.y(), Z}; // top right
+		vertex[2] = {x2, y2, Z}; // bottom right
+		vertex[3] = {x2, y2, Z}; // bottom right, repeat for AA side
+		vertex[4] = {rect.begin.x(), y2, Z}; // bottom left
+		vertex[5] = {rect.begin, Z}; // top left
 
 		Qk_ReturnLocal(out);
 	}
@@ -880,11 +882,11 @@ namespace qk {
 		|__2____________|
 		*/
 		Vec3 vertex[6] = { // 0,3,2,1,0,2
-			{r.rightTop[0]>0 && r.rightTop[1]>0 ? x2-r.rightTop.x(): x2,y1,0.0}, // 0
+			{r.rightTop[0]>0 && r.rightTop[1]>0 ? x2-r.rightTop.x(): x2,y1,Z}, // 0
 			//{x2-r.rightTop.x(),y1}, // 0
-			{x1,y1+r.leftTop.y(),0.0}, // 3
-			{x1+r.leftBottom.x(),y2,0.0}, // 2
-			{x2,y2-r.rightBottom.y(),0.0}, // 1
+			{x1,y1+r.leftTop.y(),Z}, // 3
+			{x1+r.leftBottom.x(),y2,Z}, // 2
+			{x2,y2-r.rightBottom.y(),Z}, // 1
 		};
 		vertex[4] = vertex[0];
 		
@@ -899,7 +901,7 @@ namespace qk {
 				float angleStep = Qk_PI_2_1 / (sample - 1);
 				Vec3 p0 = *v2;
 				for (int i = 0; i < sample; i++) {
-					Vec3 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y(), 0.0);
+					Vec3 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y(), Z);
 					Vec3 src[] = { p,p0,p };
 					out->vertex.write(src, i==0?1:3); // add triangle vertex
 					// First point can ignore, because it is repeat
@@ -911,7 +913,7 @@ namespace qk {
 				out->vertex.pop();
 				out->rrectMask |= mask;
 			} else {
-				v2[1] = {v,0.0}; // fix next border vertex
+				v2[1] = {v,Z}; // fix next border vertex
 				out->path.lineTo(v);
 			}
 		};
@@ -961,7 +963,9 @@ namespace qk {
 				out->path.lineTo(v[5]);
 				out->path.lineTo(v[0]);
 				// outside,outside,inside,inside,inside,outside
-				Vec3 src[6] = {v[0],v[3],v[5],v[4],v[5],v[3]};
+				Vec3 src[6] = {
+					{v[0],Z}, {v[3],Z}, {v[5],Z},{v[4],Z}, {v[5],Z}, {v[3],Z}
+				};
 				out->vertex.write(src, 6);
 				out->vCount = 6;
 			} else {
@@ -1048,7 +1052,7 @@ namespace qk {
 
 			if (isRadiusZeroL) { // radius is zero
 				if (isBorder) {
-					Vec3 src[]{{v[0],0.0},{v[5],0.0}}; // outside,inside
+					Vec3 src[]{{v[0],Z},{v[5],Z}}; // outside,inside
 					out->vertex.write(src, 2);
 					path2.push(v[5]);
 					lastV = v[5];
@@ -1069,18 +1073,18 @@ namespace qk {
 					if (isBorder) {
 						if (i == 0) {
 							Vec2 v1 = isRadiusI ? xy * radius_i[0] + center[0]: v[5];
-							Vec3 src[]{v0,v1}; // outside,inside
+							Vec3 src[]{{v0,Z},{v1,Z}}; // outside,inside
 							out->vertex.write(src, 2);
 							path2.push(v1);
 							lastV = v1;
 						} else if (isRadiusI) {
 							Vec2 v1 = xy * radius_i[0] + center[0];
-							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
+							Vec3 src[]{{v0,Z},{lastV,Z},{v1,Z},{v0,Z},{v0,Z},{v1,Z}}; // outside,inside,inside,outside,outside,inside
 							out->vertex.write(src, 6);
 							path2.push(v1);
 							lastV = v1;
 						} else { // inside radius is zero
-							Vec3 src[]{v0,v0,v[5]}; // outside,outside,inside
+							Vec3 src[]{{v0,Z},{v0,Z},{v[5],Z}}; // outside,outside,inside
 							out->vertex.write(src, 3);
 						}
 					}
@@ -1091,7 +1095,7 @@ namespace qk {
 
 			if (isRadiusZeroR) { // radius is zero
 				if (isBorder) {
-					Vec3 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
+					Vec3 src[]{{v[3],Z},{v[3],Z},{lastV,Z},{v[4],Z}}; // outside,outside,inside,inside
 					out->vertex.write(src, 4);
 					if (!isPointEquals(path2.back(), v[4])) {
 						path2.push(v[4]);
@@ -1117,7 +1121,7 @@ namespace qk {
 							v1 = xy * radius_i[1] + center[1];
 							RadiusI:
 							// outside,inside,inside,outside,outside,inside
-							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
+							Vec3 src[]{{v0,Z},{lastV,Z},{v1,Z},{v0,Z},{v0,Z},{v1,Z}};
 							out->vertex.write(src, 6);
 							if (i != 0 || !isPointEquals(path2.back(), v1)) {
 								path2.push(v1);
@@ -1129,7 +1133,7 @@ namespace qk {
 							if (i == 0) {
 								v1 = v[4]; goto RadiusI;
 							}
-							Vec3 src[]{v0,v0,v[4]}; // outside,outside,inside
+							Vec3 src[]{{v0,Z},{v0,Z},{v[4],Z}}; // outside,outside,inside
 							out->vertex.write(src, 3);
 						}
 					}

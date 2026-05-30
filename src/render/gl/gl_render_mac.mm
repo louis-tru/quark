@@ -278,13 +278,11 @@ namespace qk {
 		attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
 		attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
 		attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
-		//attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
 		attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
 		attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display
 		//attrs[i++] = NSOpenGLPFAAllRenderers; // Choose from all available renderers
 		//attrs[i++] = NSOpenGLPFAOffScreen;
 		//attrs[i++] = NSOpenGLPFAAllowOfflineRenderers; // Allow off-screen rendering
-		//attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
 		//if (MSAA > 1) { // use msaa
 		//	attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
 		//	attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
@@ -301,13 +299,9 @@ namespace qk {
 		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:g_sharedRenderResource->ctx()];
 
 #if DEBUG
-		GLint stencilBits;
-		[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
-		GLint depthSize;
-		[ctx.pixelFormat getValues:&depthSize forAttribute:NSOpenGLPFADepthSize forVirtualScreen:0];
 		GLint sampleCount;
 		[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-		Qk_DLog("stencilBits:%d,depthSize:%d,sampleCount:%d", stencilBits, depthSize, sampleCount);
+		Qk_DLog("sampleCount:%d", sampleCount);
 #endif
 
 		CGLLockContext(ctx.CGLContextObj);

@@ -13,7 +13,7 @@ layout(location=2) out vec4 light;
 layout(location=3) out vec4 dark;
 
 void main() {
-	gl_Position = matrix * vec4(vertexIn.xy, aaSideIn + pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 	texCoords = texCoordsIn;
 	light = lightColorIn * pc.color;
 	dark = darkColorIn;

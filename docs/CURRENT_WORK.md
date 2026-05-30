@@ -40,7 +40,7 @@ Current Metal backend state:
 
 - Metal canvas command implementations have been split into `src/render/metal/mtl_canvas_cmd.mm`.
 - The Metal backend now covers the GL-aligned draw path, including color/image/YUV/mask/SDF/gradient/rrect blur/triangles, clip masks, blur filters, `readImage()`, `outputImage()`, and viewport present copy.
-- Metal command encoding now tracks explicit render-pass/encoder lifetime, front/current command packs, transient buffer allocation, sampler caching, depth state, and pipelines keyed by Metal pixel format.
+- Metal command encoding now tracks explicit render-pass/encoder lifetime, front/current command packs, transient buffer allocation, sampler caching, and pipelines keyed by Metal pixel format.
 - Visual validation is still useful for anti-aliased difference clips, nested clip restore behavior, blur edge sampling, and output-image mipmap use.
 
 macOS live-resize note:
@@ -58,8 +58,8 @@ AA direction discussed:
 - Planned `aaSide` semantics: `aaSide < 0` means inside, `aaSide = 0` means the true edge, and `aaSide > 0` means outside. Vertex data currently stores side values at the two expanded band edges, not physical distance.
 - The shader should use derivatives such as `fwidth(aaSide)` to estimate the device-pixel transition width and convert the signed side coordinate into coverage.
 - The promising direction is to improve `AASide` into a GPU-only signed-side edge AA system, not a CPU/software coverage mask.
-- `Path::getAASideStrokeTriangle()` now treats AA subpaths as closed when possible and signs generated `aaSide` from contour winding plus nesting depth: inner side negative, outer side positive. Fragment shaders still mostly consume `abs(aaSide)`, so shader-side signed coverage remains a follow-up.
-- See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, body-over-edge depth ordering, and hard cases.
+- `Path::getAASideStrokeTriangle()` now treats AA subpaths as closed when possible and signs generated `aaSide` from contour winding plus nesting level: inner side negative, outer side positive. Fragment shaders still mostly consume `abs(aaSide)`, so shader-side signed coverage remains a follow-up.
+- See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, combined body/edge geometry, and hard cases.
 
 Active AASide experiment branch:
 
@@ -72,11 +72,12 @@ Active AASide experiment branch:
 
 Current AASide findings:
 
-- Confirmed problem 1: `aaSide` direction is not reliable enough when inferred only from each contour's winding. `Path::getAASideStrokeTriangle()` now collects closed subpaths, samples a point just inside each contour, counts how many other contours contain that point, and flips the local side sign on odd nesting depths. This preserves depth 0 normal, depth 1 reversed, depth 2 normal, and so on.
-- Confirmed problem 2: drawing the AA band before the body can reserve pixels/depth for AA geometry when a path has multiple subpaths. After switching AASide generation to merged boundary + combined inner body geometry, disabling depth for the AASide path now looks promising and removes the earlier depth load/store/order headache. Keep this as the active direction, but validate with nested clips, overlapping paths, and render-to-texture.
-- Current experiment for problem 2: `Path::getAASideStrokeTriangle()` now also collects the inner offset contour, tessellates it as body geometry with `aaSide = -1`, and appends those body triangles to the AA band. `GPUCanvas` AA fill paths now draw this combined geometry instead of drawing AA first and then the original body. This should remove the AA/body depth dependency for normal path fills, while keeping canvas-level depth available for draw ordering.
+- Confirmed problem 1: `aaSide` direction is not reliable enough when inferred only from each contour's winding. `Path::getAASideStrokeTriangle()` now collects closed subpaths, samples a point just inside each contour, counts how many other contours contain that point, and flips the local side sign on odd nesting levels. This preserves level 0 normal, level 1 reversed, level 2 normal, and so on.
+- Confirmed problem 2: drawing the AA band before the body can reserve pixels for AA geometry when a path has multiple subpaths. After switching AASide generation to merged boundary + combined inner body geometry, the AASide path no longer needs a separate ordering buffer. Keep this as the active direction, but validate with nested clips, overlapping paths, and render-to-texture.
+- Current experiment for problem 2: `Path::getAASideStrokeTriangle()` now also collects the inner offset contour, tessellates it as body geometry with `aaSide = -1`, and appends those body triangles to the AA band. `GPUCanvas` AA fill paths now draw this combined geometry instead of drawing AA first and then the original body. This should remove the AA/body ordering dependency for normal path fills.
 - Remaining risk for problem 2: inner offset body contours can collapse or self-intersect for very small shapes, sharp joins, or degenerate contours. Visual validation is still needed before treating the combined AASide/body path as stable.
 - Current experiment for overlapping subpaths: `Path::getAASideStrokeTriangle()` now always uses the private `boundaryPath()` helper to ask libtess2 for `TESS_BOUNDARY_CONTOURS` with the same `TESS_WINDING_POSITIVE` rule as `Path::getTriangles()`, then generates the inner body + AA band from that merged normalized line-only boundary. This should remove internal overlap edges from AASide generation and align AA geometry with the filled body. Visual validation is still needed for overlapping positives, holes/nested contours, and self-intersecting inputs.
+- Depth/stencil removal follow-up: tag `aa-side-depth-baseline` preserves the last depth-enabled test snapshot. Current work removes render z-depth ordering, depth/stencil attachments/state, shader `pc.depth`, and AASide depth increments from GL/Metal/shared Canvas. The active validation target is now fully depth/stencil-free AASide blending/compositing.
 - Degenerate/limit path cases remain for later cleanup. One known case is a full-circle arc with `useCenter = true`: center-to-boundary segments can become overlapping/parallel internal edges, and `getAASideStrokeTriangle()` / `strokePath()` do not currently have special handling for those seams. Extremely small contours, tiny angles, and repeated/near-repeated edges should be addressed together after the main AASide model is stable.
 
 Metal upload performance note:
@@ -100,7 +101,7 @@ Metal upload performance note:
 
 - Add visual regression coverage for Metal clipping, blur, readback, and output-image behavior against the GL reference output.
 - Audit existing `AASide` generation and shader consumption in GL/Metal before changing behavior.
-- Prototype GPU-only signed-side `AASide` coverage for simple straight-edge polygons, using shader-side `fwidth(aaSide)` coverage and body-over-edge depth ordering.
+- Prototype GPU-only signed-side `AASide` coverage for simple straight-edge polygons, using shader-side `fwidth(aaSide)` coverage and combined body/edge geometry.
 - Add or refresh small render regression demos if the project has an existing lightweight path for them.
 
 ## Verification Preference

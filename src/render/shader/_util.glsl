@@ -14,7 +14,6 @@ layout(binding=2, set=0, std140) uniform ViewMatrixBlock { \
 
 #define Qk_CONSTANT(block) layout(push_constant) uniform PcArgs {\
 	block \
-	float depth; \
 	uint flags; \
 } pc
 
@@ -22,7 +21,7 @@ layout(binding=2, set=0, std140) uniform ViewMatrixBlock { \
 Qk_RootMatrixBlock
 Qk_ViewMatrixBlock
 layout(location=0) in      vec2  vertexIn;
-layout(location=1) in      float aaSideIn; // anti alias side or z depth plus
+layout(location=1) in      float aaSideIn; // anti alias side
 layout(location=0) out     float aaSide;
 
 #frag

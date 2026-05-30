@@ -670,9 +670,9 @@ namespace qk {
 							_color = v->_color.mul_color4f(lastColor); break;
 					}
 					if (Qk_LIKELY(v->_z_index == 0)) {
-						v->draw(this); // draw immediately
+						v->draw(this); // can draw directly if z_index is zero
 					} else {
-						// commit delay draw command
+						// commit delay draw command to draw later by z_index
 						_delayCmds->insert({v->_z_index, { v, _matrix, _color, _mark_recursive }});
 					}
 				}
@@ -702,15 +702,15 @@ namespace qk {
 		_delayCmdsStack.push_back(DelayCmdMap(
 			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
 		));
-		_delayCmds = &_delayCmdsStack.back();
+		_delayCmds = &_delayCmdsStack.back(); // set current cmds
 		if (cb)
 			cb(this, v);
 		visitView(v); // draw children views
-		flushDelayDrawCommands();
-		_delayCmdsStack.pop_back();
-		_delayCmds = &_delayCmdsStack.back();
-		_window->clipRestore();
-		_canvas->restore(); // cancel clip
+		flushDelayDrawCommands(); // flush delay cmds
+		_delayCmdsStack.pop_back(); // pop current cmds
+		_delayCmds = &_delayCmdsStack.back(); // restore parent cmds
+		_window->clipRestore(); // restore clip
+		_canvas->restore(); // restore state
 	}
 
 	void Painter::visitBox(Box *v) {
@@ -728,17 +728,18 @@ namespace qk {
 		auto lastMatrix = _matrix; // save matrix
 		auto lastColor = _color; // save color
 		auto lastMarkRecursive = _mark_recursive; // save recursive mark
+		auto begin = _delayCmds->begin();
 		do {
-			// move cmds to avoid re-entrance issue
-			DelayCmdMap cmds(std::move(*_delayCmds));
-			for (auto &it: cmds) {
-				auto &cmd = it.second;
-				set_matrix(cmd.matrix);
-				_color = cmd.color;
-				_mark_recursive = cmd.mark_recursive;
-				cmd.view->draw(this);
-			}
-		} while(_delayCmds->size());
+			auto &cmd = begin->second;
+			auto view = cmd.view;
+			// restore cmd state before draw
+			set_matrix(cmd.matrix);
+			_color = cmd.color;
+			_mark_recursive = cmd.mark_recursive;
+			_delayCmds->erase(begin); // erase cmd
+			view->draw(this);
+			begin = _delayCmds->begin(); // get next cmd
+		} while (begin != _delayCmds->end());
 		_mark_recursive = lastMarkRecursive; // restore last recursive mark
 		_color = lastColor; // restore last color
 		_matrix = lastMatrix; // restore last matrix

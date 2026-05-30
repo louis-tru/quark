@@ -5,7 +5,7 @@ Qk_CONSTANT(
 #vert
 void main() {
 	aaSide = aaSideIn;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag

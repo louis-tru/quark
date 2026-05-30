@@ -79,7 +79,6 @@ namespace qk {
 		GLC_CmdPack *_cmdPackFront;
 		GLuint _fbo; // frame buffer object
 		GLuint _outTex; // Color render buffer object of texture
-		GLuint _outDepth; // Depth and stencil buffer object
 		bool _matrixFlag; // change matrix flag
 
 		friend class GLC_CmdPack;

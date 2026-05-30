@@ -128,13 +128,15 @@ namespace qk {
 		VertexData getTriangles(float epsilon = 1.0, float z = 0.0) const;
 
 		/**
-		 * @method getAASideStrokeTriangle() returns signed aa side stroke triangle vertices
+		 * @method getAASideTriangle() returns signed aa side triangle vertices and body triangles
 		 * @return {VertexData} {.vertex={ x, y, aaSide }[]}, aaSide < 0 inside, aaSide > 0 outside
 		*/
-		VertexData getAASideStrokeTriangle(float width, float epsilon = 1.0) const;
+		VertexData getAASideTriangle(float width, float epsilon = 1.0) const;
 
 		/**
 		 * @method dashPath() returns the dash path
+		 * example: stage = {10, 5, 2, 5} means dash 10 and gap 5 and dash 2 and gap 5, then repeat,
+		 * offset is the start offset of the stage
 		*/
 		Path dashPath(float *stage, int stageCount, float offset = 0) const;
 

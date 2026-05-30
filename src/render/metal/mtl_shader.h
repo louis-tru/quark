@@ -57,7 +57,6 @@ namespace qk {
 	typedef id<CAMetalDrawable> MTLDrawable;
 	typedef id<MTLBuffer> MTLBufferID;
 	typedef id<CAMetalDrawable> MTLDrawableID;
-	typedef id<MTLDepthStencilState> MTLDepthStencilStateID;
 #else
 	typedef void* MTLPipeline;
 	typedef void* MTLFunctionID;
@@ -72,7 +71,6 @@ namespace qk {
 	typedef void* MTLBufferID;
 	typedef int MTLPixelFormat;
 	typedef void* MTLDrawableID;
-	typedef void* MTLDepthStencilStateID;
 #endif
 
 	struct Vec3Padding {

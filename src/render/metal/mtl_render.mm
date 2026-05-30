@@ -509,10 +509,6 @@ namespace qk {
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
 
-		desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
-		// desc.stencilAttachmentPixelFormat = MTLPixelFormatInvalid;
-		// desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
-
 		desc.colorAttachments[0].pixelFormat = format;
 		mtl_set_blend(desc.colorAttachments[0], mode);
 
@@ -582,7 +578,7 @@ namespace qk {
 		, _resource(nil)
 		, _mtlcanvas(nil)
 		, _device(nil), _commandQueue(nil), _emptyBuffer(nil)
-		, _nearestSampler(nil), _linearSampler(nil), _vportCpPipeline(nil), _depthOnly(nil)
+		, _nearestSampler(nil), _linearSampler(nil), _vportCpPipeline(nil)
 	{
 		_resource = getSharedRenderMetalResource();
 		_device = _resource->_device;
@@ -599,14 +595,6 @@ namespace qk {
 		_nearestSampler = _resource->get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = _resource->get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kLinearNearest_MipmapMode);
 		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm, 1);
-
-		// pre-create depth stencil state for depth-only rendering
-		auto *desc = [MTLDepthStencilDescriptor new];
-		desc.depthCompareFunction = MTLCompareFunctionGreater;
-		desc.depthWriteEnabled = YES;
-		desc.frontFaceStencil = nil; // No stencil test.
-		desc.backFaceStencil = nil;
-		_depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
 	}
 
 	MetalRender::~MetalRender() {
@@ -619,7 +607,6 @@ namespace qk {
 		_nearestSampler = nil; // release aa clip sampler reference
 		_linearSampler = nil;
 		_vportCpPipeline = nil;
-		_depthOnly = nil;
 		Releasep(_mtlcanvas); // release canvas and set to nullptr
 		_canvas = nullptr; // clear canvas reference
 		_commandQueue = nil; // release command queue reference

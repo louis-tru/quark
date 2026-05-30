@@ -11,7 +11,7 @@ _CONSTANT_IMAGE(Qk_CONSTANT_Fields);
 layout(location=1) out vec2 coords; // texture coordinates uv for fragment shader
 
 void main() {
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 
 	aaSide = aaSideIn;
 	// Qk uses screen-space coordinates internally.

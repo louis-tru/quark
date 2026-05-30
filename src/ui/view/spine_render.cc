@@ -226,8 +226,7 @@ namespace qk {
 				ex = region->ex;
 				light = toColor4f(region->getColor());
 				tryDrawLastTriangles(painter, cmdTriangles, lastEx, ex, slot);
-				auto z = cmdTriangles.zDepthTotal;
-				Vec3 dstPtr[4] = {{0,0,z}, {0,0,z}, {0,0,z}, {0,0,z}};
+				Vec3 dstPtr[4] = {};
 				region->computeWorldVertices(*slot, dstPtr->val, 0, 3);
 				auto verts = ex->_triangles.verts;
 				for (int i = 0; i < 4; ++i, verts++) {
@@ -246,7 +245,7 @@ namespace qk {
 				for (int i = 0; i < vertCount; ++i, verts++, dstPtr+=2) {
 					verts->vertices[0] = dstPtr[0];
 					verts->vertices[1] = dstPtr[1];
-					verts->vertices[2] = cmdTriangles.zDepthTotal;
+					verts->vertices[2] = 0;
 				}
 			} else if (attachment->getRTTI().isExactly(ClippingAttachment::rtti)) {
 				clipper->clipStart(*slot, (ClippingAttachment *) attachment);
@@ -295,7 +294,7 @@ namespace qk {
 				for (int v = 0, vv = 0; v < triangles.vertCount; ++v, vv+=2, ++vertex) {
 					vertex->vertices[0] = verts[vv];
 					vertex->vertices[1] = verts[vv + 1];
-					vertex->vertices[2] = cmdTriangles.zDepthTotal;
+					vertex->vertices[2] = 0;
 					vertex->texCoords[0] = uvs[vv];
 					vertex->texCoords[1] = uvs[vv + 1];
 				}
@@ -330,7 +329,6 @@ namespace qk {
 			cmdTriangles.indexCount += triangles.indexCount;
 			lastEx = ex;
 			clipper->clipEnd(*slot);
-			cmdTriangles.zDepthTotal += zDepthNextUnit;
 		}
 		clipper->clipEnd();
 		_mutex.unlock();

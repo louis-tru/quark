@@ -13,7 +13,7 @@ void main() {
 	/*indexed = clamp(dot(ao,bo) / dot(ao,ao), 0.0, 1.0);*/
 	weight = dot(ao,bo) / dot(ao,ao);
 	aaSide = aaSideIn;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag

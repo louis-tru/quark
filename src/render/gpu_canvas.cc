@@ -47,7 +47,6 @@ namespace qk {
 	// More radical:
 	extern const float  aa_side_width = 0.5; // actual: 0.5, debug: 5
 #endif
-	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 
 	typedef Typeface::TextImage TextImage;
 
@@ -62,14 +61,6 @@ namespace qk {
 	public:
 		#define _this _inl(this)
 		#define _inl(self) static_cast<GPUCanvas::Inl*>(self)
-
-		inline void zDepthNext() {
-			_zDepth += zDepthNextUnit;
-		}
-
-		inline void zDepthNextCount(uint32_t count) {
-			_zDepth += (zDepthNextUnit * count);
-		}
 
 		void computeScale(const Mat& mat) {
 			if (mat.is_translation_matrix()) { // is translation matrix only
@@ -160,13 +151,12 @@ namespace qk {
 			// adjust range to actual allocated texture size
 			clip->range.end = clip->range.begin + clip->mask->size();
 			if (antiAlias && !_DeviceMsaa) {
-				drawClipCmd(vertex, _cache->getAASideStrokeTriangle(path,_phy2Pixel*aa_side_width), lastClip, clip, rawOp);
+				drawClipCmd(vertex, _cache->getAASideTriangle(path,_phy2Pixel*aa_side_width), lastClip, clip, rawOp);
 			} else {
 				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
 			}
 			_state->clip = clip;
 			_clipState = clip; // set current clip state
-			zDepthNextCount(2);
 		}
 
 		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
@@ -174,12 +164,24 @@ namespace qk {
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
 				if (aa) {
-					drawAASideStroke(path, paint, style, aa_side_width);
+					fillAASide(path, paint, style, aa_side_width);
 				} else {
 					fillv(vertex, paint, style);
 				}
 			}
-			zDepthNext();
+		}
+
+		void fillAASide(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWidth) {
+			auto &vertex = _cache->getAASideTriangle(path, _phy2Pixel*aaSideWidth);
+			if (style.image) {
+				drawImageCmd(vertex, style.image, style.color);
+			} else if (style.gradient) {
+				drawGradientCmd(vertex, style.gradient, style.color);
+			} else if (paint.mask) {
+				drawImageMaskCmd(vertex, paint.mask, style.color);
+			} else {
+				drawColorCmd(vertex, style.color);
+			}
 		}
 
 		void fillv(const VertexData &vertex, const Paint &paint, const PaintStyle &style) {
@@ -205,32 +207,20 @@ namespace qk {
 				if (width > 0) {
 					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, true);
 				} else {
-					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
-					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					drawAASideStroke(path, paint, paint.stroke, 0.5);
-					zDepthNext();
+					// width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
+					// width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
+					fillAASide(path, paint, paint.stroke, 0.5);
 				}
 			} else {
 				fillPath(_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join,0), paint, paint.stroke, false);
 			}
 		}
 
-		void drawAASideStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWidth) {
-			auto &vertex = _cache->getAASideStrokeTriangle(path, _phy2Pixel*aaSideWidth);
-			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color);
-			} else if (style.gradient) {
-				drawGradientCmd(vertex, style.gradient, style.color);
-			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color);
-			} else {
-				drawColorCmd(vertex, style.color);
-			}
-		}
-
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint);
 		void drawPathv_(const Pathv& path, const Paint& paint);
 	};
+
+	//---------------------------------------------------------------------
 
 	class GC_BlurFilter: public GC_Filter {
 	public:
@@ -283,7 +273,6 @@ namespace qk {
 		~GC_BlurFilter() override {
 			_host->_clipState = _host->_state->clip.get(); // restore clip state for blur filter
 			_host->blurFilterEndCmd(_bounds, _rootMatrix, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);
-			_inl(_host)->zDepthNextCount(_imageLod + 2);
 		}
 
 	private:
@@ -318,7 +307,6 @@ namespace qk {
 			// disable clip for blur filter, to avoid blur being cut by clip
 			_host->_clipState = nullptr;
 			_host->blurFilterBeginCmd(_bounds, _blurRootMatrix, *_tmpA);
-			_inl(_host)->zDepthNext();
 		}
 		GPUCanvas *_host;
 		float  _radius; // blur radius
@@ -348,6 +336,72 @@ namespace qk {
 		return nullptr;
 	}
 
+	//---------------------------------------------------------------------
+
+	float GPUCanvas::Inl::drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
+		auto pix = img.image->pixel(0);
+		auto scale_1 = 1.0f / scale;
+		PaintImage p;
+		// Default use baseline align
+		Vec2 dst_start(origin.x() - img.left * scale_1, origin.y() - img.top * scale_1);
+		Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
+		Rect rect{dst_start, dst_size};
+
+		p.setImage(*img.image, rect);
+		p.mipmapMode = PaintImage::kLinear_MipmapMode;
+		p.filterMode = PaintImage::kLinear_FilterMode;
+
+		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
+
+		Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
+		Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
+		Vec2 right_bottom(dst_start + dst_size); // right bottom
+		VertexData vertex{0,6,{
+			dst_start,
+			top_right, left_bottom, // triangle 0 |/
+			top_right,
+			right_bottom, left_bottom, // triangle 1 /|
+		}};
+
+		if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
+			auto strokeWidth = paint.style == Paint::kFill_Style ?
+					0.0f: paint.strokeWidth;
+			drawSDFImageMaskCmd(vertex, &p, paint.fill.color,
+					paint.stroke.color, strokeWidth * scale);
+		} else {
+			drawImageMaskCmd(vertex, &p, paint.fill.color);
+		}
+
+		return scale_1;
+	}
+
+	void GPUCanvas::Inl::drawPathv_(const Pathv& path, const Paint& paint) {
+		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
+		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path.path);
+
+		auto fillPathv = [](Inl* self, const Pathv &path, const Paint &paint, bool aa) {
+			if (path.vCount) {
+				Qk_ASSERT(path.path.isNormalized());
+				if (aa) {
+					self->fillAASide(path.path, paint, paint.fill, aa_side_width);
+				} else {
+					self->fillv(path, paint, paint.fill);
+				}
+			}
+		};
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				fillPathv(this, path, paint, aa); break;
+			case Paint::kStrokeAndFill_Style:
+				fillPathv(this, path, paint, aa);
+			case Paint::kStroke_Style:
+				strokePath(path.path, paint, aa); break;
+		}
+	}
+
+	//---------------------------------------------------------------------
+
 	GPUCanvas::GPUCanvas(Render *render, Render::Options opts)
 		: _state(nullptr), _cache(nullptr), _render(render)
 		, _surfaceSize(), _surfaceScale(1)
@@ -355,7 +409,6 @@ namespace qk {
 		, _surfaceScaleAverage(1), _scaleAverage(1), _allScaleAverage(1)
 		, _allScaleMin(1)
 		, _phy2Pixel(1)
-		, _zDepth(0)
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
 		, _DeviceMsaa(0)
@@ -496,17 +549,7 @@ namespace qk {
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
-		auto clearDepth = _stateStack.length() == 1;
-		if (clearDepth) {
-			// Depth is cleared to 0 and the depth test uses Greater.
-			// Start the next draw at one depth unit instead of 0, otherwise
-			// the first primitive after a full clear would fail the depth test.
-			// This also avoids needing a tiny backend-specific z epsilon in the
-			// root matrix.
-			_zDepth = zDepthNextUnit;
-		}
-		// 2: clear color/clip/depth, 1: clear color only
-		clearColorCmd(color, clearDepth ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
+		clearColorCmd(color, _stateStack.length() == 1 ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
@@ -515,27 +558,25 @@ namespace qk {
 			{0,0,0}, {_size[0],0,0}, {_size[0],_size[1],0}, // triangle 1
 			{_size[0],_size[1],0}, {0,_size[1],0}, { 0,0,0 } // triangle 2
 		}}, color);
-		_this->zDepthNext();
 	}
 
 	void GPUCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAASideStrokeTriangle(path.path, _phy2Pixel*aa_side_width);
+			auto &vertex = _cache->getAASideTriangle(path.path, _phy2Pixel*aa_side_width);
 			drawColorCmd(vertex, color);
 		} else {
 			drawColorCmd(path, color);
 		}
-		_this->zDepthNext();
 	}
 
 	void GPUCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color, 
 		BlendMode mode, bool antiAlias) 
-	{
+{
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAASideStrokeTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
+				auto &vertex = _cache->getAASideTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
 				drawColorCmd(vertex, color);
 			}
 		} else {
@@ -543,7 +584,6 @@ namespace qk {
 				drawColorCmd(*paths[i], color);
 			}
 		}
-		_this->zDepthNext();
 	}
 
 	void GPUCanvas::drawRRectBlurColor(const Rect& rect,
@@ -552,7 +592,6 @@ namespace qk {
 		if (!rect.size.is_zero_axis()) {
 			_this->setBlendMode(mode); // switch blend mode
 			drawRRectBlurColorCmd(rect, radius, blur, color);
-			_this->zDepthNext();
 		}
 	}
 
@@ -572,32 +611,6 @@ namespace qk {
 		}
 	}
 
-	void GPUCanvas::Inl::drawPathv_(const Pathv& path, const Paint& paint) {
-		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
-		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path.path);
-
-		auto fillPathv = [](Inl* self, const Pathv &path, const Paint &paint, bool aa) {
-			if (path.vCount) {
-				Qk_ASSERT(path.path.isNormalized());
-				if (aa) {
-					self->drawAASideStroke(path.path, paint, paint.fill, aa_side_width);
-				} else {
-					self->fillv(path, paint, paint.fill);
-				}
-				self->zDepthNext();
-			}
-		};
-		// gen stroke path and fill path and polygons
-		switch (paint.style) {
-			case Paint::kFill_Style:
-				fillPathv(this, path, paint, aa); break;
-			case Paint::kStrokeAndFill_Style:
-				fillPathv(this, path, paint, aa);
-			case Paint::kStroke_Style:
-				_this->strokePath(path.path, paint, aa); break;
-		}
-	}
-
 	void GPUCanvas::drawRect(const Rect& rect, const Paint& paint) {
 		_this->drawPathv_(_cache->getRectPath(rect), paint);
 	}
@@ -608,44 +621,6 @@ namespace qk {
 
 	void GPUCanvas::drawPathv(const Pathv& path, const Paint& paint) {
 		_this->drawPathv_(path, paint);
-	}
-
-	float GPUCanvas::Inl::drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
-		auto pix = img.image->pixel(0);
-		auto scale_1 = 1.0f / scale;
-		PaintImage p;
-		// Default use baseline align
-		Vec2 dst_start(origin.x() - img.left * scale_1, origin.y() - img.top * scale_1);
-		Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
-		Rect rect{dst_start, dst_size};
-
-		p.setImage(*img.image, rect);
-		p.mipmapMode = PaintImage::kLinear_MipmapMode;
-		p.filterMode = PaintImage::kLinear_FilterMode;
-
-		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
-
-		Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
-		Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
-		Vec2 right_bottom(dst_start + dst_size); // right bottom
-		VertexData vertex{0,6,{
-			dst_start,
-			top_right, left_bottom, // triangle 0 |/
-			top_right,
-			right_bottom, left_bottom, // triangle 1 /|
-		}};
-
-		if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
-			auto strokeWidth = paint.style == Paint::kFill_Style ?
-					0.0f: paint.strokeWidth;
-			drawSDFImageMaskCmd(vertex, &p, paint.fill.color,
-					paint.stroke.color, strokeWidth * scale);
-		} else {
-			drawImageMaskCmd(vertex, &p, paint.fill.color);
-		}
-
-		zDepthNext();
-		return scale_1;
 	}
 
 	float GPUCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offsetIn, const Paint &paint) {
@@ -695,11 +670,6 @@ namespace qk {
 	void GPUCanvas::drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 		drawTrianglesCmd(triangles, paint.fill.image, paint.fill.color, copyData);
-		if (triangles.zDepthTotal) {
-			_zDepth += triangles.zDepthTotal;
-		} else {
-			_this->zDepthNext();
-		}
 	}
 
 	Sp<ImageSource> GPUCanvas::readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) {
@@ -717,7 +687,6 @@ namespace qk {
 			});
 			destImg->set_mipmap(mipmap);
 			readImageCmd({o*_surfaceScale,s*_surfaceScale}, _state->output.get(), destImg.get());
-			_this->zDepthNext();
 			return destImg;
 		}
 		return nullptr;
@@ -760,7 +729,6 @@ namespace qk {
 		_scale = 0; // force computeScale()
 		_this->computeScale(_state->matrix);
 		_rootMatrix = root;
-		_zDepth = zDepthNextUnit; // reset start z depth
 		_texPools.clear(); // clear texture pool when surface size changed
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
