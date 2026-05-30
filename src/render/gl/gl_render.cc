@@ -514,6 +514,11 @@ namespace qk {
 
 		glEnable(GL_BLEND); // enable color blend
 		set_blend_mode(kSrcOver_BlendMode); // set default color blend mode
+		glDisable(GL_STENCIL_TEST); // disable stencil test
+		// glStencilMask(0xFFFFFFFF);
+		// glStencilFunc(GL_LEQUAL, 0, 0xFFFFFFFF); // Equality passes the test
+		glDisable(GL_DEPTH_TEST); // disable depth test
+		// glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
 	}
 
 	GLRender::~GLRender() {

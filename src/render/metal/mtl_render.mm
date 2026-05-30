@@ -509,6 +509,10 @@ namespace qk {
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
 
+		// desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+		// desc.stencilAttachmentPixelFormat = MTLPixelFormatInvalid;
+		// desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+
 		desc.colorAttachments[0].pixelFormat = format;
 		mtl_set_blend(desc.colorAttachments[0], mode);
 

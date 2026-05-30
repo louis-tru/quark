@@ -395,6 +395,8 @@ namespace qk {
 		}
 
 		void clearColorCall(ClearCmd *cmd) {
+			//if (cmd->flags == kClearAll_ClearFlags) // clear stencil and depth
+			//	glClearBufferfi(GL_DEPTH_STENCIL, 0, -1, 0); // depth=-1, stencil = 0
 			glClearBufferfv(GL_COLOR, 0, cmd->color.val); // clear GL_COLOR_ATTACHMENT0
 		}
 
