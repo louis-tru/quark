@@ -41,11 +41,11 @@ namespace qk {
 	extern const Range ZeroRange;
 #if isMoreSofterAA
 	// Softer:
-	//extern const float  aa_side_width = 0.6;
-	extern const float  aa_side_width = 0.55;
+	//extern const float  aa_side_width = 1.2;
+	extern const float  aa_side_width = 1.1;
 #else
 	// More radical:
-	extern const float  aa_side_width = 0.5; // actual: 0.5, debug: 5
+	extern const float  aa_side_width = 1; // actual: 1, debug: 50
 #endif
 
 	typedef Typeface::TextImage TextImage;
@@ -69,7 +69,7 @@ namespace qk {
 					_scaleAverage = 1.0f;
 					_allScaleAverage = _surfaceScaleAverage;
 					_allScaleMin = _surfaceScaleAverage;
-					_phy2Pixel = 2.0f / _allScaleMin;
+					_phy1Pixel = 1.0f / _allScaleMin;
 				}
 			} else {
 				Vec2 scale(Vec2(mat[0], mat[3]).length(), Vec2(mat[1], mat[4]).length());
@@ -78,7 +78,7 @@ namespace qk {
 					_scaleAverage = sqrtf(scale.x() * scale.y());
 					_allScaleAverage = _surfaceScaleAverage * _scaleAverage;
 					_allScaleMin = _surfaceScaleAverage * Float32::min(scale.x(), scale.y());
-					_phy2Pixel = 2.0f / _allScaleMin;
+					_phy1Pixel = 1.0f / _allScaleMin;
 				}
 			}
 		}
@@ -151,7 +151,7 @@ namespace qk {
 			// adjust range to actual allocated texture size
 			clip->range.end = clip->range.begin + clip->mask->size();
 			if (antiAlias && !_DeviceMsaa) {
-				drawClipCmd(vertex, _cache->getAASideTriangle(path,_phy2Pixel*aa_side_width), lastClip, clip, rawOp);
+				drawClipCmd(vertex, _cache->getAASideTriangle(path,_phy1Pixel*aa_side_width), lastClip, clip, rawOp);
 			} else {
 				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
 			}
@@ -161,18 +161,15 @@ namespace qk {
 
 		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
 			Qk_ASSERT(path.isNormalized(), "Path must be normalized before filling. Call path.normalize() first.");
-			auto &vertex = _cache->getPathTriangles(path);
-			if (vertex.vCount) {
-				if (aa) {
-					fillAASide(path, paint, style, aa_side_width);
-				} else {
-					fillv(vertex, paint, style);
-				}
+			if (aa) {
+				fillAASide(path, paint, style, aa_side_width);
+			} else {
+				fillv(_cache->getPathTriangles(path), paint, style);
 			}
 		}
 
 		void fillAASide(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWidth) {
-			auto &vertex = _cache->getAASideTriangle(path, _phy2Pixel*aaSideWidth);
+			auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*aaSideWidth);
 			if (style.image) {
 				drawImageCmd(vertex, style.image, style.color);
 			} else if (style.gradient) {
@@ -185,6 +182,7 @@ namespace qk {
 		}
 
 		void fillv(const VertexData &vertex, const Paint &paint, const PaintStyle &style) {
+			if (!vertex.vCount) return;
 			if (style.image) {
 				drawImageCmd(vertex, style.image, style.color);
 			} else if (style.gradient) {
@@ -199,17 +197,17 @@ namespace qk {
 		void strokePath(const Path &path, const Paint& paint, bool aa) {
 			if (aa) {
 #if isMoreSofterAA
-				const float weight = 0.45f;
+				const float weight = 0.9f;
 #else
-				const float weight = 0.5f;
+				const float weight = 1.0f;
 #endif
-				auto width = paint.strokeWidth - _phy2Pixel * weight;
+				auto width = paint.strokeWidth - _phy1Pixel * weight;
 				if (width > 0) {
 					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, true);
 				} else {
-					// width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
+					// width /= (_phy1Pixel * 1.0f - weight); // range: -1 => 0
 					// width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					fillAASide(path, paint, paint.stroke, 0.5);
+					fillAASide(path, paint, paint.stroke, 0.5f);
 				}
 			} else {
 				fillPath(_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join,0), paint, paint.stroke, false);
@@ -408,7 +406,7 @@ namespace qk {
 		, _size(), _scale(1)
 		, _surfaceScaleAverage(1), _scaleAverage(1), _allScaleAverage(1)
 		, _allScaleMin(1)
-		, _phy2Pixel(1)
+		, _phy1Pixel(1)
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
 		, _DeviceMsaa(0)
@@ -563,7 +561,7 @@ namespace qk {
 	void GPUCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAASideTriangle(path.path, _phy2Pixel*aa_side_width);
+			auto &vertex = _cache->getAASideTriangle(path.path, _phy1Pixel*aa_side_width);
 			drawColorCmd(vertex, color);
 		} else {
 			drawColorCmd(path, color);
@@ -576,7 +574,7 @@ namespace qk {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAASideTriangle(paths[i]->path, _phy2Pixel*aa_side_width);
+				auto &vertex = _cache->getAASideTriangle(paths[i]->path, _phy1Pixel*aa_side_width);
 				drawColorCmd(vertex, color);
 			}
 		} else {

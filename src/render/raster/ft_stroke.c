@@ -215,28 +215,6 @@ static Qk_FT_Bool ft_cubic_is_small_enough(Qk_FT_Vector* base,
 /*************************************************************************/
 /*************************************************************************/
 
-typedef enum Qk_FT_StrokeTags_ {
-	Qk_FT_STROKE_TAG_ON = 1,    /* on-curve point  */
-	Qk_FT_STROKE_TAG_CUBIC = 2, /* cubic off-point */
-	Qk_FT_STROKE_TAG_BEGIN = 4, /* sub-path start  */
-	Qk_FT_STROKE_TAG_END = 8    /* sub-path end    */
-
-} Qk_FT_StrokeTags;
-
-#define Qk_FT_STROKE_TAG_BEGIN_END \
-	(Qk_FT_STROKE_TAG_BEGIN | Qk_FT_STROKE_TAG_END)
-
-typedef struct Qk_FT_StrokeBorderRec_ {
-	Qk_FT_UInt    num_points;
-	Qk_FT_UInt    max_points;
-	Qk_FT_Vector* points;
-	Qk_FT_Byte*   tags;
-	Qk_FT_Bool    movable; /* TRUE for ends of lineto borders */
-	Qk_FT_Int     start;   /* index of current sub-path start point */
-	Qk_FT_Bool    valid;
-
-} Qk_FT_StrokeBorderRec, *Qk_FT_StrokeBorder;
-
 Qk_FT_Error Qk_FT_Outline_Check(Qk_FT_Outline* outline)
 {
 	if (outline) {
@@ -675,27 +653,6 @@ static void ft_stroke_border_export(Qk_FT_StrokeBorder border,
 /*************************************************************************/
 
 #define Qk_FT_SIDE_TO_ROTATE(s) (Qk_FT_ANGLE_PI2 - (s)*Qk_FT_ANGLE_PI)
-
-typedef struct Qk_FT_StrokerRec_ {
-	Qk_FT_Angle  angle_in;            /* direction into curr join */
-	Qk_FT_Angle  angle_out;           /* direction out of join  */
-	Qk_FT_Vector center;              /* current position */
-	Qk_FT_Fixed  line_length;         /* length of last lineto */
-	Qk_FT_Bool   first_point;         /* is this the start? */
-	Qk_FT_Bool   subpath_open;        /* is the subpath open? */
-	Qk_FT_Angle  subpath_angle;       /* subpath start direction */
-	Qk_FT_Vector subpath_start;       /* subpath start position */
-	Qk_FT_Fixed  subpath_line_length; /* subpath start lineto len */
-	Qk_FT_Bool   handle_wide_strokes; /* use wide strokes logic? */
-
-	Qk_FT_Stroker_LineCap  line_cap;
-	Qk_FT_Stroker_LineJoin line_join;
-	Qk_FT_Stroker_LineJoin line_join_saved;
-	Qk_FT_Fixed            miter_limit;
-	Qk_FT_Fixed            radius;
-
-	Qk_FT_StrokeBorderRec borders[2];
-} Qk_FT_StrokerRec;
 
 /* documentation is in ftstroke.h */
 
@@ -1681,8 +1638,33 @@ Exit:
 	return error;
 }
 
-/* documentation is in ftstroke.h */
-
+/**************************************************************
+ *
+ * @function:
+ *   Qk_FT_Stroker_GetBorderCounts
+ *
+ * @description:
+ *   Call this function once you have finished parsing your paths
+ *   with the stroker.  It returns the number of points and contours
+ *   necessary to export a single border from the stroked outline/path.
+ *
+ * @input:
+ *   stroker ::
+ *     The target stroker handle.
+ *
+ *   border ::
+ *     The border index.
+ *
+ * @output:
+ *   anum_points ::
+ *     The number of points.
+ *
+ *   anum_contours ::
+ *     The number of contours.
+ *
+ * @return:
+ *   FreeType error code.  0~means success.
+ */
 Qk_FT_Error Qk_FT_Stroker_GetBorderCounts(Qk_FT_Stroker       stroker,
 										  Qk_FT_StrokerBorder border,
 										  Qk_FT_UInt*         anum_points,
@@ -1731,8 +1713,24 @@ Exit:
 	return error;
 }
 
-/* documentation is in ftstroke.h */
-
+/**************************************************************
+ *
+ * @function:
+ *   Qk_FT_Stroker_ExportBorder
+ *
+ * @description:
+ *   Export a single border to your own @Qk_FT_Outline structure.
+ *
+ * @input:
+ *   stroker ::
+ *     The target stroker handle.
+ *
+ *   border ::
+ *     The border index.
+ *
+ *   outline ::
+ *     The target outline handle.
+ */
 void Qk_FT_Stroker_ExportBorder(Qk_FT_Stroker       stroker,
 								Qk_FT_StrokerBorder border,
 								Qk_FT_Outline*      outline)

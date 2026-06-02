@@ -393,39 +393,39 @@ namespace qk {
 		Qk_ReturnLocal(edges);
 	}
 
-	static bool tessAddPathContours(TESStesselator *tess, const Path *self, const char *fatalMessage) {
-		auto pts = (const Vec2*)*self->pts();
+	bool tessAddPathContours(TESStesselator *tess, const Path *path, float z = 0) {
+		auto pts = (const Vec2*)*path->pts();
 		int len = 0;
-		Array<Vec2> tmpV;
+		Array<Vec3> vertex; // temporary vertex buffer for tessAddContour, Vec3: x,y,z
 		bool added = false;
 
-		auto closeAdd = [&]() {
+		auto addContour = [&]() {
 			if (len) {
-				Vec2 *point = &tmpV[tmpV.length() - len];
-				tessAddContour(tess, 2, (float*)point, sizeof(Vec2), len);
+				auto *point = &vertex[vertex.length() - len];
+				tessAddContour(tess, 3, (float*)point, sizeof(Vec3), len);
 				len = 0;
 				added = true;
 			}
 		};
 
-		for (auto verb: self->verbs()) {
+		for (auto verb: path->verbs()) {
 			switch(verb) {
 				case Path::kMove_Verb:
-					closeAdd();
-					tmpV.push(*pts++); len = 1;
+					addContour();
+					vertex.push(Vec3(*pts++, z)); len = 1;
 					break;
 				case Path::kLine_Verb:
-					tmpV.push(*pts++);
+					vertex.push(Vec3(*pts++, z));
 					len++;
 					break;
 				case Path::kClose_Verb:
-					closeAdd();
+					addContour();
 					break;
 				default:
-					Qk_Fatal(fatalMessage);
+					Qk_Fatal("Path::tessAddPathContours() invalid verb");
 			}
 		}
-		closeAdd();
+		addContour();
 
 		return added;
 	}
@@ -440,7 +440,7 @@ namespace qk {
 		auto self = normalized(&tmp, epsilon, false);
 		auto tess = tessNewTess(nullptr);
 
-		if (tessAddPathContours(tess, self, "Path::boundaryPath() invalid verb") &&
+		if (tessAddPathContours(tess, self) &&
 			tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_BOUNDARY_CONTOURS, 0, 2, 0)
 		) {
 			const int nelems = tessGetElementCount(tess);
@@ -468,14 +468,13 @@ namespace qk {
 	}
 
 	VertexData Path::getTriangles(float epsilon, float z) const {
+		Path tmp;
+		auto *self = normalized(&tmp, epsilon, false);
+		VertexData out;
+
 		int polySize = 3;
 		auto tess = tessNewTess(nullptr); // TESStesselator*
-
-		Path tmp;
-		const Path *self = normalized(&tmp, epsilon, false);
-		tessAddPathContours(tess, self, "Path::getTriangles() invalid verb");
-
-		VertexData out{0,0};
+		tessAddPathContours(tess, self);
 
 		// Convert to convex contour vertex data
 		if ( tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, polySize, 2, 0) ) {

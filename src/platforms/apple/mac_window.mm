@@ -89,12 +89,9 @@ QkWindowDelegate* WindowImpl::delegate() {
 	uiwin.title = [NSString stringWithUTF8String:opts.title.c_str()];
 	uiwin.delegate = self;
 	uiwin.opaque = NO;
-	uiwin.backgroundColor = [NSColor clearColor];
-	/*uiwin.backgroundColor = [UIColor colorWithSRGBRed:color[0]
-																							green:color[1]
-																							 blue:color[2]
-																							alpha:color[3]
-	];*/
+	uiwin.backgroundColor = [
+		UIColor colorWithSRGBRed:color[0] green:color[1] blue:color[2] alpha:color[3]
+	];
 
 	self.render = render;
 	self.isClose = NO;
@@ -353,7 +350,6 @@ void Window::openImpl(Options &opts) {
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl);
 		_impl = (__bridge WindowImpl*)impl;
-		set_backgroundColor(opts.backgroundColor);
 		activate();
 		_render->reload();
 	}), true);

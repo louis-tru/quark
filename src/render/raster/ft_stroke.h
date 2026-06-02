@@ -19,6 +19,7 @@
 /***************************************************************************/
 
 #include "ft_raster.h"
+#include "ft_math.h"
 
  /**************************************************************
 	*
@@ -29,7 +30,6 @@
 	*   Opaque handler to a path stroker object.
 	*/
 	typedef struct Qk_FT_StrokerRec_*  Qk_FT_Stroker;
-
 
 	/**************************************************************
 	 *
@@ -151,6 +151,69 @@
 
 	} Qk_FT_StrokerBorder;
 
+	/**************************************************************
+	 * @enum:
+	 *   Qk_FT_StrokeTags
+	 * @description:
+	 *   These values are used in the `tags` field of a stroke border
+	 *   point to indicate the type of the point and its position in
+	 *   the contour.
+	 */
+	typedef enum Qk_FT_StrokeTags_ {
+		Qk_FT_STROKE_TAG_ON = 1,    /* on-curve point  */
+		Qk_FT_STROKE_TAG_CUBIC = 2, /* cubic off-point */
+		Qk_FT_STROKE_TAG_BEGIN = 4, /* sub-path start  */
+		Qk_FT_STROKE_TAG_END = 8    /* sub-path end    */
+	} Qk_FT_StrokeTags;
+
+	#define Qk_FT_STROKE_TAG_BEGIN_END \
+		(Qk_FT_STROKE_TAG_BEGIN | Qk_FT_STROKE_TAG_END)
+
+	/**************************************************************
+	* @type:
+	*   Qk_FT_StrokeBorder
+	* @description:
+	*   Opaque handler to a stroke border object.
+	*/
+	typedef struct Qk_FT_StrokeBorderRec_ {
+		Qk_FT_UInt    num_points;
+		Qk_FT_UInt    max_points;
+		Qk_FT_Vector* points;
+		Qk_FT_Byte*   tags;
+		Qk_FT_Bool    movable; /* TRUE for ends of lineto borders */
+		Qk_FT_Int     start;   /* index of current sub-path start point */
+		Qk_FT_Bool    valid;
+
+	} Qk_FT_StrokeBorderRec, *Qk_FT_StrokeBorder;
+
+	/**************************************************************
+	*
+	* @type:
+	*   Qk_FT_Stroker
+	*
+	* @description:
+	*   Opaque handler to a path stroker object.
+	*/
+	typedef struct Qk_FT_StrokerRec_ {
+		Qk_FT_Angle  angle_in;            /* direction into curr join */
+		Qk_FT_Angle  angle_out;           /* direction out of join  */
+		Qk_FT_Vector center;              /* current position */
+		Qk_FT_Fixed  line_length;         /* length of last lineto */
+		Qk_FT_Bool   first_point;         /* is this the start? */
+		Qk_FT_Bool   subpath_open;        /* is the subpath open? */
+		Qk_FT_Angle  subpath_angle;       /* subpath start direction */
+		Qk_FT_Vector subpath_start;       /* subpath start position */
+		Qk_FT_Fixed  subpath_line_length; /* subpath start lineto len */
+		Qk_FT_Bool   handle_wide_strokes; /* use wide strokes logic? */
+
+		Qk_FT_Stroker_LineCap  line_cap;
+		Qk_FT_Stroker_LineJoin line_join;
+		Qk_FT_Stroker_LineJoin line_join_saved;
+		Qk_FT_Fixed            miter_limit;
+		Qk_FT_Fixed            radius;
+
+		Qk_FT_StrokeBorderRec borders[2];
+	} Qk_FT_StrokerRec, *Qk_FT_Stroker;
 
 	/**************************************************************
 	 *
@@ -315,6 +378,5 @@
 	 */
 	void
 	Qk_FT_Stroker_Done( Qk_FT_Stroker  stroker );
-
 
 #endif // Qk_FT_STROKER_H

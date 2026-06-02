@@ -13,19 +13,16 @@
 
 using namespace qk;
 
-class MyCanvas: public Box {
-public:
+#define Qk_Debug_CANVAS 0
 
+class TestCanvas: public Box {
+public:
 	void draw(Painter *render) override {
 		// mark_none(kLayout_None); return;
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
-		// clear color
-		//canvas->clearColor(Color4f(1,1,1));
-		//canvas->drawColor(Color4f(1,0,0));
 		Paint paint;
-		// paint.blendMode = kSrcOverLegacy_BlendMode;
 
 		// -------- clip ------
 		canvas->save();
@@ -67,14 +64,14 @@ public:
 		canvas->translate(size*-0.5);
 
 		if (1) { // polygon
-			paint.fill.color = Color4f(0, 0, 0, 0.8);
-			Path path(   Vec2(0, size.y() - 10) );
-			path.lineTo( size );
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			Path path(   Vec2(110, size.y() - 150) );
 			path.lineTo( Vec2(size.x()*0.5, 0) );
+			path.lineTo( size );
 			path.close();
 			path.moveTo( Vec2(100, 100) );
-			path.lineTo( Vec2(100, 200) );
 			path.lineTo( Vec2(200, 200) );
+			path.lineTo( Vec2(100, 200) );
 			path.close();
 			canvas->drawPath(path, paint);
 		}
@@ -105,11 +102,75 @@ public:
 			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 			paint.fill.color = Color4f(0, 1, 1);
 			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-			//Qk_DLog("%d", sizeof(signed long));
 			paint.stroke.color = Color4f(1, 1, 0);
 			paint.style = Paint::kStroke_Style;
 			paint.strokeWidth = 10;
 			canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
+		}
+
+		canvas->restore();
+
+		mark_rerender();
+	}
+};
+
+class DebugCanvas: public Box {
+public:
+
+	void draw(Painter *render) override {
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
+
+		Paint paint;
+
+		// window()->root()->set_background_color_direct({0,0,0});
+		canvas->save();
+		canvas->translate(size*-0.5);
+
+		if (1) { // polygon
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			Path path(   Vec2(110, size.y() - 150) ); // left/bottom
+			path.lineTo( Vec2(size.x()*0.5, 0) ); // top, 放下面逆时针方向
+			path.lineTo( size * 0.85 ); // right/bottom
+			path.close();
+			path.moveTo( Vec2(100, 100) ); // left/top
+			path.lineTo( Vec2(200, 200) ); // right/bottom, 放下面逆时针方向
+			path.lineTo( Vec2(100, 200) ); // left/bottom
+			path.close();
+			canvas->drawPath(path, paint);
+			paint.antiAlias = false;
+			paint.style = Paint::kStroke_Style;
+			////
+			// paint.stroke.color = Color4f(0, 0, 1, 0.3);
+			// paint.strokeWidth = 50;
+			// canvas->drawPath(path, paint);
+			////
+			// paint.strokeWidth = 0.5;
+			// paint.stroke.color = Color4f(1, 0, 0, 1);
+			// canvas->drawPath(path, paint);
+		}
+
+		if (0) { // line stroke
+			Path path;//(Vec2(100, 100));
+			// path.lineTo(Vec2(300, 300));
+			path.moveTo(Vec2(300, 100));
+			path.lineTo(Vec2(500, 300));
+			path.lineTo(Vec2(600, 100));
+			path.close();
+			// paint.antiAlias = false;
+			paint.style = Paint::kStroke_Style;
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			paint.strokeWidth = 50;
+			paint.stroke.color = Color4f(1, 0, 0, 0.5);
+			canvas->drawPath(path, paint);
+		}
+
+		if (1) { // outline
+			paint.antiAlias = true;
+			paint.stroke.color = Color4f(0, 0, 1);
+			paint.style = Paint::kStroke_Style;
+			paint.strokeWidth = 20;
+			canvas->drawPath(Path::MakeCircle(Vec2(300,160), 100), paint);
 		}
 
 		canvas->restore();
@@ -123,8 +184,11 @@ Qk_TEST_Func(canvas) {
 	App app;
 	auto win = Window::Make({.fps=0x0});
 	win->activate();
-	// layout
-	auto t = win->root()->append_new<MyCanvas>();
+#if Qk_Debug_CANVAS
+	auto t = win->root()->append_new<DebugCanvas>();
+#else
+	auto t = win->root()->append_new<TestCanvas>();
+#endif
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });
 	// layout end

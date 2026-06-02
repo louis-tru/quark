@@ -29,126 +29,79 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./path.h"
-#include <math.h>
-#define Qk_USE_FT_STROKE 0
-
+#include "./raster/ft_path.h"
+#define Qk_USE_FT_STROKE 1
 #if Qk_USE_FT_STROKE
 extern "C" {
 #include "./raster/ft_math.c"
 #include "./raster/ft_stroke.c"
 }
 #include "./raster/ft_path.cc"
-
-namespace qk {
-
-	/*
-	 * Alternative FreeType-based stroker kept behind Qk_USE_FT_STROKE.
-	 *
-	 * The active code below uses Quark's smaller hand-written stroker, but this
-	 * path documents the equivalent FT flow: normalize to lines, convert to an
-	 * FT outline, ask FT to expand it, then convert the result back to Path.
-	 */
-	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
-		Qk_FT_Stroker stroker;
-		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
-		Qk_FT_Stroker_LineJoin ft_join =
-			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER: 
-			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND: 
-			Qk_FT_STROKER_LINEJOIN_BEVEL;
-		Qk_FT_Error err;
-
-		if (miterLimit == 0)
-			miterLimit = 1024;
-
-		err = Qk_FT_Stroker_New(&stroker);
-		Qk_ASSERT(err==0);
-		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
-		
-		Path tmp;
-		const Path *self = normalized(&tmp, 1,false);
-
-		auto from_outline = qk_ft_outline_convert(self);
-		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
-		Qk_ASSERT(err==0);
-
-		Qk_FT_UInt anum_points, anum_contours;
-		err = Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
-		Qk_ASSERT(err==0);
-
-		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
-		Qk_FT_Stroker_Export(stroker, to_outline);
-
-		Path out;
-		err = qk_ft_path_convert(to_outline, &out);
-		Qk_ASSERT(err==0);
-
-		qk_ft_outline_destroy(from_outline);
-		qk_ft_outline_destroy(to_outline);
-		Qk_FT_Stroker_Done(stroker);
-
-		Qk_ReturnLocal(out);
-	}
-}
-
 #endif
 
 namespace qk {
+	// Tests if a point is inside a polygon using the ray-casting algorithm.
 	bool test_overlap_from_polygon(cArray<Vec2>& polygon, Vec2 point);
 
-	/*
-	 * Append `right` to `left` in reverse drawing order.
-	 *
-	 * strokePath() builds two offset contours while walking the source path:
-	 * `left` follows one side forward, and `right` follows the other side
-	 * forward. A filled stroke outline needs to go forward on one side and come
-	 * back on the other, so this helper appends reverse(right) to left.
-	 *
-	 * This helper is only for strokePath() output. strokePath() first normalizes
-	 * the source path and only creates line segments plus cubic arcs, so `right`
-	 * is expected to contain Move/Line/Cubic/Close verbs, not Quad.
-	 *
-	 * Cubics need special handling because reversing a cubic swaps endpoint and
-	 * control-point order. Close verbs are ignored here; the caller owns the
-	 * final close() once both sides have been joined.
-	 */
-	static void reverseConcatPath(Path &left, const Path &right) {
-		auto verbs = right.verbs();
-		auto pts = &right.pts().back();
+	/**
+	 * Determine if a point is inside a closed contour.
+	*/
+	static bool pointInContour(Vec2 p, const Vec2 *pts, int size) {
+		return test_overlap_from_polygon(ArrayWeak<Vec2>(pts, size).buffer(), p);
+	}
 
-		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
-			if (verbs[i] == Path::kCubic_Verb) {
-				left.lineTo(*pts); pts--;
-				do {
-					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
-					i--;
-				} while(verbs[i] == Path::kCubic_Verb);
-			} else if (verbs[i] == Path::kClose_Verb) {
-				// ignore
-				//Qk_DLog("Close");
-			} else {
-				Qk_ASSERT(verbs[i] == Path::kLine_Verb || verbs[i] == Path::kMove_Verb);
-				left.lineTo(*pts--);
-			}
+	// Duplicate filter used only by stroke/AASide generation. The tolerance is
+	// intentionally wider than an exact equality test: repeated or almost
+	// repeated vertices make vertex normals unstable and can create long spikes.
+	static bool strokePointEquals(Vec2 a, Vec2 b) {
+		return (a - b).lengthSq() < 0.1f;
+	}
+
+	/**
+	 * Calculate the signed area of a closed contour using the shoelace formula.
+	 * Positive area indicates counter-clockwise winding, negative area indicates
+	 * clockwise winding.
+	 */
+	static float contourArea2(const Vec2 *pts, int size) {
+		float area = 0.0f;
+		for (int i = 0; i < size; i++) {
+			auto a = pts[i], b = pts[(i + 1) % size];
+			area += a.x() * b.y() - a.y() * b.x();
 		}
+		return area;
 	}
 
 	// `prev`/`next` are null at open caps. Closed contours receive wrapped
 	// neighbors from strokeExec().
-	typedef void AddPoint(const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx);
+	// return false means skip the point, true means add the point
+	typedef bool AddPoint(Vec2 *prev, Vec2 *from, Vec2 *next, int idx, void *ctx);
 
 	// Runs once per subpath before point callbacks. AASide uses the raw point
 	// buffer to calculate winding; strokePath does not need this hook.
-	typedef void BeforeAdding(bool close, const Vec2 *pts, int size, int subpath, void *ctx);
+	typedef void BeforeAdding(bool close, Vec2 *pts, int size, int subpath, void *ctx);
 
 	// Runs once after every emitted subpath. strokePath uses it to seal the
 	// generated left/right outline; AASide uses it to add the closing band.
-	typedef void AfterDone(bool close, int size, int subpath, void *ctx);
+	typedef void AfterDone(bool close, int size, int add, int subpath, void *ctx);
 
-	// Tiny duplicate filter used only by stroke generation. The tolerance is in
-	// path units and intentionally small: it removes accidental repeated points
-	// without trying to simplify real geometry.
-	static bool strokePointEquals(Vec2 a, Vec2 b) {
-		return (a - b).lengthSq() < 0.0001f;
+	// Walk a single subpath and expose each point with its previous/next neighbor.
+	static int addPoints(bool close, Vec2* pts, int size, AddPoint add, void *ctx) {
+		if (!add) return 0;
+		int idx = 0;
+		auto prev = close ? pts+size-1: nullptr;
+		auto from = pts;
+		for (int i = 1; i < size; i++) {
+			// The add() callback can return false to skip target point.
+			if (add(prev, from, ++pts, idx, ctx)) {
+				idx++;
+				prev = from;
+				from = pts;
+			}
+		}
+		if (idx) { // add last point if any points were added
+			add(prev, from, close? pts-size+1: nullptr, idx++, ctx);
+		}
+		return idx;
 	}
 
 	/*
@@ -170,52 +123,45 @@ namespace qk {
 	 * When close is true, duplicate start/end points are removed before
 	 * callbacks, and add() receives wrapped neighbors for the first/last point.
 	 */
-	static void strokeExec(
-		const Path *self, AddPoint add, BeforeAdding before, AfterDone after, bool closeAll, void *ctx
+	static void eachSubpath(
+		const Path *self, Array<Vec2> *contourPts, // output buffer for raw contour points, used by AASide
+		AddPoint add, BeforeAdding before, AfterDone after, bool closeAll, void *ctx
 	) {
 		Qk_ASSERT(self->isNormalized(), "Path::strokeExec requires normalized input");
+
 		int subpath = 0;
-		auto addSubpath = [&](const Vec2 *pts, int size, bool close) {
+		auto addSubpath = [&](Vec2 *pts, int size, bool close) {
 			// Ignore empty/single-point subpaths. They do not have a stable edge
 			// direction, so neither stroke nor AASide geometry can be generated.
-			if (size > 1) { // size > 1
-				if (close) { // close path
-					// Many path builders repeat the first point before close().
-					// Keep one copy so wrapped neighbor lookup stays well-defined.
-					if (strokePointEquals(*pts, pts[size-1])) { // start == end, exclude duplicates
-						size--;
-						if (size < 2)
-							return;
-					}
-					// A closed contour needs at least 3 unique points. Two-point
-					// inputs are still emitted as an open segment.
-					close = size > 2; // Must have at least 3 vertices
-				}
-				if (before) {
-					before(close, pts, size, subpath, ctx);
-				}
-
-				if (add) {
-					// First and last vertices receive null neighbors for open
-					// subpaths, or wrapped neighbors for closed contours.
-					add(close ? pts+size-1: nullptr, *pts, pts+1, 0, ctx); pts++;
-
-					for (int i = 1, l = size-1; i < l; i++, pts++) {
-						add(pts-1, *pts, pts+1, i, ctx);
-					}
-					add(pts-1, *pts, close? pts-size+1: nullptr, size-1, ctx);
-				}
-
-				if (after) {
-					after(close, size, subpath, ctx);
-				}
-				subpath++;
+			if (size < 2) { // size < 2
+				return 0;
 			}
+			if (close) { // close path
+				// Many path builders repeat the first point before close().
+				// Keep one copy so wrapped neighbor lookup stays well-defined.
+				if (strokePointEquals(*pts, pts[size-1])) { // start == end, exclude duplicates
+					size--;
+					if (size < 2)
+						return 0;
+				}
+				// A closed contour needs at least 3 unique points. Two-point
+				// inputs are still emitted as an open segment.
+				close = size > 2; // Must have at least 3 vertices
+			}
+			if (before) {
+				before(close, pts, size, subpath, ctx);
+			}
+			int addSize = addPoints(close, pts, size, add, ctx);
+			if (after) {
+				after(close, size, addSize, subpath, ctx);
+			}
+			subpath++;
+			return size;
 		};
 
-		Array<Vec2> pts(self->ptsLen());
+		contourPts->extend(self->ptsLen()); // pre-allocate output buffer
 		auto pts0 = &self->pts().front(); // input buffer
-		auto pts1 = pts.val(); // output buffer
+		auto pts1 = contourPts->val(); // output buffer
 		int  size = 0;
 
 		for (auto v: self->verbs()) {
@@ -227,12 +173,12 @@ namespace qk {
 						break;
 					}
 				case Path::kMove_Verb:
-					addSubpath(pts1, size, closeAll);
+					pts1 += addSubpath(pts1, size, closeAll);
 					pts1[0] = *pts0++;
 					size = 1;
 					break;
 				case Path::kClose_Verb: // close
-					addSubpath(pts1, size, true);
+					pts1 += addSubpath(pts1, size, true);
 					size = 0;
 					break;
 				default: Qk_Fatal("Path::strokePath");
@@ -243,24 +189,20 @@ namespace qk {
 	}
 
 	/**
-	 * Calculate the signed area of a closed contour using the shoelace formula.
-	 * Positive area indicates counter-clockwise winding, negative area indicates
-	 * clockwise winding.
+	 * Walk the path by subpath and expose each point with its previous/next neighbor.
 	 */
-	static float contourArea2(const Vec2 *pts, int size) {
-		float area = 0.0f;
-		for (int i = 0; i < size; i++) {
-			auto a = pts[i], b = pts[(i + 1) % size];
-			area += a.x() * b.y() - a.y() * b.x();
-		}
-		return area;
-	}
-
-	/**
-	 * Determine if a point is inside a closed contour.
-	*/
-	static bool pointInContour(Vec2 p, const Vec2 *pts, int size) {
-		return test_overlap_from_polygon(ArrayWeak<Vec2>(pts, size).buffer(), p);
+	static void eachContour(Array<PathContour> &contours, AddPoint add, BeforeAdding before, AfterDone after, void *ctx)
+	{
+		for (int i = 0; i < contours.length(); i++) {
+			auto &c = contours[i];
+			if (before) {
+				before(c.close, c.pts, c.ptsNum, i, ctx);
+			}
+			int addSize = addPoints(c.close, c.pts, c.ptsNum, add, ctx);
+			if (after) {
+				after(c.close, c.ptsNum, addSize, i, ctx);
+			}
+		 }
 	}
 
 	/**
@@ -298,52 +240,75 @@ namespace qk {
 		return pts[0];
 	}
 
-	struct AASideContour {
-		uint32_t start;
-		int      size;
-		bool     close;
-		float    area;
-		float    normalSide;
-		Vec2     sample;
-		int      nesting;
-	};
-
-	static Array<AASideContour> collectAASideContours(const Path *self, Array<Vec2> *contourPts) {
-		Array<AASideContour> contours;
-
+	/**
+	 * Collect raw contour points for each closed subpath and calculate contour
+	 * properties used by AASide.
+	 *
+	 * AASide geometry already follows each contour's traversal direction: when
+	 * a hole has the opposite winding, its generated normals are opposite too.
+	 * Because of that, the CPU only needs one global sign calibration:
+	 *
+	 *   - inspect the first closed contour emitted by boundaryPath();
+	 *   - decide whether the +normal side should be tagged as inside/outside;
+	 *   - reuse that normalSide sign for all later contours.
+	 *
+	 * Do not recompute normalSide per contour in the default path, or holes will
+	 * be compensated twice. `computeDepth` is kept as a diagnostic/alternate
+	 * path for raw contours; it records containment depth but does not drive the
+	 * default AASide side sign.
+	*/
+	static Array<PathContour> collectContours(const Path *self, Array<Vec2> *contourPts, bool computeDepth) {
+		Array<PathContour> contours;
 		struct Ctx {
-			Array<AASideContour> *contours;
-			Array<Vec2>         *pts;
-		} ctx = { &contours, contourPts };
+			Array<PathContour> *contours;
+			int start;
+			float normalSide;
+			bool computeDepth;
+		} ctx = { &contours, 0, 10, computeDepth };
 
-		strokeExec(self, nullptr, [](bool close, const Vec2 *pts, int size, int, void *ctx) {
-			auto _ = static_cast<Ctx*>(ctx);
-			AASideContour contour = { _->pts->length(), size, close, 0.0f, -1.0f, pts[0], 0 };
-
-			if (close) {
-				contour.area = contourArea2(pts, size);
-				contour.normalSide = contour.area < 0.0f ? 1.0f: -1.0f;
-				contour.sample = contourInteriorProbe(pts, size, contour.normalSide);
+		eachSubpath(self, contourPts, nullptr, [](bool close, Vec2 *pts, int size, int, void *ctx) {
+			auto c = static_cast<Ctx*>(ctx);
+			if (close) { // ignore open subpaths
+				PathContour contour = { c->start, size, 0.0f, -1.0f, pts, pts[0], 0, close };
+				if (c->computeDepth) {
+					contour.area = contourArea2(pts, size);
+					// The sample is only needed by the slower containment pass;
+					// keep it slightly off an edge so point-in-polygon does not
+					// test exactly on the contour boundary.
+					contour.sample = contourInteriorProbe(pts, size, contour.normalSide);
+				}
+				if (c->normalSide == 10) {
+					// First closed contour calibrates the global aaSide sign.
+					// With libtess2's automatic projection normal, CW/CCW can
+					// flip relative to our screen-space intuition, so derive it
+					// from the emitted boundary instead of hard-coding it.
+					contour.area = c->computeDepth ? contour.area: contourArea2(pts, size);
+					c->normalSide = contour.area < 0.0f ? 1.0f: -1.0f;
+				}
+				// Reuse the first contour's sign mapping. Later contours keep
+				// their own traversal direction through their vertex normals.
+				contour.normalSide = c->normalSide;
+				c->contours->push(contour);
 			}
-			_->pts->write(pts, size);
-			_->contours->push(contour);
+			c->start += size;
 		}, nullptr, true, &ctx);
 
-		for (auto &contour: contours) {
-			if (!contour.close)
-				continue;
-
-			int nesting = 0;
-			for (auto &parent: contours) {
-				if (&contour != &parent && parent.close) {
-					auto pts = contourPts->val() + parent.start;
-					if (pointInContour(contour.sample, pts, parent.size))
-						nesting++;
+		if (computeDepth) {
+			for (auto &contour: contours) {
+				if (!contour.close)
+					continue;
+				int depth = 0;
+				for (auto &parent: contours) {
+					if (&contour != &parent && parent.close) {
+						if (pointInContour(contour.sample, parent.pts, parent.ptsNum))
+							depth++;
+					}
 				}
+				// Kept for inspection and possible non-boundaryPath callers.
+				// The normal AASide path relies on tess boundary winding plus
+				// the one-time normalSide calibration above.
+				contour.depth = depth;
 			}
-			contour.nesting = nesting;
-			if (nesting & 1)
-				contour.normalSide = -contour.normalSide;
 		}
 
 		Qk_ReturnLocal(contours);
@@ -368,101 +333,193 @@ namespace qk {
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
 	VertexData Path::getAASideTriangle(float width, float epsilon) const {
-		Path boundary;
-		auto self = boundaryPath(&boundary, epsilon);
-		Path bodyPath;
+		Path tmp;
+		//auto self = normalized(&tmp, epsilon, false);
+		// boundaryPath() asks libtess2 for TESS_BOUNDARY_CONTOURS using the
+		// positive winding rule. Since tess uses `normal=nullptr`, it chooses
+		// the projection normal itself; that can make the emitted CW/CCW meaning
+		// differ from a hard-coded screen-space convention. collectContours()
+		// therefore calibrates the aaSide sign once from the first contour.
+		// Later contours use the same sign mapping while their own traversal
+		// direction naturally flips normals for holes.
+		auto self = boundaryPath(&tmp, epsilon);
+		Path body;
+		VertexData out;
 		Array<Vec3> aaSide;
-		Array<Vec2> contourPts;
-		auto contours = collectAASideContours(self, &contourPts);
+		Array<Vec2> ptsOut;
+		auto contours = collectContours(self, &ptsOut, false);
+
+		if (contours.length() == 0)
+			return out; // no contour, return empty output
+
+		// Tune this to adjust the generated band placement.
+		// 0 means all expansion goes outward; 1 means a centered band.
+		const float innerRatio = 0.5f;
+		const float offset = width - Float32::clamp(innerRatio, 0, 1) * width;
 
 		struct Ctx {
 			Array<Vec3>        *out;
-			Array<AASideContour> *contours;
 			Path               *body;
-			Vec3               *ptr;
-			float              width;
+			Vec3               *ptr; // current write position in out
+			float              aRadius,bRadius; // stroke radius
 			float              normalSide; // sign assigned to the +normal side
 			Vec3               prev_a, prev_b;
-		} ctx = { &aaSide, &contours, &bodyPath, 0, width, -1.0f, 0 };
+		} ctx = {
+			&aaSide, &body, 0, width + offset, width - offset, contours.front().normalSide
+		};
 
-		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) { // add
-			auto normals = from.normalline(prev, next); // normal line
-			auto _ = (Ctx*)ctx;
+		// `a` is the +normal side and `b` is the -normal side. After the
+		// first-contour calibration, a negative normalSide means +normal should
+		// be tagged as inside, so swap the inner/outer radii once.
+		if (ctx.normalSide < 0.0f) {
+			std::swap(ctx.aRadius, ctx.bRadius);
+		}
 
-			if (prev == NULL || next == NULL) { // prev == null or next == null
-				// Open endpoints use the single adjacent segment normal.
-				normals *= _->width;
-			} else if (normals.is_zero()) {
-				// 180-degree turns produce a zero averaged normal. Fall back to
-				// the previous segment normal so the band remains continuous.
-				auto fromPrev = from - *prev;
-				normals = fromPrev.rotate90z().normalized() * _->width;
-			} else {
+		eachContour(contours, [](Vec2 *prev, Vec2 *from, Vec2 *next, int idx, void *ctx) { // add
+			Qk_ASSERT(prev && next, "eachContour should only call add() with valid neighbors");
+			auto normals = from->normalline(prev, next); // normal line
+			Qk_ASSERT(!normals.is_zero(), "degenerate points should have been removed by strokePointEquals");
+			auto c = static_cast<Ctx*>(ctx);
+			{
 				// The averaged vertex normal must be lengthened by 1/sin(theta)
 				// so both offset edges stay `width` away from their source
 				// segments at the join.
-				auto angleLen = normals.angleTo(*prev - from);
-				auto sinLen = fabsf(sinf(angleLen));
-				normals *= sinLen < 1e-4f ? _->width: _->width / sinLen;
+				auto theta = normals.angleTo(*from - *next); // angle between normals
+				auto sin = fabsf(sinf(theta));
+				normals *= sin < 1e-2f ? 1.0f: 1.0f / sin;
 			}
-			Vec3 a(from + normals, _->normalSide);
-			Vec3 b(from - normals, -_->normalSide);
-			auto inner = a.z() < 0.0f ? a: b;
-			auto innerPt = Vec2(inner.x(), inner.y());
+			// Store the calibrated sign on the +normal vertex and the opposite
+			// sign on the -normal vertex. The shader places coverage around the
+			// implicit zero crossing between these two vertices.
+			Vec3 a(*from + normals * c->aRadius, c->normalSide);
+			Vec3 b(*from - normals * c->bRadius, -c->normalSide);
+			auto inner = a.z() < 0.0f ? a.xy(): b.xy();
 			if (idx) {
-				_->body->lineTo(innerPt);
-				*(_->ptr++) = _->prev_b;
-				*(_->ptr++) = _->prev_a;
-				*(_->ptr++) = a;
-				*(_->ptr++) = a;
-				*(_->ptr++) = b;
-				*(_->ptr++) = _->prev_b;
+				*(c->ptr++) = c->prev_b;
+				*(c->ptr++) = c->prev_a;
+				*(c->ptr++) = a;
+				*(c->ptr++) = a;
+				*(c->ptr++) = b;
+				*(c->ptr++) = c->prev_b;
+				c->body->lineTo(inner);
 			} else {
-				_->body->moveTo(innerPt);
+				c->body->moveTo(inner);
 			}
-			_->prev_a = a;
-			_->prev_b = b;
+			c->prev_a = a;
+			c->prev_b = b;
+			return true;
 		},
-		[](bool close, const Vec2 *pts, int size, int subpath, void *ctx) { // before
+		[](bool close, Vec2 *pts, int size, int subpath, void *ctx) { // before
+			Qk_ASSERT(close, "eachContour should only call before() with close=true");
 			auto _ = static_cast<Ctx*>(ctx);
-			if (subpath < _->contours->length()) {
-				// The local contour winding tells which side is inside for a
-				// single isolated polygon. Nested contours flip that meaning at
-				// every containment level: nesting 0 normal, nesting 1 reversed,
-				// nesting 2 normal, and so on.
-				_->normalSide = (*_->contours)[subpath].normalSide;
-			} else {
-				_->normalSide = -1.0f;
-			}
 			auto len = _->out->length();
-			size = (close ? size: size - 1) * 6;
-			_->out->extend(len + size); // alloc memory space
+			// One pair of offset vertices per source point, plus one closing
+			// pair emitted in after().
+			_->out->extend(len + size * 6); // alloc memory space
 			_->ptr = _->out->val() + len;
 		},
-		[](bool close, int size, int subpath, void *ctx) { // after
-			if (close) {
-				auto _ = static_cast<Ctx*>(ctx);
-				// Close the final segment by connecting the last generated pair
-				// back to the first generated pair in the current subpath.
-				auto b = _->ptr - (size * 6 - 6), a = b + 1;
-				*(_->ptr++) = _->prev_b;
-				*(_->ptr++) = _->prev_a;
-				*(_->ptr++) = *a;
-				*(_->ptr++) = *a;
-				*(_->ptr++) = *b;
-				*(_->ptr++) = _->prev_b;
-				_->body->close();
-			}
-		}, true, &ctx);
+		[](bool close, int size, int add, int subpath, void *ctx) { // after
+			Qk_ASSERT(close, "eachContour should only call after() with close=true");
+			Qk_ASSERT_EQ(size, add, "all points should have been added for closed contours");
+			auto _ = static_cast<Ctx*>(ctx);
+			// Close the final segment by connecting the last generated pair
+			// back to the first generated pair in the current subpath.
+			auto b = _->ptr - (add * 6 - 6), a = b + 1;
+			*(_->ptr++) = _->prev_b;
+			*(_->ptr++) = _->prev_a;
+			*(_->ptr++) = *a;
+			*(_->ptr++) = *a;
+			*(_->ptr++) = *b;
+			*(_->ptr++) = _->prev_b;
+			_->body->close(); // close the body path
+		}, &ctx);
 
-		auto out = bodyPath.getTriangles(epsilon, -1.0f);
+		out = body.getTriangles(epsilon, -1.0f);
 		out.vertex.write(aaSide.val(), aaSide.length());
 		out.vCount += aaSide.length();
-
+		// debug;
+		// out.vCount = aaSide.length();
+		// out.vertex = std::move(aaSide);
 		Qk_ReturnLocal(out);
 	}
 
-#if !Qk_USE_FT_STROKE
+#if Qk_USE_FT_STROKE
+	/*
+	 * Alternative FreeType-based stroker kept behind Qk_USE_FT_STROKE.
+	 *
+	 * The active code below uses Quark's smaller hand-written stroker, but this
+	 * path documents the equivalent FT flow: normalize to lines, convert to an
+	 * FT outline, ask FT to expand it, then convert the result back to Path.
+	 */
+	Path Path::strokePath(float width, Cap cap, Join join, float miterLimit) const {
+		Qk_FT_Stroker stroker;
+		Qk_FT_Stroker_LineCap ft_cap = Qk_FT_Stroker_LineCap(cap);
+		Qk_FT_Stroker_LineJoin ft_join =
+			Join::kMiter_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_MITER:
+			Join::kRound_Join == join ? Qk_FT_Stroker_LineJoin::Qk_FT_STROKER_LINEJOIN_ROUND:
+			Qk_FT_STROKER_LINEJOIN_BEVEL;
+		Qk_FT_Error err;
+
+		if (miterLimit == 0)
+			miterLimit = 1024;
+
+		err = Qk_FT_Stroker_New(&stroker);
+		Qk_ASSERT(err==0, "Qk_FT_Stroker_New failed, err: %d", err);
+		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
+
+		Path tmp;
+		// auto self = normalized(&tmp, 1, false);
+		auto self = boundaryPath(&tmp, 1);
+
+		auto outline = qk_ft_outline_from(self);
+		err = Qk_FT_Stroker_ParseOutline(stroker, outline);
+		Qk_ASSERT(err==0, "Qk_FT_Stroker_ParseOutline failed, err: %d", err);
+
+		Path out;
+		qk_ft_stroke_border_export(stroker->borders+0, &out); // left border
+		qk_ft_stroke_border_export(stroker->borders+1, &out); // right border
+		qk_ft_outline_destroy(outline);
+		Qk_FT_Stroker_Done(stroker);
+
+		Qk_ReturnLocal(out);
+	}
+#else
+	/*
+	 * Append `right` to `left` in reverse drawing order.
+	 *
+	 * strokePath() builds two offset contours while walking the source path:
+	 * `left` follows one side forward, and `right` follows the other side
+	 * forward. A filled stroke outline needs to go forward on one side and come
+	 * back on the other, so this helper appends reverse(right) to left.
+	 *
+	 * This helper is only for strokePath() output. strokePath() first normalizes
+	 * the source path and only creates line segments plus cubic arcs, so `right`
+	 * is expected to contain Move/Line/Cubic/Close verbs, not Quad.
+	 *
+	 * Cubics need special handling because reversing a cubic swaps endpoint and
+	 * control-point order. Close verbs are ignored here; the caller owns the
+	 * final close() once both sides have been joined.
+	 */
+	static void reverseConcatPath(Path &left, const Path &right) {
+		auto verbs = right.verbs();
+		auto pts = &right.pts().back();
+
+		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
+			if (verbs[i] == Path::kCubic_Verb) {
+				left.lineTo(*pts); pts--;
+				do {
+					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
+					i--;
+				} while(verbs[i] == Path::kCubic_Verb);
+			} else if (verbs[i] == Path::kClose_Verb) {
+				// ignore
+				//Qk_DLog("Close");
+			} else {
+				Qk_ASSERT(verbs[i] == Path::kLine_Verb || verbs[i] == Path::kMove_Verb);
+				left.lineTo(*pts--);
+			}
+		}
+	}
 
 	/*
 	 * Convert a normalized path into a filled path representing its stroke.
@@ -485,7 +542,8 @@ namespace qk {
 		width *= 0.5;
 
 		Path tmp,out;
-		auto self = normalized(&tmp, 1, false);
+		// auto self = normalized(&tmp, 1, false);
+		auto self = boundaryPath(&tmp, 1);
 
 		struct Ctx {
 			float width,miterLimit;
@@ -499,21 +557,21 @@ namespace qk {
 		 * 2. A closed source subpath produces one closed ring outline. Multiple
 		 *    source contours therefore produce multiple closed outlines.
 		 */
-
-		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		Array<Vec2> storePts;
+		eachSubpath(self, &storePts, [](Vec2 *prev, Vec2 *_from, Vec2 *next, int idx, void *ctx) {
 			#define Qk_addTo(l,r) left.lineTo(l),right.lineTo(r)
-
 			auto _ = (Ctx*)ctx;
 			auto &left = *_->left;
 			auto &right = _->right;
 			auto width = _->width;
+			auto from = *_from;
 
 			if (prev == NULL || next == NULL) { // prev == null or next == null
 				auto normals = from.normalline(prev, next) * width; // normal line
 				switch (_->cap) {
 					case Path::Cap::kButt_Cap: // no stroke extension
 						Qk_addTo(from + normals, from - normals);
-						return;
+						break;
 					case Path::Cap::kRound_Cap: { //adds circle
 						// The start cap is emitted on `right`, the end cap on
 						// `left`, so reverseConcatPath() can join the full
@@ -526,16 +584,17 @@ namespace qk {
 							left.lineTo(from + normals);
 							right.arcTo({from-width,width*2}, -angle, Qk_PI, false);
 						}
-						return;
+						break;
 					}
 					default: {// adds square
 						// Square caps extend half a stroke width beyond the
 						// endpoint along the tangent direction.
 						from += prev? normals.rotate270z(): normals.rotate90z();
 						Qk_addTo(from + normals, from - normals);
-						return;
+						break;
 					}
 				}
+				return true;
 			}
 
 			// Average the two adjacent edge normals to get the join bisector.
@@ -546,13 +605,13 @@ namespace qk {
 			Vec2 normals = (toNext90 + fromPrev90).normalized(); // normal line
 
 			if (normals.is_zero()) {
-				// Straight 180-degree reversal: emit a tiny bridge between the
-				// two sides so the generated outline remains fillable.
+				// Repeated points will produce zero vectors.
+				// maybe the from-to-prev is not 0, so we can use fromPrev90 as fallback
 				normals = fromPrev90 * width;
 				Qk_addTo(from + normals, from - normals);
 				left.lineTo(from - normals);
 				right.lineTo(from + normals);
-				return;
+				return true;
 			}
 
 			float angle    = normals.angle();
@@ -561,7 +620,7 @@ namespace qk {
 			if (angleLen < 0)
 				angleLen += Qk_PI_2;
 			float sinLen = fabsf(sinf(angleLen));
-			float len = sinLen < 1e-4f ? _->miterLimit: width / sinLen;
+			float len = sinLen < 1e-2f ? _->miterLimit: width / sinLen;
 
 			switch (_->join) {
 				case Path::Join::kRound_Join: {// adds circle
@@ -573,7 +632,7 @@ namespace qk {
 							normals *= len;
 							left .arc(from, width, Qk_PI_2-angle+aLen, -aLen*2, false);
 							right.lineTo(from - normals);
-							return;
+							break;
 						} // else goto kMiter_Join:
 					} else { // inside
 						auto aLen = Qk_PI_2_1 - angleLen;
@@ -581,7 +640,7 @@ namespace qk {
 							normals *= len;
 							left .lineTo(from + normals);
 							right.arc(from, width, Qk_PI-angle-aLen, aLen*2, false);
-							return;
+							break;
 						} // else goto kMiter_Join:
 					}
 				}
@@ -606,7 +665,7 @@ namespace qk {
 						normals *= len;
 						Qk_addTo(from + normals, from - normals);
 					}
-					return;
+					break;
 				}
 				default: {// connects outside edges
 					// Bevel join: connect the two segment offsets directly on
@@ -623,8 +682,9 @@ namespace qk {
 					}
 				}
 			}
+			return true;
 			#undef Qk_addTo
-		}, NULL, [](bool close, int size, int subpath, void *ctx) {
+		}, NULL, [](bool close, int size, int add, int subpath, void *ctx) {
 			auto _ = static_cast<Ctx*>(ctx);
 			if (close) {
 				// For closed source contours, close the first side before
@@ -640,5 +700,4 @@ namespace qk {
 	}
 
 #endif
-
 }

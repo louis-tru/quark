@@ -75,9 +75,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 	UIView *rview = self.view;
 	UIView *view = render->surface()->surfaceView();
 
-	// rview.backgroundColor = [
-	// 	UIColor colorWithRed:color.r() green:color.g() blue:color.b() alpha:color.a()
-	// ];
+	rview.backgroundColor = [UIColor clearColor];
 
 	view.frame = rview.bounds;
 	view.translatesAutoresizingMaskIntoConstraints = NO;
@@ -271,7 +269,6 @@ void Window::openImpl(Options &opts) {
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl); // Retain
 		_impl = (__bridge WindowImpl*)impl;
-		// set_backgroundColor(opts.backgroundColor);
 		activate();
 	}), true);
 }
@@ -289,13 +286,7 @@ void Window::closeImpl() {
 void Window::beforeClose() {}
 
 void Window::set_backgroundColor(Color val) {
-	post_message_main(Cb([this,val](auto e) {
-		if (!_impl) return;
-		auto color = val.to_color4f();
-		_impl->delegate().view.backgroundColor = [
-			UIColor colorWithRed:color.r() green:color.g() blue:color.b() alpha:color.a()
-		];
-	}, this), false);
+	// Noop, Background color controlled by the root view
 	_backgroundColor = val;
 }
 

@@ -188,7 +188,7 @@ namespace qk {
 		Vec2   _size, _scale; // size=surfaceSize/surfaceScale, _scale = matrix scale extracted
 		float  _surfaceScaleAverage, _scaleAverage, _allScaleAverage; // average of x/y scale
 		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
-		float  _phy2Pixel; // _phy2Pixel = 2 / _allScaleMin
+		float  _phy1Pixel; // _phy1Pixel = 1 / _allScaleMin
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa

@@ -46,16 +46,43 @@ namespace qk {
 		T val[LEN];
 		inline Vec(): Vec(0) {}
 		inline Vec(T f) {
-			for (int i = 0; i < LEN; i++) val[i] = f;
+			if (LEN == 2) {
+				val[0] = f; val[1] = f;
+			} else if (LEN == 3) {
+				val[0] = f; val[1] = f; val[2] = f;
+			} else if (LEN == 4) {
+				val[0] = f; val[1] = f; val[2] = f; val[3] = f;
+			} else {
+				for (int i = 0; i < LEN; i++)
+					val[i] = f;
+			}
 		}
+		//vec2
 		inline Vec(T a, T b) {
 			val[0] = a; val[1] = b;
 		}
+		//vec3
 		inline Vec(T a, T b, T c) {
 			val[0] = a; val[1] = b; val[2] = c;
 		}
+		inline Vec(T a, const Vec<T,2>& b) {
+			val[0] = a; val[1] = b[0]; val[2] = b[1];
+		}
+		inline Vec(const Vec<T,2>& a, T b) {
+			val[0] = a[0]; val[1] = a[1]; val[2] = b;
+		}
+		//vec4
 		inline Vec(T a, T b, T c, T d) {
 			val[0] = a; val[1] = b; val[2] = c; val[3] = d;
+		}
+		inline Vec(T a, const Vec<T,3>& b) {
+			val[0] = a; val[1] = b[0]; val[2] = b[1]; val[3] = b[2];
+		}
+		inline Vec(const Vec<T,3>& a, T b) {
+			val[0] = a[0]; val[1] = a[1]; val[2] = a[2]; val[3] = b;
+		}
+		inline Vec(const Vec<T,2>& a, const Vec<T,2>& b) {
+			val[0] = a[0]; val[1] = a[1]; val[2] = b[0]; val[3] = b[1];
 		}
 		// ------------------------------------------
 		inline T operator[](int index) const {
@@ -155,29 +182,9 @@ namespace qk {
 		}
 	};
 
-	struct Vec3;
-	template<>      Vec<float,6>::Vec();
-	template<>      Vec<float,16>::Vec();
-	template<>      Vec<int,2>::Vec(int f);
-	template<> bool Vec<int,2>::operator==(const Vec& b) const;
-	template<> bool Vec<float,2>::is_zero() const;
-	template<> bool Vec<float,2>::is_zero_axis() const;
-
-	// ------------------------------------------
-	// Qk Coordinate System
-	// 2D/UI:
-	// x right+
-	// y down+
-	// clockwise positive rotation
-	// 3D:
-	// left-handed
-	// positive z forward
-	// clockwise positive rotation
-	// Euler order: ZXY
-	struct Qk_EXPORT Vec2: Vec<float,2> {
-	#define Qk_Default_Vec_Operator(Name,T,Len) \
-		Name(); \
-		Name(T f); \
+	#define Qk_Vec_Operator(Name,T,Len) \
+		Name(): Vec() {}; \
+		Name(T f): Vec(f) {} \
 		Name  operator+(const Vec<T,Len>& b) const; \
 		Name  operator-(const Vec<T,Len>& b) const; \
 		Name  operator*(const Vec<T,Len>& b) const; \
@@ -195,9 +202,21 @@ namespace qk {
 		bool  operator==(const Vec<T,Len>& b) const; \
 		bool  operator!=(const Vec<T,Len>& b) const
 
-		Qk_Default_Vec_Operator(Vec2,float,2);
+	// ------------------------------------------
+	// Qk Coordinate System
+	// 2D/UI:
+	// x right+
+	// y down+
+	// clockwise positive rotation
+	// 3D:
+	// left-handed
+	// positive z forward
+	// clockwise positive rotation
+	// Euler order: ZXY
+	struct Qk_EXPORT Vec2: Vec<float,2> {
+		Qk_Vec_Operator(Vec2,float,2);
 
-		Vec2(float a, float b);
+		Vec2(float a, float b): Vec(a,b) {}
 
 		/**
 		 * @method length() returns vector length
@@ -285,16 +304,17 @@ namespace qk {
 	};
 
 	struct Qk_EXPORT Vec3: Vec<float,3> {
-		Qk_Default_Vec_Operator(Vec3,float,3);
-		Vec3(float x, float y, float z = 0.0);
-		Vec3(const Vec<float, 2> &xy, float z = 0.0);
-		Vec3(float z, const Vec<float, 2> &yz);
+		Qk_Vec_Operator(Vec3,float,3);
+		Vec3(float x, float y, float z = 0.0): Vec(x,y,z) {};
+		Vec3(float x, const Vec<float, 2> &yz): Vec(x, yz) {};
+		Vec3(const Vec<float, 2> &xy, float z = 0.0): Vec(xy, z) {};
 		float length() const;
 		float dot(const Vec<float,3>& b) const;
 		Vec3  det(const Vec<float,3>& b) const;
+		Vec2  xy() const { return Vec2(x(), y()); }
 	};
 
-	#undef Qk_Default_Vec_Operator
+	#undef Qk_Vec_Operator
 
 	// ------------------------------------------
 
@@ -359,7 +379,7 @@ namespace qk {
 	};
 
 	struct Qk_EXPORT Mat: Vec<float, 6> {
-		inline Mat(): Mat(1) {}
+		Mat(): Mat(1) {}
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
 		Mat(const float* values, int length = 6);
@@ -388,7 +408,7 @@ namespace qk {
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {
-		inline Mat4(): Mat4(1) {}
+		Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,
 				float m4, float m5, float m6, float m7,

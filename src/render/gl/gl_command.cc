@@ -297,7 +297,7 @@ namespace qk {
 							glUseProgram(s->shader);
 							glUniform1ui(s->pc_flags, Qk_CLIP(c->isClip));
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
-							// glDrawArrays(GL_LINE_LOOP, 0, c->vCount);
+							// glDrawArrays(GL_LINE_STRIP, 0, c->vCount);
 							break;
 						}
 						case kReadImage_CmdType: {

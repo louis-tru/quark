@@ -48,10 +48,13 @@ layout(location=0) out    vec4      fragColor;
 
 // anti-aliasing coverage alpha for side AA, in range [0, 1]
 float aaSideCoverage() {
+#if 0 // debug: disable AA
+	return 1.0;
+#endif
 	float w = fwidth(aaSide);
 #if 1 // branch
 	if (w == 0.0) return 1.0;
-	return smoothstep(0.5*w, -0.5*w, aaSide);
+	return smoothstep(0.5*w, -w, aaSide);
 #else // branchless
 	return mix(smoothstep(0.5*w, -0.5*w, aaSide), 1.0, step(w, 0.0));
 #endif
