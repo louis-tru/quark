@@ -88,6 +88,9 @@ namespace qk {
 
 	///////////////////////////////////////////////////////////////////////////
 
+	// 32 位 avalanche 收尾混合器。
+	// 用来把已经收集好的整数/hash 状态进一步打散；它本身不是
+	// streaming/buffer hash。
 	uint32_t mix32(uint32_t x) {
 		x ^= x >> 16;
 		x *= 0x7feb352du;
@@ -97,6 +100,7 @@ namespace qk {
 		return x;
 	}
 
+	// 更便宜的 32 位混合器，比 mix32 快，但 avalanche 质量更弱。
 	uint32_t mix32_fast(uint32_t x) {
 		x ^= x >> 17;
 		x *= 0xed5ad4bbu;
@@ -104,6 +108,8 @@ namespace qk {
 		return x;
 	}
 	
+	// 最轻量的 xor-shift 混合器。适合简单扰动；如果输入模式很规则，
+	// 或需要更强的哈希表 key 分布，不建议用这个。
 	uint32_t mix32_fastest(uint32_t x) {
 		x ^= x >> 16;
 		x ^= x << 9;
@@ -111,7 +117,9 @@ namespace qk {
 		return x;
 	}
 
-	// 64-bit mixer
+	// SplitMix64 收尾混合器。
+	// 适合整数 key、随机种子、最终 hash 状态的 64 位 avalanche 扩散。
+	// 它本身不是完整的 buffer hash。
 	uint64_t mix64(uint64_t x) {
 		x ^= x >> 30;
 		x *= 0xbf58476d1ce4e5b9ULL;
@@ -121,6 +129,9 @@ namespace qk {
 		return x;
 	}
 
+	// MurmurHash3 fmix64 风格的收尾混合器。
+	// 历史上的 "xx" 名称只是表示 xxhash/hash finalizer 这一类用途；
+	// 这个函数只是 64 位 avalanche mixer，不是完整的 xxHash64 streaming 算法。
 	uint64_t mix64_xx(uint64_t x) {
 		x ^= x >> 33;
 		x *= 0xff51afd7ed558ccdULL;
@@ -130,7 +141,9 @@ namespace qk {
 		return x;
 	}
 
-	// Fast mixer, corresponding to mix32_fast
+	// 快速 64 位混合器，对应 mix32_fast。
+	// 使用一个 wyhash 来源的强乘法常量和几次 xor shift；适合速度比最高
+	// avalanche 质量更重要的场景。
 	uint64_t mix64_fast(uint64_t x) {
 		x ^= x >> 33;
 		// x *= 0xed5ad4bbcb3e515dULL;   // 对应 ed5ad4bb 的 64-bit 扩展
@@ -139,7 +152,8 @@ namespace qk {
 		return x;
 	}
 
-	// simplest xor-shift mixer (对应 mix32_fastest)
+	// 最简单的 64 位 xor-shift 混合器，对应 mix32_fastest。
+	// 这只是一个轻量 bit scrambler。
 	uint64_t mix64_fastest(uint64_t x) {
 		x ^= x >> 32;
 		x ^= x << 13;
@@ -153,6 +167,9 @@ namespace qk {
 	// 	return mix32((uint32_t)(x ^ (x >> 32)));
 	// }
 
+	// 原始字节 buffer hash。
+	// 先用简单的 64 位 FNV-1a 风格累加器处理数据，再用 mix64() 做最终
+	// avalanche。输入是内存字节而不是已经 combine 好的整数值时，优先用它。
 	uint64_t hash_code(cVoid* data, uint32_t len) {
 		const uint8_t* p = reinterpret_cast<const uint8_t*>(data);
 
