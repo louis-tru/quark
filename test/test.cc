@@ -136,6 +136,7 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(util) \
 	F(uv) \
 	F(zlib) \
+	F(hash) \
 
 #define TEST_All(F) \
 	TEST_UTILS(F) \

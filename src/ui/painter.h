@@ -114,7 +114,7 @@ namespace qk {
 		// batch pathv for color drawing
 		struct PathvBatchs {
 			struct Batch {
-				const Pathv* pathv[5];
+				const Path* pathv[5];
 				Color color;
 				int count = 0;
 				uint32_t key;

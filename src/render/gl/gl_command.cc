@@ -573,9 +573,6 @@ namespace qk {
 				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
 				drawClipVertex(cmd->vertex, surface, flags);
-				if (cmd->aaSide.vCount) { // draw aa side if have
-					drawClipVertex(cmd->aaSide, surface, flags);
-				}
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
 				// clear clipTex with black color
@@ -1179,12 +1176,11 @@ namespace qk {
 		cmd->paint.positions = positions;
 	}
 
-	void GLC_CmdPack::drawClip(const VertexData &vertex, const VertexData &aaSide,
+	void GLC_CmdPack::drawClip(const VertexData &vertex,
 			GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp) {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
 		cmd->vertex = vertex;
-		cmd->aaSide = aaSide;
 		cmd->lastClip = lastClip; // last clip state
 		cmd->clip = clip;
 		cmd->rawOp = rawOp;

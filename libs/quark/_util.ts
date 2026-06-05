@@ -173,16 +173,18 @@ export function debugLog(TAG = 'PKG') {
 }
 
 /***/
-export declare class Hash5381 {
+export declare class Hash {
 	hashCode(): Int; //!<
+	hashStr(): string; //!<
 	update(data: string | Uint8Array): void; //!<
-	updatefv2(f1: number, f2: number): void; //!<
-	equals(other: Hash5381): boolean; //!<
-	digest(): string; //!<
+	update1f(f1: number): void; //!<
+	update2f(f1: number, f2: number): void; //!<
+	update4f(f1: number, f2: number, f3: number, f4: number): void; //!<
+	equals(other: Hash): boolean; //!<
 	clear(): void; //!<
 }
 
-exports.Hash5381 = _init.Hash5381;
+exports.Hash = _init.Hash;
 
 // ------------------------------------------------------------------------------------------------
 

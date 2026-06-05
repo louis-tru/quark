@@ -70,8 +70,7 @@ namespace qk {
 		// no need to set blend mode for Metal, it will be set in pipeline state when encoding draw calls
 	}
 
-	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
-			GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
+	void MetalCanvas::drawClipCmd(const VertexData &vertex, GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
 		auto begin = clip->range.begin,
 				 end = clip->range.end, size = end - begin;
 		auto blend = _blendMode; // save current blend mode
@@ -101,9 +100,6 @@ namespace qk {
 			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
 			drawClipVertex(vertex, surface, flags);
-			if (aaSide.vCount) { // draw aa side if have
-				drawClipVertex(aaSide, surface, flags);
-			}
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {
 			// clear clipTex with black color

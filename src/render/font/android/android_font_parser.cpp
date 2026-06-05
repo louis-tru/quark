@@ -175,7 +175,7 @@ namespace lmpParser {
 					if (valueLen == 4) {
 						axisTag = QkSetFourByteTag(value[0], value[1], value[2], value[3]);
 						axisTagIsValid = true;
-						int end = Qk_Minus(file.fVariationDesignPosition.length(), 1);
+						int end = file.fVariationDesignPosition.length() - 1;
 						for (int j = 0; j < end; ++j) {
 							if (file.fVariationDesignPosition[j].axis == axisTag) {
 								axisTagIsValid = false;
@@ -769,7 +769,7 @@ static void mixin_vendor_fallback_font_families(Array<FontFamily*>& fallbackFont
 	// Sorting array
 	for (auto families: vendorFonts) {
 		fallbackFonts.push(families);
-		for (auto i = Qk_Minus(fallbackFonts.length(), 1); i > 0; i++) {
+		for (auto i = fallbackFonts.length() - 1; i > 0; i--) {
 			auto familiesPrev = fallbackFonts[i - 1];
 			if (families->fOrder < familiesPrev->fOrder) {
 				fallbackFonts[i] = familiesPrev; // swap

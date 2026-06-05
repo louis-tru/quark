@@ -33,13 +33,13 @@ public:
 		float radius = 100;
 		RectOutlinePath outline = RectOutlinePath::MakeRRectOutline({ {180,50}, 200 }, border, {radius, radius, radius, radius});
 		paint.fill.color = Color4f(0, 0, 0, 0.5);
-		canvas->drawPathv(outline.left, paint);
+		canvas->drawPath(outline.left, paint);
 		paint.fill.color = Color4f(0, 1, 0, 0.5);
-		canvas->drawPathv(outline.top, paint);
+		canvas->drawPath(outline.top, paint);
 		paint.fill.color = Color4f(0, 0, 1, 0.5);
-		canvas->drawPathv(outline.right, paint);
+		canvas->drawPath(outline.right, paint);
 		paint.fill.color = Color4f(1, 0, 0, 0.5);
-		canvas->drawPathv(outline.bottom, paint);
+		canvas->drawPath(outline.bottom, paint);
 
 		paint.fill.color = Color4f(0, 0.5, 0.5, 0.4);
 		//canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);

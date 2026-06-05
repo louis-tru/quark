@@ -90,98 +90,7 @@ namespace qk {
 			}
 		}
 
-		void clipv(const Path &path, const VertexData &vertex, ClipOp rawOp, bool antiAlias) {
-			if (vertex.vCount == 0)
-				return; // skip empty clip
-			if (rawOp > kReplace_ClipOp) {
-				Qk_DLog("Invalid ClipOp: %d, expected kIntersect_ClipOp, kDifference_ClipOp, or kReplace_ClipOp", rawOp);
-				return;
-			}
-			const Vec2 pad = _surfaceScale; // 1 pixel pad for anti-aliasing
-			auto clip = new GC_State::Clip;
-			auto range = path.getBounds(&_state->matrix);
-			auto lastClip = _clipState;
-
-			// for replace, we can directly use the new clip region,
-			// so skip combining with last clip state
-			if (rawOp == kReplace_ClipOp) {
-				rawOp = kIntersect_ClipOp; // treat replace as intersect
-				lastClip = nullptr; // ignore last clip state
-			}
-			// last clip state operation, default as intersect
-			auto lastOp = lastClip ? lastClip->op : kIntersect_ClipOp;
-			// last clip state range, default as surface size
-			auto lastRange = lastClip ? lastClip->range : Range{{0},_surfaceSize};
-			// apply surface scale and padding
-			range.begin = (range.begin * _surfaceScale - pad).floor();
-			range.end = (range.end * _surfaceScale + pad).ceil();
-			// rawOp: requested operation for this clip command.
-			// clip->op: how the resulting mask should be interpreted by fragment shader.
-			clip->op = rawOp;
-
-			// combine with last clip state
-			if (rawOp == kIntersect_ClipOp) {
-				if (lastOp == kIntersect_ClipOp) {
-					range.begin = range.begin.max(lastRange.begin);
-					range.end = range.end.min(lastRange.end);
-				} else { // if (lastOp == kDifference_ClipOp)
-					range.begin = range.begin.max(0);
-					range.end = range.end.min(_surfaceSize);
-				}
-			} else { // if (rawOp == kDifference_ClipOp)
-				if (!lastClip) {
-					// Difference with no previous clip means full surface minus incoming.
-					// Store only incoming bounds as the restricted mask area.
-					range.begin = range.begin.max(0);
-					range.end = range.end.min(_surfaceSize);
-				} else if (lastOp == kDifference_ClipOp) {
-					// expand to a larger restricted area image
-					range.begin = range.begin.min(lastRange.begin).max(0);
-					range.end = range.end.max(lastRange.end).min(_surfaceSize);
-				} else { // if (lastOp == kIntersect_ClipOp)
-					// difference with intersect is still intersect,
-					// but keep the larger range for shader to do difference clipping
-					clip->op = kIntersect_ClipOp;
-					// keep last clip range for shader to do difference clipping
-					range = lastRange;
-				}
-			}
-			clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType, false);
-			clip->range = range;
-			// adjust range to actual allocated texture size
-			clip->range.end = clip->range.begin + clip->mask->size();
-			if (antiAlias && !_DeviceMsaa) {
-				drawClipCmd(vertex, _cache->getAASideTriangle(path,_phy1Pixel*aa_side_width), lastClip, clip, rawOp);
-			} else {
-				drawClipCmd(vertex, {}, lastClip, clip, rawOp);
-			}
-			_state->clip = clip;
-			_clipState = clip; // set current clip state
-		}
-
-		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
-			Qk_ASSERT(path.isNormalized(), "Path must be normalized before filling. Call path.normalize() first.");
-			if (aa) {
-				fillAASide(path, paint, style, aa_side_width);
-			} else {
-				fillv(_cache->getPathTriangles(path), paint, style);
-			}
-		}
-
-		void fillAASide(const Path& path, const Paint &paint, const PaintStyle& style, float aaSideWidth) {
-			auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*aaSideWidth);
-			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color);
-			} else if (style.gradient) {
-				drawGradientCmd(vertex, style.gradient, style.color);
-			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color);
-			} else {
-				drawColorCmd(vertex, style.color);
-			}
-		}
-
-		void fillv(const VertexData &vertex, const Paint &paint, const PaintStyle &style) {
+		void fill(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
 			if (!vertex.vCount) return;
 			if (style.image) {
 				drawImageCmd(vertex, style.image, style.color);
@@ -194,28 +103,32 @@ namespace qk {
 			}
 		}
 
+		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
+			Qk_ASSERT(path.isNormalized(), "Path must be normalized before filling. Call path.normalize() first.");
+			auto &vertex = aa ?
+				_cache->getAASideTriangle(path, _phy1Pixel*aa_side_width):
+				_cache->getPathTriangles(path);
+			fill(vertex, paint, style);
+		}
+
 		void strokePath(const Path &path, const Paint& paint, bool aa) {
-			if (aa) {
 #if isMoreSofterAA
-				const float weight = 0.9f;
+				constexpr float weight = 0.9f;
 #else
-				const float weight = 1.0f;
+				constexpr float weight = 1.0f;
 #endif
-				auto width = paint.strokeWidth - _phy1Pixel * weight;
-				if (width > 0) {
-					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, true);
-				} else {
-					// width /= (_phy1Pixel * 1.0f - weight); // range: -1 => 0
-					// width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					fillAASide(path, paint, paint.stroke, 0.5f);
-				}
+			auto width = paint.strokeWidth - _phy1Pixel * weight;
+			if (width > 0) {
+				fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, aa);
 			} else {
-				fillPath(_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join,0), paint, paint.stroke, false);
+				// width /= (_phy1Pixel * 1.0f - weight); // range: -1 => 0
+				// width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
+				auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*0.5);
+				fill(vertex, paint, paint.stroke);
 			}
 		}
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint);
-		void drawPathv_(const Pathv& path, const Paint& paint);
 	};
 
 	//---------------------------------------------------------------------
@@ -373,31 +286,6 @@ namespace qk {
 		return scale_1;
 	}
 
-	void GPUCanvas::Inl::drawPathv_(const Pathv& path, const Paint& paint) {
-		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
-		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path.path);
-
-		auto fillPathv = [](Inl* self, const Pathv &path, const Paint &paint, bool aa) {
-			if (path.vCount) {
-				Qk_ASSERT(path.path.isNormalized());
-				if (aa) {
-					self->fillAASide(path.path, paint, paint.fill, aa_side_width);
-				} else {
-					self->fillv(path, paint, paint.fill);
-				}
-			}
-		};
-		// gen stroke path and fill path and polygons
-		switch (paint.style) {
-			case Paint::kFill_Style:
-				fillPathv(this, path, paint, aa); break;
-			case Paint::kStrokeAndFill_Style:
-				fillPathv(this, path, paint, aa);
-			case Paint::kStroke_Style:
-				strokePath(path.path, paint, aa); break;
-		}
-	}
-
 	//---------------------------------------------------------------------
 
 	GPUCanvas::GPUCanvas(Render *render, Render::Options opts)
@@ -467,37 +355,6 @@ namespace qk {
 		return true;
 	}
 
-	int GPUCanvas::save() {
-		auto &back = _stateStack.back();
-		// copy current state to stack, and set state pointer to new state
-		_stateStack.push({.matrix=back.matrix, .clip=back.clip, .output=back.output});
-		_state = &_stateStack.back();
-		return _stateStack.length();
-	}
-
-	void GPUCanvas::restore(uint32_t count) {
-		if (!count || _stateStack.length() == 1)
-			return;
-		count = Uint32::min(count, _stateStack.length() - 1);
-
-		if (count > 0) {
-			do {
-				auto lastOut = _state->output; // save current output before pop
-				_stateStack.pop(); // exit current state
-				_state = &_stateStack.back();
-				if (lastOut != _state->output) { // restore region draw, only when output changed
-					outputImageEndCmd(lastOut.get());
-				}
-				count--;
-			} while (count > 0);
-			if (_clipState != _state->clip.get()) {
-				restoreClipCmd(_state->clip.get()); // restore clip state if changed
-			}
-			_clipState = _state->clip.get(); // restore clip state
-			setMatrix(_state->matrix); // restore matrix
-		}
-	}
-
 	int GPUCanvas::getSaveCount() const {
 		return _stateStack.length() - 1;
 	}
@@ -533,17 +390,110 @@ namespace qk {
 		setMatrixCmd();
 	}
 
-	void GPUCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {
-		_this->clipv(path, _cache->getPathTriangles(path), op, antiAlias);
+	int GPUCanvas::save() {
+		auto &back = _stateStack.back();
+		// copy current state to stack, and set state pointer to new state
+		_stateStack.push({.matrix=back.matrix, .clip=back.clip, .output=back.output});
+		_state = &_stateStack.back();
+		return _stateStack.length();
 	}
 
-	void GPUCanvas::clipPathv(const Pathv& path, ClipOp op, bool antiAlias) {
-		_this->clipv(path.path, path, op, antiAlias);
+	void GPUCanvas::restore(uint32_t count) {
+		if (!count || _stateStack.length() == 1)
+			return;
+		count = Uint32::min(count, _stateStack.length() - 1);
+
+		if (count > 0) {
+			do {
+				auto lastOut = _state->output; // save current output before pop
+				_stateStack.pop(); // exit current state
+				_state = &_stateStack.back();
+				if (lastOut != _state->output) { // restore region draw, only when output changed
+					outputImageEndCmd(lastOut.get());
+				}
+				count--;
+			} while (count > 0);
+			if (_clipState != _state->clip.get()) {
+				restoreClipCmd(_state->clip.get()); // restore clip state if changed
+			}
+			_clipState = _state->clip.get(); // restore clip state
+			setMatrix(_state->matrix); // restore matrix
+		}
+	}
+
+	void GPUCanvas::clipPath(const Path& path, ClipOp rawOp, bool antiAlias) {
+		if (rawOp > kReplace_ClipOp) {
+			Qk_DLog("Invalid ClipOp: %d, expected kIntersect_ClipOp, kDifference_ClipOp, or kReplace_ClipOp", rawOp);
+			return;
+		}
+		const Vec2 pad = _surfaceScale; // 1 pixel pad for anti-aliasing
+		auto clip = new GC_State::Clip;
+		auto range = path.getBounds(&_state->matrix);
+		auto lastClip = _clipState;
+
+		if (range.begin.x() >= range.end.x() || range.begin.y() >= range.end.y()) {
+			return; // skip empty clip
+		}
+
+		// for replace, we can directly use the new clip region,
+		// so skip combining with last clip state
+		if (rawOp == kReplace_ClipOp) {
+			rawOp = kIntersect_ClipOp; // treat replace as intersect
+			lastClip = nullptr; // ignore last clip state
+		}
+		// last clip state operation, default as intersect
+		auto lastOp = lastClip ? lastClip->op : kIntersect_ClipOp;
+		// last clip state range, default as surface size
+		auto lastRange = lastClip ? lastClip->range : Range{{0},_surfaceSize};
+		// apply surface scale and padding
+		range.begin = (range.begin * _surfaceScale - pad).floor();
+		range.end = (range.end * _surfaceScale + pad).ceil();
+		// rawOp: requested operation for this clip command.
+		// clip->op: how the resulting mask should be interpreted by fragment shader.
+		clip->op = rawOp;
+
+		// combine with last clip state
+		if (rawOp == kIntersect_ClipOp) {
+			if (lastOp == kIntersect_ClipOp) {
+				range.begin = range.begin.max(lastRange.begin);
+				range.end = range.end.min(lastRange.end);
+			} else { // if (lastOp == kDifference_ClipOp)
+				range.begin = range.begin.max(0);
+				range.end = range.end.min(_surfaceSize);
+			}
+		} else { // if (rawOp == kDifference_ClipOp)
+			if (!lastClip) {
+				// Difference with no previous clip means full surface minus incoming.
+				// Store only incoming bounds as the restricted mask area.
+				range.begin = range.begin.max(0);
+				range.end = range.end.min(_surfaceSize);
+			} else if (lastOp == kDifference_ClipOp) {
+				// expand to a larger restricted area image
+				range.begin = range.begin.min(lastRange.begin).max(0);
+				range.end = range.end.max(lastRange.end).min(_surfaceSize);
+			} else { // if (lastOp == kIntersect_ClipOp)
+				// difference with intersect is still intersect,
+				// but keep the larger range for shader to do difference clipping
+				clip->op = kIntersect_ClipOp;
+				// keep last clip range for shader to do difference clipping
+				range = lastRange;
+			}
+		}
+		clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType, false);
+		clip->range = range;
+		// adjust range to actual allocated texture size
+		clip->range.end = clip->range.begin + clip->mask->size();
+		if (antiAlias && !_DeviceMsaa) {
+			drawClipCmd(_cache->getAASideTriangle(path,_phy1Pixel*aa_side_width), lastClip, clip, rawOp);
+		} else {
+			drawClipCmd(_cache->getPathTriangles(path), lastClip, clip, rawOp);
+		}
+		_state->clip = clip;
+		_clipState = clip; // set current clip state
 	}
 
 	void GPUCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
-		auto &path = _cache->getRectPath(rect);
-		_this->clipv(path.path, path, op, antiAlias);
+		_this->clipPath(_cache->getRectPath(rect), op, antiAlias);
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
@@ -558,28 +508,30 @@ namespace qk {
 		}}, color);
 	}
 
-	void GPUCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
+	void GPUCanvas::drawPathColor(const Path& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAASideTriangle(path.path, _phy1Pixel*aa_side_width);
+			auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*aa_side_width);
 			drawColorCmd(vertex, color);
 		} else {
-			drawColorCmd(path, color);
+			auto &vertex = _cache->getPathTriangles(path);
+			drawColorCmd(vertex, color);
 		}
 	}
 
-	void GPUCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color, 
+	void GPUCanvas::drawPathColors(const Path* paths[], int count, const Color4f &color,
 		BlendMode mode, bool antiAlias) 
 {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAASideTriangle(paths[i]->path, _phy1Pixel*aa_side_width);
+				auto &vertex = _cache->getAASideTriangle(*paths[i], _phy1Pixel*aa_side_width);
 				drawColorCmd(vertex, color);
 			}
 		} else {
 			for (int i = 0; i < count; i++) {
-				drawColorCmd(*paths[i], color);
+				auto &vertex = _cache->getPathTriangles(*paths[i]);
+				drawColorCmd(vertex, color);
 			}
 		}
 	}
@@ -610,15 +562,11 @@ namespace qk {
 	}
 
 	void GPUCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		_this->drawPathv_(_cache->getRectPath(rect), paint);
+		_this->drawPath(_cache->getRectPath(rect), paint);
 	}
 
 	void GPUCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		_this->drawPathv_(_cache->getRRectPath(rect,radius), paint);
-	}
-
-	void GPUCanvas::drawPathv(const Pathv& path, const Paint& paint) {
-		_this->drawPathv_(path, paint);
+		_this->drawPath(_cache->getRRectPath(rect,radius), paint);
 	}
 
 	float GPUCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offsetIn, const Paint &paint) {

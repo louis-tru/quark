@@ -287,7 +287,7 @@ namespace qk {
 		img.filterMode = default_FilterMode;
 		img.mipmapMode = default_MipmapMode;
 
-		painter->canvas()->drawPathv(painter->cache()->getRectPath(rectAA), paint);
+		painter->canvas()->drawPath(painter->cache()->getRectPath(rectAA), paint);
 		debugDraw(painter); // draw debug bounds
 		painter->visitView(this);
 		painter->set_matrix(lastMatrix); // restore previous matrix

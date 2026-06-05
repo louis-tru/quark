@@ -51,6 +51,7 @@
 			'util/test-uv.cc',
 			'util/test-zlib.cc',
 			'util/test-atomic.cc',
+			'util/test-hash.cc',
 			'test-freetype.cc',
 			'test-gui.cc',
 			'test-alsa-ff.cc',

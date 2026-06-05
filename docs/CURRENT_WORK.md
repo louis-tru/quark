@@ -69,6 +69,8 @@ Active AASide experiment branch:
 - `clip.glsl` was split out so clip mask drawing no longer overloads `color.glsl` with clip-only parameters such as `surfaceOffset`.
 - `color.glsl` and other fragment shaders now call shared `aaSideCoverage()` from `_util.glsl`.
 - `aa_side_weight` was removed from the experiment; the goal is to get coverage from signed `aaSide`, not from CPU-side alpha weighting.
+- `Pathv` has been removed from the Canvas-facing drawing API on this branch. `RectPath` / `RectOutlinePath` now store paths only, while `PathvCache` separately caches normalized paths and generated `VertexData` for fill, AASide, and clip draws.
+- `Hash5381` has been replaced by the new `Hash` API, including explicit float/vector update helpers and 32/64-bit mixed hash output. JS exports now expose `Hash`, and `test/util/test-hash.cc` is wired into the test target.
 
 Current AASide findings:
 

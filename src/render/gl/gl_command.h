@@ -107,7 +107,6 @@ namespace qk {
 		};
 
 		struct alignas(void*) ClipCmd: DrawCmd { //!
-			VertexData      aaSide;
 			Sp<GC_State::Clip> lastClip;
 			Sp<GC_State::Clip> clip;
 			Sp<ImageSource> recover;
@@ -241,8 +240,7 @@ namespace qk {
 				const Color4f &strokeColor, float stroke);
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color);
-		void drawClip(const VertexData &vertex, const VertexData &aaSide, GC_State::Clip *lastClip,
-				GC_State::Clip *clip, Canvas::ClipOp rawOp);
+		void drawClip(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp);
 		void clearColor(const Color4f &color, GC_ClearFlags flags);
 		void blurFilterBegin(Range bounds, Mat4 &rootMat, ImageSource *tmpA);
 		void blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod,

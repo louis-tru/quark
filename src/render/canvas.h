@@ -166,9 +166,6 @@ namespace qk {
 		/** Clips to a vector path. */
 		virtual void clipPath(const Path& path, ClipOp op, bool antiAlias) = 0;
 
-		/** Clips to a pre-tessellated path variant. */
-		virtual void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) = 0;
-
 		/** Clips to a rectangular region. */
 		virtual void clipRect(const Rect& rect, ClipOp op, bool antiAlias);
 
@@ -185,14 +182,11 @@ namespace qk {
 		/** Draws a vector path with the given paint parameters. */
 		virtual void drawPath(const Path& path, const Paint& paint) = 0;
 
-		/** Draws a pre-tessellated path variant. */
-		virtual void drawPathv(const Pathv& path, const Paint& paint) = 0;
-
 		/** Draws a solid color path (non-painted) for simple fills. */
-		virtual void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias);
+		virtual void drawPathColor(const Path &path, const Color4f &color, BlendMode mode, bool antiAlias);
 
 		/** Draws multiple colored paths at once for batching. */
-		virtual void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) = 0;
+		virtual void drawPathColors(const Path* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) = 0;
 
 		/** Draws an axis-aligned rectangle. */
 		virtual void drawRect(const Rect& rect, const Paint& paint);

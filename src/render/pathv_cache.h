@@ -201,11 +201,11 @@ namespace qk
 		void clearPart(uint32_t capacity);
 		RenderResource *_render; // render resource for GPU cache management
 		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
-		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
-		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Wrap<VertexData>*> _AASideTriangleCache; // path hash => aa side triangles
-		Dict<uint64_t, Wrap<RectPath>*> _RectPathCache; // rect hash => rect path
-		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
+		Dict<uint64_t, Path*> _normalizedPath, _strokePath; // path hash => path
+		Dict<uint64_t, Wrap<VertexData>*> _pathTriangles; // path hash => triangles
+		Dict<uint64_t, Wrap<VertexData>*> _aaSideTriangle; // path hash => aa side triangles
+		Dict<uint64_t, Wrap<RectPath>*> _rectPath; // rect hash => rect path
+		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _rectOutlinePath; // rect hash => rect outline path
 
 		friend class RenderResource;
 	};

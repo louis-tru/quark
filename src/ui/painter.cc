@@ -105,12 +105,13 @@ namespace qk {
 		auto radius = &box->_border_top_left_radius;
 		_IfBorder(box) {
 			auto border = _border->width;
-			Hash5381 hash;
-			hash.updatefv4(rect.begin.val);
-			hash.updatefv4(radius);
-			hash.updatefv4(border);
+			Hash hash;
+			hash.update4f(rect.begin.val);
+			hash.update4f(radius);
+			hash.update4f(border);
+			auto key = hash.hashCode();
 
-			_boxData.inside = _cache->getRRectPathFromHash(hash.hashCode());
+			_boxData.inside = _cache->getRRectPathFromHash(key);
 			if (_boxData.inside)
 				return;
 
@@ -140,9 +141,9 @@ namespace qk {
 					{leftTop-border[3],     leftTop-border[0]},     {rightTop-border[1],  rightTop-border[0]},
 					{rightBottom-border[1], rightBottom-border[2]}, {leftBottom-border[3], leftBottom-border[2]},
 				};
-				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
+				_boxData.inside = &_cache->setRRectPathFromHash(key, RectPath::MakeRRect(rect, br));
 			} else {
-				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+				_boxData.inside = &_cache->setRRectPathFromHash(key, RectPath::MakeRect(rect));
 			}
 		} else if (is_not_Zero(radius)) {
 			_boxData.inside = &_cache->getRRectPath(rect, radius);
@@ -172,12 +173,13 @@ namespace qk {
 				auto border = _border->width;
 				auto radius = &v->_border_top_left_radius;
 
-				Hash5381 hash;
-				hash.updatefv4(rect.begin.val);
-				hash.updatefv4(border);
-				hash.updatefv4(radius);
+				Hash hash;
+				hash.update4f(rect.begin.val);
+				hash.update4f(border);
+				hash.update4f(radius);
+				auto key = hash.hashCode();
 
-				_boxData.outline = _cache->getRRectOutlinePathFromHash(hash.hashCode());
+				_boxData.outline = _cache->getRRectOutlinePathFromHash(key);
 				if (_boxData.outline)
 					return;
 
@@ -197,10 +199,10 @@ namespace qk {
 						{Qk_Min(radius[0],radiusLimit)}, {Qk_Min(radius[1],radiusLimit)},
 						{Qk_Min(radius[2],radiusLimit)}, {Qk_Min(radius[3],radiusLimit)},
 					};
-					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
+					_boxData.outline = &_cache->setRRectOutlinePathFromHash(key,
 							RectOutlinePath::MakeRRectOutline(rect, borderFix, br));
 				} else {
-					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
+					_boxData.outline = &_cache->setRRectOutlinePathFromHash(key,
 							RectOutlinePath::MakeRectOutline(rect, borderFix));
 				}
 			}
@@ -217,7 +219,7 @@ namespace qk {
 			drawBoxFill(v);
 		});
 
-		auto addBatch = [](PathvBatchs &out, Color color, const qk::Pathv *pv) {
+		auto addBatch = [](PathvBatchs &out, Color color, const qk::Path *pv) {
 			auto key = reinterpret_cast<uint32_t&>(color);
 			int i = 0;
 			for (; i < out.total; i++) {
@@ -252,12 +254,12 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) {
 					auto pv = &_boxData.outline->top + i;
-					if (pv->vCount) {
+					if (_boxData.outline->flags & (1<<i)) {
 						addBatch(_pathvs, _border->color[i], pv);
 					} else { // too thin, draw only a little stroke
 						paint.stroke.color = _border->color[i].mul_color4f(_color);
 						paint.strokeWidth = _border->width[i];
-						_canvas->drawPath(pv->path, paint);
+						_canvas->drawPath(*pv, paint);
 					}
 				}
 			}
@@ -266,7 +268,7 @@ namespace qk {
 		if (_pathvs.total) {
 			for (int i = 0; i < _pathvs.total; i++) {
 				auto & it = _pathvs.indexed[i];
-				_canvas->drawPathvColors(it.pathv, it.count,
+				_canvas->drawPathColors(it.pathv, it.count,
 					it.color.mul_color4f(_color), defaultBlendMode, v->_aa);
 			}
 			_pathvs = {0}; // reset batch
@@ -282,12 +284,12 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) { // top
 					auto pv = &_boxData.outline->top + i;
-					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), defaultBlendMode, v->_aa);
+					if (_boxData.outline->flags & (1<<i)) { // ok, draw border with color
+						_canvas->drawPathColor(*pv, _border->color[i].mul_color4f(_color), defaultBlendMode, v->_aa);
 					} else { // stroke
 						paint.stroke.color = _border->color[i].mul_color4f(_color);
 						paint.strokeWidth = _border->width[i];
-						_canvas->drawPath(pv->path, paint);
+						_canvas->drawPath(*pv, paint);
 					}
 				}
 			}
@@ -388,7 +390,7 @@ namespace qk {
 				img.tileModeX = PaintImage::kRepeat_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
 			try_clipY:
-				if (!inside->rrectMask) { // no need clip if rrectMask
+				if (!inside->flags) { // no need clip if rrectMask
 					Vec2 out{rect.begin.y(), rect.size.y()};
 					if (clip(this, v, {y,h}, out)) // clip y
 						return;
@@ -400,7 +402,7 @@ namespace qk {
 				//img.tileModeX = PaintImage::kClamp_TileMode;
 				img.tileModeY = PaintImage::kRepeat_TileMode;
 			try_clipX:
-				if (!inside->rrectMask) {
+				if (!inside->flags) {
 					Vec2 out{rect.begin.x(), rect.size.x()};
 					if (clip(this, v, {x,w}, out)) // clip x
 						return;
@@ -410,7 +412,7 @@ namespace qk {
 			case Repeat::NoRepeat:
 				img.tileModeX = PaintImage::kDecal_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
-				if (!inside->rrectMask) {
+				if (!inside->flags) {
 					Vec2 outX{rect.begin.x(), rect.size.x()};
 					Vec2 outY{rect.begin.y(), rect.size.y()};
 					if (clip(this, v, {x,w}, outX) || clip(this, v, {y,h}, outY))
@@ -426,7 +428,7 @@ namespace qk {
 		// img.mipmapMode = PaintImage::kNone_MipmapMode;
 		img.setImage(src.get(), {{x,y}, {w,h}});
 
-		_canvas->drawPathv(*inside, paint);
+		_canvas->drawPath(*inside, paint);
 	}
 
 	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill) {
@@ -479,7 +481,7 @@ namespace qk {
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
 
-		_canvas->drawPathv(*_boxData.inside, paint);
+		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
 	void Painter::drawBoxFillRadial(Box *v, FillGradientRadial *fill) {
@@ -497,7 +499,7 @@ namespace qk {
 		paint.antiAlias = v->_aa;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
-		_canvas->drawPathv(*_boxData.inside, paint);
+		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
 	void Painter::drawBoxShadow(Box *v) {
@@ -506,7 +508,7 @@ namespace qk {
 			return;
 		getOutsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPathv(*_boxData.outside, Canvas::kDifference_ClipOp, false);
+		_canvas->clipPath(*_boxData.outside, Canvas::kDifference_ClipOp, false);
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
@@ -524,7 +526,7 @@ namespace qk {
 		if (!v->_background_color.a())
 			return;
 		getInsideRectPath(v);
-		_canvas->drawPathvColor(*_boxData.inside,
+		_canvas->drawPathColor(*_boxData.inside,
 			v->_background_color.mul_color4f(_color), kSrcOver_BlendMode, v->_aa
 		);
 		//Paint paint;
@@ -552,7 +554,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {_border->width[3], -_border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
@@ -564,7 +566,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {-_border->width[3], _border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 		}
 	}
@@ -591,7 +593,7 @@ namespace qk {
 					},
 					{blob.blob.offset.back().x()-offset_x, blob.height},
 				});
-				_canvas->drawPathvColor(rect, color, defaultBlendMode, true);
+				_canvas->drawPathColor(rect, color, defaultBlendMode, true);
 			}
 		}
 
@@ -697,7 +699,7 @@ namespace qk {
 	void Painter::visitAndClipBox(Box *v, DrawCallback cb) {
 		getInsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPathv(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
+		_canvas->clipPath(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
 		_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
 		_delayCmdsStack.push_back(DelayCmdMap(
 			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
@@ -776,7 +778,7 @@ namespace qk {
 			img.filterMode = default_FilterMode;
 			img.mipmapMode = default_MipmapMode;
 			img.setImage(src.get(), draw->boxData().inside->rect);
-			draw->canvas()->drawPathv(*draw->boxData().inside, paint);
+			draw->canvas()->drawPath(*draw->boxData().inside, paint);
 		}
 		draw->visitBox(this);
 	}
@@ -834,7 +836,7 @@ namespace qk {
 		if (clip) {
 			draw->getInsideRectPath(this);
 			canvas->save();
-			canvas->clipPathv(*draw->boxData().inside, Canvas::kIntersect_ClipOp, aa()); // clip
+			canvas->clipPath(*draw->boxData().inside, Canvas::kIntersect_ClipOp, aa()); // clip
 		}
 
 		if (visible) {
@@ -845,7 +847,7 @@ namespace qk {
 				auto offset_x = blob.blob.offset.front().x();
 				auto width = blob.blob.offset.back().x();
 				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
-				canvas->drawPathvColor(rect, color, defaultBlendMode, true);
+				canvas->drawPathColor(rect, color, defaultBlendMode, true);
 			};
 			auto size = font_size().value;
 			auto shadow = text_shadow().value;
@@ -908,7 +910,7 @@ namespace qk {
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
-			canvas->drawPathvColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlendMode, true);
+			canvas->drawPathColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlendMode, true);
 		}
 
 		if (clip) {

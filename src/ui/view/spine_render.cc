@@ -90,7 +90,7 @@ namespace qk {
 				break;
 		}
 
-		Hash5381 hash;
+		Hash hash;
 		hash.updateu64(uintptr_t(_source));
 		hash.updateu32(_paint.bitfields);
 		_hashCode = hash.hashCode();

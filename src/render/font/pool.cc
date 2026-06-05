@@ -94,7 +94,7 @@ namespace qk {
 
 	FFID FontPool::getFontFamilies(cArray<String>& families) {
 		AutoSharedMutexShared ama(*_Mutex);
-		Hash5381 hash;
+		Hash hash;
 		for (auto& i: families) {
 			hash.updatestr(i.trim());
 		}

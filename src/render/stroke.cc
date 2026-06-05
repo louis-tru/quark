@@ -54,7 +54,7 @@ namespace qk {
 	// intentionally wider than an exact equality test: repeated or almost
 	// repeated vertices make vertex normals unstable and can create long spikes.
 	static bool strokePointEquals(Vec2 a, Vec2 b) {
-		return (a - b).lengthSq() < 0.1f;
+		return (a - b).lengthSq() < 0.01f;
 	}
 
 	/**
@@ -435,7 +435,7 @@ namespace qk {
 		}, &ctx);
 
 		out = body.getTriangles(epsilon, -1.0f);
-		out.vertex.write(aaSide.val(), aaSide.length());
+		out.vertex.write(aaSide.val(), aaSide.length()); // merge body and aaSide vertices
 		out.vCount += aaSide.length();
 		// debug;
 		// out.vCount = aaSide.length();
@@ -504,7 +504,7 @@ namespace qk {
 		auto verbs = right.verbs();
 		auto pts = &right.pts().back();
 
-		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
+		for (int i = right.verbsLen() - 1; i >= 0; i--) {
 			if (verbs[i] == Path::kCubic_Verb) {
 				left.lineTo(*pts); pts--;
 				do {

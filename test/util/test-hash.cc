@@ -28,44 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__util__hash__
-#define __quark__util__hash__
+#include <src/util/hash.h>
+#include <src/util/log.h>
+#include "../test.h"
 
-#include "./object.h"
-#include "./string.h"
+using namespace qk;
 
-namespace qk {
-	Qk_EXPORT uint32_t mix32(uint32_t x);
-	Qk_EXPORT uint32_t mix32_fast(uint32_t x);
-	Qk_EXPORT uint64_t mix64(uint64_t x);
-	Qk_EXPORT uint64_t mix64_fast(uint64_t x);
-	Qk_EXPORT uint32_t mix32_combine(uint32_t a, uint32_t b);
-	Qk_EXPORT uint32_t mix32_combine_fast(uint32_t a, uint32_t b);
-	Qk_EXPORT uint64_t mix64_combine(uint64_t a, uint64_t b);
-	Qk_EXPORT uint64_t mix64_combine_fast(uint64_t a, uint64_t b);
-	Qk_EXPORT uint64_t hash_code(cVoid* data, uint32_t len);
-	Qk_EXPORT String   hash_str(cVoid* data, uint32_t len);
-	Qk_EXPORT String   hash_str(cString& str);
-
-	class Qk_EXPORT Hash {
-		uint64_t _value;
-	public:
-		Hash();
-		uint64_t value() const { return _value; }
-		uint64_t hashCode() const { return mix64_fast(_value); }
-		uint32_t hashCode32() const;
-		String hashStr();
-		void update(cVoid* data, uint32_t len);
-		void updatestr(cString& str);
-		void updateu16v(const uint16_t *data, uint32_t len);
-		void updateu32v(const uint32_t *data, uint32_t len);
-		void updateu64v(const uint64_t *data, uint32_t len);
-		void updateu64(const uint64_t data);
-		void updatef64(const double data);
-		void updateu32(const uint32_t data);
-		void update1f(const float data);
-		void update2f(const float data[2]);
-		void update4f(const float data[4]);
-	};
+Qk_TEST_Func(hash) {
+	Qk_Log("%lu", hash_code("\x01", 1));
+	Qk_Log("%lu", hash_code("\x01\x00", 2));
+	Qk_Log("%lu", hash_code("\x01\x00\x00", 3));
 }
-#endif

@@ -133,14 +133,12 @@ namespace qk {
 		void scale(Vec2 val) override;
 		void rotate(float z) override;
 		void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
-		void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
 		void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
 		void clearColor(const Color4f& color) override;
 		void drawColor(const Color4f& color, BlendMode mode) override;
 		void drawPath(const Path& path, const Paint& paint) override;
-		void drawPathv(const Pathv& path, const Paint& paint) override;
-		void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawPathColor(const Path &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawPathColors(const Path* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
 		void drawRRectBlurColor(const Rect& rect,
 			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
 		void drawRect(const Rect& rect, const Paint& paint) override;
@@ -158,8 +156,7 @@ namespace qk {
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
-		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
-				GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
+		virtual void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
 		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;

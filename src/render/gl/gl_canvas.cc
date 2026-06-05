@@ -181,10 +181,9 @@ namespace qk {
 		_cmdPack->setBlendMode();
 	}
 
-	void GLCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
-			GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) {
+	void GLCanvas::drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) {
 		checkMatrix();
-		_cmdPack->drawClip(vertex, aaSide, lastClip, clip, rawOp);
+		_cmdPack->drawClip(vertex, lastClip, clip, rawOp);
 	}
 
 	void GLCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {

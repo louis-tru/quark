@@ -111,6 +111,8 @@ namespace qk {
 		cArray<PathVerb>& verbs() const;
 		inline uint32_t ptsLen() const { return _pts.length(); }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
+		inline uint32_t sizeOf() const { return ptsLen() * sizeof(Vec2) + verbsLen() * sizeof(PathVerb); }
+		inline const Hash& hash() const { return _hash; }
 		inline uint64_t hashCode() const { return _hash.hashCode(); }
 		inline bool isNormalized() const { return _IsNormalized; }
 
@@ -171,44 +173,31 @@ namespace qk {
 		// Props field:
 		Array<Vec2> _pts;
 		Array<uint8_t> _verbs;
-		// Array<PathVerb> _verbs;
-		Hash5381 _hash;
+		Hash _hash;
 		bool _IsNormalized, _sealed, _isBoundaryPath;
 		friend class RectPath;
 		friend class RectOutlinePath;
 	};
 
 	/**
-	 * Combination of a path and its generated triangle vertices.
-	 *
-	 * Used as a cached Canvas drawing primitive.
-	 */
-	struct Pathv: VertexData {
-		Path path; ///< Source or generated path.
-	};
-
-	/**
-	 * Optimized cached rectangle / rounded-rectangle path and triangles.
 	 *
 	 * RectPath avoids repeatedly rebuilding common rectangle geometry.
 	 */
-	struct Qk_EXPORT RectPath: Pathv {
-		Rect rect;       ///< Rectangle bounds.
-		int  rrectMask;  ///< Border-radius corner mask.
-
+	struct Qk_EXPORT RectPath: Path {
+		Rect rect;   ///< Rectangle bounds.
+		int  flags;  ///< Border-radius corner flags.
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};
 
 	/**
-	 * Optimized cached rectangle outline geometry.
 	 *
 	 * Stores the four outline sides separately so Canvas can draw/update border
 	 * geometry efficiently.
 	 */
 	struct Qk_EXPORT RectOutlinePath {
-		Pathv top, right, bottom, left;
-
+		Path top, right, bottom, left;
+		int flags; ///< Border is non zero for each side
 		static RectOutlinePath MakeRectOutline(const Rect &rect, const float border[4]);
 		static RectOutlinePath MakeRRectOutline(
 			const Rect &rect, const float border[4], const Path::BorderRadius &radius
