@@ -47,6 +47,7 @@ namespace qk {
 		void draw(Painter *render) override;
 		void apply_class_all(); // apply class for all subviews
 	private:
+		void reload_Rt(Vec2 size); // reload root view when window size changed
 		Root(Window *win);
 		friend class Window;
 	};

@@ -87,12 +87,13 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(bool, ignore_single_space_line, Const);
 		Qk_DEFINE_PROP_GET(bool, have_init_line_height, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_area, Const);
-		Qk_DEFINE_PROP_GET(bool, host_float_x, Const);
+		Qk_DEFINE_PROP_GET(bool, float_width, Const);
 		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
-		Qk_DEFINE_PROP_GET(Range, limit_range, Const);
+		Qk_DEFINE_PROP_GET(LimitRange, limit_range, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		// defines methods
-		TextLines(TextAlign text_align, Range limit_range, bool host_float_x);
+		TextLines();
+		TextLines(TextAlign text_align, LimitRange limit_range, bool float_width);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts); // first call finish() then add new row
 		void finish(); // finish all

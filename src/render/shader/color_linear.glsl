@@ -17,7 +17,7 @@ void main() {
 }
 
 #frag
-#define Qk_FLAG_COUNT2 (1u << 2)
+#define Qk_FLAG_COUNT2 (1u << 3)
 
 layout(location=1) in float weight;
 
@@ -53,7 +53,7 @@ void main() {
 		fragColor = mix(colors[s], colors[e], w);
 	}
 	fragColor *= pc.color;
-	fragColor *= aaSideCoverage();
 
+	Qk_aaSideCoverage();
 	Qk_CLIP(); // apply clip mask if needed
 }

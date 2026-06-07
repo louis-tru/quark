@@ -63,17 +63,27 @@ namespace qk {
 
 	class Qk_EXPORT TextBlobBuilder {
 	public:
-		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blobOut);
-		Qk_DEFINE_PROPERTY(bool, disable_overflow, Const);
-		Qk_DEFINE_PROPERTY(bool, disable_auto_wrap, Const);
+		TextBlobBuilder(TextOptions *opts, TextLines *lines, Array<TextBlob>* out);
 		Qk_DEFINE_PROP_GET(TextLines*, lines);
 		Qk_DEFINE_PROP_GET(TextOptions*, opts);
 		Qk_DEFINE_PROP_GET(Array<TextBlob>*, blobOut);
 		Qk_DEFINE_PROP_GET(uint32_t, index_of_unichar, Const);
 		Qk_DEFINE_PROPERTY(float, font_size, Const);
+		Qk_DEFINE_PROPERTY(bool, disable_overflow, Const);
+		Qk_DEFINE_PROPERTY(bool, disable_auto_wrap, Const);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);
+		/**
+		 * @method makeTextBlob make text blob for text use default text options
+		 * @param text text content
+		 * @param opts text options, if null use default text options
+		 * @param fontSize font size, if 0 use text options font size
+		 * @return text blob array, each blob is a line of text
+		 * @dev makeTextBlob is a convenient method for quickly creating text blobs,
+		 *      it is recommended to use make() for more complex text layout and rendering control
+		*/
+		static Array<TextBlob> makeTextBlob(cString& text, TextOptions *opts = nullptr, float fontSize = 0);
 	private:
 		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL);
 		void as_break_all(FontGlyphs &fg, Unichar *unichar);

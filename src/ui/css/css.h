@@ -156,7 +156,7 @@ namespace qk {
 			virtual Property* copy() = 0; // @thread Rt
 		};
 		// define props
-		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
+		#define _Fun(Enum, Type, Name, From) StyleSheets* set_##Name(Type value);
 			Qk_Css_Props(_Fun)
 		#undef _Fun
 

@@ -40,7 +40,6 @@ Qk_CONSTANT(
 
 void main() {
 	fragColor = color;
-	fragColor *= aaSideCoverage();
-
+	fragColor *= aaSideCoverage(0);
 	Qk_CLIP(); // apply clip mask if needed
 }

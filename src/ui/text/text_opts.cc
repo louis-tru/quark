@@ -63,6 +63,12 @@ namespace qk {
 	{
 	}
 
+	TextOptions::TextOptions(TextOptions *inherit): TextOptions() {
+		if (inherit) {
+			inherit_text_config(inherit); // capy inherit text options
+		}
+	}
+
 	TextOptions::~TextOptions() {
 		if (_isHoldSecondOpts) {
 			Releasep(_second);
@@ -476,7 +482,7 @@ namespace qk {
 		} while (completed < 8);
 		TextLines lines(opts.text_align_value(), {limit, limit}, false);
 		Array<TextBlob> blob;
-		TextBlobBuilder(&lines, &opts, &blob).make(value);
+		TextBlobBuilder(&opts, &lines, &blob).make(value);
 		lines.finish();
 		return Vec2(lines.core()->max_width(), lines.core()->max_height());
 	}

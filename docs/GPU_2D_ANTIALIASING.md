@@ -219,6 +219,349 @@ Risks:
 - Needs careful caching/invalidation.
 - Small features can be lost without high-resolution masks or exact coverage.
 
+## Skia Source Study
+
+The sibling `../skia` checkout has been used to study both the older Ganesh-era
+CCPR implementation and the newer Graphite/Vello compute path renderer. These
+are different generations of Skia path rendering and should not be mixed
+together when evaluating an approach for Quark.
+
+The main architectural lesson is that Skia does not use one universal AA
+algorithm. `GrPathRendererChain` selects among specialized renderers based on
+shape type, complexity, transform, GPU capabilities, and requested AA mode:
+
+- Simple convex fills use `GrAAConvexPathRenderer`. Straight edges carry signed
+  device-space distance, while quadratic curves use an implicit curve equation
+  and shader derivatives to convert that equation into coverage.
+- Hairlines use `GrAAHairLinePathRenderer`. Lines are expanded into conservative
+  geometry with explicit per-vertex coverage. Segments shorter than one pixel
+  reduce their inner coverage by segment length so they remain stable during
+  subpixel translation.
+- Small concave fills can use `GrTriangulatingPathRenderer`. It resolves the
+  entire path topology first, extracts inner and outer boundaries, collapses
+  overlapping AA regions, and emits a single triangulated mesh with a one-pixel
+  coverage ramp.
+- More complicated paths can use CCPR. CCPR decomposes paths into triangles and
+  convex curve primitives, renders signed winding coverage into a floating-point
+  atlas with additive blending, then samples the resolved coverage mask.
+- Tessellation paths use hardware MSAA or mixed samples rather than analytic AA.
+- Paths too complicated for the GPU renderers can fall back to a software
+  rasterized A8 coverage mask.
+- Rects, rounded rects, ovals, and similar common shapes have dedicated render
+  operations instead of always going through the general path renderer.
+
+Important implementation details:
+
+- Skia's common coverage ramp is tied to device pixels. The convex tessellator
+  uses a `0.5` device-pixel AA radius, and conservative coverage geometry usually
+  spans about one device pixel.
+- Skia does use signed distance and `dFdx` / `dFdy`, but only where the geometry
+  guarantees make the interpolated or implicit value meaningful. It restricts
+  the signed-distance convex renderer to simple convex paths with known winding.
+- Complex-path AA solves fill topology before generating coverage. It does not
+  independently blend an AA strip for every original contour edge.
+- Corner treatment is explicit. Convex geometry emits corner wedges and the CCPR
+  path has separate corner attenuation logic. A single averaged join normal is
+  not treated as sufficient for every angle.
+- Very small and degenerate geometry has explicit policy. Skia drops some nearly
+  zero-area convex paths, converts degenerate curves to lines, scales coverage
+  for subpixel hairlines, and falls back when a specialized algorithm is outside
+  its safe domain.
+
+Direct implications for Quark:
+
+- Keep signed `aaSide` as a useful straight-edge coverage coordinate, but do not
+  expect `fwidth(aaSide)` alone to solve corners, overlaps, self-intersections,
+  or subpixel-thin geometry.
+- The current use of `boundaryPath()` is directionally correct because it removes
+  internal overlap edges before AA generation. The next robustness step should
+  similarly make the final AA mesh topology-aware, rather than allowing
+  independently generated edge strips to overlap and blend.
+- Replace unbounded averaged-normal miter expansion with explicit join geometry
+  and a miter-limit/bevel fallback. This matches Skia's treatment and directly
+  addresses acute-angle spikes in `stroke.cc`.
+- Add a dedicated subpixel hairline path. When the effective stroke width is
+  below one device pixel, coverage should be scaled by width/length rather than
+  relying on a normal fill AASide band.
+- Add specialized rect and rounded-rect AA paths before investing in a universal
+  complex-path solution. These cover a large portion of GUI rendering and allow
+  more accurate, cheaper coverage.
+- For arbitrary complex paths, the realistic high-quality choices are a
+  topology-resolved coverage mesh or a coverage-count/mask atlas. Skia's source
+  does not support the idea that independent edge bands alone are sufficient.
+
+### CCPR Conclusion
+
+CCPR renders signed winding coverage into a coverage-count atlas, then samples
+the atlas during the final paint draw. Its triangle processor expands each
+logical triangle into hull, edge-correction, and corner-correction geometry.
+The correction geometry and additive winding resolve overlap and approximate
+pixel coverage.
+
+Important conclusions from studying CCPR:
+
+- The atlas is not an already-AA image that receives another AA pass. AA is
+  computed while generating the atlas coverage.
+- Separate paths are allocated separate atlas regions. CCPR does not union every
+  draw in a frame into one giant boolean operation.
+- CCPR avoids CPU path boolean operations, but requires substantial custom GPU
+  geometry generation, correction triangles, blending rules, atlas management,
+  and final sampling integration.
+- Corner correction is difficult to understand and maintain. It relies on
+  carefully designed interpolated correction surfaces rather than a simple
+  edge-normal expansion.
+- CCPR was removed from newer Skia architecture. It is useful research material,
+  but it is not a planned implementation direction for Quark.
+
+Quark should not implement CCPR. Its complexity is too high relative to the
+remaining limitations and newer compute-based alternatives.
+
+### Graphite And Vello Compute AA
+
+Newer Graphite can prefer a Vello-based Compute Path Atlas for suitable complex
+paths, while retaining tessellation plus stencil/MSAA and CPU raster atlases as
+fallbacks. Skia still selects specialized analytic renderers for simple shapes;
+there is no single universal AA path.
+
+The Vello-style compute pipeline does not generate final fill triangles. It
+encodes path edges and computes a coverage mask through multiple GPU compute
+passes:
+
+```text
+Path verbs / points / transforms
+  -> path reduction and segmentation
+  -> bin segments into tiles
+  -> allocate per-tile segment lists
+  -> coarse raster / backdrop winding
+  -> fine raster per pixel
+  -> write coverage atlas
+  -> draw bounds quad and sample coverage
+```
+
+The fine raster stage calculates winding and AA together. Depending on strategy,
+it can use analytic area coverage or software-style fixed samples inside the
+compute shader. Compute `MSAA8/16` means evaluating several sample positions and
+writing one final coverage value; it does not require an 8x/16x framebuffer.
+
+Compute AA resolves fill topology per pixel rather than producing boolean-result
+geometry:
+
+```text
+non-zero fill: winding != 0
+even-odd fill: winding & 1
+positive fill: winding > 0
+```
+
+This naturally handles tiny shapes, narrow channels, self-intersections, holes,
+and transformed geometry without requiring a stable inset body.
+
+### Compute Shader Model
+
+A compute shader is not part of the vertex/triangle/fragment raster pipeline:
+
+```text
+graphics:
+vertices -> vertex shader -> triangles -> rasterizer -> fragment shader
+
+compute:
+dispatch thread grid -> read buffers/textures -> arbitrary calculation
+                     -> write buffers/textures
+```
+
+For a `1024x1024` target with `16x16` threads per group:
+
+```text
+groupCount = 64x64 groups
+each group = 16x16 logical threads
+usually one logical thread handles one output pixel
+```
+
+One workgroup can process one `16x16` tile. Threads in the group can share a
+small fast threadgroup buffer containing the tile's relevant edges.
+
+Each tile needs more than a list of edges that cross it. Fully covered interior
+tiles may contain no crossing edge, so rasterization also needs a backdrop or
+initial winding value.
+
+### Quark Compute AA Feasibility
+
+Quark's current GL path cannot directly run compute shaders:
+
+- macOS GL uses OpenGL 3.2 / GLSL 330.
+- iOS, Android, and Linux GL use GLES 3.0 / GLSL ES 300.
+- Compute requires OpenGL 4.3 or GLES 3.1.
+- Apple GL cannot be upgraded to a viable compute path.
+- Metal supports compute, but Quark does not yet have compute pipeline,
+  storage-buffer, dispatch, or compute-to-render synchronization abstractions.
+
+The first practical Quark prototype should therefore target Metal, while GL
+continues using AASide. Vulkan and GLES 3.1 can follow after the algorithm is
+validated.
+
+Quark already flattens curves and can continue generating stroke outlines on
+the CPU. A first compute implementation does not need Vello's full curve/stroke
+pipeline:
+
+```text
+CPU:
+  normalized fill path / CPU-generated stroke path
+  -> transform line edges into device/atlas space
+  -> assign edges to 16x16 tiles
+  -> calculate tile backdrop winding
+  -> upload edge and tile buffers
+
+GPU:
+  one workgroup per tile
+  -> calculate winding and 4x4 sampled coverage per pixel
+  -> write R8/R16 coverage atlas
+
+graphics:
+  draw path bounds quad and sample coverage atlas
+```
+
+CPU binning is acceptable for the first prototype. It is approximately
+proportional to edge count plus the number of tiles crossed by edges and avoids
+the much larger engineering cost of GPU prefix scans and dynamic allocation.
+GPU binning can be added only if profiling proves CPU binning is a bottleneck.
+
+### Stencil And MSAA
+
+Stencil/MSAA avoids CPU boolean-result geometry by allowing triangles to overlap
+and accumulating winding in multisampled stencil. It is robust and mature, but
+it is not free:
+
+- sample coverage and stencil operations scale with sample count;
+- multisample attachments increase tile/storage pressure;
+- resolve adds work;
+- low sample counts still provide discrete coverage levels.
+
+Full-surface 8x MSAA is especially unattractive for high-resolution GUI
+surfaces. An 8K RGBA8 8x color attachment alone is roughly 1 GiB before
+depth/stencil, resolve targets, buffering, and temporary surfaces. Tile-based
+GPUs and transient/memoryless attachments reduce external memory traffic, but
+do not remove raster/sample cost.
+
+Graphite treats stencil/MSAA as an important general fallback, not necessarily
+the preferred path for every complex shape. Quark should not make full-surface
+MSAA its primary AA strategy.
+
+## libtess2 Cost In Current AASide
+
+`libtess2` is not merely a triangle cutter. Every `tessTesselate()` call runs a
+full planar-arrangement sweep:
+
+```text
+build half-edge mesh
+  -> sweep edges and detect intersections
+  -> split/splice topology
+  -> accumulate winding and classify inside regions
+  -> divide into monotone regions
+  -> triangulate or output boundary contours
+```
+
+The monotone triangulation stage is relatively cheap. Intersection discovery,
+topology repair, winding classification, and mesh allocation are the expensive
+parts. Pathological intersection counts can be quadratic, and this libtess2
+implementation uses a linked-list active-edge dictionary, which can also make
+unfriendly inputs expensive.
+
+Current AASide calls libtess2 twice:
+
+1. `boundaryPath()` resolves the original path into final visible contours.
+2. `body.getTriangles()` processes and triangulates the inset body.
+
+The second call is often heavier than necessary for ordinary simple bodies, but
+it also repairs inset contours that collapse or self-intersect. libtess2 has no
+public option to skip its sweep/boolean stage and perform only triangulation.
+
+Possible future optimization:
+
+- cache `boundaryPath()` independently of AA width;
+- triangle-fan convex bodies;
+- use ear clipping/Earcut for verified simple inset bodies;
+- retain libtess2 as fallback for holes, self-intersections, collapse, and
+  uncertain topology.
+
+## AASide Current Assessment
+
+AASide is the current completed fast AA baseline. It remains useful as a fast
+GLES 3.0-compatible path for normal-sized, mostly static geometry. It is not a
+universal exact-AA solution.
+
+Current strengths:
+
+- works on all existing Quark GPU backends;
+- uses the existing `{x, y, aaSide}` vertex format;
+- cached geometry is cheap to draw;
+- merged `boundaryPath()` removes internal overlap edges before AA generation;
+- combined inset body and AA band avoid the previous body/edge draw-order issue;
+- sharp corners below 90 degrees are now cut into two source points, and both
+  new corners run through the normal miter/AASide generation path.
+- allowed old UI-level painter compensation to be removed. UI rects, borders,
+  outlines, sprites, and adjacent views can now draw at their real coordinates
+  instead of shrinking or nudging geometry to hide overlap seams.
+- no longer relies on render z-depth or stencil/depth attachments for normal
+  AASide compositing.
+
+Current fundamental limitations:
+
+- **Tiny shapes and narrow channels:** opposing AA bands overlap and a single
+  interpolated `aaSide` cannot represent the combined coverage from multiple
+  nearby edges. The inset body can collapse or self-intersect.
+- **Subpixel-thin borders/hairlines:** normal fill AASide often becomes too dark
+  or unstable because independent edge coverage is blended instead of resolved
+  as one shape.
+- **General transforms:** local-space equal-width expansion does not remain
+  equal-width after strong non-uniform scale, shear, or perspective.
+  `fwidth(aaSide)` can improve the ramp but cannot repair incorrect expanded
+  geometry or join positions.
+- **CPU cost:** boundary resolution, inset generation, second tessellation, and
+  expanded triangle upload are expensive for dynamic complex paths.
+
+Do not attempt to solve tiny-shape safety by calculating an exact maximum inset
+distance for every edge. Correctly detecting mid-edge proximity, offset
+collisions, and topology changes approaches medial-axis/straight-skeleton
+complexity, can become `O(n^2)`, and still does not solve overlapping coverage
+composition.
+
+AASide should be completed as a bounded fast path, then development should move
+to Compute AA. As of the `aa-side-refactor` merge point, the bounded fast path
+is considered complete enough for normal rendering; remaining issues should be
+tracked as future renderer-selection or Compute AA work rather than more
+parameter tuning.
+
+## Recommended Quark Strategy
+
+Use multiple renderers instead of forcing every primitive through one AA method:
+
+```text
+rect / rounded rect / common GUI border
+  -> dedicated analytic shader, including subpixel-width borders
+
+normal-sized general path on all backends
+  -> AASide fast path
+
+complex/tiny/transformed path on compute-capable backends
+  -> Compute Coverage Atlas
+
+legacy GL fallback
+  -> AASide, libtess2, or limited CPU coverage fallback where correctness wins
+```
+
+Recommended implementation order:
+
+1. Land the current AASide baseline and keep it as the GL/GLES fallback.
+2. Add specialized analytic rect/rrect/border rendering to solve common GUI
+   subpixel borders without waiting for general Compute AA.
+3. Prototype Metal Compute AA with CPU-transformed line edges, CPU tile binning,
+   backdrop winding, and 4x4 sample coverage written into a local mask.
+4. Add a transient multi-path coverage atlas, buffer pools, batching, and
+   compute-to-render synchronization.
+5. Add automatic renderer selection and retain AASide fallback.
+6. Port the proven compute path to Vulkan and optionally GLES 3.1.
+
+CCPR is explicitly not planned.
+
 ## Evaluation Plan
 
 Do not rely only on visual impressions. Build repeatable test scenes:
@@ -256,6 +599,35 @@ Useful checks:
 - How should AA interact with blur filters and render-to-texture mipmap generation?
 - What is the minimum acceptable cross-backend screenshot tolerance?
 
-## Current Priority
+## Stage Closeout
 
-This is intentionally parked until the Metal and Vulkan backends are stable enough to compare behavior. The next serious AA pass should be treated as a major quality project, not a small tweak to `aaSide`.
+The AASide branch is being closed as the current AA baseline. The important
+stage outcomes are:
+
+- AAFuzz naming and old painter-side shrink/overlap compensation are gone.
+- AASide geometry is now based on visible `boundaryPath()` contours rather than
+  raw overlapping source contours.
+- The `normalSide` sign is calibrated once from the first closed contour and
+  reused for later contours; do not recompute containment depth per contour.
+- Fill AA uses combined inset-body plus edge-band geometry, so the path no
+  longer depends on a separate depth body-over-edge pass.
+- Depth/stencil render state was removed from the normal GL/Metal AASide path.
+- `_util.glsl::aaSideCoverage()` uses shader derivatives to adapt the coverage
+  ramp to device pixels.
+- Ordinary GUI results are now good enough that further AASide tuning is low
+  priority.
+
+Known unresolved limits:
+
+- Thin 1 px lines at small angles can prefer a wider AA radius, while tiny UI
+  elements prefer a tighter one. This is a renderer-selection problem, not just
+  a magic constant problem.
+- Very small shapes, narrow channels, acute joins, and overlapping AA bands can
+  exceed what a single interpolated `aaSide` can represent.
+- Large SDF text strokes become blunt because the distance field expansion
+  rounds corners.
+- Apple/CoreText glyph-mask generation still needs investigation for large-text
+  edge quality and RGBA/A8 upload behavior.
+
+The next serious AA pass should be treated as a major Compute AA project, not a
+small tweak to `aaSide`.

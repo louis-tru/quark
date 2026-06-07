@@ -249,66 +249,55 @@ namespace qk {
 	 * Because of that, the CPU only needs one global sign calibration:
 	 *
 	 *   - inspect the first closed contour emitted by boundaryPath();
-	 *   - decide whether the +normal side should be tagged as inside/outside;
+	 *   - calculate only its containment depth and correct the sign when the
+	 *     first contour is a hole;
 	 *   - reuse that normalSide sign for all later contours.
 	 *
-	 * Do not recompute normalSide per contour in the default path, or holes will
-	 * be compensated twice. `computeDepth` is kept as a diagnostic/alternate
-	 * path for raw contours; it records containment depth but does not drive the
-	 * default AASide side sign.
+	 * Do not recompute depth or normalSide per contour, or holes will be
+	 * compensated twice.
 	*/
-	static Array<PathContour> collectContours(const Path *self, Array<Vec2> *contourPts, bool computeDepth) {
+	static Array<PathContour> collectContours(const Path *self, Array<Vec2> *contourPts) {
 		Array<PathContour> contours;
 		struct Ctx {
 			Array<PathContour> *contours;
 			int start;
-			float normalSide;
-			bool computeDepth;
-		} ctx = { &contours, 0, 10, computeDepth };
+		} ctx = { &contours, 0 };
 
 		eachSubpath(self, contourPts, nullptr, [](bool close, Vec2 *pts, int size, int, void *ctx) {
 			auto c = static_cast<Ctx*>(ctx);
 			if (close) { // ignore open subpaths
-				PathContour contour = { c->start, size, 0.0f, -1.0f, pts, pts[0], 0, close };
-				if (c->computeDepth) {
-					contour.area = contourArea2(pts, size);
-					// The sample is only needed by the slower containment pass;
-					// keep it slightly off an edge so point-in-polygon does not
-					// test exactly on the contour boundary.
-					contour.sample = contourInteriorProbe(pts, size, contour.normalSide);
-				}
-				if (c->normalSide == 10) {
-					// First closed contour calibrates the global aaSide sign.
-					// With libtess2's automatic projection normal, CW/CCW can
-					// flip relative to our screen-space intuition, so derive it
-					// from the emitted boundary instead of hard-coding it.
-					contour.area = c->computeDepth ? contour.area: contourArea2(pts, size);
-					c->normalSide = contour.area < 0.0f ? 1.0f: -1.0f;
-				}
-				// Reuse the first contour's sign mapping. Later contours keep
-				// their own traversal direction through their vertex normals.
-				contour.normalSide = c->normalSide;
-				c->contours->push(contour);
+				c->contours->push({ c->start, size, 0.0f, -1.0f, pts, pts[0], 0, close });
 			}
 			c->start += size;
 		}, nullptr, true, &ctx);
 
-		if (computeDepth) {
-			for (auto &contour: contours) {
-				if (!contour.close)
-					continue;
-				int depth = 0;
-				for (auto &parent: contours) {
-					if (&contour != &parent && parent.close) {
-						if (pointInContour(contour.sample, parent.pts, parent.ptsNum))
-							depth++;
-					}
+		if (contours.length() == 0)
+			return contours; // no contour, return empty output
+
+		auto &front = contours.front();
+		front.area = contourArea2(front.pts, front.ptsNum);
+		front.normalSide = front.area < 0.0f ? 1.0f: -1.0f;
+
+		if (contours.length() > 1) {
+			front.sample = contourInteriorProbe(front.pts, front.ptsNum, front.normalSide);
+			// computeDepth only for the first contour
+			int depth = 0;
+			for (auto &parent: contours) {
+				if (&front != &parent) {
+					if (pointInContour(front.sample, parent.pts, parent.ptsNum))
+						depth++;
 				}
-				// Kept for inspection and possible non-boundaryPath callers.
-				// The normal AASide path relies on tess boundary winding plus
-				// the one-time normalSide calibration above.
-				contour.depth = depth;
 			}
+			front.depth = depth;
+			if (depth & 1) {
+				// If the first contour is inside an odd number of parents, it is a hole.
+				// Flip its normalSide so the +normal side is always tagged as outside.
+				front.normalSide = -front.normalSide;
+			}
+		}
+
+		for (auto &c: contours) {
+			c.normalSide = front.normalSide;
 		}
 
 		Qk_ReturnLocal(contours);
@@ -332,7 +321,7 @@ namespace qk {
 	 * @method getAASideTriangle() returns signed aa side stroke triangle vertices and body triangles
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
-	VertexData Path::getAASideTriangle(float width, float epsilon) const {
+	VertexData Path::getAASideTriangle(float radius, float epsilon, bool onlyAASide) const {
 		Path tmp;
 		//auto self = normalized(&tmp, epsilon, false);
 		// boundaryPath() asks libtess2 for TESS_BOUNDARY_CONTOURS using the
@@ -347,25 +336,28 @@ namespace qk {
 		VertexData out;
 		Array<Vec3> aaSide;
 		Array<Vec2> ptsOut;
-		auto contours = collectContours(self, &ptsOut, false);
+		auto contours = collectContours(self, &ptsOut);
 
 		if (contours.length() == 0)
 			return out; // no contour, return empty output
 
 		// Tune this to adjust the generated band placement.
 		// 0 means all expansion goes outward; 1 means a centered band.
-		const float innerRatio = 0.5f;
-		const float offset = width - Float32::clamp(innerRatio, 0, 1) * width;
+		const float innerRatio = 0.85f;
+		const float offset = radius - Float32::clamp(innerRatio, 0, 2) * radius;
 
 		struct Ctx {
 			Array<Vec3>        *out;
 			Path               *body;
 			Vec3               *ptr; // current write position in out
-			float              aRadius,bRadius; // stroke radius
+			float              aRadius,bRadius,radius; // stroke radius
 			float              normalSide; // sign assigned to the +normal side
-			Vec3               prev_a, prev_b;
+			Vec3               prev_a, prev_b, first_a, first_b;
+			bool               isBegin;
 		} ctx = {
-			&aaSide, &body, 0, width + offset, width - offset, contours.front().normalSide
+			&aaSide, &body, 0,
+			radius + offset, radius - offset, radius,
+			contours.front().normalSide,
 		};
 
 		// `a` is the +normal side and `b` is the -normal side. After the
@@ -377,69 +369,92 @@ namespace qk {
 
 		eachContour(contours, [](Vec2 *prev, Vec2 *from, Vec2 *next, int idx, void *ctx) { // add
 			Qk_ASSERT(prev && next, "eachContour should only call add() with valid neighbors");
-			auto normals = from->normalline(prev, next); // normal line
-			Qk_ASSERT(!normals.is_zero(), "degenerate points should have been removed by strokePointEquals");
 			auto c = static_cast<Ctx*>(ctx);
-			{
-				// The averaged vertex normal must be lengthened by 1/sin(theta)
-				// so both offset edges stay `width` away from their source
-				// segments at the join.
-				auto theta = normals.angleTo(*from - *next); // angle between normals
-				auto sin = fabsf(sinf(theta));
+
+			auto emitJoin = [c](Vec2 from, Vec2 normals, float sin) {
 				normals *= sin < 1e-2f ? 1.0f: 1.0f / sin;
+				// Store the calibrated sign on the +normal vertex and the opposite
+				// sign on the -normal vertex. The shader places coverage around the
+				// implicit zero crossing between these two vertices.
+				Vec3 a(from + normals * c->aRadius, c->normalSide);
+				Vec3 b(from - normals * c->bRadius, -c->normalSide);
+				auto inner = a.z() < 0.0f ? a.xy(): b.xy();
+				if (c->isBegin) {
+					*(c->ptr++) = c->prev_b;
+					*(c->ptr++) = c->prev_a;
+					*(c->ptr++) = a;
+					*(c->ptr++) = a;
+					*(c->ptr++) = b;
+					*(c->ptr++) = c->prev_b;
+					c->body->lineTo(inner);
+				} else {
+					c->first_a = a;
+					c->first_b = b;
+					c->body->moveTo(inner);
+					c->isBegin = true;
+				}
+				c->prev_a = a;
+				c->prev_b = b;
+			};
+
+			auto normals = from->normalline(prev, next);
+			Qk_ASSERT(!normals.is_zero(), "degenerate points should have been removed by strokePointEquals");
+			auto theta = normals.angleTo(*from - *next);
+			auto sin = fabsf(sinf(theta));
+			// constexpr float kSharpJoinSin = 0.7071067811865476f; // sin(45 degrees)
+			constexpr float kSharpJoinSin = 0.6981317007977318f; // sin(40 degrees)
+			// constexpr float kSharpJoinSin = 0.6108652381980153f; // sin(35 degrees)
+			if (sin < kSharpJoinSin) {
+				auto prevEdge = *from - *prev;
+				auto nextEdge = *next - *from;
+				auto prevLength = prevEdge.length();
+				auto nextLength = nextEdge.length();
+				auto cutDistance = c->radius;//std::max(c->aRadius, c->bRadius);
+				auto cutA = *from - prevEdge * (std::min(cutDistance, prevLength * 0.5f) / prevLength);
+				auto cutB = *from + nextEdge * (std::min(cutDistance, nextLength * 0.5f) / nextLength);
+				auto normalsA = cutA.normalline(prev, &cutB);
+				auto normalsB = cutB.normalline(&cutA, next);
+				auto sinA = fabsf(sinf(normalsA.angleTo(cutA - cutB)));
+				auto sinB = fabsf(sinf(normalsB.angleTo(cutB - *next)));
+				emitJoin(cutA, normalsA, sinA);
+				emitJoin(cutB, normalsB, sinB);
+			} else
+			{
+				emitJoin(*from, normals, sin);
 			}
-			// Store the calibrated sign on the +normal vertex and the opposite
-			// sign on the -normal vertex. The shader places coverage around the
-			// implicit zero crossing between these two vertices.
-			Vec3 a(*from + normals * c->aRadius, c->normalSide);
-			Vec3 b(*from - normals * c->bRadius, -c->normalSide);
-			auto inner = a.z() < 0.0f ? a.xy(): b.xy();
-			if (idx) {
-				*(c->ptr++) = c->prev_b;
-				*(c->ptr++) = c->prev_a;
-				*(c->ptr++) = a;
-				*(c->ptr++) = a;
-				*(c->ptr++) = b;
-				*(c->ptr++) = c->prev_b;
-				c->body->lineTo(inner);
-			} else {
-				c->body->moveTo(inner);
-			}
-			c->prev_a = a;
-			c->prev_b = b;
 			return true;
 		},
 		[](bool close, Vec2 *pts, int size, int subpath, void *ctx) { // before
 			Qk_ASSERT(close, "eachContour should only call before() with close=true");
 			auto _ = static_cast<Ctx*>(ctx);
 			auto len = _->out->length();
-			// One pair of offset vertices per source point, plus one closing
-			// pair emitted in after().
-			_->out->extend(len + size * 6); // alloc memory space
+			// A sharp source point can become two points.
+			_->out->extend(len + size * 12);
 			_->ptr = _->out->val() + len;
+			_->isBegin = false;
 		},
 		[](bool close, int size, int add, int subpath, void *ctx) { // after
-			Qk_ASSERT(close, "eachContour should only call after() with close=true");
-			Qk_ASSERT_EQ(size, add, "all points should have been added for closed contours");
 			auto _ = static_cast<Ctx*>(ctx);
 			// Close the final segment by connecting the last generated pair
 			// back to the first generated pair in the current subpath.
-			auto b = _->ptr - (add * 6 - 6), a = b + 1;
 			*(_->ptr++) = _->prev_b;
 			*(_->ptr++) = _->prev_a;
-			*(_->ptr++) = *a;
-			*(_->ptr++) = *a;
-			*(_->ptr++) = *b;
+			*(_->ptr++) = _->first_a;
+			*(_->ptr++) = _->first_a;
+			*(_->ptr++) = _->first_b;
 			*(_->ptr++) = _->prev_b;
+			_->out->reset(_->ptr - _->out->val());
 			_->body->close(); // close the body path
 		}, &ctx);
 
-		out = body.getTriangles(epsilon, -1.0f);
-		out.vertex.write(aaSide.val(), aaSide.length()); // merge body and aaSide vertices
-		out.vCount += aaSide.length();
-		// debug;
-		// out.vCount = aaSide.length();
-		// out.vertex = std::move(aaSide);
+		if (onlyAASide) {
+			out.vCount = aaSide.length();
+			out.vertex = std::move(aaSide);
+		} else {
+			out = body.getTriangles(epsilon, -1.0f);
+			out.vertex.write(aaSide.val(), aaSide.length()); // merge body and aaSide vertices
+			out.vCount += aaSide.length();
+		}
 		Qk_ReturnLocal(out);
 	}
 

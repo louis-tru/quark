@@ -633,7 +633,7 @@ namespace js {
 		if (args.options.has("help"))
 			return 0;
 
-		Object::set_heap_allocator(new JsHeapAllocator()); // set object heap allocator
+		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
 
 		::setenv("UV_THREADPOOL_SIZE", "1", 0); // set uv thread loop size as 1
 

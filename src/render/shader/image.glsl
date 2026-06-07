@@ -7,7 +7,6 @@
 void main() {
 	fragColor = texture(image, coords) * pc.color;
 
-	fragColor *= aaSideCoverage();
-
+	Qk_aaSideCoverage();
 	Qk_CLIP(); // apply clip mask if needed
 }

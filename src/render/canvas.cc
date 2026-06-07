@@ -112,6 +112,9 @@ namespace qk {
 		if (fontSize <= 46) {
 			return 46;
 		}
+		if (fontSize <= 64) {
+			return 64;
+		}
 		if (fontSize <= 128) {
 			return 128;
 		}

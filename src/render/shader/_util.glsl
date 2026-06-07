@@ -40,6 +40,7 @@ layout(location=0) out    vec4      fragColor;
 
 #define Qk_FLAG_CLIP (1u << 0)
 #define Qk_FLAG_PMA (1u << 1)
+#define Qk_FLAG_AASIDE_LINE (1u << 2)
 
 // GLSL built-in functions:
 // mix(a, b, x)  x:0->1 => a->b
@@ -47,18 +48,25 @@ layout(location=0) out    vec4      fragColor;
 // step(edge, x) x<edge then 0 else 1
 
 // anti-aliasing coverage alpha for side AA, in range [0, 1]
-float aaSideCoverage() {
+float aaSideCoverage(const uint flags) {
 #if 0 // debug: disable AA
 	return 1.0;
 #endif
+	// line AA: coverage is 1 - abs(aaSide),
+	// where aaSide is the distance to the edge (negative inside, positive outside)
+	if ((flags & Qk_FLAG_AASIDE_LINE) != 0)
+		return 1.0 - abs(aaSide);
 	float w = fwidth(aaSide);
 #if 1 // branch
-	if (w == 0.0) return 1.0;
-	return smoothstep(0.5*w, -w, aaSide);
+	if (w == 0.0)
+		return 1.0;
+	return smoothstep(w, -w, aaSide * max(w, 1.0));
 #else // branchless
-	return mix(smoothstep(0.5*w, -0.5*w, aaSide), 1.0, step(w, 0.0));
+	return mix(smoothstep(w, -w, aaSide), 1.0, step(w, 0.0));
 #endif
 }
+
+#define Qk_aaSideCoverage() fragColor *= aaSideCoverage(pc.flags)
 
 #define Qk_CLIP_FROM(offset) \
 if ((pc.flags & Qk_FLAG_CLIP) != 0) { \

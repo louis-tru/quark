@@ -9,10 +9,12 @@
 void main() {
 	float dist = texture(image, coords).r;
 	float stroke = pc.strokeWidth;
-	float alpha = smoothstep(1.2 + stroke, stroke, dist);
+	float width = max(fwidth(dist), 1e-4);
+	float alpha = smoothstep(stroke + width, stroke, dist);
 
 	fragColor = mix(pc.color, pc.strokeColor, dist);
-	fragColor *= alpha * aaSideCoverage();
+	fragColor *= alpha;
 
+	Qk_aaSideCoverage();
 	Qk_CLIP(); // apply clip mask if needed
 }

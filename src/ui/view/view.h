@@ -156,8 +156,8 @@ namespace qk {
 			};
 			Vec2 content; // final content size
 			Vec2 content_diff_before_locking; // final content size diff before locking
-			float pre_width_min, pre_width_max; // min, max
-			float pre_height_min, pre_height_max; // The y-axis content size range
+			float pre_width_min, pre_height_min; // min content size range
+			float pre_width_max, pre_height_max; // max content size range
 			/*
 			* The wrap equal false means indicate that the size is unknown,
 			* indicates that the size changes with the size of the sub view, and the content is wrapped
@@ -166,7 +166,7 @@ namespace qk {
 			uint8_t state_y; //!< The y-axis is float wrap content, use internal extrusion size
 			bool    locked_x, locked_y; //!< locked state
 
-			Range to_range() const;
+			LimitRange to_range() const;
 			float clamp_width(float value) const;
 			float clamp_height(float value) const;
 			bool  set_pre_width(Pre pre);

@@ -302,7 +302,7 @@ namespace qk {
 	double JSON::to_double()   const { return reinterpret_cast<CRValue*>(this)->GetDouble(); }
 	int JSON::to_int()         const { return reinterpret_cast<CRValue*>(this)->GetInt(); }
 	int64_t JSON::to_int64()   const { return reinterpret_cast<CRValue*>(this)->GetInt64(); }
-	String JSON::to_string()   const {
+	String JSON::toString()   const {
 		return String(reinterpret_cast<CRValue*>(this)->GetString(), string_length());
 	}
 	uint32_t JSON::to_uint32() const { return reinterpret_cast<CRValue*>(this)->GetUint(); }

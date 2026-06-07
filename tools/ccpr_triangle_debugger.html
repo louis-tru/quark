@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCPR Triangle Expansion Debugger</title>
+<style>
+	:root {
+		color-scheme: light;
+		--bg: #f4f6f8;
+		--panel: #fff;
+		--ink: #20242a;
+		--muted: #68717d;
+		--line: #d9dee5;
+		--hull: #2684ff;
+		--edge0: #ef476f;
+		--edge1: #f59e0b;
+		--edge2: #8b5cf6;
+		--corner0: #06a77d;
+		--corner1: #00a6c7;
+		--corner2: #5f7a2e;
+		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	}
+	* { box-sizing: border-box; }
+	body { margin: 0; background: var(--bg); color: var(--ink); }
+	.app {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 390px;
+		height: 100vh;
+	}
+	.stage {
+		position: relative;
+		min-width: 0;
+		background:
+			linear-gradient(#e8edf2 1px, transparent 1px),
+			linear-gradient(90deg, #e8edf2 1px, transparent 1px),
+			#fbfcfd;
+		background-size: 24px 24px;
+	}
+	svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		touch-action: none;
+		user-select: none;
+	}
+	.sidebar {
+		padding: 14px;
+		background: var(--panel);
+		border-left: 1px solid var(--line);
+		overflow: auto;
+	}
+	h1 { margin: 0 0 6px; font-size: 18px; }
+	h2 { margin: 0 0 8px; font-size: 13px; }
+	p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+	.group { padding: 13px 0; border-bottom: 1px solid var(--line); }
+	.group:first-child { padding-top: 0; }
+	.row {
+		display: grid;
+		grid-template-columns: 105px minmax(0, 1fr) 48px;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+	}
+	label, output { color: var(--muted); font-size: 12px; }
+	output { text-align: right; font-variant-numeric: tabular-nums; }
+	input[type="range"] { width: 100%; }
+	.buttons, .checks { display: grid; gap: 6px; }
+	.buttons { grid-template-columns: repeat(3, 1fr); }
+	.checks { grid-template-columns: 1fr 1fr; }
+	button {
+		min-height: 31px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #fff;
+		color: var(--ink);
+		cursor: pointer;
+		font-size: 12px;
+	}
+	button.active { border-color: #2684ff; background: #eaf3ff; color: #075aaa; }
+	.check { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+	.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; font-size: 12px; }
+	.swatch { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 2px; }
+	pre {
+		margin: 8px 0 0;
+		padding: 9px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #f7f9fb;
+		overflow: auto;
+		font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		white-space: pre-wrap;
+	}
+	.status {
+		position: absolute;
+		left: 12px;
+		bottom: 10px;
+		max-width: 640px;
+		padding: 7px 9px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: rgba(255,255,255,.94);
+		color: var(--muted);
+		font-size: 12px;
+		line-height: 1.45;
+		pointer-events: none;
+	}
+	@media (max-width: 900px) {
+		.app { grid-template-columns: 1fr; grid-template-rows: 70vh auto; height: auto; }
+		.sidebar { border-left: 0; border-top: 1px solid var(--line); }
+	}
+</style>
+</head>
+<body>
+<main class="app">
+	<section class="stage">
+		<svg id="svg" viewBox="0 0 1100 760" aria-label="CCPR triangle expansion diagram"></svg>
+		<div class="status" id="status"></div>
+	</section>
+	<aside class="sidebar">
+		<section class="group">
+			<h1>CCPR Triangle Expansion</h1>
+			<p>拖动 P0/P1/P2。这里逐字复刻 GrVSCoverageProcessor 的 39 条 vertexdata 指令和 75 个固定索引。</p>
+		</section>
+		<section class="group">
+			<h2>查看阶段</h2>
+			<div class="buttons" id="modes">
+				<button data-mode="all" class="active">全部</button>
+				<button data-mode="hull">Hull</button>
+				<button data-mode="edge0">Edge 0</button>
+				<button data-mode="edge1">Edge 1</button>
+				<button data-mode="edge2">Edge 2</button>
+				<button data-mode="corner0">Corner 0</button>
+				<button data-mode="corner1">Corner 1</button>
+				<button data-mode="corner2">Corner 2</button>
+				<button data-mode="template">仅模板点</button>
+			</div>
+			<div class="row">
+				<label for="bloat">膨胀显示尺寸</label>
+				<input id="bloat" type="range" min="5" max="70" value="34">
+				<output id="bloatOut"></output>
+			</div>
+			<div class="checks">
+				<label class="check"><input id="showIds" type="checkbox" checked>模板点编号</label>
+				<label class="check"><input id="showCoverage" type="checkbox">coverage</label>
+				<label class="check"><input id="showDirs" type="checkbox" checked>膨胀方向</label>
+				<label class="check"><input id="showPixels" type="checkbox" checked>顶点方盒</label>
+				<label class="check"><input id="showFill" type="checkbox" checked>三角填充</label>
+				<label class="check"><input id="showDegenerate" type="checkbox">退化顶点</label>
+				<label class="check"><input id="showTriIds" type="checkbox" checked>三角形编号</label>
+			</div>
+		</section>
+		<section class="group">
+			<h2>图例</h2>
+			<div class="legend">
+				<span><i class="swatch" style="background:var(--hull)"></i>Hull +1</span>
+				<span><i class="swatch" style="background:var(--edge0)"></i>Edge 0</span>
+				<span><i class="swatch" style="background:var(--edge1)"></i>Edge 1</span>
+				<span><i class="swatch" style="background:var(--edge2)"></i>Edge 2</span>
+				<span><i class="swatch" style="background:var(--corner0)"></i>Corner 0</span>
+				<span><i class="swatch" style="background:var(--corner1)"></i>Corner 1</span>
+				<span><i class="swatch" style="background:var(--corner2)"></i>Corner 2</span>
+				<span><i class="swatch" style="background:#222"></i>原始三角形</span>
+			</div>
+		</section>
+		<section class="group">
+			<h2>当前选择</h2>
+			<p id="explain"></p>
+			<pre id="details"></pre>
+		</section>
+		<section class="group">
+			<h2>固定拓扑</h2>
+			<pre>39 个 instruction vertices
+  0..8   Hull:       3 corners × 3
+  9..26  Edge:       3 edges × 6
+ 27..38  Corner box: 3 corners × 4
+
+75 indices = 25 triangles
+ Hull 7 + Edges 12 + Corners 6</pre>
+		</section>
+	</aside>
+</main>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("svg");
+const statusEl = document.getElementById("status");
+const explainEl = document.getElementById("explain");
+const detailsEl = document.getElementById("details");
+const bloatInput = document.getElementById("bloat");
+const bloatOut = document.getElementById("bloatOut");
+
+const LEFT_SHIFT = 10, RIGHT_SHIFT = 8, BLOAT_SHIFT = 6;
+const INVERT = 1 << 5, IS_CORNER = 1 << 4, IS_EDGE = 1 << 3, IS_HULL = 1 << 2;
+const CLOCKWISE_MASK = (2 << LEFT_SHIFT) | (2 << RIGHT_SHIFT) | (((1 << RIGHT_SHIFT) - 1) ^ 3) | 2;
+const colors = {
+	hull: "#2684ff", edge0: "#ef476f", edge1: "#f59e0b", edge2: "#8b5cf6",
+	corner0: "#06a77d", corner1: "#00a6c7", corner2: "#5f7a2e"
+};
+
+const pack = (left, right, bloat, corner, extra=0) =>
+	(left << LEFT_SHIFT) | (right << RIGHT_SHIFT) | (bloat << BLOAT_SHIFT) | corner | extra;
+const hullData = (corner, bloat) => pack((corner + 2) % 3, (corner + 1) % 3, bloat, corner, IS_HULL);
+const edgeData = (edge, endpoint, bloat) => pack(
+	endpoint === 0 ? (edge + 1) % 3 : edge,
+	endpoint === 0 ? (edge + 1) % 3 : edge,
+	bloat,
+	endpoint === 0 ? edge : (edge + 1) % 3,
+	IS_EDGE | (endpoint === 0 ? INVERT : 0)
+);
+const cornerData = (left, corner, right, bloat) => pack(left, right, bloat, corner, IS_CORNER);
+
+const vertexData = [
+	hullData(0,0), hullData(0,1), hullData(0,2),
+	hullData(1,0), hullData(1,1), hullData(1,2),
+	hullData(2,0), hullData(2,1), hullData(2,2),
+	edgeData(0,0,0), edgeData(0,0,1), edgeData(0,0,2),
+	edgeData(0,1,0), edgeData(0,1,1), edgeData(0,1,2),
+	edgeData(1,0,0), edgeData(1,0,1), edgeData(1,0,2),
+	edgeData(1,1,0), edgeData(1,1,1), edgeData(1,1,2),
+	edgeData(2,0,0), edgeData(2,0,1), edgeData(2,0,2),
+	edgeData(2,1,0), edgeData(2,1,1), edgeData(2,1,2),
+	cornerData(2,0,1,0), cornerData(2,0,1,1), cornerData(2,0,1,2), cornerData(2,0,1,3),
+	cornerData(0,1,2,0), cornerData(0,1,2,1), cornerData(0,1,2,2), cornerData(0,1,2,3),
+	cornerData(1,2,0,0), cornerData(1,2,0,1), cornerData(1,2,0,2), cornerData(1,2,0,3)
+];
+
+const groups = {
+	hull: [[1,2,0],[2,3,0],[0,3,8],[4,5,3],[5,6,3],[3,6,8],[6,7,8]],
+	edge0: [[10,9,11],[9,14,11],[11,14,12],[14,13,12]],
+	edge1: [[16,15,17],[15,20,17],[17,20,18],[20,19,18]],
+	edge2: [[22,21,23],[21,26,23],[23,26,24],[26,25,24]],
+	corner0: [[28,27,29],[27,30,29]],
+	corner1: [[32,31,33],[31,34,33]],
+	corner2: [[36,35,37],[35,38,37]]
+};
+
+let points = [{x:260,y:560}, {x:570,y:145}, {x:850,y:570}];
+let mode = "all";
+let drag = -1;
+let selectedVertex = null;
+
+const v = (x,y) => ({x,y});
+const add = (a,b) => v(a.x+b.x, a.y+b.y);
+const sub = (a,b) => v(a.x-b.x, a.y-b.y);
+const mul = (a,s) => v(a.x*s, a.y*s);
+const dot = (a,b) => a.x*b.x+a.y*b.y;
+const det = (a,b) => a.x*b.y-a.y*b.x;
+const length = a => Math.hypot(a.x,a.y);
+const normalize = a => length(a) ? mul(a,1/length(a)) : v(1,0);
+const sign = x => x > 0 ? 1 : x < 0 ? -1 : 0;
+const rotateCW = a => v(-a.y, a.x);
+const same = (a,b) => a.x === b.x && a.y === b.y;
+const pointString = p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+const polygonString = ps => ps.map(pointString).join(" ");
+const area2 = ps => det(sub(ps[0],ps[1]),sub(ps[0],ps[2]));
+
+function el(name, attrs={}, children=[]) {
+	const node = document.createElementNS(NS, name);
+	for (const [key,val] of Object.entries(attrs)) node.setAttribute(key, val);
+	for (const child of children) node.append(child);
+	return node;
+}
+
+function edgeCoverage(left, right, dir) {
+	const n = v(right.y-left.y, left.x-right.x);
+	const width = Math.abs(n.x)+Math.abs(n.y);
+	const t = dot(dir,n);
+	const ratio = Math.abs(t) !== width ? t/width : sign(t);
+	return ratio * -.5 - .5;
+}
+
+function instructionType(index) {
+	if (index < 9) return "hull";
+	if (index < 15) return "edge0";
+	if (index < 21) return "edge1";
+	if (index < 27) return "edge2";
+	if (index < 31) return "corner0";
+	if (index < 35) return "corner1";
+	return "corner2";
+}
+
+function executeInstruction(data) {
+	const wind = sign(area2(points));
+	const clockwise = wind > 0 ? data : CLOCKWISE_MASK - data;
+	const cornerId = clockwise & 3;
+	const leftId = clockwise >> LEFT_SHIFT;
+	const rightId = (clockwise >> RIGHT_SHIFT) & 3;
+	const bloatIdx = (data >> BLOAT_SHIFT) & 3;
+	const isCorner = !!(data & IS_CORNER);
+	const isEdge = !!(data & IS_EDGE);
+	const corner = points[cornerId], left = points[leftId], right = points[rightId];
+
+	let lb = v(sign(corner.x-left.x), sign(corner.y-left.y));
+	lb = v(lb.y !== 0 ? lb.y : lb.x, lb.x !== 0 ? -lb.x : -lb.y);
+	let rb = v(sign(right.x-corner.x), sign(right.y-corner.y));
+	rb = v(rb.y !== 0 ? rb.y : rb.x, rb.x !== 0 ? -rb.x : -rb.y);
+	let unequal = v(lb.x !== rb.x, lb.y !== rb.y);
+	const leftDir = normalize(sub(corner,left));
+	const rightDir = normalize(sub(right,corner));
+	let dir = lb;
+	if (isCorner) {
+		dir = v(leftDir.x > rightDir.x ? 1 : -1, leftDir.y > rightDir.y ? 1 : -1);
+		unequal = v(true,true);
+	}
+	if (bloatIdx >= 1 && (unequal.x || unequal.y)) dir = rotateCW(dir);
+	if (bloatIdx >= 2 && (unequal.x && unequal.y)) dir = rotateCW(dir);
+	if (bloatIdx >= 3) dir = rotateCW(dir);
+
+	const leftCov = edgeCoverage(left,corner,dir);
+	const rightCov = edgeCoverage(corner,right,dir);
+	let coverage = isEdge ? leftCov : 1;
+	if (data & INVERT) coverage = -1-coverage;
+	if (isCorner) coverage = 1+leftCov+rightCov;
+	coverage *= wind;
+	return {pos:add(corner,mul(dir,+bloatInput.value)), dir, cornerId,leftId,rightId,bloatIdx,
+		isCorner,isEdge,isHull:!!(data&IS_HULL),coverage,wind,leftCov,rightCov,data};
+}
+
+function visibleGroup(name) {
+	return mode === "all" || mode === name || mode === "template";
+}
+
+function draw() {
+	svg.replaceChildren();
+	const results = vertexData.map(executeInstruction);
+	const defs = el("defs");
+	const marker = el("marker",{id:"arrow",viewBox:"0 0 10 10",refX:"8",refY:"5",
+		markerWidth:"5",markerHeight:"5",orient:"auto-start-reverse"});
+	marker.append(el("path",{d:"M 0 0 L 10 5 L 0 10 z",fill:"#6b7280"}));
+	defs.append(marker);
+	svg.append(defs);
+
+	if (document.getElementById("showPixels").checked) {
+		for (let i=0;i<3;i++) {
+			svg.append(el("rect",{x:points[i].x-bloatInput.value,y:points[i].y-bloatInput.value,
+				width:+bloatInput.value*2,height:+bloatInput.value*2,fill:"none",
+				stroke:"#adb5bd","stroke-dasharray":"5 5"}));
+		}
+	}
+
+	if (document.getElementById("showFill").checked && mode !== "template") {
+		for (const [name,tris] of Object.entries(groups)) {
+			if (!visibleGroup(name)) continue;
+			for (let triIndex=0;triIndex<tris.length;triIndex++) {
+				const tri=tris[triIndex];
+				const ps = tri.map(i=>results[i].pos);
+				const degenerate = Math.abs(det(sub(ps[1],ps[0]),sub(ps[2],ps[0]))) < .01;
+				if (degenerate && !document.getElementById("showDegenerate").checked) continue;
+				svg.append(el("polygon",{points:polygonString(ps),fill:colors[name],
+					"fill-opacity":degenerate?".08":name==="hull"?".20":".17",
+					stroke:colors[name],"stroke-width":degenerate?"2":"1.4",
+					"stroke-dasharray":degenerate?"3 3":"none"}));
+				if (document.getElementById("showTriIds").checked) {
+					const center=mul(add(add(ps[0],ps[1]),ps[2]),1/3);
+					const text=el("text",{x:center.x,y:center.y,fill:colors[name],
+						"font-size":"12","font-weight":"800","text-anchor":"middle",
+						"paint-order":"stroke","stroke":"white","stroke-width":"3"});
+					text.textContent=`${name} T${triIndex}${degenerate?" 退化":""}`;
+					svg.append(text);
+				}
+			}
+		}
+	}
+
+	svg.append(el("polygon",{points:polygonString(points),fill:"#20242a","fill-opacity":".08",
+		stroke:"#20242a","stroke-width":"3"}));
+
+	for (let i=0;i<results.length;i++) {
+		const r=results[i], name=instructionType(i);
+		if (!visibleGroup(name)) continue;
+		if (document.getElementById("showDirs").checked) {
+			svg.append(el("line",{x1:points[r.cornerId].x,y1:points[r.cornerId].y,x2:r.pos.x,y2:r.pos.y,
+				stroke:colors[name],"stroke-opacity":".42","stroke-width":"1.2","marker-end":"url(#arrow)"}));
+		}
+		const dotNode=el("circle",{cx:r.pos.x,cy:r.pos.y,r:selectedVertex===i?"7":"4.5",
+			fill:colors[name],stroke:"#fff","stroke-width":"1.5",style:"cursor:pointer"});
+		dotNode.addEventListener("pointerdown",evt=>{evt.stopPropagation();selectedVertex=i;draw();});
+		svg.append(dotNode);
+		if (document.getElementById("showIds").checked) {
+			const label=document.getElementById("showCoverage").checked
+				? `${i} (${r.coverage.toFixed(2)})` : `${i}`;
+			const text=el("text",{x:r.pos.x+7,y:r.pos.y-7,fill:colors[name],
+				"font-size":"12","font-weight":"700","paint-order":"stroke","stroke":"white","stroke-width":"3"});
+			text.textContent=label; svg.append(text);
+		}
+	}
+
+	for (let i=0;i<3;i++) {
+		const c=el("circle",{cx:points[i].x,cy:points[i].y,r:"10",fill:"#fff",stroke:"#20242a",
+			"stroke-width":"3",style:"cursor:grab"});
+		c.addEventListener("pointerdown",evt=>{evt.stopPropagation();drag=i;c.setPointerCapture(evt.pointerId);});
+		svg.append(c);
+		const text=el("text",{x:points[i].x+13,y:points[i].y-13,fill:"#20242a",
+			"font-size":"16","font-weight":"800","paint-order":"stroke","stroke":"white","stroke-width":"4"});
+		text.textContent=`P${i}`;svg.append(text);
+	}
+
+	const wind=sign(area2(points));
+	const hullStates=groups.hull.map((tri,i)=>{
+		const ps=tri.map(index=>results[index].pos);
+		const deg=Math.abs(det(sub(ps[1],ps[0]),sub(ps[2],ps[0])))<.01;
+		return `T${i}[${tri.join(",")}]:${deg?"退化":"有效"}`;
+	});
+	statusEl.textContent=`原始三角形 winding=${wind>0?"+1":"-1"}。Hull 固定提交 7 个三角形；当前为 ${hullStates.filter(x=>x.endsWith("有效")).length} 个有效、${hullStates.filter(x=>x.endsWith("退化")).length} 个退化。`;
+	updateDetails(results);
+	bloatOut.value=`${bloatInput.value}px`;
+}
+
+function updateDetails(results) {
+	const descriptions={
+		all:"同时显示固定索引连接出的全部 25 个三角形。",
+		hull:"Hull 固定提交 7 个索引三角形，但部分模板点会重合，视觉上通常只有 3 到 7 个有效三角形。",
+		edge0:"Edge 0 是 P0→P1 的修正带，6 个模板点连接成 4 个三角形。",
+		edge1:"Edge 1 是 P1→P2 的修正带，6 个模板点连接成 4 个三角形。",
+		edge2:"Edge 2 是 P2→P0 的修正带，6 个模板点连接成 4 个三角形。",
+		corner0:"Corner 0 在 P0 周围生成完整方盒，4 个模板点连接成 2 个三角形。",
+		corner1:"Corner 1 在 P1 周围生成完整方盒，4 个模板点连接成 2 个三角形。",
+		corner2:"Corner 2 在 P2 周围生成完整方盒，4 个模板点连接成 2 个三角形。",
+		template:"只看 39 个模板点。相同位置的点会产生退化三角形。"
+	};
+	explainEl.textContent=descriptions[mode];
+	if (mode==="hull" && selectedVertex==null) {
+		detailsEl.textContent=groups.hull.map((tri,i)=>{
+			const ps=tri.map(index=>results[index].pos);
+			const deg=Math.abs(det(sub(ps[1],ps[0]),sub(ps[2],ps[0])))<.01;
+			return `Hull T${i}: [${tri.join(", ")}]  ${deg?"退化，面积为 0":"有效"}`;
+		}).join("\n");
+		return;
+	}
+	if (selectedVertex == null) {
+		detailsEl.textContent="点击任意彩色模板点查看其掩码解码结果。";
+		return;
+	}
+	const r=results[selectedVertex], type=instructionType(selectedVertex);
+	detailsEl.textContent=`vertex ${selectedVertex} / ${type}
+packed data = ${r.data} (0x${r.data.toString(16)})
+corner=P${r.cornerId}, left=P${r.leftId}, right=P${r.rightId}
+bloatIdx=${r.bloatIdx}, bloatDir=(${r.dir.x}, ${r.dir.y})
+position=(${r.pos.x.toFixed(2)}, ${r.pos.y.toFixed(2)})
+coverage=${r.coverage.toFixed(4)}
+leftCoverage=${r.leftCov.toFixed(4)}
+rightCoverage=${r.rightCov.toFixed(4)}`;
+}
+
+function svgPoint(evt) {
+	const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;
+	return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+svg.addEventListener("pointermove",evt=>{if(drag<0)return;const p=svgPoint(evt);points[drag]=v(p.x,p.y);draw();});
+svg.addEventListener("pointerup",()=>drag=-1);
+svg.addEventListener("pointercancel",()=>drag=-1);
+document.getElementById("modes").addEventListener("click",evt=>{
+	if(!evt.target.dataset.mode)return;
+	mode=evt.target.dataset.mode;
+	for(const b of document.querySelectorAll("[data-mode]"))b.classList.toggle("active",b.dataset.mode===mode);
+	selectedVertex=null;draw();
+});
+for(const input of document.querySelectorAll("input"))input.addEventListener("input",draw);
+draw();
+</script>
+</body>
+</html>

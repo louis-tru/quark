@@ -922,7 +922,7 @@ namespace qk {
 			if (border[j] > 0) { // have border
 				out->moveTo(v[0]);
 				out->lineTo(v[3]);
-				out->moveTo(v[3]); // TODO: fix aa sdf stroke error
+				// out->moveTo(v[3]); // TODO: fix aa sdf stroke error
 				out->lineTo(v[4]);
 				out->lineTo(v[5]);
 				out->lineTo(v[0]);
@@ -1074,21 +1074,19 @@ namespace qk {
 			}
 
 			if (isBorder) {
-				if (border[2] < 0.1f && !isRadiusZeroR) // fix aa sdf stroke error
-					path.moveTo(pathInside.back());
-
+				// if (border[2] < 0.1f && !isRadiusZeroR) // fix aa sdf stroke error
+				// 	path.moveTo(pathInside.back());
 				for (int i = pathInside.length() - 1; i >= 0; i--)
 					path.lineTo(pathInside[i]);
-
-				if (border[0] > 0.1f || isRadiusZeroL) // fix aa sdf stroke error
-					path.lineTo(path.pts().front()); // equivalent to close
+				// if (border[0] > 0.1f || isRadiusZeroL) // fix aa sdf stroke error
+				// 	path.lineTo(path.pts().front()); // equivalent to close
 			}
 		};
 
 		float angle = Qk_PI_2_1;
 		for (int j = 0; j < 4; j++) {
 			auto out = &outline.top + j;
-			outline.flags |= border[j+1] > 0 ? 1 << j : 0; // have border
+			outline.flags |= border[j] > 0 ? 1 << j : 0; // have border
 			build(*out, Bo+j, vertex, oR+j, iR+j, Ce+j, angle);
 			vertex+=6;
 			angle -= Qk_PI_2_1;

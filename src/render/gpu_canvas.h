@@ -36,6 +36,13 @@
 #include "./render.h"
 #include "./canvas.h"
 
+#define Qk_FLAG_CLIP (1u << 0)
+#define Qk_FLAG_AASIDE_LINE (1u << 2)
+#define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
+#define Qk_FLAGS_DARK_COLOR (1 << 3)
+#define Qk_FLAG_COUNT2 (1u << 3)
+#define Qk_FLAG_AASIDE_Inverted (1u << 3)
+
 namespace qk {
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 
@@ -138,11 +145,12 @@ namespace qk {
 		void drawColor(const Color4f& color, BlendMode mode) override;
 		void drawPath(const Path& path, const Paint& paint) override;
 		void drawPathColor(const Path &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawPathColors(const Path* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawRRectBlurColor(const Rect& rect,
-			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
+		void drawPathColors(const Path* path[4], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawRRectBlurColor(const Rect& rect, const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
 		void drawRect(const Rect& rect, const Paint& paint) override;
 		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
+		void drawRectPath(const RectPath& path, const Paint& paint) override;
+		void drawRectOutlinePath(const RectOutlinePath& path, const Color4f color[4], const Paint& paint) override;
 		float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		void drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) override;
@@ -185,7 +193,9 @@ namespace qk {
 		Vec2   _size, _scale; // size=surfaceSize/surfaceScale, _scale = matrix scale extracted
 		float  _surfaceScaleAverage, _scaleAverage, _allScaleAverage; // average of x/y scale
 		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
-		float  _phy1Pixel; // _phy1Pixel = 1 / _allScaleMin
+		float  _1pxSize; // _1pxSize = 1 / _allScaleMin
+		float  _aaRadius, _aaRadiusRect; // anti-aliasing side radius, for path and rect respectively
+		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa

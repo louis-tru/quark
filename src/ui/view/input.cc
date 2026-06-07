@@ -724,7 +724,7 @@ namespace qk {
 		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
 		if (str.length()) { // text layout
-			TextBlobBuilder tbb(&lines, this, &_blob);
+			TextBlobBuilder tbb(this, &lines, &_blob);
 
 			if (!is_multiline()) {
 				tbb.set_disable_auto_wrap(true);

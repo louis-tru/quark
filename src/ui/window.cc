@@ -260,11 +260,6 @@ namespace qk {
 		_debugMode = v;
 	}
 
-	void Window::reload_root() {
-		// The root view needs to be marked with a layout change when the window size changes.
-		_root->mark_layout<true>(View::kLayout_Inner_Width | View::kLayout_Inner_Height);
-	}
-
 	void Window::reload() { // Lock before calling this method
 		Qk_ASSERT(isUILocked(), "Window::reload must be called with UILock");
 
@@ -304,7 +299,7 @@ namespace qk {
 		Vec2 end   = region.size / Vec2(_scale) + start;
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), 0.0f, 1.0f);
 
-		reload_root();
+		_root->reload_Rt(_size); // reload root view
 
 		Qk_DLog("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
@@ -325,7 +320,7 @@ namespace qk {
 				_defaultScale = defaultScale;
 				reload();
 			} else {
-				reload_root();
+				_root->reload_Rt(_size);
 			}
 		}
 	}
@@ -366,15 +361,9 @@ namespace qk {
 
 		if (_time - _fspTime > 1e6) { // 1ns * 1e6
 			if (_debugMode && _fsp != _fspTick) {
-				// text blob build fps
-				Array<TextBlob> blob;
-				TextLines lines(TextAlign::Default, {0,0}, false);
-				lines.set_ignore_single_space_line(true);
-				TextBlobBuilder builder(&lines, _host->defaultTextOptions(), &blob);
-				builder.set_font_size(32.0f);
-				builder.make(String::format("%d FPS", _fspTick));
-				lines.finish(); // finish lines
-				*_fspBlob = std::move(blob.front()); // only one blob
+				auto str = String::format("%d FPS", _fspTick);
+				auto blob = TextBlobBuilder::makeTextBlob(str, nullptr, 32.0f);
+				*_fspBlob = std::move(blob.front());
 			}
 			_fsp = _fspTick;
 			_fspTick = 0;

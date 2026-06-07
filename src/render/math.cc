@@ -1028,6 +1028,16 @@ namespace qk {
 		return output;
 	}
 
+	String Mat::toString() const {
+		return String::format(
+			"Mat(%f, %f, %f,\n"
+			"    %f, %f, %f,\n"
+			"    %f, %f, %f)",
+			val[0], val[1], val[2],
+			val[3], val[4], val[5]
+		);
+	}
+
 	Mat4::Mat4(float value): Vec(0) {
 		val[0] = value;
 		val[5] = value;

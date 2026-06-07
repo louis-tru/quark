@@ -90,7 +90,7 @@ namespace qk {
 		IteratorConst offset(IteratorConst it, int offset = 0) const;
 
 		String        join(cString& sp) const;
-		String        to_string() const;
+		String        toString() const;
 
 		IteratorConst begin() const;
 		IteratorConst end() const;

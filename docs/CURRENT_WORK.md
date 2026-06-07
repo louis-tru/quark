@@ -4,13 +4,20 @@ This file is short-term memory for the current development thread. Update it whe
 
 ## Active Theme
 
-The current major thread is GPU rendering quality after the GL/Metal backend alignment:
+The `aa-side-refactor` rendering-quality thread is now at a stage closeout:
+AASide has replaced the old AAFuzz/UI-compensation approach for normal GUI
+drawing, and the branch is intended to be merged back to `master`.
+
+The next rendering-quality theme should be a higher-precision Compute AA path
+for Metal/Vulkan-class backends, with AASide retained as the fast GL/GLES
+fallback. Detailed AA notes live in `docs/GPU_2D_ANTIALIASING.md`.
+
+The current rendering architecture remains:
 
 - Common Canvas behavior has moved into `src/render/gpu_canvas.*`.
 - GL backend behavior lives in `src/render/gl/gl_canvas.*` and `src/render/gl/gl_command.*`.
 - Metal backend behavior lives in `src/render/metal/mtl_canvas.*` and `src/render/metal/mtl_render.*`.
 - GL is usually the behavior reference; Metal should match semantics without copying GL state-machine habits blindly.
-- The next exploratory theme is improving `AASide` into a GPU-only signed-side edge AA path. Detailed notes live in `docs/GPU_2D_ANTIALIASING.md`.
 
 ## Recent Local State Observed
 
@@ -54,27 +61,47 @@ AA direction discussed:
 
 - Do not pursue software AA / CPU coverage rasterization as the primary route. Quark should keep AA GPU-oriented.
 - The current AA system has been renamed from `AAFuzz/aafuzz` to `AASide/aaSide`.
-- The current working conclusion is that the existing vertex triplet `{x, y, aaSide}` is still enough; do not add extra vertex elements unless a later prototype proves it is necessary.
-- Planned `aaSide` semantics: `aaSide < 0` means inside, `aaSide = 0` means the true edge, and `aaSide > 0` means outside. Vertex data currently stores side values at the two expanded band edges, not physical distance.
-- The shader should use derivatives such as `fwidth(aaSide)` to estimate the device-pixel transition width and convert the signed side coordinate into coverage.
-- The promising direction is to improve `AASide` into a GPU-only signed-side edge AA system, not a CPU/software coverage mask.
-- `Path::getAASideStrokeTriangle()` now treats AA subpaths as closed when possible and signs generated `aaSide` from contour winding plus nesting level: inner side negative, outer side positive. Fragment shaders still mostly consume `abs(aaSide)`, so shader-side signed coverage remains a follow-up.
-- See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including coverage-mask limitations, shader-side `fwidth` coverage, combined body/edge geometry, and hard cases.
+- AASide is now considered good enough for the current GL/GLES-compatible path:
+  it is much more geometrically accurate than the previous UI-level shrink/
+  overlap compensation and has allowed that compensation code to be removed.
+- The existing vertex triplet `{x, y, aaSide}` remains the AASide vertex format.
+- Current `aaSide` semantics: `aaSide < 0` means inside the shape,
+  `aaSide = 0` means the true edge, and `aaSide > 0` means outside the shape.
+- Fragment shaders derive the transition ramp with `fwidth(aaSide)` through
+  `aaSideCoverage()`. This works well for ordinary edges, but it cannot express
+  exact coverage where multiple nearby edges affect the same pixel.
+- `Path::getAASideTriangle()` resolves visible boundaries with `boundaryPath()`,
+  calibrates the `normalSide` sign from the first closed contour only, then
+  reuses that mapping for all later contours. Do not recompute containment depth
+  per contour; holes already reverse traversal direction and would otherwise be
+  compensated twice.
+- See `docs/GPU_2D_ANTIALIASING.md` for the full design notes, including
+  coverage limitations, shader-side `fwidth` coverage, combined body/edge
+  geometry, hard cases, and the Compute AA plan.
 
 Active AASide experiment branch:
 
 - Branch `aa-side-refactor` was created from `master` and pushed to `origin/aa-side-refactor`.
 - Baseline commit: `3f4400674` (`wip(render): experiment with signed aa side`).
-- This branch is intentionally experimental; do not merge into `master` until the AA model is stable.
+- The branch is no longer just a throwaway experiment; the current intent is to
+  merge it into `master` as the new default AASide baseline.
 - `clip.glsl` was split out so clip mask drawing no longer overloads `color.glsl` with clip-only parameters such as `surfaceOffset`.
 - `color.glsl` and other fragment shaders now call shared `aaSideCoverage()` from `_util.glsl`.
 - `aa_side_weight` was removed from the experiment; the goal is to get coverage from signed `aaSide`, not from CPU-side alpha weighting.
 - `Pathv` has been removed from the Canvas-facing drawing API on this branch. `RectPath` / `RectOutlinePath` now store paths only, while `PathvCache` separately caches normalized paths and generated `VertexData` for fill, AASide, and clip draws.
 - `Hash5381` has been replaced by the new `Hash` API, including explicit float/vector update helpers and 32/64-bit mixed hash output. JS exports now expose `Hash`, and `test/util/test-hash.cc` is wired into the test target.
+- Painter-level AA compensation has been removed from the active UI path. Box rects, borders, outlines, and sprite image rects now use their exact geometry instead of `AAShrink` / `originAA` offsets, leaving edge overlap control to renderer-side AASide parameters.
+- Render z-depth and depth/stencil attachments/state were removed from the
+  AASide path. AASide blending/compositing should now work without relying on a
+  body-over-edge depth ordering trick.
+- `GPUCanvas` uses different AA radii for ordinary paths and rect/rrect-heavy UI
+  paths. Translation-only UI rects currently use a tighter 0.5 px radius, while
+  general transformed paths keep a wider radius for small-angle line stability.
 
 Current AASide findings:
 
-- Latest AASide winding conclusion: `Path::getAASideTriangle()` now uses `boundaryPath()` / `TESS_BOUNDARY_CONTOURS` as the visible boundary source, calibrates the `aaSide` sign once from the first closed contour, and then reuses that sign mapping for later contours. Do not recompute `normalSide` per contour in the default path: holes already traverse in the opposite direction, so their generated normals naturally flip. The optional depth/containment pass in `collectContours(..., computeDepth)` is retained only as diagnostic/alternate context.
+- AASide joins below 90 degrees now replace the sharp source vertex with two points on its adjacent edges. Both new corners then run through the normal `miterNormal` / `a` / `b` generation path, so the inserted cut segment receives normal AASide geometry. The cut decision is purely local geometry and does not use the global `normalSide` coverage sign.
+- Latest AASide winding conclusion: `Path::getAASideTriangle()` now uses `boundaryPath()` / `TESS_BOUNDARY_CONTOURS` as the visible boundary source, calibrates the `aaSide` sign once from the first closed contour, and then reuses that sign mapping for later contours. Do not recompute `normalSide` per contour in the default path: holes already traverse in the opposite direction, so their generated normals naturally flip.
 - A lightweight standalone SVG debugger now lives at `tools/stroke_debugger.html`. It supports draggable/addable/deletable points, stroke width/miter/filter controls, native SVG stroke comparison, custom offset preview, and point/normal overlays for experimenting with AASide simplification rules before moving them into C++.
 - Superseded AASide finding: an earlier approach inferred `aaSide` by sampling containment depth and flipping on odd nesting levels. That is no longer the default after the tess boundary/winding analysis above, but the optional depth pass is kept in code for diagnostics and possible raw-contour callers.
 - Confirmed problem 2: drawing the AA band before the body can reserve pixels for AA geometry when a path has multiple subpaths. After switching AASide generation to merged boundary + combined inner body geometry, the AASide path no longer needs a separate ordering buffer. Keep this as the active direction, but validate with nested clips, overlapping paths, and render-to-texture.
@@ -83,6 +110,35 @@ Current AASide findings:
 - Current experiment for overlapping subpaths: `Path::getAASideStrokeTriangle()` now always uses the private `boundaryPath()` helper to ask libtess2 for `TESS_BOUNDARY_CONTOURS` with the same `TESS_WINDING_POSITIVE` rule as `Path::getTriangles()`, then generates the inner body + AA band from that merged normalized line-only boundary. This should remove internal overlap edges from AASide generation and align AA geometry with the filled body. Visual validation is still needed for overlapping positives, holes/nested contours, and self-intersecting inputs.
 - Depth/stencil removal follow-up: tag `aa-side-depth-baseline` preserves the last depth-enabled test snapshot. Current work removes render z-depth ordering, depth/stencil attachments/state, shader `pc.depth`, and AASide depth increments from GL/Metal/shared Canvas. The active validation target is now fully depth/stencil-free AASide blending/compositing.
 - Degenerate/limit path cases remain for later cleanup. One known case is a full-circle arc with `useCenter = true`: center-to-boundary segments can become overlapping/parallel internal edges, and `getAASideStrokeTriangle()` / `strokePath()` do not currently have special handling for those seams. Extremely small contours, tiny angles, and repeated/near-repeated edges should be addressed together after the main AASide model is stable.
+
+Stage closeout notes:
+
+- Normal GUI rendering now looks stable enough to stop prioritizing AASide
+  tuning. Remaining artifacts are known model limitations rather than obvious
+  parameter bugs.
+- Subpixel and 1 px UI borders improved after moving responsibility out of the
+  UI painter and into renderer-side AASide. The old UI shrink/offset workaround
+  is intentionally gone.
+- SDF text mask rendering now uses `fwidth(dist)` in
+  `image_sdf_mask.glsl`, which gives better scale-dependent edge softness than
+  the old fixed transition width. Large outlined SDF text can still look blunt
+  at corners because the SDF itself rounds expanded corners.
+- CoreText image-mask text on Apple still needs more investigation. The current
+  finding is that Apple paths are RGBA-oriented, not a reliable A8 texture
+  generation path, and large generated glyph masks can still show jagged edges.
+- JPEG decode now uses libjpeg-turbo extended RGBA/RGBX-style output for better
+  GPU upload compatibility, because Metal has no native 24-bit RGB888 texture
+  format.
+- `PixelInfo::block_info()` now describes block-compressed formats so row bytes
+  and upload sizes can be calculated for ETC/BC/PVRTC-style textures.
+- GL `readImage()` had a state-machine bug where `glTexImage2D()` could
+  reallocate the currently bound source texture instead of the destination
+  texture. The destination texture must be bound before allocating storage, then
+  the source texture rebound for sampling.
+- Window resize jitter on macOS was traced to Root layout mark propagation, not
+  GL/Metal presentation. After `layout_lock_width/height` updates the layout
+  marks, the temporary local `mark` must be refreshed from `_mark_value` or
+  child layout can lag by one frame.
 
 Metal upload performance note:
 
@@ -104,9 +160,15 @@ Metal upload performance note:
 ## Suggested Next Render Tasks
 
 - Add visual regression coverage for Metal clipping, blur, readback, and output-image behavior against the GL reference output.
-- Audit existing `AASide` generation and shader consumption in GL/Metal before changing behavior.
-- Prototype GPU-only signed-side `AASide` coverage for simple straight-edge polygons, using shader-side `fwidth(aaSide)` coverage and combined body/edge geometry.
-- Add or refresh small render regression demos if the project has an existing lightweight path for them.
+- Keep AASide as the GL/GLES-compatible fast path and avoid spending more high
+  priority time on its known extreme cases.
+- Prototype Metal Compute AA with CPU-transformed flattened edges, CPU tile
+  binning, tile backdrop winding, and per-pixel coverage written into a
+  temporary coverage atlas.
+- Add specialized analytic rect/rrect/border renderers for common UI primitives
+  before attempting a universal complex-path renderer.
+- Add or refresh small render regression demos for 1 px lines, rounded rects,
+  readback, output-image, blur, and resize behavior.
 
 ## Verification Preference
 

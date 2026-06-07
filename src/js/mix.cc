@@ -113,7 +113,7 @@ namespace qk { namespace js {
 		Qk_ASSERT_NE(_class, nullptr);
 		bindObject(args.thisObj());
 		auto obj = self();
-		if (!obj->is_reference() || static_cast<Reference*>(obj)->ref_count() <= 0)
+		if (!obj->isReference() || static_cast<Reference*>(obj)->refCount() <= 0)
 			setWeak();
 		initialize();
 		return this;

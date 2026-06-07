@@ -133,7 +133,7 @@ namespace qk {
 		 * @method getAASideTriangle() returns signed aa side triangle vertices and body triangles
 		 * @return {VertexData} {.vertex={ x, y, aaSide }[]}, aaSide < 0 inside, aaSide > 0 outside
 		*/
-		VertexData getAASideTriangle(float width, float epsilon = 1.0) const;
+		VertexData getAASideTriangle(float radius, float epsilon = 1.0, bool onlyAASide = false) const;
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -199,9 +199,8 @@ namespace qk {
 		Path top, right, bottom, left;
 		int flags; ///< Border is non zero for each side
 		static RectOutlinePath MakeRectOutline(const Rect &rect, const float border[4]);
-		static RectOutlinePath MakeRRectOutline(
-			const Rect &rect, const float border[4], const Path::BorderRadius &radius
-		);
+		static RectOutlinePath MakeRRectOutline(const Rect &rect, const float border[4],
+			const Path::BorderRadius &radius);
 	};
 }
 #endif

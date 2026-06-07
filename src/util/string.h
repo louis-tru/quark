@@ -160,7 +160,7 @@ namespace qk {
 		inline uint32_t length() const;
 		inline uint32_t capacity() const;
 
-		String to_string() const; // to string
+		String toString() const; // to string
 		// get string hash code
 		uint64_t hashCode() const;
 		StringImpl<T, A> copy() const;
@@ -237,10 +237,10 @@ namespace qk {
 			static String call(const T& t) { return String("[unknown]"); }
 		};
 		template<typename T, typename A> struct _To<StringImpl<T, A>, false> {
-			static String call(const StringImpl<T, A>& t) { return t.to_string(); }
+			static String call(const StringImpl<T, A>& t) { return t.toString(); }
 		};
 		template<typename T> struct _To<T, true> {
-			static String call(const T& t) { return t.to_string(); }
+			static String call(const T& t) { return t.toString(); }
 		};
 		template<typename T> struct _To<T*, false> {
 			typedef T* Type;
@@ -518,12 +518,12 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	String StringImpl<T, A>::to_string() const {
+	String StringImpl<T, A>::toString() const {
 		return _Str::toString(c_str(), length(), sizeof(T));
 	}
 
 	template <> Qk_EXPORT
-	String StringImpl<>::to_string() const;
+	String StringImpl<>::toString() const;
 
 	template <typename T, typename A, typename B>
 	StringImpl<T, A> Array<T, A, B>::collapse_string() {
@@ -551,12 +551,12 @@ namespace qk {
 	}
 
 	template<typename T, typename A, typename B>
-	String Array<T, A, B>::to_string() const {
+	String Array<T, A, B>::toString() const {
 		return join(String());
 	}
 
 	template<typename T, typename A, typename B>
-	String List<T, A, B>::to_string() const {
+	String List<T, A, B>::toString() const {
 		return join(String());
 	}
 

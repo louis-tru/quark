@@ -526,8 +526,8 @@ namespace qk {
 	}
 
 	void GLRender::release() {
-		Qk_CHECK(_glcanvas->ref_count() == 1,
-			"GLCanvas still has reference, ref count: %d", _glcanvas->ref_count());
+		Qk_CHECK(_glcanvas->refCount() == 1,
+			"GLCanvas still has reference, ref count: %d", _glcanvas->refCount());
 		GLuint ubo[] = { _uboRMat,_ubovMat,_uboClip,_ubo0,_ubo1,_ebo };
 		post_message(Cb([ubo,samplers=std::move(_texSamplers)](auto &e) {
 			for (auto &i: samplers)

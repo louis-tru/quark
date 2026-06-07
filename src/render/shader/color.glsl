@@ -11,6 +11,6 @@ void main() {
 #frag
 void main() {
 	fragColor = pc.color;
-	fragColor *= aaSideCoverage();
+	Qk_aaSideCoverage();
 	Qk_CLIP(); // apply clip mask if needed
 }

@@ -12,11 +12,11 @@ void main() {
 }
 
 #frag
-#define Qk_FLAG_AASIDE_Inverted (1u << 2)
+#define Qk_FLAG_AASIDE_Inverted (1u << 3)
 
 void main() {
 	fragColor = pc.color;
-	float coverage = aaSideCoverage();
+	float coverage = aaSideCoverage(pc.flags);
 	if ((pc.flags & Qk_FLAG_AASIDE_Inverted) != 0)
 		coverage = 1.0 - coverage; // inverted anti-aliasing side: coverage is inverted
 	fragColor *= coverage;

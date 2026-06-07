@@ -11,8 +11,6 @@
 #import "../source.h"
 #import "../pixel.h"
 
-#define Qk_FLAG_CLIP (1u << 0)
-#define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 // use pipeline and set vertex buffer for vertex data, if invalid vertex data, return and skip draw call
 #define Qk_usePipeline(shader, ...) auto enc = usePipeline(shader,##__VA_ARGS__); if (!enc) return
 // set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
@@ -97,7 +95,7 @@ namespace qk {
 			// otherwise edge blending becomes incorrect.
 			// Instead, invert the AA coverage curve.
 			// This produces a smooth subtractive mask edge.
-			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
+			int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
 			drawClipVertex(vertex, surface, flags);
 		};
@@ -193,7 +191,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
-		drawColor(vertex, premul_alpha(color), Qk_CLIP(_clipState));
+		drawColor(vertex, premul_alpha(color), _flags);
 	}
 
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
@@ -251,9 +249,9 @@ namespace qk {
 			MSLImageYuv::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				format,
-				Qk_CLIP(_clipState)
-			};
+					format,
+
+				};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		} else {
@@ -263,7 +261,7 @@ namespace qk {
 			MSLImage::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				Qk_CLIP(_clipState)
+				_flags
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -281,7 +279,7 @@ namespace qk {
 			*((Vec4*)paint->coord.begin.val),
 			premul_alpha(color),
 			type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3,
-			Qk_CLIP(_clipState)
+			_flags
 		};
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
@@ -299,7 +297,7 @@ namespace qk {
 			premul_alpha(color),
 			premul_alpha(strokeColor),
 			stroke,
-			Qk_CLIP(_clipState)
+			_flags
 		};
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -323,7 +321,7 @@ namespace qk {
 			*((Vec4*)paint->origin.val),
 			premul_alpha(color),
 			count,
-			Qk_CLIP(_clipState) | (count == 2 ? (1u << 1): 0)
+			_flags | (count == 2 ? Qk_FLAG_COUNT2: 0)
 		};
 		// align color and position data to 16 bytes for std140 packing rules
 		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
@@ -358,7 +356,6 @@ namespace qk {
 		Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
 		auto& sh = _shaders.colorRrectBlur;
 		auto enc = usePipeline(sh);
-		int flags = Qk_CLIP(_clipState);
 		float s_inv = 1.0f / blur;
 
 		for (int i = 0; i < 4; i++) {
@@ -373,7 +370,7 @@ namespace qk {
 				{ Vec3(r1, n, 1.0 / n), 0 },
 				min_edge,
 				s_inv,
-				uint32_t(flags),
+				_flags,
 			};
 			[enc setVertexBytes:v length:sizeof(v) atIndex:sh.bufferIndex];
 			[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
@@ -401,7 +398,7 @@ namespace qk {
 
 		MSLTriangles::PcArgs pc{
 			color,
-			Qk_CLIP(_clipState) | (triangles.isDarkColor ? (1u << 1): 0)
+			_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
 		};
 		[enc setVertexBuffer:vbuf offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
@@ -534,7 +531,8 @@ namespace qk {
 
 		TexStat storeStat;
 		auto texStat = mtl_rebuild_texture(_device, dstSize, dst->type(), dst->texture(0), storeStat, dst->mipmap());
-		if (!texStat) return;
+		if (!texStat)
+			return;
 		auto tex = mtl_get_texture(texStat);
 		endPass(); // end current pass
 

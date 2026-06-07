@@ -33,6 +33,11 @@
 
 namespace qk {
 
+	inline static bool is_not_Zero(const float radius[4]) {
+		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
+			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
+	}
+
 	struct PathvCacheInl: PathvCache {
 		void clear(int flags) {
 			PathvCache::clear(flags);
@@ -103,26 +108,19 @@ namespace qk {
 		return _pathTriangles.set(hash, gb)->base;
 	}
 
-	const VertexData& PathvCache::getAASideTriangle(const Path &path, float width) {
+	const VertexData& PathvCache::getAASideTriangle(const Path &path, float radius, bool onlyAASide) {
 		auto hash = path.hash();
-		hash.update1f(width);
+		float floatBits[2] = {radius, static_cast<float>(onlyAASide)};
+		hash.update2f(floatBits);
 		auto key = hash.hashCode();
-		//Qk_DLog("getAASideTriangle, %lu", hash);
 		Wrap<VertexData> *const *out;
 		if (_aaSideTriangle.get(key, out))
 			return (*out)->base;
-		auto gb = new Wrap<VertexData>{path.getAASideTriangle(width, 1),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getAASideTriangle(radius, 1, onlyAASide),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
 		return _aaSideTriangle.set(key, gb)->base;
-	}
-
-	const RectPath* PathvCache::getRRectPathFromHash(uint64_t hash) {
-		Wrap<RectPath> *const *out;
-		if (_rectPath.get(hash, out))
-			return &(*out)->base;
-		return nullptr;
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
@@ -131,56 +129,66 @@ namespace qk {
 		return _rectPath.set(hash, gb)->base;
 	}
 
-	const RectPath& PathvCache::getRectPath(const Rect &rect) {
-		Hash hash;
-		hash.update4f(rect.begin.val);
-		Wrap<RectPath> *const *out;
-		if (_rectPath.get(hash.hashCode(), out))
-			return (*out)->base;
-		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
-	}
-
 	const RectPath& PathvCache::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
 		Hash hash;
 		hash.update4f(rect.begin.val);
 		hash.update4f(radius.leftTop.val);
 		hash.update4f(radius.rightBottom.val);
+		hash.updateu32(1); // flag for border radius
 		Wrap<RectPath> *const *out;
 		if (_rectPath.get(hash.hashCode(), out))
 			return (*out)->base;
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
-	inline static bool is_not_Zero(const float radius[4]) {
-		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
-			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
+	const RectPath& PathvCache::getRectPath(const Rect &rect) {
+		return getInsideRRectPath(rect, nullptr, nullptr);
 	}
 
 	const RectPath& PathvCache::getRRectPath(const Rect &rect, const float radius[4]) {
+		return getInsideRRectPath(rect, radius, nullptr);
+	}
+
+	const RectPath& PathvCache::getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]) {
 		Hash hash;
 		hash.update4f(rect.begin.val);
-		hash.update4f(radius);
+		hash.update4f(radius ? radius: (const float[4]){0,0,0,0});
+		if (border)
+			hash.update4f(border);
+		auto key = hash.hashCode();
 		Wrap<RectPath> *const *out;
-		if (_rectPath.get(hash.hashCode(), out))
+		if (_rectPath.get(key, out)) {
 			return (*out)->base;
+		}
+		if (border) {
+			auto newRect = rect;
+			auto limit = std::min(newRect.size.x() * 0.5f, newRect.size.y() * 0.5f);
+			newRect.begin[0] += border[3]; // left
+			newRect.begin[1] += border[0]; // top
+			newRect.size  [0] -= border[3] + border[1]; // left + right
+			newRect.size  [1] -= border[0] + border[2]; // top + bottom
 
-		if (is_not_Zero(radius)) {
-			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+			if (radius && is_not_Zero(radius)) {
+				float leftTop     = Qk_Min(radius[0],limit), rightTop   = Qk_Min(radius[1],limit);
+				float rightBottom = Qk_Min(radius[2],limit), leftBottom = Qk_Min(radius[3],limit);
+				Path::BorderRadius br{
+					{leftTop-border[3],     leftTop-border[0]},     {rightTop-border[1],  rightTop-border[0]},
+					{rightBottom-border[1], rightBottom-border[2]}, {leftBottom-border[3], leftBottom-border[2]},
+				};
+				return setRRectPathFromHash(key, RectPath::MakeRRect(newRect, br));
+			} else {
+				return setRRectPathFromHash(key, RectPath::MakeRect(newRect));
+			}
+		} else if (radius && is_not_Zero(radius)) {
+			float limit = std::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius br{
-				Qk_Min(radius[0], xy_0_5), Qk_Min(radius[1], xy_0_5),
-				Qk_Min(radius[2], xy_0_5), Qk_Min(radius[3], xy_0_5),
+				Qk_Min(radius[0], limit), Qk_Min(radius[1], limit),
+				Qk_Min(radius[2], limit), Qk_Min(radius[3], limit),
 			};
 			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
 		} else {
 			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 		}
-	}
-
-	const RectOutlinePath* PathvCache::getRRectOutlinePathFromHash(uint64_t hash) {
-		Wrap<RectOutlinePath,4> *const *out;
-		if (_rectOutlinePath.get(hash, out))
-			return &(*out)->base;
-		return nullptr;
 	}
 
 	const RectOutlinePath& PathvCache::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
@@ -193,31 +201,24 @@ namespace qk {
 	}
 
 	const RectOutlinePath& PathvCache::getRectOutlinePath(const Rect &rect, const float border[4]) {
-		Hash hash;
-		hash.update4f(rect.begin.val);
-		hash.update4f(border);
-		const float radius[4] = {0,0,0,0};
-		hash.update4f(radius);
-		Wrap<RectOutlinePath,4> *const *out;
-		if (_rectOutlinePath.get(hash.hashCode(), out))
-			return (*out)->base;
-		return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
+		return getRRectOutlinePath(rect, border, nullptr);
 	}
 
 	const RectOutlinePath& PathvCache::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
 		Hash hash;
 		hash.update4f(rect.begin.val);
 		hash.update4f(border);
-		hash.update4f(radius);
+		if (radius)
+			hash.update4f(radius);
 		Wrap<RectOutlinePath,4> *const *out;
-		if (_rectOutlinePath.get(hash.hashCode(), out))
+		if (_rectOutlinePath.get(hash.hashCode(), out)) {
 			return (*out)->base;
-
-		if (is_not_Zero(radius)) {
-			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+		}
+		if (radius && is_not_Zero(radius)) {
+			float limit = std::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius br{
-				{Qk_Min(radius[0],xy_0_5)}, {Qk_Min(radius[1],xy_0_5)},
-				{Qk_Min(radius[2],xy_0_5)}, {Qk_Min(radius[3],xy_0_5)},
+				{Qk_Min(radius[0],limit)}, {Qk_Min(radius[1],limit)},
+				{Qk_Min(radius[2],limit)}, {Qk_Min(radius[3],limit)},
 			};
 			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, br));
 		} else {

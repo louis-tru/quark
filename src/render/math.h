@@ -321,15 +321,17 @@ namespace qk {
 	template<typename T> struct MRect { T begin,size; }; // rect
 	template<typename T> struct MRange { T begin,end;}; // range
 	template<typename T> struct MRegion { T begin,end,origin;}; // region
+	template<typename T> struct MLimitRange { T min,max; }; // limit range
 
-	typedef Vec<float,4>     Vec4; // typedef vec
-	typedef MRect<Vec2>      Rect; // typedef rect
-	typedef MRange<Vec2>     Range; // typedef range
-	typedef MRegion<Vec2>    Region; // typedef region
-	typedef Vec<int,2>       IVec2;
-	typedef Vec<int,3>       IVec3;
-	typedef Vec<int,4>       IVec4;
-	typedef MRect<IVec2>     IRect;
+	typedef Vec<float,4>      Vec4; // typedef vec
+	typedef MRect<Vec2>       Rect; // typedef rect
+	typedef MRange<Vec2>      Range; // typedef range
+	typedef MRegion<Vec2>     Region; // typedef region
+	typedef MLimitRange<Vec2> LimitRange; // typedef limit range
+	typedef Vec<int,2>        IVec2;
+	typedef Vec<int,3>        IVec3;
+	typedef Vec<int,4>        IVec4;
+	typedef MRect<IVec2>      IRect;
 
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const;
@@ -405,6 +407,7 @@ namespace qk {
 		bool is_identity_matrix() const;
 		bool is_translation_matrix() const;
 		Mat inverse() const; // return inverse matrix
+		String toString() const;
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {

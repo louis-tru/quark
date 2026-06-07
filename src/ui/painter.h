@@ -62,11 +62,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(PathvCache*, cache);
 		Qk_DEFINE_PROPERTY(cMat*, matrix); // current matrix
 		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin
-		Qk_DEFINE_PROPERTY(Vec2, originAA);  // box origin and fix aa stroke width
 		Qk_DEFINE_PROP_GET(Color4f, color); // current color
-		Qk_DEFINE_PROP_GET(float, AAShrink); // anti alias shrink, fix rect stroke width for AA
-		Qk_DEFINE_PROP_GET(float, AAShrinkBorder); // anti alias shrink border
-		Qk_DEFINE_PROP_GET(bool, isMsaa); // is MSAA
 		Painter(Window *window);
 		void set_origin_reverse(Vec2 origin);
 		Rect getRect(Box* v);
@@ -103,7 +99,6 @@ namespace qk {
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		Buffer     _tempBuff; // reuse buffer for draw text
-		Vec2      _AAShrinkHalf;
 		// Reuse allocator, reset when starting every frame
 		LinearAllocator _tempAllocator[2];
 		// allocator for delay draw commands
@@ -111,16 +106,6 @@ namespace qk {
 		BoxData _boxData; // reuse box data
 		// reuse container as layout calculation
 		View::Container _reuseContainer;
-		// batch pathv for color drawing
-		struct PathvBatchs {
-			struct Batch {
-				const Path* pathv[5];
-				Color color;
-				int count = 0;
-				uint32_t key;
-			} indexed[5];
-			int total = 0;
-		} _pathvs;
 		// Delay draw command for order drawing
 		struct DelayCmd {
 			View *view;

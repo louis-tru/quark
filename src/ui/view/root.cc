@@ -49,6 +49,10 @@ namespace qk {
 		mark(kTransform);
 	}
 
+	void Root::reload_Rt(Vec2 size) {
+		mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
+	}
+
 	void Root::layout_forward(uint32_t mark) {
 		if (mark & kLayout_Size_ALL) {
 			layout_lock_width(window()->size()[0]);
@@ -57,25 +61,23 @@ namespace qk {
 			_container.state_y = kFixed_FloatState;
 			_container.pre_width_min = _container.pre_width_max = _container.content[0];
 			_container.pre_height_min = _container.pre_height_max = _container.content[1];
-			// unmark(kLayout_Inner_Width | kLayout_Inner_Height);
+			mark = _mark_value; // update mark value after layout lock
 			unmark(kLayout_Size_ALL);
 		}
 
 		if (mark & kLayout_Child_Size) {
-			unmark(kLayout_Child_Size);
-			if (mark & kLayout_Child_Size) {
-				// it >> 4 to kLayout_Inner_Width and kLayout_Inner_Height
-				uint32_t change_mark = ((mark & kLayout_Child_Size) >> 4);
+			// it >> 4 to kLayout_Inner_Width and kLayout_Inner_Height
+			uint32_t change_mark = ((mark & kLayout_Child_Size) >> 4);
 
-				auto v = first_rt();
-				while (v) {
-					if (v->visible()) {
-						v->layout_forward(change_mark | v->mark_value());
-					}
-					v = v->next_rt();
+			auto v = first_rt();
+			while (v) {
+				if (v->visible()) {
+					v->layout_forward(change_mark | v->mark_value());
 				}
-				mark_layout<true>(kLayout_Typesetting | kVisible_Region); // layout reverse
+				v = v->next_rt();
 			}
+			mark_layout<true>(kLayout_Typesetting | kVisible_Region); // layout reverse
+			unmark(kLayout_Child_Size);
 		}
 	}
 

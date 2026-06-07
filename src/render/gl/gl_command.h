@@ -81,7 +81,7 @@ namespace qk {
 		struct Cmd { // Cmd list
 			uint32_t       size; // cmd size
 			CmdType        type; // cmd type
-			bool           isClip, isPMA; // is cmd with clip state, is premultiplied alpha
+			uint32_t       flags; // cmd flags, maybe used for AA, etc
 		};
 
 		struct DrawCmd: Cmd { // draw base cmd

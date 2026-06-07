@@ -30,6 +30,7 @@
 
 #include "./text_blob.h"
 #include "../../util/codec.h"
+#include "../app.h"
 
 namespace qk {
 
@@ -199,10 +200,11 @@ namespace qk {
 		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, ignore_single_space_line, each, &ctx);
 	}
 
-	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
-		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blobOut(blob)
+	TextBlobBuilder::TextBlobBuilder(TextOptions *opts, TextLines *lines, Array<TextBlob>* out)
+		: _lines(lines), _opts(opts), _blobOut(out)
 		, _index_of_unichar(0)
 		, _font_size(opts->font_size().value)
+		, _disable_overflow(false), _disable_auto_wrap(false)
 	{
 	}
 
@@ -251,7 +253,7 @@ namespace qk {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		auto no_limit = _lines->limit_range().end.x() == 0;
+		auto no_limit = _lines->limit_range().max.x() == 0;
 
 		if (_disable_auto_wrap || no_limit || // 不使用自动wrap
 				white_space == WhiteSpace::NoWrap ||
@@ -322,7 +324,7 @@ namespace qk {
 		auto  font_size = _font_size;
 		auto  line_height = _opts->line_height().value;
 
-		float limitX = _lines->limit_range().end.width();
+		float limitX = _lines->limit_range().max.x();
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0, j = 0;
@@ -385,7 +387,7 @@ namespace qk {
 		auto  font_size = _opts->font_size().value;
 		auto  line_height = _opts->line_height().value;
 
-		float limitX = _lines->limit_range().end.width();
+		float limitX = _lines->limit_range().max.x();
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0, j = 0;
@@ -424,7 +426,7 @@ namespace qk {
 		auto origin = _lines->pre_width();
 		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
-		auto limitX = _lines->limit_range().end.width();
+		auto limitX = _lines->limit_range().max.x();
 		auto font_size = _font_size;
 		auto line_height = _opts->line_height().value;
 
@@ -506,4 +508,19 @@ namespace qk {
 		_lines->set_pre_width(origin + offset.back().x());
 	}
 
+	Array<TextBlob> TextBlobBuilder::makeTextBlob(cString& text, TextOptions *opts, float fontSize) {
+		if (!shared_app()) {
+			Qk_DLog("====== TextBlobBuilder::makeTextBlob no shared app");
+			return Array<TextBlob>();
+		}
+		Array<TextBlob> blob;
+		TextLines lines;
+		lines.set_ignore_single_space_line(true);
+		opts = opts ? opts : shared_app()->defaultTextOptions();
+		TextBlobBuilder builder(opts, &lines, &blob);
+		builder.set_font_size(fontSize ? fontSize : opts->font_size().value);
+		builder.make(text);
+		lines.finish();
+		Qk_ReturnLocal(blob);
+	}
 }

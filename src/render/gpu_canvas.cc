@@ -30,23 +30,11 @@
 
 #include "./gpu_canvas.h"
 
-#define isMoreSofterAA 0 // 1 is softer aa, 0 is more radical aa
-
 namespace qk {
 	uint32_t msaaSample(uint32_t n);
 	float get_level_font_size(float fontSize);
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 	uint32_t upPow2(uint32_t size);
-
-	extern const Range ZeroRange;
-#if isMoreSofterAA
-	// Softer:
-	//extern const float  aa_side_width = 1.2;
-	extern const float  aa_side_width = 1.1;
-#else
-	// More radical:
-	extern const float  aa_side_width = 1; // actual: 1, debug: 50
-#endif
 
 	typedef Typeface::TextImage TextImage;
 
@@ -69,7 +57,9 @@ namespace qk {
 					_scaleAverage = 1.0f;
 					_allScaleAverage = _surfaceScaleAverage;
 					_allScaleMin = _surfaceScaleAverage;
-					_phy1Pixel = 1.0f / _allScaleMin;
+					_1pxSize = 1.0f / _allScaleMin;
+					_aaRadius = _1pxSize * 0.6; // 0.6px
+					_aaRadiusRect = _1pxSize * 0.5; // 0.5px
 				}
 			} else {
 				Vec2 scale(Vec2(mat[0], mat[3]).length(), Vec2(mat[1], mat[4]).length());
@@ -78,7 +68,9 @@ namespace qk {
 					_scaleAverage = sqrtf(scale.x() * scale.y());
 					_allScaleAverage = _surfaceScaleAverage * _scaleAverage;
 					_allScaleMin = _surfaceScaleAverage * Float32::min(scale.x(), scale.y());
-					_phy1Pixel = 1.0f / _allScaleMin;
+					_1pxSize = 1.0f / _allScaleMin;
+					_aaRadius = _1pxSize * 0.75;
+					_aaRadiusRect = _1pxSize * 0.75;
 				}
 			}
 		}
@@ -103,32 +95,42 @@ namespace qk {
 			}
 		}
 
-		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
+		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, float aaRadius, bool aa) {
 			Qk_ASSERT(path.isNormalized(), "Path must be normalized before filling. Call path.normalize() first.");
 			auto &vertex = aa ?
-				_cache->getAASideTriangle(path, _phy1Pixel*aa_side_width):
+				_cache->getAASideTriangle(path, aaRadius):
 				_cache->getPathTriangles(path);
 			fill(vertex, paint, style);
 		}
 
-		void strokePath(const Path &path, const Paint& paint, bool aa) {
-#if isMoreSofterAA
-				constexpr float weight = 0.9f;
-#else
-				constexpr float weight = 1.0f;
-#endif
-			auto width = paint.strokeWidth - _phy1Pixel * weight;
-			if (width > 0) {
-				fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, aa);
-			} else {
-				// width /= (_phy1Pixel * 1.0f - weight); // range: -1 => 0
-				// width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-				auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*0.5);
+		void strokePath(const Path &path, const Paint& paint, float aaRadius, bool aa) {
+			if (!aa) {
+				auto &stroke = _cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0);
+				auto &vertex = _cache->getPathTriangles(stroke);
 				fill(vertex, paint, paint.stroke);
+				return;
+			}
+			auto width = paint.strokeWidth - _1pxSize;
+			if (paint.strokeWidth > _1pxSize * 1.8) {
+				fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, aaRadius, aa);
+			} else {
+				aaRadius = _1pxSize * 0.65; // min aa radius for thin strokes
+				auto radius = paint.strokeWidth * 0.56f; // bold strokes from 0.5 to 0.65 scale well
+				auto stroke = paint.stroke;
+				aaRadius = std::max(radius, aaRadius);
+				if (radius < aaRadius) {
+					auto alpha = radius / aaRadius;
+					stroke.color[3] *= alpha; // approximate alpha reduction for smaller radius
+				}
+				auto &vertex = _cache->getAASideTriangle(path, aaRadius, true);
+				_flags |= Qk_FLAG_AASIDE_LINE; // set line AA flag for stroke path
+				fill(vertex, paint, stroke);
+				_flags &= ~Qk_FLAG_AASIDE_LINE; // clear line AA flag after stroke path
 			}
 		}
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint);
+		void drawPath_(const Path &path_, const Paint &paint, float aaRadius);
 	};
 
 	//---------------------------------------------------------------------
@@ -275,15 +277,30 @@ namespace qk {
 		}};
 
 		if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
-			auto strokeWidth = paint.style == Paint::kFill_Style ?
-					0.0f: paint.strokeWidth;
-			drawSDFImageMaskCmd(vertex, &p, paint.fill.color,
-					paint.stroke.color, strokeWidth * scale);
+			auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;
+			auto strokeWidth = paint.style == Paint::kFill_Style ? 0.0f: paint.strokeWidth;
+			drawSDFImageMaskCmd(vertex, &p, fillColor, paint.stroke.color, strokeWidth * scale);
 		} else {
 			drawImageMaskCmd(vertex, &p, paint.fill.color);
 		}
 
 		return scale_1;
+	}
+
+	void GPUCanvas::Inl::drawPath_(const Path &path_, const Paint &paint, float aaRadius) {
+		auto &path = _cache->getNormalizedPath(path_);
+		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
+		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
+
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				_this->fillPath(path, paint, paint.fill, aaRadius, aa); break;
+			case Paint::kStrokeAndFill_Style:
+				_this->fillPath(path, paint, paint.fill, aaRadius, aa);
+			case Paint::kStroke_Style:
+				_this->strokePath(path, paint, aaRadius, aa); break;
+		}
 	}
 
 	//---------------------------------------------------------------------
@@ -294,12 +311,14 @@ namespace qk {
 		, _size(), _scale(1)
 		, _surfaceScaleAverage(1), _scaleAverage(1), _allScaleAverage(1)
 		, _allScaleMin(1)
-		, _phy1Pixel(1)
+		, _1pxSize(1)
+		, _aaRadius(0.5), _aaRadiusRect(0.5)
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
 		, _DeviceMsaa(0)
 		, _clipState(nullptr)
 		, _opts(opts)
+		, _flags(0)
 	{
 		_opts.msaaSample = msaaSample(_opts.msaaSample);
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
@@ -329,7 +348,7 @@ namespace qk {
 		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | (type << 1) | mipmap;
 		auto &pool = _texPools[key];
 		for (auto &tex : pool) {
-			if (tex->ref_count() == 1)
+			if (tex->refCount() == 1)
 				return tex;
 		}
 		auto src = ImageSource::Make(PixelInfo{w, h, type, kPremul_AlphaType}, nullptr);
@@ -417,6 +436,11 @@ namespace qk {
 				restoreClipCmd(_state->clip.get()); // restore clip state if changed
 			}
 			_clipState = _state->clip.get(); // restore clip state
+
+			// clear clip flag if no clip state
+			if (!_clipState) {
+				_flags &= ~Qk_FLAG_CLIP;
+			}
 			setMatrix(_state->matrix); // restore matrix
 		}
 	}
@@ -484,12 +508,13 @@ namespace qk {
 		// adjust range to actual allocated texture size
 		clip->range.end = clip->range.begin + clip->mask->size();
 		if (antiAlias && !_DeviceMsaa) {
-			drawClipCmd(_cache->getAASideTriangle(path,_phy1Pixel*aa_side_width), lastClip, clip, rawOp);
+			drawClipCmd(_cache->getAASideTriangle(path,_aaRadius), lastClip, clip, rawOp);
 		} else {
 			drawClipCmd(_cache->getPathTriangles(path), lastClip, clip, rawOp);
 		}
 		_state->clip = clip;
 		_clipState = clip; // set current clip state
+		_flags |= Qk_FLAG_CLIP; // set clip flag
 	}
 
 	void GPUCanvas::clipRect(const Rect& rect, ClipOp op, bool antiAlias) {
@@ -511,7 +536,7 @@ namespace qk {
 	void GPUCanvas::drawPathColor(const Path& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			auto &vertex = _cache->getAASideTriangle(path, _phy1Pixel*aa_side_width);
+			auto &vertex = _cache->getAASideTriangle(path, _aaRadius);
 			drawColorCmd(vertex, color);
 		} else {
 			auto &vertex = _cache->getPathTriangles(path);
@@ -519,20 +544,14 @@ namespace qk {
 		}
 	}
 
-	void GPUCanvas::drawPathColors(const Path* paths[], int count, const Color4f &color,
-		BlendMode mode, bool antiAlias) 
-{
+	void GPUCanvas::drawPathColors(const Path* paths[], int count, const Color4f &color, BlendMode mode, bool antiAlias) {
+		auto aa = !_DeviceMsaa && antiAlias;
 		_this->setBlendMode(mode); // switch blend mode
-		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
-			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getAASideTriangle(*paths[i], _phy1Pixel*aa_side_width);
-				drawColorCmd(vertex, color);
-			}
-		} else {
-			for (int i = 0; i < count; i++) {
-				auto &vertex = _cache->getPathTriangles(*paths[i]);
-				drawColorCmd(vertex, color);
-			}
+		for (int i = 0; i < count; i++) {
+			auto &vertex = aa ?
+				_cache->getAASideTriangle(*paths[i], _aaRadius):
+				_cache->getPathTriangles(*paths[i]);
+			drawColorCmd(vertex, color);
 		}
 	}
 
@@ -545,28 +564,32 @@ namespace qk {
 		}
 	}
 
-	void GPUCanvas::drawPath(const Path &path0, const Paint &paint) {
-		auto &path = _cache->getNormalizedPath(path0);
-		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
-		Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
-
-		// gen stroke path and fill path and polygons
-		switch (paint.style) {
-			case Paint::kFill_Style:
-				_this->fillPath(path, paint, paint.fill, aa); break;
-			case Paint::kStrokeAndFill_Style:
-				_this->fillPath(path, paint, paint.fill, aa);
-			case Paint::kStroke_Style:
-				_this->strokePath(path, paint, aa); break;
-		}
+	void GPUCanvas::drawPath(const Path &path, const Paint &paint) {
+		_this->drawPath_(path, paint, _aaRadius);
 	}
 
 	void GPUCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		_this->drawPath(_cache->getRectPath(rect), paint);
+		_this->drawPath_(_cache->getRectPath(rect), paint, _aaRadiusRect);
 	}
 
 	void GPUCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		_this->drawPath(_cache->getRRectPath(rect,radius), paint);
+		_this->drawPath_(_cache->getRRectPath(rect,radius), paint, _aaRadiusRect);
+	}
+
+	void GPUCanvas::drawRectPath(const RectPath& path, const Paint& paint) {
+		_this->drawPath_(path, paint, _aaRadiusRect);
+	}
+
+	void GPUCanvas::drawRectOutlinePath(const RectOutlinePath& rect, const Color4f color[4], const Paint& paint) {
+		auto path = &rect.top;
+		auto newPaint = paint;
+		newPaint.style = Paint::kFill_Style; // only fill for outline, no stroke
+		for (int i = 0; i < 4; i++) {
+			if (rect.flags & (1 << i)) { // if this edge is visible
+				newPaint.fill.color *= color[i];
+				_this->drawPath_(path[i], newPaint, _aaRadiusRect);
+			}
+		}
 	}
 
 	float GPUCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offsetIn, const Paint &paint) {
@@ -590,7 +613,7 @@ namespace qk {
 		auto fixedFSize = get_level_font_size(_scaleAverage * fontSize) * _surfaceScaleAverage;
 		if (fixedFSize == 0.0)
 			return;
-		auto scale = fixedFSize / fontSize;
+		auto scale = fixedFSize / fontSize; // scale from original font size to fixed font size
 		auto isSDF = paint.style != Paint::kFill_Style;
 
 		if (blob->img.fontSize != fixedFSize || !blob->img.image ||
@@ -605,6 +628,7 @@ namespace qk {
 				blob->typeface->getSDFImage(blob->glyphs, fixedFSize, &offset, false):
 				blob->typeface->getImage(blob->glyphs, fixedFSize, &offset);
 			blob->img.image->set_mipmap(false); // disable mipmap for text
+			blob->img.scale *= scale;
 		}
 		auto img = blob->img.image.get();
 		if (img->width() && img->height()) {

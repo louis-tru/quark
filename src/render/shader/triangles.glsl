@@ -27,7 +27,7 @@ layout(location=1) in vec2 texCoords;
 layout(location=2) in vec4 light;
 layout(location=3) in vec4 dark;
 
-#define Qk_FLAGS_DARK_COLOR (1 << 1)
+#define Qk_FLAGS_DARK_COLOR (1 << 3)
 
 void main() {
 	vec4 tex = texture(image, texCoords);

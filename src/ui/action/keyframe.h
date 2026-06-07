@@ -46,15 +46,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
-		// @overwrite
 		Window* getWindow() const override;
-		/**
-		 * @method destroy()
-		 */
-		void destroy() override;
+		void    destroy() override;
 	private:
 		// @constructor
-		// @private
 		Keyframe(KeyframeAction* host, cCurve& curve);
 		/**
 		 * @method onMake trigger new prop make

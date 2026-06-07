@@ -85,6 +85,15 @@
 		text-align: right;
 	}
 	input[type="range"] { width: 100%; }
+	input[type="color"] {
+		width: 100%;
+		height: 30px;
+		padding: 2px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #fff;
+		cursor: pointer;
+	}
 	input[type="number"], select, textarea {
 		width: 100%;
 		border: 1px solid var(--line);
@@ -209,7 +218,8 @@
 				<label class="check"><input id="closed" type="checkbox" checked>闭合</label>
 				<label class="check"><input id="snap" type="checkbox">网格</label>
 				<label class="check"><input id="showNative" type="checkbox" checked>SVG stroke</label>
-				<label class="check"><input id="showCustom" type="checkbox" checked>offset</label>
+				<label class="check"><input id="showCustom" type="checkbox" checked>offset 填充</label>
+				<label class="check"><input id="showCustomBorder" type="checkbox" checked>offset 边框</label>
 				<label class="check"><input id="showFiltered" type="checkbox" checked>滤波线</label>
 				<label class="check"><input id="showDebug" type="checkbox" checked>点/法线</label>
 			</div>
@@ -254,11 +264,19 @@
 					<option value="smooth">局部磨平</option>
 				</select>
 			</div>
+			<div class="row two">
+				<label for="offsetFillColor">offset 填充</label>
+				<input id="offsetFillColor" type="color" value="#54585c">
+			</div>
+			<div class="row two">
+				<label for="offsetBorderColor">offset 边框</label>
+				<input id="offsetBorderColor" type="color" value="#4d5359">
+			</div>
 		</section>
 
 		<section class="group">
 			<div class="legend">
-				<span><i class="swatch" style="background: var(--fill)"></i>custom stroke</span>
+				<span><i id="offsetSwatch" class="swatch" style="background: var(--fill)"></i>custom stroke</span>
 				<span><i class="swatch" style="background: #d43f3a"></i>centerline</span>
 				<span><i class="swatch" style="background: var(--fill2)"></i>filtered</span>
 				<span><i class="swatch" style="background: #111"></i>warning</span>
@@ -294,8 +312,11 @@ const controls = {
 	snap: document.getElementById("snap"),
 	showNative: document.getElementById("showNative"),
 	showCustom: document.getElementById("showCustom"),
+	showCustomBorder: document.getElementById("showCustomBorder"),
 	showFiltered: document.getElementById("showFiltered"),
 	showDebug: document.getElementById("showDebug"),
+	offsetFillColor: document.getElementById("offsetFillColor"),
+	offsetBorderColor: document.getElementById("offsetBorderColor"),
 };
 
 const initial = [
@@ -520,11 +541,12 @@ function draw() {
 			opacity: "0.55",
 		}));
 	}
-	if (controls.showCustom.checked && stroke.outline.length) {
+	if ((controls.showCustom.checked || controls.showCustomBorder.checked) && stroke.outline.length) {
 		svg.appendChild(el("polygon", {
 			points: polyPoints(stroke.outline),
-			fill: "var(--fill)",
-			stroke: "#4d5359",
+			fill: controls.showCustom.checked ? controls.offsetFillColor.value : "none",
+			"fill-opacity": "0.58",
+			stroke: controls.showCustomBorder.checked ? controls.offsetBorderColor.value : "none",
 			"stroke-width": "1",
 		}));
 	}
@@ -599,6 +621,7 @@ function draw() {
 	controls.miterOut.textContent = Number(controls.miter.value).toFixed(1);
 	controls.minEdgeOut.textContent = controls.minEdge.value;
 	controls.iterationsOut.textContent = controls.iterations.value;
+	document.getElementById("offsetSwatch").style.background = controls.offsetFillColor.value;
 	statusEl.textContent = `points ${points.length} -> ${filtered.length} | warnings ${warnings.length} | selected ${selected}`;
 	document.getElementById("delBtn").disabled = points.length <= (closed ? 3 : 2);
 	document.getElementById("dupBtn").disabled = selected < 0;

@@ -9,23 +9,31 @@
 #include <src/render/render.h>
 #include <src/render/canvas.h>
 #include <src/render/font/pool.h>
+#include <src/ui/text/text_blob.h>
 #include "./test.h"
 
 using namespace qk;
 
 #define Qk_Debug_CANVAS 0
 
+void test_gui_new(Box *r);
+
 class TestCanvas: public Box {
+	float i = 0;
+	Array<TextBlob> textBlobs;
 public:
-	void draw(Painter *render) override {
-		// mark_none(kLayout_None); return;
+	void draw(Painter *painter) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
+
+		i+=Qk_PI_RATIO_180*0.01;
+		float c = abs(sinf(i)) * 5;
 
 		Paint paint;
 
 		// -------- clip ------
 		canvas->save();
+
 		if (1) { // clip
 			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
@@ -42,7 +50,7 @@ public:
 			paint.fill.gradient = &gPaint;
 
 			canvas->save();
-			canvas->setMatrix(canvas->getMatrix() * Mat({0,0}, {0.8, 0.8}, -0.2, {0.3,0}));
+			canvas->setMatrix(canvas->getMatrix() * Mat({0,0}, {0.8, 0.8}, c, {0.3,0}));
 			canvas->drawRect(rect, paint);
 			canvas->restore();
 		}
@@ -70,7 +78,7 @@ public:
 			path.lineTo( size );
 			path.close();
 			path.moveTo( Vec2(100, 100) );
-			path.lineTo( Vec2(200, 200) );
+			path.lineTo( Vec2(200, 180) );
 			path.lineTo( Vec2(100, 200) );
 			path.close();
 			canvas->drawPath(path, paint);
@@ -85,22 +93,47 @@ public:
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI*0.5, 1), paint);
 		}
 
-		if (1) { // font text
+		if (1) { // font blob
 			paint.fill.color = Color4f(255,0,255);
+			paint.stroke.color = Color4f(0,0,0);
+			paint.strokeWidth = 5;
+			paint.style = Paint::kStroke_Style;
+			if (textBlobs.is_null()) {
+				TextOptions opts(shared_app()->defaultTextOptions());
+				opts.set_font_size({64});
+				opts.set_font_weight(FontWeight::Bold);
+				textBlobs = TextBlobBuilder::makeTextBlob("A 好 HgKr葵花pjAH", &opts);
+			}
+			Vec2 origin(10,160);
+			for (auto &blob: textBlobs) {
+				canvas->drawTextBlob(&blob.blob, origin + Vec2{blob.origin,0}, 64, paint);
+				origin[0] += 10;
+			}
+		}
+
+		if (0) { // font glyphs
+			paint.fill.color = Color4f(0,120,120);
+			paint.style = Paint::kFill_Style;
 			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
 			auto pool = shared_app()->fontPool();
-			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
+			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "Hello World! 你好，世界！👋🌍");
 			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);
-			Vec2 origin(10,60);
+			Vec2 origin(10,500);
 			for (auto &fg: fgs) {
 				origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
 			}
 		}
 
 		if (1) { // outline
-			paint.fill.color = Color4f(0, 0, 0);
+			paint.style = Paint::kStrokeAndFill_Style;
+			paint.stroke.color = Color4f(0,0,0,0.3);
+			paint.strokeWidth = 8;
+			paint.fill.color = Color4f(0.5,0,0.3);
 			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
+			paint.style = Paint::kStroke_Style;
 			paint.fill.color = Color4f(0, 1, 1);
+			paint.stroke.color = Color4f(0,0,0);
+			paint.strokeWidth = 0.5;
 			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 			paint.stroke.color = Color4f(1, 1, 0);
 			paint.style = Paint::kStroke_Style;
@@ -182,8 +215,11 @@ public:
 
 Qk_TEST_Func(canvas) {
 	App app;
-	auto win = Window::Make({.fps=0x0});
+	auto win = Window::Make({.frame={{0,0}, {700,700}}});
 	win->activate();
+
+	test_gui_new(win->root());
+
 #if Qk_Debug_CANVAS
 	auto t = win->root()->append_new<DebugCanvas>();
 #else
@@ -191,6 +227,6 @@ Qk_TEST_Func(canvas) {
 #endif
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });
-	// layout end
+
 	app.run();
 }

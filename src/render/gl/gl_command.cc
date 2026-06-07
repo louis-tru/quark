@@ -37,8 +37,6 @@
 #define Qk_CGCmd_VertexBlock_Capacity 6555
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
-#define Qk_FLAG_CLIP (1u << 0)
-#define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 
 namespace qk {
 	void  gl_texture_barrier();
@@ -77,7 +75,7 @@ namespace qk {
 			}
 			_lastCmd = (Cmd*)(((char*)block->val) + block->size);
 			_lastCmd->size = size;
-			_lastCmd->isClip = _canvas->_clipState;
+			_lastCmd->flags = _canvas->_flags; // inherit current state flags, such as clip, AA, etc.
 			// _lastCmd->isPMA = _canvas->_blendMode < kSrcOverLegacy_BlendMode;
 			block->size = newSize;
 			return _lastCmd;
@@ -246,7 +244,7 @@ namespace qk {
 						}
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
-							drawColor(c->vertex, c->color, Qk_CLIP(c->isClip));
+							drawColor(c->vertex, c->color, c->flags);
 							c->~ColorCmd();
 							break;
 						}
@@ -295,7 +293,7 @@ namespace qk {
 							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
 							glBindVertexArray(s->vao);
 							glUseProgram(s->shader);
-							glUniform1ui(s->pc_flags, Qk_CLIP(c->isClip));
+							glUniform1ui(s->pc_flags, c->flags);
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
 							// glDrawArrays(GL_LINE_STRIP, 0, c->vCount);
 							break;
@@ -420,7 +418,7 @@ namespace qk {
 			glUniform4fv(sh->pc_color, 1, cmd->color.val);
 			glUniform1f(sh->pc_min_edge, min_edge);
 			glUniform1f(sh->pc_s_inv, 1.0/s); // 1/s blur size reciprocal
-			glUniform1ui(sh->pc_flags, Qk_CLIP(cmd->isClip)); // clip flag
+			glUniform1ui(sh->pc_flags, cmd->flags); // clip flag
 			glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
 			glBindVertexArray(sh->vao);
 
@@ -473,13 +471,13 @@ namespace qk {
 					}
 					glUniform4fv(yuv->pc_color, 1, cmd->color.val);
 					glUniform4fv(yuv->pc_texCoords, 1, cmd->paint.coord.begin.val);
-					glUniform1ui(yuv->pc_flags, Qk_CLIP(cmd->isClip));
+					glUniform1ui(yuv->pc_flags, cmd->flags);
 				} else {
 					auto s = &_render->_shaders.image;
 					useShaderProgram(s, cmd->vertex);
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-					glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
+					glUniform1ui(s->pc_flags, cmd->flags);
 				}
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
@@ -494,7 +492,7 @@ namespace qk {
 						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
 				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
+				glUniform1ui(s->pc_flags, cmd->flags);
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
 		}
@@ -507,18 +505,19 @@ namespace qk {
 				glUniform4fv(s->pc_strokeColor, 1, cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
 				glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
 				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip));
+				glUniform1ui(s->pc_flags, cmd->flags);
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
 		}
 
 		void drawTrianglesCall(TrianglesCmd *cmd) {
+			#define Qk_FLAGS_DARK_COLOR (1 << 3)
 			if (useTextureSlot0(cmd->paint)) {
 				// auto isPre = cmd->paint.image->premultipliedAlpha();
 				auto s = &_render->_shaders.triangles;
 				Qk_ASSERT_EQ(cmd->triangles.indexCount % 3, 0, "drawTrianglesCall, indexCount must be a multiple of 3");
 				s->use(cmd->triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), cmd->triangles.verts);
-				glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip) | (cmd->triangles.isDarkColor ? (1u << 1): 0));
+				glUniform1ui(s->pc_flags, cmd->flags | (cmd->triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0));
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
 				// glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
@@ -532,8 +531,10 @@ namespace qk {
 				&_render->_shaders.colorRadial: (GLSLColorRadial*)&_render->_shaders.colorLinear;
 			int count = Qk_Min(64, cmd->paint.count); // max 64 stops
 
+			#define Qk_FLAG_COUNT2 (1u << 3)
+
 			useShaderProgram(s, cmd->vertex);
-			glUniform1ui(s->pc_flags, Qk_CLIP(cmd->isClip) | (count == 2 ? (1u << 2): 0));
+			glUniform1ui(s->pc_flags, cmd->flags | (count == 2 ? Qk_FLAG_COUNT2: 0));
 			glUniform4fv(s->pc_color, 1, cmd->color.val);
 			glUniform4fv(s->pc_range, 1, cmd->paint.origin.val);
 			glUniform1i(s->pc_count, count);
@@ -564,13 +565,14 @@ namespace qk {
 			};
 
 			auto drawClipMask = [&](bool black, bool clip) {
+				#define Qk_FLAG_AASIDE_Inverted (1u << 3)
 				auto scale = Vec2(1) / cmd->surfaceScale;
 				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
 				// otherwise edge blending becomes incorrect.
 				// Instead, invert the AA coverage curve.
 				// This produces a smooth subtractive mask edge.
-				int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
+				int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
 				drawClipVertex(cmd->vertex, surface, flags);
 			};
@@ -777,10 +779,11 @@ namespace qk {
 			auto format = gl_get_texture_format(dst->type());
 			auto type = gl_get_texture_data_type(dst->type());
 			glActiveTexture(Qk_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, srcTex); // read image source
+			glBindTexture(GL_TEXTURE_2D, tex); // bind texture to allocate storage
 			Qk_BindSampler(0, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
+			glBindTexture(GL_TEXTURE_2D, srcTex); // read image source
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, cmd->srcRect.size == dstSize ? GL_NEAREST: GL_LINEAR);
 			// always use nearest filter because scTex levels 1 only
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1025,7 +1028,7 @@ namespace qk {
 	void GLC_CmdPack::drawColor(const VertexData &vertex, const Color4f &color) {
 #define Qk_USE_ColorBatch (!Qk_LINUX)
 #if Qk_USE_ColorBatch
-		if ( vertex.vertex.length() == 0 ) { // Maybe it's already cached
+		if ( vertex.vertex.length() == 0 || (_canvas->_flags & Qk_FLAG_AASIDE_LINE) ) {
 #endif
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 			cmd->type = kColor_CmdType;

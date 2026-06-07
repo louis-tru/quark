@@ -226,7 +226,6 @@ namespace qk {
 		Range getDisplayRange(Vec2 size); // get surface display range
 		void afterDisplay();
 		bool tryClose(); // destroy window and protform window
-		void reload_root();
 		static void flushAsyncCall(); // flush all asynchronous calls for all windows, used when app destroyed
 
 		/**

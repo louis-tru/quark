@@ -276,18 +276,13 @@ namespace qk {
 		paint.fill.image = &img;
 		paint.fill.color = painter->color();
 
-		auto aaShrink = aa() ? painter->AAShrink() : 0;
 		Rect rect{-origin_value(), {_width, _height}};
-		Rect rectAA{
-			Vec2(aaShrink * 0.5)-origin_value(),
-			{_width-aaShrink, _height-aaShrink},
-		};
 
 		img.setImage(src.get(), rect, {{x,y}, {w,h}});
 		img.filterMode = default_FilterMode;
 		img.mipmapMode = default_MipmapMode;
 
-		painter->canvas()->drawPath(painter->cache()->getRectPath(rectAA), paint);
+		painter->canvas()->drawPath(painter->cache()->getRectPath(rect), paint);
 		debugDraw(painter); // draw debug bounds
 		painter->visitView(this);
 		painter->set_matrix(lastMatrix); // restore previous matrix

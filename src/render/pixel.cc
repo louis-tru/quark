@@ -39,11 +39,13 @@ namespace qk {
 	}
 
 	uint32_t PixelInfo::rowbytes() const {
-		return _width * Pixel::bytes_per_pixel(_type);
+		auto block = Pixel::block_info(_type);
+		return block.width ? ((_width + block.width - 1) / block.width) * block.bytes: 0;
 	}
 
 	uint32_t PixelInfo::bytes() const {
-		return rowbytes() * _height;
+		auto block = Pixel::block_info(_type);
+		return block.height ? rowbytes() * ((_height + block.height - 1) / block.height): 0;
 	}
 
 	// -------------------- P i x e l --------------------
@@ -51,7 +53,7 @@ namespace qk {
 	/**
 	* @func pixel_bit_size
 	*/
-	uint32_t Pixel::bytes_per_pixel(ColorType type) {
+	uint32_t PixelInfo::bytes_per_pixel(ColorType type) {
 		switch (type) {
 			case kInvalid_ColorType: return 0;
 			case kAlpha_8_ColorType: return 1;
@@ -73,7 +75,64 @@ namespace qk {
 			case kYUV420P_Y_8_ColorType: return 1; // kColor_Type_YUV420SP_Y_8
 			case kYUV420P_U_8_ColorType: return 1;
 			case kYUV420SP_UV_88_ColorType: return 2;
-			default: return 0; // Invalid is compressed format
+			case kUYVY_ColorType:
+			case kYUY2_ColorType:
+			case kRGBG_8888_ColorType:
+			case kGRGB_8888_ColorType:
+				return 2;
+			case kSharedExponentR9G9B9E5_ColorType:
+				return 4;
+			default: return 0; // Block-compressed or planar format.
+		}
+	}
+
+	PixelBlockInfo PixelInfo::block_info(ColorType type) {
+		switch (type) {
+			case kUYVY_ColorType:
+			case kYUY2_ColorType:
+			case kRGBG_8888_ColorType:
+			case kGRGB_8888_ColorType:
+				return {2, 1, 4};
+			default:
+				break;
+		}
+
+		auto bytes = bytes_per_pixel(type);
+		if (bytes)
+			return {1, 1, uint8_t(bytes)};
+
+		switch (type) {
+			case kPVRTCI_2BPP_RGB_ColorType:
+			case kPVRTCI_2BPP_RGBA_ColorType:
+				return {16, 8, 32};
+			case kPVRTCI_4BPP_RGB_ColorType:
+			case kPVRTCI_4BPP_RGBA_ColorType:
+				return {8, 8, 32};
+			case kPVRTCII_2BPP_ColorType:
+				return {8, 4, 8};
+			case kPVRTCII_4BPP_ColorType:
+				return {4, 4, 8};
+			case kETC1_ColorType:
+			case kETC2_RGB_ColorType:
+			case kETC2_RGB_A1_ColorType:
+			case kDXT1_ColorType:
+			case kBC4_ColorType:
+			case kEAC_R11_ColorType:
+				return {4, 4, 8};
+			case kETC2_RGBA_ColorType:
+			case kDXT2_ColorType:
+			case kDXT3_ColorType:
+			case kDXT4_ColorType:
+			case kDXT5_ColorType:
+			case kBC5_ColorType:
+			case kBC6_ColorType:
+			case kBC7_ColorType:
+			case kEAC_RG11_ColorType:
+				return {4, 4, 16};
+			case kBW1BPP_ColorType:
+				return {8, 1, 1};
+			default:
+				return {0, 0, 0};
 		}
 	}
 

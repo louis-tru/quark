@@ -614,8 +614,9 @@ namespace qk {
 	}
 
 	#define _Fun(Enum, Type, Name, _) \
-	void StyleSheets::set_##Name(Type val) {\
+	StyleSheets* StyleSheets::set_##Name(Type val) {\
 		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_CssProp>(val);\
+		return this;\
 	}
 	Qk_Css_Props(_Fun)
 	#undef _Fun

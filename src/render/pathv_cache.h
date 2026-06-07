@@ -124,27 +124,7 @@ namespace qk
 		/**
 		 * @dev get aa side path triangle cache
 		*/
-		const VertexData& getAASideTriangle(const Path &path, float width);
-
-		/**
-		 * @dev get radius rect path cache from hash code
-		*/
-		const RectPath* getRRectPathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set radius rect path cache from hash code
-		*/
-		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
-
-		/**
-		 * @dev get radius rect outline path cache from hash code
-		*/
-		const RectOutlinePath* getRRectOutlinePathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set rect outline path cache from hash code
-		*/
-		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
+		const VertexData& getAASideTriangle(const Path &path, float radius, bool onlyAASide = false);
 
 		/**
 		 * @dev get rect path cache
@@ -166,6 +146,14 @@ namespace qk
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
 
 		/**
+		 * @dev get the inside radius rect path cache and limit radius size
+		 * @param rect {Rect} rect outer border rect
+		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
+		 * @param border {float[4]} border width top,right,bottom,left
+		 */
+		const RectPath& getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]);
+
+		/**
 		 * @dev get radius rect outline path cache and limit radius size
 		 * @param rect {Rect} outside border rect
 		 * @param border {float[4]} inside border width top,right,bottom,left
@@ -181,6 +169,16 @@ namespace qk
 		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
 
 	protected:
+		/**
+		 * @dev set radius rect path cache from hash code
+		*/
+		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
+
+		/**
+		 * @dev set rect outline path cache from hash code
+		*/
+		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
+
 		/**
 		 * @dev Clear cached path data.
 		 * @param flags Clear mode:

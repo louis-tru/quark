@@ -131,10 +131,13 @@ namespace qk {
 		// Qk_Log("_min_origin %f", _min_origin);
 	}
 
-	TextLines::TextLines(TextAlign text_align, Range limit_range, bool host_float_x)
+	TextLines::TextLines(): TextLines(TextAlign::Default, {0, 0}, false) {
+	}
+
+	TextLines::TextLines(TextAlign text_align, LimitRange limit_range, bool float_width)
 		: _pre_width(0), _ignore_single_space_line(false), _have_init_line_height(false)
 		, _limit_range(limit_range)
-		, _host_float_x(host_float_x)
+		, _float_width(float_width)
 		, _text_align(text_align), _visible_area(false)
 		, _core(new TextLinesCore())
 	{
@@ -232,11 +235,11 @@ namespace qk {
 			auto height = top + bottom;
 			auto rawLineHeight = line_height;
 			if (rawLineHeight <= 2) { // use percentage
-				if (_limit_range.begin.y() > 0) {
-					line_height *= _limit_range.begin.y(); // use percentage
+				if (_limit_range.min.y() > 0) {
+					line_height *= _limit_range.min.y(); // use percentage
 					if (line_height < height) {
 						// try use to max value
-						line_height = Float32::min(rawLineHeight * _limit_range.end.y(), height);
+						line_height = Float32::min(rawLineHeight * _limit_range.max.y(), height);
 					}
 				} else {
 					return set_line_height(top, bottom); // use auto
@@ -282,8 +285,8 @@ namespace qk {
 		finish_text_blob_pre();
 		finish_line();
 
-		float host_width = _host_float_x ?
-			Float32::max(_core->_max_width, _limit_range.begin.x()): _limit_range.end.x();
+		float host_width = _float_width ?
+			Float32::max(_core->_max_width, _limit_range.min.x()): _limit_range.max.x();
 		int lineNum = 0;
 
 		for (auto &line: **_core) {
