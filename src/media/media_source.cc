@@ -92,7 +92,7 @@ namespace qk {
 				str.time_base[0] = stream->time_base.num;
 				str.time_base[1] = stream->time_base.den;
 
-				Hash5381 hash;
+				Hash hash;
 				hash.updateu32(str.codec_tag);
 				hash.updateu32(str.format);
 				hash.updateu32(str.width);

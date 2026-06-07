@@ -11,11 +11,11 @@ layout(location=1) out vec2 position;
 void main() {
 	aaSide = aaSideIn;
 	position = vertexIn.xy;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag
-#define Qk_FLAG_COUNT2 (1u << 2)
+#define Qk_FLAG_COUNT2 (1u << 3)
 
 layout(location=1) in vec2 position;
 
@@ -52,7 +52,7 @@ void main() {
 		fragColor = mix(colors[s], colors[e], w);
 	}
 	fragColor *= pc.color;
-	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
 
+	Qk_aaSideCoverage();
 	Qk_CLIP(); // apply clip mask if needed
 }

@@ -110,7 +110,7 @@ namespace qk {
 		_visible_area = false;
 
 		String value(_value); // safe hold
-		TextBlobBuilder(lines, this, &_blob).make(value);
+		TextBlobBuilder(this, lines, &_blob).make(value);
 
 		auto v = first_rt();
 		while(v) {

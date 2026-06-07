@@ -48,14 +48,14 @@ namespace qk {
 			case kSDF_F32_ColorType:
 			case kSDF_Unsigned_F32_ColorType:
 				return MTLPixelFormatR32Float;
+			case kRGB_565_ColorType:
+				return MTLPixelFormatB5G6R5Unorm;
+			case kRGBA_5551_ColorType:
+				return MTLPixelFormatA1BGR5Unorm;
+			case kRGBA_4444_ColorType:
+			case kRGB_444X_ColorType:
+				return MTLPixelFormatABGR4Unorm;
 		#if Qk_iOS
-			// case kRGB_565_ColorType:
-			// 	return MTLPixelFormatB5G6R5Unorm;
-			// case kRGBA_4444_ColorType:
-			// case kRGB_444X_ColorType:
-			// 	return MTLPixelFormatABGR4Unorm;
-			// case kRGBA_5551_ColorType:
-			// 	return MTLPixelFormatA1BGR5Unorm;
 			// Packed 565/4444/5551 formats are intentionally not mapped here.
 			// They are awkward across Metal/macOS SDK versions and easy to mismatch in bit layout.
 			case kPVRTCI_2BPP_RGB_ColorType:
@@ -406,8 +406,12 @@ namespace qk {
 				continue;
 			auto width = (NSUInteger)p->width();
 			auto height = (NSUInteger)p->height();
-			auto bytesPerRow = width * Pixel::bytes_per_pixel(type);
-			auto uploadSize = bytesPerRow * height;
+			auto bytesPerRow = (NSUInteger)p->rowbytes();
+			auto uploadSize = (NSUInteger)p->bytes();
+			if (!bytesPerRow || !uploadSize || uploadSize > p->length()) {
+				[blit endEncoding];
+				return false;
+			}
 
 			auto buff = [_device newBufferWithBytes:p->val()
 																			length:uploadSize
@@ -509,7 +513,7 @@ namespace qk {
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
 
-		desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+		// desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
 		// desc.stencilAttachmentPixelFormat = MTLPixelFormatInvalid;
 		// desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 
@@ -582,7 +586,7 @@ namespace qk {
 		, _resource(nil)
 		, _mtlcanvas(nil)
 		, _device(nil), _commandQueue(nil), _emptyBuffer(nil)
-		, _nearestSampler(nil), _linearSampler(nil), _vportCpPipeline(nil), _depthOnly(nil)
+		, _nearestSampler(nil), _linearSampler(nil), _vportCpPipeline(nil)
 	{
 		_resource = getSharedRenderMetalResource();
 		_device = _resource->_device;
@@ -599,14 +603,6 @@ namespace qk {
 		_nearestSampler = _resource->get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = _resource->get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kLinearNearest_MipmapMode);
 		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm, 1);
-
-		// pre-create depth stencil state for depth-only rendering
-		auto *desc = [MTLDepthStencilDescriptor new];
-		desc.depthCompareFunction = MTLCompareFunctionGreater;
-		desc.depthWriteEnabled = YES;
-		desc.frontFaceStencil = nil; // No stencil test.
-		desc.backFaceStencil = nil;
-		_depthOnly = [_device newDepthStencilStateWithDescriptor:desc];
 	}
 
 	MetalRender::~MetalRender() {
@@ -614,12 +610,11 @@ namespace qk {
 	}
 
 	void MetalRender::release() {
-		Qk_CHECK(_mtlcanvas->ref_count() == 1,
-			"MetalCanvas still has reference, ref count: %d", _mtlcanvas->ref_count());
+		Qk_CHECK(_mtlcanvas->refCount() == 1,
+			"MetalCanvas still has reference, ref count: %d", _mtlcanvas->refCount());
 		_nearestSampler = nil; // release aa clip sampler reference
 		_linearSampler = nil;
 		_vportCpPipeline = nil;
-		_depthOnly = nil;
 		Releasep(_mtlcanvas); // release canvas and set to nullptr
 		_canvas = nullptr; // clear canvas reference
 		_commandQueue = nil; // release command queue reference

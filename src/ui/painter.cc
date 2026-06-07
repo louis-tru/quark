@@ -47,7 +47,8 @@
 
 #define _Border(v) auto _border = v->_border.load()
 #define _IfBorder(v) _Border(v); if (_border)
-#define _IfNotBorder(v) _Border(v); if (!_border) return
+#define _IfNotBorder(v) _Border(v); if (!_border)
+#define _IfNotBorderReturn(v, ...) _IfNotBorder(v) { __VA_ARGS__ return; }
 
 namespace qk {
 	constexpr BlendMode defaultBlendMode = kSrcOver_BlendMode;
@@ -62,7 +63,6 @@ namespace qk {
 		, _delayCmdsAllocator()
 		, _delayCmds(nullptr)
 	{
-		_isMsaa = _window->render()->options().msaaSample;
 		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
 		_delayCmdsStack.push_back(DelayCmdMap(
@@ -77,12 +77,10 @@ namespace qk {
 
 	void Painter::set_origin(Vec2 origin) {
 		_origin = -origin;
-		_originAA = _AAShrinkHalf - origin;
 	}
 
 	void Painter::set_origin_reverse(Vec2 origin) {
 		_origin = origin;
-		_originAA = _AAShrinkHalf + origin;
 	}
 
 	inline static bool is_not_Zero(const float radius[4]) {
@@ -91,63 +89,19 @@ namespace qk {
 	}
 
 	Rect Painter::getRect(Box* box) {
-		return box->_aa ? Rect{
-			_originAA, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
-		}: Rect{
-			_origin, {box->_client_size[0],box->_client_size[1]},
-		};
+		return {_origin, {box->_client_size[0], box->_client_size[1]}};
 	}
 
-	void Painter::getInsideRectPath(Box *box) {
-		if (_boxData.inside)
-			return;
-		auto rect = getRect(box);
-		auto radius = &box->_border_top_left_radius;
-		_IfBorder(box) {
-			auto border = _border->width;
-			Hash5381 hash;
-			hash.updatefv4(rect.begin.val);
-			hash.updatefv4(radius);
-			hash.updatefv4(border);
-
-			_boxData.inside = _cache->getRRectPathFromHash(hash.hashCode());
-			if (_boxData.inside)
-				return;
-
-			auto radiusLimit = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-			auto  borderFix = border;
-			float borderFixStore[4];
-			if (box->_aa) {
-				// TODO: The interior and the border cannot fit completely,
-				// causing anti-aliasing to fail at 1 to 2 pixels,
-				// so temporarily reduce the interior frame to 0.75
-				float AAShrink = _AAShrinkBorder * 0.75;
-				borderFixStore[0] = Float32::max(0, border[0]-AAShrink);
-				borderFixStore[1] = Float32::max(0, border[1]-AAShrink);
-				borderFixStore[2] = Float32::max(0, border[2]-AAShrink);
-				borderFixStore[3] = Float32::max(0, border[3]-AAShrink);
-				borderFix = borderFixStore;
-			}
-			rect.begin[0] += borderFix[3]; // left
-			rect.begin[1] += borderFix[0]; // top
-			rect.size  [0] -= borderFix[3] + borderFix[1]; // left + right
-			rect.size  [1] -= borderFix[0] + borderFix[2]; // top + bottom
-
-			if (is_not_Zero(radius)) {
-				float leftTop     = Qk_Min(radius[0],radiusLimit), rightTop   = Qk_Min(radius[1],radiusLimit);
-				float rightBottom = Qk_Min(radius[2],radiusLimit), leftBottom = Qk_Min(radius[3],radiusLimit);
-				Path::BorderRadius br{
-					{leftTop-border[3],     leftTop-border[0]},     {rightTop-border[1],  rightTop-border[0]},
-					{rightBottom-border[1], rightBottom-border[2]}, {leftBottom-border[3], leftBottom-border[2]},
-				};
-				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
+	void Painter::getInsideRectPath(Box *v) {
+		if (!_boxData.inside) {
+			auto rect = getRect(v);
+			auto radius = &v->_border_top_left_radius;
+			_IfBorder(v) {
+				_boxData.inside = &_cache->getInsideRRectPath(rect, radius, _border->width);
 			} else {
-				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+				_boxData.inside = &_cache->getInsideRRectPath(rect, radius, nullptr);
+				_boxData.outside = _boxData.inside; // if no border then inside path is same as outside path
 			}
-		} else if (is_not_Zero(radius)) {
-			_boxData.inside = &_cache->getRRectPath(rect, radius);
-		} else {
-			_boxData.inside = &_cache->getRectPath(rect);
 		}
 	}
 
@@ -155,55 +109,22 @@ namespace qk {
 		if (!_boxData.outside) {
 			auto rect = getRect(v);
 			auto radius = &v->_border_top_left_radius;
-			if (is_not_Zero(radius)) {
-				_boxData.outside = &_cache->getRRectPath(rect, radius);
-			} else {
-				_boxData.outside = &_cache->getRectPath(rect);
+			_boxData.outside = &_cache->getRRectPath(rect, radius);
+			_IfNotBorder(v) {
+				_boxData.inside = _boxData.outside;
 			}
 		}
 	}
 
 	void Painter::getRRectOutlinePath(Box *v) {
-		if (!_boxData.outline) {
-			_Border(v);
-			// if border is zero, outline is null
-			if (is_not_Zero(_border->width)) {
-				auto rect = getRect(v);
-				auto border = _border->width;
-				auto radius = &v->_border_top_left_radius;
-
-				Hash5381 hash;
-				hash.updatefv4(rect.begin.val);
-				hash.updatefv4(border);
-				hash.updatefv4(radius);
-
-				_boxData.outline = _cache->getRRectOutlinePathFromHash(hash.hashCode());
-				if (_boxData.outline)
-					return;
-
-				auto  borderFix = border;
-				float borderFixStore[4];
-				if (v->_aa) {
-					float AAShrink = _AAShrinkBorder;
-					borderFixStore[0] = Float32::max(0, border[0]-AAShrink);
-					borderFixStore[1] = Float32::max(0, border[1]-AAShrink);
-					borderFixStore[2] = Float32::max(0, border[2]-AAShrink);
-					borderFixStore[3] = Float32::max(0, border[3]-AAShrink);
-					borderFix = borderFixStore;
-				}
-				if (is_not_Zero(radius)) {
-					float radiusLimit = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-					Path::BorderRadius br{
-						{Qk_Min(radius[0],radiusLimit)}, {Qk_Min(radius[1],radiusLimit)},
-						{Qk_Min(radius[2],radiusLimit)}, {Qk_Min(radius[3],radiusLimit)},
-					};
-					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
-							RectOutlinePath::MakeRRectOutline(rect, borderFix, br));
-				} else {
-					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
-							RectOutlinePath::MakeRectOutline(rect, borderFix));
-				}
-			}
+		if (_boxData.outline)
+			return;
+		_Border(v);
+		// if border is zero, outline is null
+		if (_border && is_not_Zero(_border->width)) {
+			auto rect = getRect(v);
+			auto radius = &v->_border_top_left_radius;
+			_boxData.outline = &_cache->getRRectOutlinePath(rect, _border->width, radius);
 		}
 	}
 
@@ -211,70 +132,26 @@ namespace qk {
 		if (!v->_color.a())
 			return;
 		drawBoxShadow(v);
-
-		_IfNotBorder(v) ({
-			drawBoxColor(v);
-			drawBoxFill(v);
-		});
-
-		auto addBatch = [](PathvBatchs &out, Color color, const qk::Pathv *pv) {
-			auto key = reinterpret_cast<uint32_t&>(color);
-			int i = 0;
-			for (; i < out.total; i++) {
-				auto &it = out.indexed[i];
-				if (it.key == key) {
-					it.pathv[it.count++] = pv;
-					return;
-				}
-			}
-			auto &it = out.indexed[i];
-			it.key = key;
-			it.color = color;
-			it.pathv[it.count++] = pv;
-			out.total++;
-		};
-
-		if (v->background()) {
-			drawBoxColor(v);
-			drawBoxFill(v);
-		}
-		else if (v->_background_color.a()) {
-			getInsideRectPath(v);
-			addBatch(_pathvs, v->_background_color, _boxData.inside);
-		}
-
+		drawBoxColor(v);
+		drawBoxFill(v);
 		getRRectOutlinePath(v);
 
 		if (_boxData.outline) {
+			_Border(v);
+			Qk_ASSERT(_border, "border should not be null when outline is not null");
 			Paint paint;
+			paint.fill.color = _color;
 			paint.antiAlias = v->_aa;
-			paint.style = Paint::kStroke_Style;
-			for (int i = 0; i < 4; i++) {
-				if (_border->width[i] && _border->color[i].a()) {
-					auto pv = &_boxData.outline->top + i;
-					if (pv->vCount) {
-						addBatch(_pathvs, _border->color[i], pv);
-					} else { // too thin, draw only a little stroke
-						paint.stroke.color = _border->color[i].mul_color4f(_color);
-						paint.strokeWidth = _border->width[i];
-						_canvas->drawPath(pv->path, paint);
-					}
-				}
-			}
-		}
-
-		if (_pathvs.total) {
-			for (int i = 0; i < _pathvs.total; i++) {
-				auto & it = _pathvs.indexed[i];
-				_canvas->drawPathvColors(it.pathv, it.count,
-					it.color.mul_color4f(_color), defaultBlendMode, v->_aa);
-			}
-			_pathvs = {0}; // reset batch
+			Color4f colors[4] = {
+				_border->color[0].to_color4f(), _border->color[1].to_color4f(),
+				_border->color[2].to_color4f(), _border->color[3].to_color4f()
+			};
+			_canvas->drawRectOutlinePath(*_boxData.outline, colors, paint);
 		}
 	}
 
 	void Painter::drawBoxBorder(Box *v) {
-		_IfNotBorder(v);
+		_IfNotBorderReturn(v);
 		getRRectOutlinePath(v);
 		if (_boxData.outline) {
 			Paint paint;
@@ -282,13 +159,7 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) { // top
 					auto pv = &_boxData.outline->top + i;
-					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), defaultBlendMode, v->_aa);
-					} else { // stroke
-						paint.stroke.color = _border->color[i].mul_color4f(_color);
-						paint.strokeWidth = _border->width[i];
-						_canvas->drawPath(pv->path, paint);
-					}
+					_canvas->drawPathColor(*pv, _border->color[i].mul_color4f(_color), defaultBlendMode, v->_aa);
 				}
 			}
 		}
@@ -353,13 +224,10 @@ namespace qk {
 		auto inside = _boxData.inside;
 		auto rect = inside->rect;
 
-		auto clip = [](Painter *self, Box *v, Vec2 a, Vec2 &b) {
+		auto clip = [](Vec2 a, Vec2 &b) {
 			auto a0 = a.x(), a1 = a0 + a.y();
 			if (a.y() < 0)
 				std::swap(a0, a1);
-			// if (v->_aa) {
-			// 	a0 += self->_AAShrink * 0.5f; a1 -= self->_AAShrink;
-			// }
 			// clip rect
 			auto max = std::min(a1, b.x() + b.y());
 			auto min = std::max(a0, b.x());
@@ -388,9 +256,9 @@ namespace qk {
 				img.tileModeX = PaintImage::kRepeat_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
 			try_clipY:
-				if (!inside->rrectMask) { // no need clip if rrectMask
+				if (!inside->flags) { // no need clip if rrectMask
 					Vec2 out{rect.begin.y(), rect.size.y()};
-					if (clip(this, v, {y,h}, out)) // clip y
+					if (clip({y,h}, out)) // clip y
 						return;
 					inside = &_cache->getRectPath({{rect.begin.x(), out.x()}, {rect.size.x(), out.y()}});
 				}
@@ -400,9 +268,9 @@ namespace qk {
 				//img.tileModeX = PaintImage::kClamp_TileMode;
 				img.tileModeY = PaintImage::kRepeat_TileMode;
 			try_clipX:
-				if (!inside->rrectMask) {
+				if (!inside->flags) {
 					Vec2 out{rect.begin.x(), rect.size.x()};
-					if (clip(this, v, {x,w}, out)) // clip x
+					if (clip({x,w}, out)) // clip x
 						return;
 					inside = &_cache->getRectPath({{out.x(), rect.begin.y()}, {out.y(), rect.size.y()}});
 				}
@@ -410,10 +278,10 @@ namespace qk {
 			case Repeat::NoRepeat:
 				img.tileModeX = PaintImage::kDecal_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
-				if (!inside->rrectMask) {
+				if (!inside->flags) {
 					Vec2 outX{rect.begin.x(), rect.size.x()};
 					Vec2 outY{rect.begin.y(), rect.size.y()};
-					if (clip(this, v, {x,w}, outX) || clip(this, v, {y,h}, outY))
+					if (clip({x,w}, outX) || clip({y,h}, outY))
 						return;
 					inside = &_cache->getRectPath({{outX.x(), outY.x()}, {outX.y(), outY.y()}});
 				}
@@ -426,7 +294,7 @@ namespace qk {
 		// img.mipmapMode = PaintImage::kNone_MipmapMode;
 		img.setImage(src.get(), {{x,y}, {w,h}});
 
-		_canvas->drawPathv(*inside, paint);
+		_canvas->drawPath(*inside, paint);
 	}
 
 	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill) {
@@ -479,7 +347,7 @@ namespace qk {
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
 
-		_canvas->drawPathv(*_boxData.inside, paint);
+		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
 	void Painter::drawBoxFillRadial(Box *v, FillGradientRadial *fill) {
@@ -497,7 +365,7 @@ namespace qk {
 		paint.antiAlias = v->_aa;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
-		_canvas->drawPathv(*_boxData.inside, paint);
+		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
 	void Painter::drawBoxShadow(Box *v) {
@@ -506,7 +374,7 @@ namespace qk {
 			return;
 		getOutsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPathv(*_boxData.outside, Canvas::kDifference_ClipOp, false);
+		_canvas->clipPath(*_boxData.outside, Canvas::kDifference_ClipOp, false);
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
@@ -524,13 +392,9 @@ namespace qk {
 		if (!v->_background_color.a())
 			return;
 		getInsideRectPath(v);
-		_canvas->drawPathvColor(*_boxData.inside,
+		_canvas->drawPathColor(*_boxData.inside,
 			v->_background_color.mul_color4f(_color), kSrcOver_BlendMode, v->_aa
 		);
-		//Paint paint;
-		//paint.antiAlias = true;
-		//paint.color = box->_background_color.mul_color4f(_color);
-		//_canvas->drawPathv(*data.inside, paint);
 	}
 
 	void Painter::drawScrollBar(ScrollView *v) {
@@ -552,7 +416,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {_border->width[3], -_border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
@@ -564,7 +428,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {-_border->width[3], _border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 		}
 	}
@@ -591,7 +455,7 @@ namespace qk {
 					},
 					{blob.blob.offset.back().x()-offset_x, blob.height},
 				});
-				_canvas->drawPathvColor(rect, color, defaultBlendMode, true);
+				_canvas->drawPathColor(rect, color, defaultBlendMode, true);
 			}
 		}
 
@@ -670,9 +534,9 @@ namespace qk {
 							_color = v->_color.mul_color4f(lastColor); break;
 					}
 					if (Qk_LIKELY(v->_z_index == 0)) {
-						v->draw(this); // draw immediately
+						v->draw(this); // can draw directly if z_index is zero
 					} else {
-						// commit delay draw command
+						// commit delay draw command to draw later by z_index
 						_delayCmds->insert({v->_z_index, { v, _matrix, _color, _mark_recursive }});
 					}
 				}
@@ -697,20 +561,20 @@ namespace qk {
 	void Painter::visitAndClipBox(Box *v, DrawCallback cb) {
 		getInsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPathv(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
+		_canvas->clipPath(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
 		_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
 		_delayCmdsStack.push_back(DelayCmdMap(
 			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
 		));
-		_delayCmds = &_delayCmdsStack.back();
+		_delayCmds = &_delayCmdsStack.back(); // set current cmds
 		if (cb)
 			cb(this, v);
 		visitView(v); // draw children views
-		flushDelayDrawCommands();
-		_delayCmdsStack.pop_back();
-		_delayCmds = &_delayCmdsStack.back();
-		_window->clipRestore();
-		_canvas->restore(); // cancel clip
+		flushDelayDrawCommands(); // flush delay cmds
+		_delayCmdsStack.pop_back(); // pop current cmds
+		_delayCmds = &_delayCmdsStack.back(); // restore parent cmds
+		_window->clipRestore(); // restore clip
+		_canvas->restore(); // restore state
 	}
 
 	void Painter::visitBox(Box *v) {
@@ -728,17 +592,18 @@ namespace qk {
 		auto lastMatrix = _matrix; // save matrix
 		auto lastColor = _color; // save color
 		auto lastMarkRecursive = _mark_recursive; // save recursive mark
+		auto begin = _delayCmds->begin();
 		do {
-			// move cmds to avoid re-entrance issue
-			DelayCmdMap cmds(std::move(*_delayCmds));
-			for (auto &it: cmds) {
-				auto &cmd = it.second;
-				set_matrix(cmd.matrix);
-				_color = cmd.color;
-				_mark_recursive = cmd.mark_recursive;
-				cmd.view->draw(this);
-			}
-		} while(_delayCmds->size());
+			auto &cmd = begin->second;
+			auto view = cmd.view;
+			// restore cmd state before draw
+			set_matrix(cmd.matrix);
+			_color = cmd.color;
+			_mark_recursive = cmd.mark_recursive;
+			_delayCmds->erase(begin); // erase cmd
+			view->draw(this);
+			begin = _delayCmds->begin(); // get next cmd
+		} while (begin != _delayCmds->end());
 		_mark_recursive = lastMarkRecursive; // restore last recursive mark
 		_color = lastColor; // restore last color
 		_matrix = lastMatrix; // restore last matrix
@@ -775,7 +640,7 @@ namespace qk {
 			img.filterMode = default_FilterMode;
 			img.mipmapMode = default_MipmapMode;
 			img.setImage(src.get(), draw->boxData().inside->rect);
-			draw->canvas()->drawPathv(*draw->boxData().inside, paint);
+			draw->canvas()->drawPath(*draw->boxData().inside, paint);
 		}
 		draw->visitBox(this);
 	}
@@ -833,7 +698,7 @@ namespace qk {
 		if (clip) {
 			draw->getInsideRectPath(this);
 			canvas->save();
-			canvas->clipPathv(*draw->boxData().inside, Canvas::kIntersect_ClipOp, aa()); // clip
+			canvas->clipPath(*draw->boxData().inside, Canvas::kIntersect_ClipOp, aa()); // clip
 		}
 
 		if (visible) {
@@ -844,7 +709,7 @@ namespace qk {
 				auto offset_x = blob.blob.offset.front().x();
 				auto width = blob.blob.offset.back().x();
 				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
-				canvas->drawPathvColor(rect, color, defaultBlendMode, true);
+				canvas->drawPathColor(rect, color, defaultBlendMode, true);
 			};
 			auto size = font_size().value;
 			auto shadow = text_shadow().value;
@@ -907,7 +772,7 @@ namespace qk {
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
-			canvas->drawPathvColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlendMode, true);
+			canvas->drawPathColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlendMode, true);
 		}
 
 		if (clip) {
@@ -955,14 +820,6 @@ namespace qk {
 				painter->_tempAllocator[1].reset(); // reset temp allocator
 				painter->_delayCmdsAllocator.reset(); // reset delay cmds allocator
 				painter->resetBoxData();
-				// Fix rect aa stroke width
-				auto AAShrink_half = painter->_isMsaa ? 0: 0.43f / _window->scale(); // fix aa stroke width, 0.4-0.5
-				//auto AAShrink_half = painter->_isMsaa ? 0: 0.5f / _window->scale();
-				auto AAShrink = AAShrink_half + AAShrink_half;
-				auto AAShrinkBorder_half = painter->_isMsaa ? 0: 0.02f / _window->scale(); // plus 0.02 to avoid aa gap
-				painter->_AAShrink = AAShrink;
-				painter->_AAShrinkHalf = AAShrink_half;
-				painter->_AAShrinkBorder = AAShrink + AAShrinkBorder_half + AAShrinkBorder_half;
 				painter->_color = color().to_color4f();
 				painter->set_origin(origin_value());
 				painter->set_matrix(&matrix());

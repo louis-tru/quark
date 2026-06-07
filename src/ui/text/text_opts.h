@@ -116,6 +116,7 @@ namespace qk {
 
 		Vec2 compute_layout_size(cString& value, Vec2 limit);
 
+		TextOptions(TextOptions *inherit);
 		TextOptions();
 		~TextOptions();
 	protected:

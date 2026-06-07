@@ -78,7 +78,7 @@ namespace qk {
 			_lines = lines.core();
 
 			String value(_value); // safe hold
-			TextBlobBuilder(&lines, this, &_blob).make(value);
+			TextBlobBuilder(this, &lines, &_blob).make(value);
 
 			auto v = first_rt();
 			if (v) {

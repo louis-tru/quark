@@ -74,6 +74,15 @@ namespace qk {
 		if (num != 1 && num != 3)
 			return false;
 
+		bool gray = num == 1;
+		if (gray) {
+			jpeg.out_color_space = JCS_GRAYSCALE;
+		} else {
+			num = 4;
+			// output RGBA, but the alpha channel is not used and set to 255
+			jpeg.out_color_space = JCS_EXT_RGBA;
+		}
+
 		jpeg_start_decompress(&jpeg);
 
 		uint32_t rowbytes = w * num;
@@ -85,7 +94,10 @@ namespace qk {
 			jpeg_read_scanlines(&jpeg, &row, 1);
 		}
 
-		PixelInfo info(w, h, num == 1 ? kGray_8_ColorType: kRGB_888_ColorType, kOpaque_AlphaType);
+		PixelInfo info(w, h,
+			gray ? kGray_8_ColorType: kRGB_888X_ColorType,
+			kOpaque_AlphaType
+		);
 
 		rv->push(Pixel(info, buff));
 

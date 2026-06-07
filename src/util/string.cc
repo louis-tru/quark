@@ -374,7 +374,7 @@ namespace qk {
 		return String(std::move(buff));
 	}
 
-	String Object::to_string() const {
+	String Object::toString() const {
 		static String str("[object]");
 		return str;
 	}
@@ -387,13 +387,13 @@ namespace qk {
 		} else if (sizeOf == 4) { // uint32_t
 			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len).buffer());
 		} else {
-			Qk_Fatal("I won't support it, to_string");
+			Qk_Fatal("I won't support it, toString");
 			return String();
 		}
 	}
 
 	template <>
-	String StringImpl<>::to_string() const {
+	String StringImpl<>::toString() const {
 		return *this;
 	}
 

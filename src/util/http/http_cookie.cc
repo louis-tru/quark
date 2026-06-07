@@ -71,7 +71,7 @@ namespace qk {
 
 		// Reverse domain: com/example/www
 		auto arr = domain.trim().split('.'); // Split by "."
-		for (int i = Qk_Minus(arr.length(), 1); i > -1; i--) {
+		for (int i = arr.length() - 1; i > -1; i--) {
 			if (!arr[i].is_empty()) {
 				r.append('/').append(arr[i]);
 			}
@@ -106,7 +106,7 @@ namespace qk {
 		Array<String> levels({secure ? "1" : "0"}); // www.example.com -> [0/com/example/, www]
 		// Reverse domain: com/example/www
 		auto arr = domain.trim().split('.'); // Split by "."
-		int i = Qk_Minus(arr.length(), 1);
+		int i = arr.length() - 1;
 		for (int j = Qk_Max(i - 2, -1); i > j; i--) {
 			if (!arr[i].is_empty())
 				levels[0].append('/').append(arr[i]);

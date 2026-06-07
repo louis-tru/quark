@@ -125,14 +125,15 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(pts) );
 			});
 			Js_Class_Method(getTriangles, {
-				Js_Parse_Args(float, 0, "path.getTriangles(epsilon?)", (1.0f));
-				auto vertex = self->getTriangles(arg0).vertex;
+				Js_Parse_Args(float, 0, "path.getTriangles(epsilon?,z?)", (1.0f));
+				Js_Parse_Args(float, 1, "path.getTriangles(epsilon?,z?)", (0.0f));
+				auto vertex = self->getTriangles(arg0, arg1).vertex;
 				Js_Return( worker->types()->jsvalue(vertex) );
 			});
-			Js_Class_Method(getAASideStrokeTriangle, {
-				Js_Parse_Args(float, 0, "path.getAASideStrokeTriangle(width,epsilon?)");
-				Js_Parse_Args(float, 1, "path.getAASideStrokeTriangle(width,epsilon?)", (1.0f));
-				auto vertex = self->getAASideStrokeTriangle(arg0, arg1).vertex;
+			Js_Class_Method(getAASideTriangle, {
+				Js_Parse_Args(float, 0, "path.getAASideTriangle(width,epsilon?)");
+				Js_Parse_Args(float, 1, "path.getAASideTriangle(width,epsilon?)", (1.0f));
+				auto vertex = self->getAASideTriangle(arg0, arg1).vertex;
 				Js_Return( worker->types()->jsvalue(vertex) );
 			});
 			Js_Class_Method(dashPath, {

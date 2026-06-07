@@ -145,7 +145,7 @@ namespace qk {
 		uint32_t to_uint32() const;
 		uint64_t to_uint64() const;
 		double to_double()   const;
-		String to_string()   const;
+		String toString()   const;
 
 		int string_length() const;
 		

@@ -122,29 +122,9 @@ namespace qk
 		const VertexData& getPathTriangles(const Path &path);
 
 		/**
-		 * @dev get aa side stroke path triangle cache
+		 * @dev get aa side path triangle cache
 		*/
-		const VertexData& getAASideStrokeTriangle(const Path &path, float width);
-
-		/**
-		 * @dev get radius rect path cache from hash code
-		*/
-		const RectPath* getRRectPathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set radius rect path cache from hash code
-		*/
-		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
-
-		/**
-		 * @dev get radius rect outline path cache from hash code
-		*/
-		const RectOutlinePath* getRRectOutlinePathFromHash(uint64_t hash);
-
-		/**
-		 * @dev set rect outline path cache from hash code
-		*/
-		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
+		const VertexData& getAASideTriangle(const Path &path, float radius, bool onlyAASide = false);
 
 		/**
 		 * @dev get rect path cache
@@ -166,6 +146,14 @@ namespace qk
 		const RectPath& getRRectPath(const Rect &rect, const float radius[4]);
 
 		/**
+		 * @dev get the inside radius rect path cache and limit radius size
+		 * @param rect {Rect} rect outer border rect
+		 * @param radius {float[4]} border radius leftTop,rightTop,rightBottom,leftBottom
+		 * @param border {float[4]} border width top,right,bottom,left
+		 */
+		const RectPath& getInsideRRectPath(const Rect &rect, const float radius[4], const float border[4]);
+
+		/**
 		 * @dev get radius rect outline path cache and limit radius size
 		 * @param rect {Rect} outside border rect
 		 * @param border {float[4]} inside border width top,right,bottom,left
@@ -181,6 +169,16 @@ namespace qk
 		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
 
 	protected:
+		/**
+		 * @dev set radius rect path cache from hash code
+		*/
+		const RectPath& setRRectPathFromHash(uint64_t hash, RectPath&& rect);
+
+		/**
+		 * @dev set rect outline path cache from hash code
+		*/
+		const RectOutlinePath& setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline);
+
 		/**
 		 * @dev Clear cached path data.
 		 * @param flags Clear mode:
@@ -201,11 +199,11 @@ namespace qk
 		void clearPart(uint32_t capacity);
 		RenderResource *_render; // render resource for GPU cache management
 		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
-		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
-		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
-		Dict<uint64_t, Wrap<VertexData>*> _AASideStrokeTriangleCache; // path hash => aa side stroke triangles
-		Dict<uint64_t, Wrap<RectPath>*> _RectPathCache; // rect hash => rect path
-		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _RectOutlinePathCache; // rect hash => rect outline path
+		Dict<uint64_t, Path*> _normalizedPath, _strokePath; // path hash => path
+		Dict<uint64_t, Wrap<VertexData>*> _pathTriangles; // path hash => triangles
+		Dict<uint64_t, Wrap<VertexData>*> _aaSideTriangle; // path hash => aa side triangles
+		Dict<uint64_t, Wrap<RectPath>*> _rectPath; // rect hash => rect path
+		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _rectOutlinePath; // rect hash => rect outline path
 
 		friend class RenderResource;
 	};

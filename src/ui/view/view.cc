@@ -65,17 +65,17 @@ namespace qk {
 
 	typedef View::Container Container;
 
-	Range Container::to_range() const {
-		Vec2 origin(content), end(content);
+	LimitRange Container::to_range() const {
+		LimitRange range = { content, content };
 		if (state_x == kNone_FloatState) {
-			origin[0] = pre_width_min;
-			end[0] = pre_width_max;
+			range.min[0] = pre_width_min;
+			range.max[0] = pre_width_max;
 		}
 		if (state_y == kNone_FloatState) {
-			origin[1] = pre_height_min;
-			end[1] = pre_height_max;
+			range.min[1] = pre_height_min;
+			range.max[1] = pre_height_max;
 		}
-		return { origin,end };
+		return range;
 	}
 
 	float Container::clamp_width(float value) const {

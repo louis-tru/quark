@@ -81,12 +81,11 @@ namespace qk {
 		struct Cmd { // Cmd list
 			uint32_t       size; // cmd size
 			CmdType        type; // cmd type
-			bool           isClip, isPMA; // is cmd with clip state, is premultiplied alpha
+			uint32_t       flags; // cmd flags, maybe used for AA, etc
 		};
 
 		struct DrawCmd: Cmd { // draw base cmd
 			VertexData     vertex;
-			float          depth;
 		};
 
 		struct alignas(void*) MatrixCmd: Cmd {
@@ -103,13 +102,11 @@ namespace qk {
 		};
 
 		struct alignas(void*) ClearCmd: Cmd {
-			float          depth;
 			Color4f        color;
-			GC_ClearFlags  flags; // 0-clear and blend, 1-clear color, 2-clear color/depth/stencil
+			GC_ClearFlags  flags;
 		};
 
 		struct alignas(void*) ClipCmd: DrawCmd { //!
-			VertexData      aaSide;
 			Sp<GC_State::Clip> lastClip;
 			Sp<GC_State::Clip> clip;
 			Sp<ImageSource> recover;
@@ -118,14 +115,12 @@ namespace qk {
 		};
 
 		struct alignas(void*) BlurFilterBeginCmd: Cmd {
-			float           depth;
 			Range           bounds;
 			Mat4            blurRootMatrix;
 			Sp<ImageSource> tmpA; // temporary blur textures
 		};
 
 		struct alignas(void*) BlurFilterEndCmd: Cmd {
-			float           depth;
 			Range           bounds;
 			float           radius, clearPad; // blur radius, clear padding for blur edge
 			float           surfaceScale; // canvas surface scale
@@ -142,7 +137,6 @@ namespace qk {
 		};
 
 		struct alignas(void*) ColorRRectBlurCmd: Cmd { //!
-			float      depth;
 			Rect       rect;
 			float      radius[4];
 			Color4f    color;
@@ -173,9 +167,9 @@ namespace qk {
 
 		struct alignas(void*) ColorBatchCmd: Cmd {
 			struct Option { // subcmd option
-				int          flags; // reserve
-				float        depth; // depth
 				Mat          matrix; // 2d mat2x3
+				int          flags; // flags maybe used for AA, etc
+				int          _pad; // padding for std140 alignment
 				Color4f      color;  // color
 			}; // 48b
 			Vec4           *vertex; // vertex + option index
@@ -187,7 +181,6 @@ namespace qk {
 		struct alignas(void*) TrianglesCmd: Cmd {
 			Triangles      triangles;
 			PaintImage     paint;
-			float          depth;
 			Color4f        color;
 			bool           copyData;
 			~TrianglesCmd();
@@ -199,7 +192,6 @@ namespace qk {
 			Sp<ImageSource> dest;
 			Vec2            canvasSize;
 			Vec2            surfaceSize;
-			float           depth;
 		};
 
 		struct alignas(void*) OutputImageBeginCmd: Cmd {
@@ -248,8 +240,7 @@ namespace qk {
 				const Color4f &strokeColor, float stroke);
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color);
-		void drawClip(const VertexData &vertex, const VertexData &aaSide, GC_State::Clip *lastClip,
-				GC_State::Clip *clip, Canvas::ClipOp rawOp);
+		void drawClip(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp);
 		void clearColor(const Color4f &color, GC_ClearFlags flags);
 		void blurFilterBegin(Range bounds, Mat4 &rootMat, ImageSource *tmpA);
 		void blurFilterEnd(Range bounds, float radius, float clearPad, int sample, int imageLod,

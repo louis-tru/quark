@@ -39,7 +39,7 @@ namespace qk {
 		, _render(render)
 		, _device(nil), _commandQueue(nil)
 		, _cmdPack{}, _cmdPackFront{}
-		, _outTex(nil), _outColorTex(nil), _outDepthTex(nil)
+		, _outTex(nil), _outColorTex(nil)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType:
 			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
@@ -61,7 +61,6 @@ namespace qk {
 		_cmdPackFront = {}; // clear cmd packs
 		_outTex = nil; // Color render buffer object of texture
 		_outColorTex = nil; // Current active color render target texture
-		_outDepthTex = nil; // Depth stencil buffer object of texture
 		_commandQueue = nil; // Metal command queue
 		_device = nil;
 		_mutex.unlock();
@@ -100,15 +99,6 @@ namespace qk {
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = level;
 
-		Qk_ASSERT(_outDepthTex, "Output depth texture should be created before beginning a pass");
-		pass.depthAttachment.texture = _outDepthTex;
-		pass.depthAttachment.loadAction = recorded ? MTLLoadActionLoad: MTLLoadActionDontCare;
-		pass.depthAttachment.storeAction = MTLStoreActionStore;
-
-		// pass.stencilAttachment.texture = _outDepthTex;
-		// pass.stencilAttachment.loadAction = loadAction;
-		// pass.stencilAttachment.storeAction = MTLStoreActionStore;
-
 		_cmdPack.pass = pass;
 		_cmdPack.beginPass = true;
 		return pass;
@@ -135,7 +125,6 @@ namespace qk {
 			[_cmdPack.enc setFragmentBuffer:_render->_emptyBuffer offset:0 atIndex:3];
 		}
 		[_cmdPack.enc setViewport: {0, 0, _surfaceSize.x(), _surfaceSize.y(), 0, 1}];
-		[_cmdPack.enc setDepthStencilState:_render->_depthOnly];
 		return _cmdPack.enc;
 	}
 
@@ -222,9 +211,6 @@ namespace qk {
 		pass.colorAttachments[0].loadAction = MTLLoadActionDontCare;
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = 0;
-		pass.depthAttachment.texture = _outDepthTex;
-		pass.depthAttachment.loadAction = MTLLoadActionDontCare;
-		pass.depthAttachment.storeAction = MTLStoreActionDontCare;
 		auto enc = [cmd renderCommandEncoderWithDescriptor:pass];
 		setrMatrixFromEnc(enc, Mat4());
 		setvMatrixFromEnc(enc, Mat());

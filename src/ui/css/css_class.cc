@@ -296,7 +296,7 @@ namespace qk {
 		auto lastStylesHash = _stylesHash_rt.hashCode();
 
 		// Reset runtime state for re-application
-		_stylesHash_rt = Hash5381();
+		_stylesHash_rt = Hash();
 		_havePseudoType = false;
 		_parent = parent;
 		_state = _setState; // commit pseudo state
@@ -311,7 +311,7 @@ namespace qk {
 			}
 			// Reset propagation cache
 			_propagatingStyles_rt.clear();
-			_propagatingStylesHash_rt = Hash5381();
+			_propagatingStylesHash_rt = Hash();
 		};
 
 		if (_nameHash_rt.length()) {

@@ -74,8 +74,7 @@ namespace qk {
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
-		void drawClipCmd(const VertexData &vertex, const VertexData &aaSide, GC_State::Clip *lastClip,
-				GC_State::Clip *clip, ClipOp rawOp) override;
+		void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) override;
 		void restoreClipCmd(GC_State::Clip* clip) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
 		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
@@ -93,8 +92,8 @@ namespace qk {
 		void outputImageBeginCmd(ImageSource* img) override;
 		void outputImageEndCmd(ImageSource* exit) override;
 		void clearColor(const Color4f &color, const Range *range);
-		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution, float depth);
-		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, uint32_t flags);
+		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution);
+		void drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags);
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 	private:
 	// fields:
@@ -110,7 +109,6 @@ namespace qk {
 		//   tmpA / tmpB           : temporary ping-pong render targets
 		// actual render passes always write into _outColorTex.
 		MTLTextureID _outColorTex; //
-		MTLTextureID _outDepthTex; // Depth stencil buffer object of texture
 		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
 		Dict<uint32_t, MTLSampler> _texSamplers;
 		MTLBufferID _gradientBuf; // temp buffer for gradient pos and color data

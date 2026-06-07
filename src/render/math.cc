@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "./math.h"
 #include <string.h>
 #include <math.h>
-#include "./math.h"
 
 #define Qk_ARM_NEON Qk_ARCH_ARM64
 #if Qk_ARM_NEON
@@ -76,30 +76,8 @@ namespace qk {
 #endif
 	}
 
-	template<>      Vec<float,6>::Vec() {}
-	template<>      Vec<float,16>::Vec() {}
-	template<> Vec<int,2>::Vec(int f): Vec(f,f) {
-	}
-	template<> bool Vec<int,2>::operator==(const Vec& b) const {
-		return val[0] == b.val[0] && val[1] == b.val[1];
-	}
-	template<> bool Vec<float,2>::is_zero() const {
-		return val[0] == 0 && val[1] == 0;
-	}
-	template<> bool Vec<float,2>::is_zero_axis() const {
-		return val[0] == 0 || val[1] == 0;
-	}
-
 	// ------------------------------------------
 
-	Vec2::Vec2(): Vec(0,0) {
-	}
-	Vec2::Vec2(float f): Vec(f,f) {
-	}
-	// Vec2::Vec2(const Vec<float,2>& v): Vec(v) {
-	// }
-	Vec2::Vec2(float a, float b): Vec(a,b) {
-	}
 	Vec2 Vec2::operator+(const Vec<float,2>& b) const {
 		return Vec2(val[0] + b.val[0], val[1] + b.val[1]);
 	}
@@ -178,11 +156,11 @@ namespace qk {
 	}
 
 	Vec2 Vec2::rotate90z() const {
-		return Vec2{-val[1], val[0]};
+		return Vec2(-val[1], val[0]);
 	}
 
 	Vec2 Vec2::rotate270z() const { // ccw rotate 90
-		return Vec2{val[1], -val[0]};
+		return Vec2(val[1], -val[0]);
 	}
 
 	Vec2 Vec2::rotate(float radians) const {
@@ -197,31 +175,32 @@ namespace qk {
 	Vec2 Vec2::normalized() const {
 		if (val[0] == 0.0f) {
 			if (val[1] == 0.0f) {
-				return {0.0f,0.0f}; // invalid value
+				return Vec2{0.0f,0.0f}; // invalid value
 			}
-			return {
+			return Vec2{
 				0.0f, val[1] < 0.0f ? -1.0f: 1.0f
 			};
 		} else if (val[1] == 0.0f) {
-			return {
+			return Vec2{
 				val[0] < 0.0f ? -1.0f: 1.0f, 0.0f
 			};
 		}
 		float len = 1.0f / sqrtf(val[0] * val[0] + val[1] * val[1]);
-		return { val[0] * len, val[1] * len };
+		return Vec2{ val[0] * len, val[1] * len };
 	}
 
 	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next) const {
-		if (!prev) {
+		if (!prev) { // no previous, use next
 			return Vec2(next->x() - x(), next->y() - y()).normalized().rotate90z();
 		}
-		if (!next) {
+		if (!next) { // no next, use previous
 			return Vec2(x() - prev->x(), y() - prev->y()).normalized().rotate90z();
 		}
 		Vec2 toNext   = Vec2(next->x() - x(), next->y() - y()).normalized().rotate90z();
 		Vec2 fromPrev = Vec2(x() - prev->x(), y() - prev->y()).normalized().rotate90z();
 
-		// Returns zero when the previous is on the same side and on the same line as the next
+		// Returns normal line of the vertex,
+		// which is the normalized sum of the two adjacent edge normals.
 		return (toNext + fromPrev).normalized();
 	}
 
@@ -241,7 +220,7 @@ namespace qk {
 		} if (val[1] < 0) { // y < 0
 			return Qk_PI_2_1 + Qk_PI;
 		} else { // y equal 0 and x equal 0
-			return 0;
+			return 0; // invalid value, but we just return 0 for it
 		}
 	}
 
@@ -279,16 +258,6 @@ namespace qk {
 
 	// ------------------------------------------
 
-	Vec3::Vec3(): Vec(0,0,0) {
-	}
-	Vec3::Vec3(float f): Vec(f,f,f) {
-	}
-	Vec3::Vec3(float a, float b, float c): Vec(a,b,c) {
-	}
-	Vec3::Vec3(const Vec<float, 2> &vec2, float f): Vec(vec2.val[0],vec2.val[1],f) {
-	}
-	Vec3::Vec3(float f, const Vec<float, 2> &vec2): Vec(f,vec2.val[0],vec2.val[1]) {
-	}
 	Vec3 Vec3::operator+(const Vec<float,3>& b) const {
 		return Vec3(val[0] + b.val[0], val[1] + b.val[1], val[2] + b.val[2]);
 	}
@@ -671,29 +640,25 @@ namespace qk {
 		);
 	}
 
-	Mat::Mat(float value) {
-		val[0] = value;
-		val[1] = 0;
+	Mat::Mat(float value): Vec(value, 0) {
 		val[2] = 0;
 		val[3] = 0;
 		val[4] = value;
 		val[5] = 0;
 	}
 
-	Mat::Mat(float m0, float m1, float m2, float m3, float m4, float m5) {
-		val[0] = m0;
-		val[1] = m1;
+	Mat::Mat(float m0, float m1, float m2, float m3, float m4, float m5): Vec(m1, m2) {
 		val[2] = m2;
 		val[3] = m3;
 		val[4] = m4;
 		val[5] = m5;
 	}
 
-	Mat::Mat(const float* values, int length) {
+	Mat::Mat(const float* values, int length): Vec(0, 0) {
 		memcpy(val, values, sizeof(float) * length);
 	}
 
-	Mat::Mat(Vec2 translate, Vec2 scale, float rotate, Vec2 skew) {
+	Mat::Mat(Vec2 translate, Vec2 scale, float rotate, Vec2 skew): Vec(0, 0) {
 		if (rotate) {
 			float cz  = cosf(rotate);
 			float sz  = sinf(rotate);
@@ -1063,8 +1028,17 @@ namespace qk {
 		return output;
 	}
 
-	Mat4::Mat4(float value) {
-		memset(val, 0, 16 * 4);
+	String Mat::toString() const {
+		return String::format(
+			"Mat(%f, %f, %f,\n"
+			"    %f, %f, %f,\n"
+			"    %f, %f, %f)",
+			val[0], val[1], val[2],
+			val[3], val[4], val[5]
+		);
+	}
+
+	Mat4::Mat4(float value): Vec(0) {
 		val[0] = value;
 		val[5] = value;
 		val[10] = value;
@@ -1074,9 +1048,7 @@ namespace qk {
 	Mat4::Mat4(float m0, float m1, float m2, float m3,
 						float m4, float m5, float m6, float m7,
 						float m8, float m9, float m10, float m11,
-						float m12, float m13, float m14, float m15) {
-		val[0] = m0;
-		val[1] = m1;
+						float m12, float m13, float m14, float m15): Vec(m0,m1) {
 		val[2] = m2;
 		val[3] = m3;
 		//
@@ -1096,13 +1068,11 @@ namespace qk {
 		val[15] = m15;
 	}
 
-	Mat4::Mat4(const float* values, int length) {
+	Mat4::Mat4(const float* values, int length): Vec(0,0) {
 		memcpy(val, values, sizeof(float) * length);
 	}
 
-	Mat4::Mat4(Mat mat) {
-		val[0] = mat[0];
-		val[1] = mat[1];
+	Mat4::Mat4(Mat mat): Vec(mat.val[0], mat.val[1]) {
 		val[2] = 0;
 		val[3] = mat[2];
 		//

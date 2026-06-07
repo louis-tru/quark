@@ -369,7 +369,6 @@ namespace qk {
 		post_message_main(Cb([&opts,this](auto e) {
 			Qk_ASSERT_EQ(_impl, nullptr);
 			_impl = new WindowPlatform(this, opts);
-			_backgroundColor = opts.backgroundColor;
 			_render->surface()->makeSurface((EGLNativeWindowType)_impl->xwin());
 			_render->reload();
 			_render->surface()->renderLoopRun();

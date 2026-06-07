@@ -16,7 +16,7 @@ Qk_CONSTANT(
 layout(location=1) out vec2 pos_f;
 void main() {
 	pos_f = vertexIn.xy;
-	gl_Position = matrix * vec4(vertexIn.xy, pc.depth, 1.0);
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag

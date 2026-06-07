@@ -387,6 +387,7 @@
 					'render/shader/_image.glsl',
 					'render/shader/color_batch.glsl',
 					'render/shader/color.glsl',
+					'render/shader/clip.glsl',
 					'render/shader/clear.glsl',
 					'render/shader/color_linear.glsl',
 					'render/shader/color_radial.glsl',

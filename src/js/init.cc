@@ -366,24 +366,24 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct Hash5381Object: Object {
-		Hash5381 hash;
+	struct HashObject: Object {
+		Hash hash;
 	};
 
-	struct MixHash5381Object: MixObject {
-		typedef Hash5381Object Type;
+	struct MixHashObject: MixObject {
+		typedef HashObject Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Hash5381Object, 0, {
-				New<MixHash5381Object>(args, new Hash5381Object());
+			Js_Define_Class(HashObject, 0, {
+				New<MixHashObject>(args, new HashObject());
 			});
 
 			Js_Class_Method(hashCode, {
-				Js_Return( self->hash.hashCode() );
+				Js_Return( self->hash.hashCode32() );
 			});
 
 			Js_Class_Method(update, {
 				if (args.length() < 1) {
-					Js_Throw("@method Hash5381.update(string|Buffer), Bad argument");
+					Js_Throw("@method Hash.update(string|Buffer), Bad argument");
 				}
 				WeakBuffer buff;
 				if (args[0]->asBuffer(worker).to(buff)) { // string
@@ -395,34 +395,53 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Class_Method(updatefv2, {
+			Js_Class_Method(update1f, {
+				float f;
+				if ( args.length() < 1 || !args[0]->asFloat32(worker).to(f) ) {
+					Js_Throw("@method Hash.update1f(f), Bad argument");
+				}
+				self->hash.update1f(f);
+			});
+
+			Js_Class_Method(update2f, {
 				float v[2];
 				if ( args.length() < 2 ||
 						!args[0]->asFloat32(worker).to(v[0]) || !args[1]->asFloat32(worker).to(v[1])
 				) {
-					Js_Throw("@method Hash5381.updatefv2(f1,f2), Bad argument");
+					Js_Throw("@method Hash.update2f(f1,f2), Bad argument");
 				}
-				self->hash.updatefv2(v);
+				self->hash.update2f(v);
+			});
+
+			Js_Class_Method(update4f, {
+				float v[4];
+				if ( args.length() < 4 ||
+						!args[0]->asFloat32(worker).to(v[0]) || !args[1]->asFloat32(worker).to(v[1]) ||
+						!args[2]->asFloat32(worker).to(v[2]) || !args[3]->asFloat32(worker).to(v[3])
+				) {
+					Js_Throw("@method Hash.update4f(f1,f2,f3,f4), Bad argument");
+				}
+				self->hash.update4f(v);
 			});
 
 			Js_Class_Method(equals, {
-				if ( args.length() < 1 || !worker->instanceOf(args[0], Js_Typeid(Hash5381Object))) {
-					Js_Throw("@method Hash5381.equal(other), Bad argument");
+				if ( args.length() < 1 || !worker->instanceOf(args[0], Js_Typeid(HashObject))) {
+					Js_Throw("@method Hash.equal(other), Bad argument");
 				}
-				auto other = MixObject::mix<Hash5381Object>(args[0])->self();
+				auto other = MixObject::mix<HashObject>(args[0])->self();
 				auto equal = self->hash.hashCode() == other->hash.hashCode();
 				Js_ReturnBool(equal);
 			});
 
-			Js_Class_Method(digest, {
-				Js_Return( self->hash.digest() );
+			Js_Class_Method(hashStr, {
+				Js_Return( self->hash.hashStr() );
 			});
 
 			Js_Class_Method(clear, {
-				self->hash = Hash5381();
+				self->hash = Hash();
 			});
 
-			cls->exports("Hash5381", exports);
+			cls->exports("Hash", exports);
 		}
 	};
 
@@ -439,27 +458,29 @@ namespace qk { namespace js {
 	}
 
 	struct NativeInit {
-		static uint64_t get_hashCode(Worker *worker, FunctionArgs args) {
+		static Hash get_hash(Worker *worker, FunctionArgs args) {
 			WeakBuffer buff;
 			double num;
 			bool boolean;
+			Hash hash;
 			if (args[0]->isString()) {
 				auto str = args[0]->cast<JSString>()->value2(worker);
-				return hash_code(str.c_str(), str.length() << 1);
+				hash.updateu16v(str.c_str(), str.length());
 			}
 			else if (args[0]->asNumber(worker).to(num)) {
-				return mix64( bitwise_cast<uint64_t>(num) );
+				hash.updatef64(num);
 			}
 			else if (args[0]->asBuffer(worker).to(buff)) {
-				return hash_code(buff.val(), buff.length());
+				hash.update(buff.val(), buff.length());
 			}
 			else if (args[0]->asBoolean(worker).to(boolean)) {
-				return boolean ? 0x345678 : 0x123456;
+				hash.updateu32(boolean ? 1 : 0);
 			}
 			else {
 				auto str = args[0]->toString(worker)->value2(worker);
-				return hash_code(str.c_str(), str.length() << 1);
+				hash.updateu16v(str.c_str(), str.length());
 			}
+			return hash;
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -487,17 +508,16 @@ namespace qk { namespace js {
 			Js_Method(hashCode, {
 				if (!args.length())
 					Js_Throw("Bad argument");
-				uint64_t hash = get_hashCode(worker, args);
-				uint32_t u32 = mix32(uint32_t(hash >> 32) ^ uint32_t(hash & 0xFFFFFFFF));
-				Js_Return( u32 );
+				Hash hash = get_hash(worker, args);
+				Js_Return( hash.hashCode32() );
 			});
 
 			Js_Method(hash, {
 				if (!args.length()) {
 					Js_Throw("Bad argument");
 				}
-				uint64_t hash = get_hashCode(worker, args);
-				Js_Return( hash_digest(hash) );
+				Hash hash = get_hash(worker, args);
+				Js_Return( hash.hashStr() );
 			});
 
 			Js_Method(nextTick, {
@@ -608,7 +628,7 @@ namespace qk { namespace js {
 			});
 
 			MixNativeObject::binding(exports, worker);
-			MixHash5381Object::binding(exports, worker);
+			MixHashObject::binding(exports, worker);
 
 			worker->bindingModule("_types");
 		}

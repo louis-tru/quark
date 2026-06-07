@@ -1,9 +1,9 @@
 // Batch drawing color sets
 
 struct Option {
-	int   flags; // reserve
-	float depth;
 	float m0,m1,m2,m3,m4,m5; // 2d mat2x3
+	int   flags; // flags maybe used for AA, etc
+	int  _pad; // padding for std140
 	vec4  color; // color
 };
 
@@ -13,8 +13,6 @@ layout(binding=4, set=0, std140) uniform OptsBlock {
 
 #vert
 layout(location=2) in int optidxIn; // options index form uniform optsBlock
-// flat
-// smooth
 layout(location=1) out vec4  color;
 
 #define _vmatrix mat4(\
@@ -28,7 +26,7 @@ void main() {
 	Option opt = opts[optidxIn];
 	aaSide = aaSideIn;
 	color = opt.color;
-	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
+	gl_Position = _matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag
@@ -42,8 +40,6 @@ Qk_CONSTANT(
 
 void main() {
 	fragColor = color;
-	// aaSide value range: 1 => 0, alpha range: 0 => 1
-	fragColor *= 1.0 - abs(aaSide); // premultiplied alpha
-
+	fragColor *= aaSideCoverage(0);
 	Qk_CLIP(); // apply clip mask if needed
 }

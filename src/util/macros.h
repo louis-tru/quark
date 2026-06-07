@@ -177,7 +177,6 @@
 #define Qk_Fatal(...)         ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define Qk_Min(A, B)          ((A) < (B) ? (A) : (B))
 #define Qk_Max(A, B)          ((A) > (B) ? (A) : (B))
-#define Qk_Minus(A, B)        (decltype(B)(A) - (B))
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 
@@ -273,22 +272,29 @@
 #if !defined(Qk_CPU_LENDIAN)
 	#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 		#define Qk_CPU_LENDIAN 0
-		// #define Qk_CPU_BENDIAN 1
 	#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 		#define Qk_CPU_LENDIAN 1
 	#elif defined(__sparc) || defined(__sparc__) || \
 		defined(_POWER) || defined(__powerpc__) || \
-		defined(__ppc__) || defined(__hppa) || \
+		defined(__ppc__) || defined(__hppa) || defined(__hppa__) || \
 		defined(__PPC__) || defined(__PPC64__) || \
 		defined(_MIPSEB) || defined(__ARMEB__) || \
 		defined(__s390__) || \
 		(defined(__sh__) && defined(__BIG_ENDIAN__)) || \
 		(defined(__ia64) && defined(__BIG_ENDIAN__))
 			#define Qk_CPU_LENDIAN 0
-			// #define Qk_CPU_BENDIAN 1
 	#else
 		#define Qk_CPU_LENDIAN 1
 	#endif
+#endif
+
+#define Qk_LITTLE_ENDIAN Qk_CPU_LENDIAN
+#if Qk_LITTLE_ENDIAN
+# define Qk_BIG_ENDIAN 0
+# define Qk_BYTE_ORDER 1234
+#else
+# define Qk_BIG_ENDIAN 1
+# define Qk_BYTE_ORDER 4321
 #endif
 
 #define Qk_DISABLE_COPY(T)	\

@@ -405,7 +405,7 @@ namespace qk {
 				}
 
 				if ( dir.x() ) {
-					auto begin = Qk_Minus(_blob.length(), 1);
+					auto begin = _blob.length() - 1;
 
 					for ( ; begin >= 0; begin-- ) {
 						if ( _blob[begin].line == _cursor_line ) break;
@@ -724,7 +724,7 @@ namespace qk {
 		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
 		if (str.length()) { // text layout
-			TextBlobBuilder tbb(&lines, this, &_blob);
+			TextBlobBuilder tbb(this, &lines, &_blob);
 
 			if (!is_multiline()) {
 				tbb.set_disable_auto_wrap(true);
@@ -844,7 +844,7 @@ namespace qk {
 		// ===========================
 		TextBlob *cursor_blob = nullptr;
 		if (_value_u4.length()) {
-			for ( int i = Qk_Minus(_blob.length(), 1); i >= 0; i-- ) {
+			for ( int i = _blob.length() - 1; i >= 0; i-- ) {
 				if (_blob[i].index <= _cursor_index) { // blob index 小于等于_cursor_index 做为光标位置
 					cursor_blob = &_blob[i];
 					break;

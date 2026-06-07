@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stroke Debugger</title>
+<style>
+	:root {
+		color-scheme: light;
+		--bg: #f6f7f8;
+		--panel: #ffffff;
+		--ink: #202329;
+		--muted: #69707a;
+		--line: #d9dde3;
+		--accent: #d43f3a;
+		--accent2: #1677b8;
+		--fill: rgba(84, 88, 92, 0.58);
+		--fill2: rgba(22, 119, 184, 0.16);
+		--shadow: 0 1px 3px rgba(20, 24, 31, 0.12);
+		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	}
+	* { box-sizing: border-box; }
+	body {
+		margin: 0;
+		background: var(--bg);
+		color: var(--ink);
+		overflow: hidden;
+	}
+	.app {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 320px;
+		height: 100vh;
+	}
+	.stage {
+		position: relative;
+		min-width: 0;
+		background:
+			linear-gradient(#eef1f4 1px, transparent 1px),
+			linear-gradient(90deg, #eef1f4 1px, transparent 1px),
+			#fbfcfd;
+		background-size: 24px 24px;
+	}
+	svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		touch-action: none;
+		user-select: none;
+	}
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		padding: 14px;
+		background: var(--panel);
+		border-left: 1px solid var(--line);
+		overflow: auto;
+	}
+	.group {
+		display: grid;
+		gap: 8px;
+		padding-bottom: 12px;
+		border-bottom: 1px solid var(--line);
+	}
+	.group:last-child { border-bottom: 0; }
+	.row {
+		display: grid;
+		grid-template-columns: 110px minmax(0, 1fr) 44px;
+		align-items: center;
+		gap: 8px;
+		min-height: 30px;
+	}
+	.row.two {
+		grid-template-columns: 110px minmax(0, 1fr);
+	}
+	label {
+		color: var(--muted);
+		font-size: 12px;
+		white-space: nowrap;
+	}
+	output {
+		color: var(--muted);
+		font-variant-numeric: tabular-nums;
+		font-size: 12px;
+		text-align: right;
+	}
+	input[type="range"] { width: 100%; }
+	input[type="color"] {
+		width: 100%;
+		height: 30px;
+		padding: 2px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #fff;
+		cursor: pointer;
+	}
+	input[type="number"], select, textarea {
+		width: 100%;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #fff;
+		color: var(--ink);
+		font: inherit;
+		font-size: 12px;
+	}
+	input[type="number"], select {
+		height: 30px;
+		padding: 0 8px;
+	}
+	textarea {
+		min-height: 112px;
+		padding: 8px;
+		resize: vertical;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		line-height: 1.4;
+	}
+	.toolbar {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 6px;
+	}
+	button {
+		height: 32px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: #fff;
+		color: var(--ink);
+		box-shadow: var(--shadow);
+		cursor: pointer;
+		font-size: 15px;
+	}
+	button.active {
+		border-color: var(--accent2);
+		background: #eaf5fc;
+		color: #0d5f91;
+	}
+	button:disabled {
+		opacity: 0.45;
+		cursor: default;
+		box-shadow: none;
+	}
+	.switches {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 7px 10px;
+	}
+	.check {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		min-width: 0;
+		color: var(--ink);
+		font-size: 12px;
+	}
+	.check input { margin: 0; }
+	.legend {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 5px 10px;
+		font-size: 12px;
+		color: var(--muted);
+	}
+	.swatch {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin-right: 6px;
+		border-radius: 2px;
+		vertical-align: -1px;
+	}
+	.status {
+		position: absolute;
+		left: 12px;
+		bottom: 10px;
+		padding: 6px 8px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: rgba(255, 255, 255, 0.9);
+		color: var(--muted);
+		font-size: 12px;
+		box-shadow: var(--shadow);
+		pointer-events: none;
+	}
+	.point { cursor: grab; }
+	.point.dragging { cursor: grabbing; }
+	.hit-line { cursor: crosshair; }
+	@media (max-width: 860px) {
+		body { overflow: auto; }
+		.app {
+			grid-template-columns: 1fr;
+			grid-template-rows: 65vh auto;
+			height: auto;
+			min-height: 100vh;
+		}
+		.sidebar {
+			border-left: 0;
+			border-top: 1px solid var(--line);
+		}
+	}
+</style>
+</head>
+<body>
+<main class="app">
+	<section class="stage">
+		<svg id="svg" viewBox="0 0 1200 720" aria-label="stroke debugger canvas"></svg>
+		<div class="status" id="status"></div>
+	</section>
+	<aside class="sidebar">
+		<section class="group">
+			<div class="toolbar">
+				<button id="moveBtn" class="active" title="移动点">↔</button>
+				<button id="addBtn" title="添加点">＋</button>
+				<button id="delBtn" title="删除选中点">⌫</button>
+				<button id="dupBtn" title="复制选中点">⧉</button>
+				<button id="resetBtn" title="重置">↺</button>
+			</div>
+			<div class="switches">
+				<label class="check"><input id="closed" type="checkbox" checked>闭合</label>
+				<label class="check"><input id="snap" type="checkbox">网格</label>
+				<label class="check"><input id="showNative" type="checkbox" checked>SVG stroke</label>
+				<label class="check"><input id="showCustom" type="checkbox" checked>offset 填充</label>
+				<label class="check"><input id="showCustomBorder" type="checkbox" checked>offset 边框</label>
+				<label class="check"><input id="showFiltered" type="checkbox" checked>滤波线</label>
+				<label class="check"><input id="showDebug" type="checkbox" checked>点/法线</label>
+			</div>
+		</section>
+
+		<section class="group">
+			<div class="row">
+				<label for="width">描边</label>
+				<input id="width" type="range" min="1" max="160" step="1" value="54">
+				<output id="widthOut"></output>
+			</div>
+			<div class="row">
+				<label for="miter">miter 限制</label>
+				<input id="miter" type="range" min="1" max="12" step="0.1" value="4">
+				<output id="miterOut"></output>
+			</div>
+			<div class="row">
+				<label for="minEdge">最短边</label>
+				<input id="minEdge" type="range" min="0" max="120" step="1" value="22">
+				<output id="minEdgeOut"></output>
+			</div>
+			<div class="row">
+				<label for="iterations">滤波轮数</label>
+				<input id="iterations" type="range" min="0" max="12" step="1" value="3">
+				<output id="iterationsOut"></output>
+			</div>
+			<div class="row two">
+				<label for="joinMode">join</label>
+				<select id="joinMode">
+					<option value="miter">miter</option>
+					<option value="clamp">clamp</option>
+					<option value="bevel">bevel-ish</option>
+					<option value="outgoing">outgoing</option>
+				</select>
+			</div>
+			<div class="row two">
+				<label for="filterMode">滤波</label>
+				<select id="filterMode">
+					<option value="none">关闭</option>
+					<option value="drop" selected>删除短边点</option>
+					<option value="collapse">短边合并</option>
+					<option value="smooth">局部磨平</option>
+				</select>
+			</div>
+			<div class="row two">
+				<label for="offsetFillColor">offset 填充</label>
+				<input id="offsetFillColor" type="color" value="#54585c">
+			</div>
+			<div class="row two">
+				<label for="offsetBorderColor">offset 边框</label>
+				<input id="offsetBorderColor" type="color" value="#4d5359">
+			</div>
+		</section>
+
+		<section class="group">
+			<div class="legend">
+				<span><i id="offsetSwatch" class="swatch" style="background: var(--fill)"></i>custom stroke</span>
+				<span><i class="swatch" style="background: #d43f3a"></i>centerline</span>
+				<span><i class="swatch" style="background: var(--fill2)"></i>filtered</span>
+				<span><i class="swatch" style="background: #111"></i>warning</span>
+			</div>
+		</section>
+
+		<section class="group">
+			<div class="row two">
+				<label for="pointsText">points</label>
+				<button id="applyBtn" title="应用文本点列">✓</button>
+			</div>
+			<textarea id="pointsText" spellcheck="false"></textarea>
+		</section>
+	</aside>
+</main>
+
+<script>
+const svg = document.getElementById("svg");
+const statusEl = document.getElementById("status");
+const pointsText = document.getElementById("pointsText");
+const controls = {
+	width: document.getElementById("width"),
+	miter: document.getElementById("miter"),
+	minEdge: document.getElementById("minEdge"),
+	iterations: document.getElementById("iterations"),
+	widthOut: document.getElementById("widthOut"),
+	miterOut: document.getElementById("miterOut"),
+	minEdgeOut: document.getElementById("minEdgeOut"),
+	iterationsOut: document.getElementById("iterationsOut"),
+	joinMode: document.getElementById("joinMode"),
+	filterMode: document.getElementById("filterMode"),
+	closed: document.getElementById("closed"),
+	snap: document.getElementById("snap"),
+	showNative: document.getElementById("showNative"),
+	showCustom: document.getElementById("showCustom"),
+	showCustomBorder: document.getElementById("showCustomBorder"),
+	showFiltered: document.getElementById("showFiltered"),
+	showDebug: document.getElementById("showDebug"),
+	offsetFillColor: document.getElementById("offsetFillColor"),
+	offsetBorderColor: document.getElementById("offsetBorderColor"),
+};
+
+const initial = [
+	{x: 178, y: 210},
+	{x: 178, y: 450},
+	{x: 255, y: 450},
+	{x: 236, y: 415},
+	{x: 270, y: 466},
+	{x: 1148, y: 700},
+	{x: 615, y: 92},
+	{x: 308, y: 322},
+	{x: 225, y: 260},
+];
+
+let points = initial.map(p => ({...p}));
+let selected = 0;
+let mode = "move";
+let drag = null;
+let lastFiltered = [];
+let warnings = [];
+
+function v(x, y) { return {x, y}; }
+function add(a, b) { return v(a.x + b.x, a.y + b.y); }
+function sub(a, b) { return v(a.x - b.x, a.y - b.y); }
+function mul(a, s) { return v(a.x * s, a.y * s); }
+function len(a) { return Math.hypot(a.x, a.y); }
+function norm(a) {
+	const l = len(a);
+	return l < 1e-6 ? v(0, 0) : v(a.x / l, a.y / l);
+}
+function normal(a) { return v(-a.y, a.x); }
+function dist(a, b) { return len(sub(a, b)); }
+function cross(a, b) { return a.x * b.y - a.y * b.x; }
+function dot(a, b) { return a.x * b.x + a.y * b.y; }
+function lineHit(a, b, c, d) {
+	const ab = sub(b, a);
+	const cd = sub(d, c);
+	const den = cross(ab, cd);
+	if (Math.abs(den) < 1e-6) return null;
+	const u = cross(sub(c, a), cd) / den;
+	return add(a, mul(ab, u));
+}
+function closestOnSegment(p, a, b) {
+	const ab = sub(b, a);
+	const l2 = dot(ab, ab);
+	if (l2 < 1e-6) return {point: a, t: 0, distance: dist(p, a)};
+	const t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / l2));
+	const point = add(a, mul(ab, t));
+	return {point, t, distance: dist(p, point)};
+}
+function nearestInsertIndex(p) {
+	if (points.length < 2) return points.length;
+	const closed = controls.closed.checked;
+	let best = {distance: Infinity, index: points.length};
+	const count = closed ? points.length : points.length - 1;
+	for (let i = 0; i < count; i++) {
+		const j = (i + 1) % points.length;
+		const hit = closestOnSegment(p, points[i], points[j]);
+		if (hit.distance < best.distance) {
+			best = {
+				distance: hit.distance,
+				index: i === points.length - 1 ? points.length : i + 1,
+			};
+		}
+	}
+	return best.index;
+}
+function fmtPoint(p) {
+	return `${Math.round(p.x)}, ${Math.round(p.y)}`;
+}
+function pathData(ps, closed) {
+	if (!ps.length) return "";
+	return `M ${ps.map(p => `${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" L ")}${closed ? " Z" : ""}`;
+}
+function polyPoints(ps) {
+	return ps.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+}
+function snapPoint(p) {
+	if (!controls.snap.checked) return p;
+	return v(Math.round(p.x / 12) * 12, Math.round(p.y / 12) * 12);
+}
+function svgPoint(evt) {
+	const pt = svg.createSVGPoint();
+	pt.x = evt.clientX;
+	pt.y = evt.clientY;
+	const out = pt.matrixTransform(svg.getScreenCTM().inverse());
+	return snapPoint(v(Math.max(0, Math.min(1200, out.x)), Math.max(0, Math.min(720, out.y))));
+}
+function edgeLen(ps, i, closed) {
+	const j = i + 1;
+	if (j < ps.length) return dist(ps[i], ps[j]);
+	return closed ? dist(ps[i], ps[0]) : Infinity;
+}
+function filterPoints(input) {
+	const mode = controls.filterMode.value;
+	const closed = controls.closed.checked;
+	const minEdge = Number(controls.minEdge.value);
+	const rounds = Number(controls.iterations.value);
+	let ps = input.map(p => ({...p}));
+
+	if (mode === "none" || minEdge <= 0 || rounds === 0) return ps;
+
+	for (let r = 0; r < rounds; r++) {
+		if (ps.length <= (closed ? 3 : 2)) break;
+		let changed = false;
+
+		if (mode === "drop") {
+			const remove = new Set();
+			for (let i = 0; i < ps.length; i++) {
+				if (!closed && (i === 0 || i === ps.length - 1)) continue;
+				const prev = ps[(i - 1 + ps.length) % ps.length];
+				const cur = ps[i];
+				const next = ps[(i + 1) % ps.length];
+				const a = dist(prev, cur);
+				const b = dist(cur, next);
+				if (Math.min(a, b) < minEdge) remove.add(a < b ? i : (i + 1) % ps.length);
+			}
+			if (remove.size) {
+				ps = ps.filter((_, i) => !remove.has(i));
+				changed = true;
+			}
+		} else if (mode === "collapse") {
+			for (let i = 0; i < ps.length; i++) {
+				const j = i + 1 < ps.length ? i + 1 : (closed ? 0 : -1);
+				if (j < 0) continue;
+				if (dist(ps[i], ps[j]) < minEdge) {
+					const mid = mul(add(ps[i], ps[j]), 0.5);
+					ps[i] = mid;
+					ps.splice(j, 1);
+					changed = true;
+					break;
+				}
+			}
+		} else if (mode === "smooth") {
+			ps = ps.map((p, i) => {
+				if (!closed && (i === 0 || i === ps.length - 1)) return p;
+				const prev = ps[(i - 1 + ps.length) % ps.length];
+				const next = ps[(i + 1) % ps.length];
+				if (Math.min(dist(prev, p), dist(p, next)) >= minEdge) return p;
+				changed = true;
+				return add(mul(p, 0.5), mul(add(prev, next), 0.25));
+			});
+		}
+
+		if (!changed) break;
+	}
+	return ps;
+}
+function joinPoint(prev, cur, next, side, half, miterLimit, mode) {
+	const e0 = norm(sub(cur, prev));
+	const e1 = norm(sub(next, cur));
+	const n0 = normal(e0);
+	const n1 = normal(e1);
+	const p0 = add(cur, mul(n0, side * half));
+	const p1 = add(cur, mul(n1, side * half));
+	if (mode === "outgoing") return p1;
+	if (mode === "bevel") return mul(add(p0, p1), 0.5);
+
+	const hit = lineHit(add(prev, mul(n0, side * half)), p0, p1, add(next, mul(n1, side * half)));
+	if (!hit) return p1;
+	const maxDist = half * miterLimit;
+	if (dist(hit, cur) <= maxDist && mode !== "clamp") return hit;
+	const dir = norm(sub(hit, cur));
+	return add(cur, mul(dir, maxDist));
+}
+function strokeOutline(ps, closed) {
+	const half = Number(controls.width.value) / 2;
+	const miterLimit = Number(controls.miter.value);
+	const mode = controls.joinMode.value;
+	warnings = [];
+	if (ps.length < 2) return {outline: [], left: [], right: []};
+	const left = [];
+	const right = [];
+	for (let i = 0; i < ps.length; i++) {
+		if (!closed && i === 0) {
+			const n = normal(norm(sub(ps[1], ps[0])));
+			left.push(add(ps[0], mul(n, half)));
+			right.push(add(ps[0], mul(n, -half)));
+			continue;
+		}
+		if (!closed && i === ps.length - 1) {
+			const n = normal(norm(sub(ps[i], ps[i - 1])));
+			left.push(add(ps[i], mul(n, half)));
+			right.push(add(ps[i], mul(n, -half)));
+			continue;
+		}
+		const prev = ps[(i - 1 + ps.length) % ps.length];
+		const next = ps[(i + 1) % ps.length];
+		const l = joinPoint(prev, ps[i], next, 1, half, miterLimit, mode);
+		const r = joinPoint(prev, ps[i], next, -1, half, miterLimit, mode);
+		if (dist(l, ps[i]) >= half * miterLimit * 0.98 || dist(r, ps[i]) >= half * miterLimit * 0.98) {
+			warnings.push({i, p: ps[i]});
+		}
+		left.push(l);
+		right.push(r);
+	}
+	return {outline: left.concat(right.slice().reverse()), left, right};
+}
+function el(name, attrs = {}, children = []) {
+	const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+	for (const [k, val] of Object.entries(attrs)) node.setAttribute(k, val);
+	for (const child of children) node.appendChild(child);
+	return node;
+}
+function draw() {
+	const width = Number(controls.width.value);
+	const closed = controls.closed.checked;
+	const filtered = filterPoints(points);
+	lastFiltered = filtered;
+	const stroke = strokeOutline(filtered, closed);
+	svg.replaceChildren();
+
+	if (controls.showNative.checked) {
+		svg.appendChild(el("path", {
+			d: pathData(points, closed),
+			fill: "none",
+			stroke: "#9a9d9f",
+			"stroke-width": width,
+			"stroke-linejoin": controls.joinMode.value === "bevel" ? "bevel" : "miter",
+			"stroke-miterlimit": controls.miter.value,
+			"stroke-linecap": "butt",
+			opacity: "0.55",
+		}));
+	}
+	if ((controls.showCustom.checked || controls.showCustomBorder.checked) && stroke.outline.length) {
+		svg.appendChild(el("polygon", {
+			points: polyPoints(stroke.outline),
+			fill: controls.showCustom.checked ? controls.offsetFillColor.value : "none",
+			"fill-opacity": "0.58",
+			stroke: controls.showCustomBorder.checked ? controls.offsetBorderColor.value : "none",
+			"stroke-width": "1",
+		}));
+	}
+	if (controls.showFiltered.checked && filtered.length) {
+		svg.appendChild(el("path", {
+			d: pathData(filtered, closed),
+			fill: "none",
+			stroke: "#1677b8",
+			"stroke-width": "2.5",
+			"stroke-dasharray": "8 6",
+			opacity: "0.7",
+		}));
+	}
+	svg.appendChild(el("path", {
+		d: pathData(points, closed),
+		fill: "none",
+		stroke: "var(--accent)",
+		"stroke-width": "1.5",
+	}));
+
+	if (controls.showDebug.checked) {
+		for (const w of warnings) {
+			svg.appendChild(el("circle", {cx: w.p.x, cy: w.p.y, r: 11, fill: "none", stroke: "#111", "stroke-width": "3"}));
+		}
+		for (let i = 0; i < filtered.length; i++) {
+			const a = filtered[i];
+			const b = filtered[(i + 1) % filtered.length];
+			if (!closed && i === filtered.length - 1) break;
+			const mid = mul(add(a, b), 0.5);
+			const n = normal(norm(sub(b, a)));
+			svg.appendChild(el("line", {
+				x1: mid.x, y1: mid.y,
+				x2: mid.x + n.x * 22, y2: mid.y + n.y * 22,
+				stroke: "#0d5f91",
+				"stroke-width": "1",
+				opacity: "0.5",
+			}));
+		}
+	}
+
+	const hit = el("path", {
+		d: pathData(points, closed),
+		fill: "none",
+		stroke: "transparent",
+		"stroke-width": "24",
+		class: "hit-line",
+	});
+	hit.addEventListener("pointerdown", onStagePointer);
+	svg.appendChild(hit);
+
+	for (let i = 0; i < points.length; i++) {
+		const p = points[i];
+		const g = el("g", {"data-index": i, class: "point" + (i === selected ? " dragging" : "")});
+		g.appendChild(el("circle", {
+			cx: p.x, cy: p.y, r: i === selected ? 8 : 6,
+			fill: i === selected ? "#ffd166" : "#fff",
+			stroke: i === selected ? "#a36b00" : "#1f252b",
+			"stroke-width": "2",
+		}));
+		g.appendChild(el("text", {
+			x: p.x + 10, y: p.y - 9,
+			fill: "#1f252b",
+			"font-size": "12",
+			"font-family": "ui-monospace, Menlo, monospace",
+		}, [document.createTextNode(String(i))]));
+		g.addEventListener("pointerdown", onPointDown);
+		svg.appendChild(g);
+	}
+
+	pointsText.value = points.map(fmtPoint).join("\n");
+	controls.widthOut.textContent = String(width);
+	controls.miterOut.textContent = Number(controls.miter.value).toFixed(1);
+	controls.minEdgeOut.textContent = controls.minEdge.value;
+	controls.iterationsOut.textContent = controls.iterations.value;
+	document.getElementById("offsetSwatch").style.background = controls.offsetFillColor.value;
+	statusEl.textContent = `points ${points.length} -> ${filtered.length} | warnings ${warnings.length} | selected ${selected}`;
+	document.getElementById("delBtn").disabled = points.length <= (closed ? 3 : 2);
+	document.getElementById("dupBtn").disabled = selected < 0;
+}
+function onPointDown(evt) {
+	evt.stopPropagation();
+	selected = Number(evt.currentTarget.getAttribute("data-index"));
+	if (mode === "add") {
+		const p = svgPoint(evt);
+		points.splice(selected + 1, 0, p);
+		selected++;
+		draw();
+		return;
+	}
+	drag = {index: selected};
+	svg.setPointerCapture(evt.pointerId);
+	draw();
+}
+function onStagePointer(evt) {
+	if (mode !== "add") return;
+	const p = svgPoint(evt);
+	const at = nearestInsertIndex(p);
+	points.splice(at, 0, p);
+	selected = at;
+	draw();
+}
+svg.addEventListener("pointerdown", evt => {
+	if (evt.target !== svg) return;
+	onStagePointer(evt);
+});
+svg.addEventListener("pointermove", evt => {
+	if (!drag) return;
+	points[drag.index] = svgPoint(evt);
+	draw();
+});
+svg.addEventListener("pointerup", evt => {
+	drag = null;
+	try { svg.releasePointerCapture(evt.pointerId); } catch (_) {}
+});
+svg.addEventListener("pointercancel", () => { drag = null; });
+
+function setMode(next) {
+	mode = next;
+	document.getElementById("moveBtn").classList.toggle("active", mode === "move");
+	document.getElementById("addBtn").classList.toggle("active", mode === "add");
+}
+document.getElementById("moveBtn").addEventListener("click", () => setMode("move"));
+document.getElementById("addBtn").addEventListener("click", () => setMode("add"));
+document.getElementById("delBtn").addEventListener("click", () => {
+	const min = controls.closed.checked ? 3 : 2;
+	if (points.length <= min) return;
+	points.splice(selected, 1);
+	selected = Math.min(selected, points.length - 1);
+	draw();
+});
+document.getElementById("dupBtn").addEventListener("click", () => {
+	const p = points[selected] || points[0];
+	points.splice(selected + 1, 0, {x: p.x + 24, y: p.y + 24});
+	selected++;
+	draw();
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+	points = initial.map(p => ({...p}));
+	selected = 0;
+	draw();
+});
+document.getElementById("applyBtn").addEventListener("click", () => {
+	const parsed = pointsText.value.split(/\n+/).map(line => {
+		const nums = line.match(/-?\d+(?:\.\d+)?/g);
+		return nums && nums.length >= 2 ? {x: Number(nums[0]), y: Number(nums[1])} : null;
+	}).filter(Boolean);
+	if (parsed.length >= 2) {
+		points = parsed;
+		selected = Math.min(selected, points.length - 1);
+		draw();
+	}
+});
+for (const input of document.querySelectorAll("input, select")) {
+	input.addEventListener("input", draw);
+}
+window.addEventListener("keydown", evt => {
+	if (document.activeElement === pointsText) return;
+	if (evt.key === "Delete" || evt.key === "Backspace") document.getElementById("delBtn").click();
+	if (evt.key === "a") setMode("add");
+	if (evt.key === "v" || evt.key === "Escape") setMode("move");
+	if (evt.key === "[") selected = Math.max(0, selected - 1), draw();
+	if (evt.key === "]") selected = Math.min(points.length - 1, selected + 1), draw();
+});
+draw();
+</script>
+</body>
+</html>

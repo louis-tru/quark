@@ -11,8 +11,6 @@
 #import "../source.h"
 #import "../pixel.h"
 
-#define Qk_FLAG_CLIP (1u << 0)
-#define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 // use pipeline and set vertex buffer for vertex data, if invalid vertex data, return and skip draw call
 #define Qk_usePipeline(shader, ...) auto enc = usePipeline(shader,##__VA_ARGS__); if (!enc) return
 // set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
@@ -20,7 +18,6 @@
 	auto enc = useTextureSlot0(paint, dstSlot, &isYuv); if (!enc) return __VA_ARGS__
 
 namespace qk {
-	extern const float  zDepthNextUnit;
 	MTLPixelFormat mtl_pixel_format(ColorType type);
 	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool gpuRead, bool cpuRead, bool mipmap);
 	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &newStat, bool mipmap);
@@ -48,8 +45,6 @@ namespace qk {
 		if (changeSize) {
 			_outTex = mtl_new_texture(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), true, false, false);
-			_outDepthTex = mtl_new_texture(
-				_device, _surfaceSize, MTLPixelFormatDepth32Float, false, false, false);
 		}
 		_outColorTex = _outTex; // set to main texture by default
 
@@ -58,9 +53,6 @@ namespace qk {
 		auto pass = beginPass();
 		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
 		pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
-		// clear depth to default values
-		pass.depthAttachment.loadAction = MTLLoadActionClear;
-		pass.depthAttachment.clearDepth = 0; // default depth value
 
 		// Root/view matrices are uploaded when the encoder is lazily created by getEncoder().
 	}
@@ -76,11 +68,9 @@ namespace qk {
 		// no need to set blend mode for Metal, it will be set in pipeline state when encoding draw calls
 	}
 
-	void MetalCanvas::drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
-			GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
+	void MetalCanvas::drawClipCmd(const VertexData &vertex, GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
 		auto begin = clip->range.begin,
 				 end = clip->range.end, size = end - begin;
-		auto depth = _zDepth;
 		auto blend = _blendMode; // save current blend mode
 		auto colorTex = _outColorTex; // save current color texture
 		// switch blend mode to src
@@ -90,37 +80,39 @@ namespace qk {
 
 		endPass(); // end current pass
 
-		auto drawClip = [&](bool black, bool clip) {
-			depth += zDepthNextUnit;
+		auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
+			Qk_usePipeline(_shaders.clip, vertex); // use shader and set vertex buffer for vertex data
+			MSLClip::PcArgs pc{ Color4f(1,1,1,1), offset, flags };
+			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
+		};
+
+		auto drawClipMask = [&](bool black, bool clip) {
 			auto scale = Vec2(1) / _surfaceScale;
 			Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 			// Difference clip cannot directly render solid black with AA,
 			// otherwise edge blending becomes incorrect.
-			// Instead, invert the aaSide alpha curve:
-			//   normal:   alpha = 1 - abs(aaSide)
-			//   inverted: alpha = abs(aaSide)
+			// Instead, invert the AA coverage curve.
 			// This produces a smooth subtractive mask edge.
-			int flags = black ? 1u << 2 : 0; // Qk_FLAG_AASIDE_Inverted
+			int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
-			drawColor(vertex, {1,1,1,1}, surface, depth, flags);
-			if (aaSide.vCount) { // draw aa side if have
-				drawColor(aaSide, {1,1,1,1}, surface, depth, flags);
-			}
+			drawClipVertex(vertex, surface, flags);
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {
 			// clear clipTex with black color
 			clearColor({0,0,0,0}, nullptr);
 			// draw clip shape to clipTex with white color
-			drawClip(false, last);
+			drawClipMask(false, last);
 		} else { // if (rawOp == Canvas::kDifference_ClipOp)
 			beginPass(0, false); // begin a new pass with don't load color
 			// copy last clip color to clipTex as the clear color
-			copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size, depth);
+			copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size);
 			// draw clip shape to clipTex with white color if last op equal difference,
 			// or black color if last op equal intersect
 			auto black = last->op == Canvas::kIntersect_ClipOp;
 			// draw clip shape to clipTex with color
-			drawClip(black, true);
+			drawClipMask(black, true);
 		}
 		endPass();
 		// restore framebuffer and blend mode
@@ -142,7 +134,7 @@ namespace qk {
 		}
 	}
 
-	void MetalCanvas::copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution, float depth) {
+	void MetalCanvas::copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution) {
 		float x1 = dst.begin.x(), y1 = dst.begin.y();
 		float x2 = dst.end.x(), y2 = dst.end.y();
 		float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0, };
@@ -151,7 +143,7 @@ namespace qk {
 		auto offset = (srcOffset - dst.begin) / src->size();
 		auto coord = Vec4(offset.x(), offset.y(), scale.x(), scale.y());
 		auto enc = usePipeline(cp);
-		MSLCp::PcArgs pc{ resolution, resolution, coord, 0, depth, 0 };
+		MSLCp::PcArgs pc{ resolution, resolution, coord, 0, 0 };
 		[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:cp.bufferIndex];
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
@@ -160,10 +152,10 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 	}
 
-	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 surfaceOffset, float depth, uint32_t flags) {
+	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags) {
 		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ color, surfaceOffset, depth, flags };
+		MSLColor::PcArgs pc{ color, flags };
 		// set vertex bytes
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		// set fragment bytes
@@ -190,7 +182,7 @@ namespace qk {
 			auto &clear = _shaders.clear;
 			auto enc = usePipeline(clear); // use pipeline state for clear shader
 			// set color and other args for shader push constants
-			MSLClear::PcArgs pc{ color, _zDepth, 0 };
+			MSLClear::PcArgs pc{ color, 0 };
 			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:clear.bufferIndex];
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -199,16 +191,12 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
-		drawColor(vertex, premul_alpha(color), {0,0,1,1}, _zDepth, Qk_CLIP(_clipState));
+		drawColor(vertex, premul_alpha(color), _flags);
 	}
 
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
 		endPass(); // end current pass if exist
 		auto pass = beginPass();
-		if (flags == kClearAll_ClearFlags) {
-			pass.depthAttachment.loadAction = MTLLoadActionClear;
-			pass.depthAttachment.clearDepth = 0;
-		}
 		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
 		pass.colorAttachments[0].clearColor = MTLClearColorMake(color.r(), color.g(), color.b(), color.a());
 	}
@@ -261,10 +249,9 @@ namespace qk {
 			MSLImageYuv::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				format,
-				_zDepth,
-				Qk_CLIP(_clipState)
-			};
+					format,
+
+				};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		} else {
@@ -274,8 +261,7 @@ namespace qk {
 			MSLImage::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				_zDepth,
-				Qk_CLIP(_clipState)
+				_flags
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -293,8 +279,7 @@ namespace qk {
 			*((Vec4*)paint->coord.begin.val),
 			premul_alpha(color),
 			type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3,
-			_zDepth,
-			Qk_CLIP(_clipState)
+			_flags
 		};
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
@@ -312,8 +297,7 @@ namespace qk {
 			premul_alpha(color),
 			premul_alpha(strokeColor),
 			stroke,
-			_zDepth,
-			Qk_CLIP(_clipState)
+			_flags
 		};
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -337,8 +321,7 @@ namespace qk {
 			*((Vec4*)paint->origin.val),
 			premul_alpha(color),
 			count,
-			_zDepth,
-			Qk_CLIP(_clipState) | (count == 2 ? (1u << 1): 0)
+			_flags | (count == 2 ? Qk_FLAG_COUNT2: 0)
 		};
 		// align color and position data to 16 bytes for std140 packing rules
 		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
@@ -373,7 +356,6 @@ namespace qk {
 		Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
 		auto& sh = _shaders.colorRrectBlur;
 		auto enc = usePipeline(sh);
-		int flags = Qk_CLIP(_clipState);
 		float s_inv = 1.0f / blur;
 
 		for (int i = 0; i < 4; i++) {
@@ -388,8 +370,7 @@ namespace qk {
 				{ Vec3(r1, n, 1.0 / n), 0 },
 				min_edge,
 				s_inv,
-				_zDepth,
-				uint32_t(flags),
+				_flags,
 			};
 			[enc setVertexBytes:v length:sizeof(v) atIndex:sh.bufferIndex];
 			[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
@@ -417,8 +398,7 @@ namespace qk {
 
 		MSLTriangles::PcArgs pc{
 			color,
-			_zDepth,
-			Qk_CLIP(_clipState) | (triangles.isDarkColor ? (1u << 1): 0)
+			_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
 		};
 		[enc setVertexBuffer:vbuf offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
@@ -460,7 +440,6 @@ namespace qk {
 		float radius2 = radius * _surfaceScaleAverage; // radius in pixel unit
 		Vec2 iR = tmpA->size(); // input resolution
 		int oRw = iR.x(), oRh = iR.y();
-		float depth = _zDepth;
 
 		auto blend = _blendMode; // save current blend mode
 		_blendMode = kSrc_BlendMode;
@@ -486,7 +465,7 @@ namespace qk {
 			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 			do { // Copy the image to smaller texture for next level
 				oRw >>= 1; oRh >>= 1;
-				MSLCp::PcArgs pc{ iR, Vec2(oRw, oRh), { 0, 0, 1, 1 }, float(level++), depth, 0};
+				MSLCp::PcArgs pc{ iR, Vec2(oRw, oRh), { 0, 0, 1, 1 }, float(level++), 0};
 				beginPass(level, false); // begin new pass for next level
 				auto enc = usePipeline(cp);
 				[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:cp.bufferIndex];
@@ -495,7 +474,6 @@ namespace qk {
 				[enc setFragmentTexture:texA atIndex:cp.fragment.image];
 				[enc setFragmentSamplerState:sampler atIndex:cp.fragment.image];
 				[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
-				depth += zDepthNextUnit;
 			} while (level < imageLod);
 		}
 		{
@@ -510,7 +488,7 @@ namespace qk {
 			// Making blur of the x-axis direction
 			float vertex[] = { x1+radius,y1,0, x2-radius,y1,0, x1+radius,y2,0, x2-radius,y2,0 };
 			MSLBlur::PcArgs pc{ iR, Vec2(oRw, oRh), Vec2(radius2 / iR.x(), 0), {0,0},
-				1.0f/(sample-1), float(imageLod), depth, 0 };
+				1.0f/(sample-1), float(imageLod), 0 };
 			auto enc = usePipeline(*blur);
 			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:blur->bufferIndex];
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
@@ -519,7 +497,6 @@ namespace qk {
 			[enc setFragmentSamplerState:sampler atIndex:blur->fragment.image];
 			// draw blur to texture B
 			[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
-			depth += zDepthNextUnit;
 		}
 		{
 			// The blur regions for y-axis
@@ -535,7 +512,7 @@ namespace qk {
 			_blendMode = blend;
 			beginPass(); // begin new pass for main render target
 			MSLBlur::PcArgs pc = { iR, iR, Vec2(0, radius2 / iR.y()), uv_offset,
-				1.0f/(sample-1), float(imageLod), depth, 0 };
+				1.0f/(sample-1), float(imageLod), 0 };
 			auto enc = usePipeline(*blur);
 			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:blur->bufferIndex];
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
@@ -554,7 +531,8 @@ namespace qk {
 
 		TexStat storeStat;
 		auto texStat = mtl_rebuild_texture(_device, dstSize, dst->type(), dst->texture(0), storeStat, dst->mipmap());
-		if (!texStat) return;
+		if (!texStat)
+			return;
 		auto tex = mtl_get_texture(texStat);
 		endPass(); // end current pass
 
@@ -585,7 +563,7 @@ namespace qk {
 			auto begin = srcRect.begin / _surfaceSize;
 			auto scale = srcRect.size / _surfaceSize;
 			auto coord = Vec4(begin.x(), begin.y(), scale.x(), scale.y());
-			MSLCp::PcArgs pc{ _surfaceSize, dstSize, coord, 0, _zDepth, 0 };
+			MSLCp::PcArgs pc{ _surfaceSize, dstSize, coord, 0, 0 };
 			[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:cp.bufferIndex];
 			[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];

@@ -35,36 +35,37 @@
 #include "./string.h"
 
 namespace qk {
-
-	class Qk_EXPORT Hash5381 {
-		uint64_t _hash;
-	public:
-		inline Hash5381(): _hash(5381) {}
-		inline Hash5381(uint64_t hash): _hash(hash) {}
-		uint64_t hashCode() const { return _hash; }
-		void   update(cVoid* data, uint32_t len);
-		void   updatestr(cString& str);
-		void   updateu16v(const uint16_t *data, uint32_t len);
-		void   updateu32v(const uint32_t *data, uint32_t len);
-		void   updateu64v(const uint64_t *data, uint32_t len);
-		void   updateu64(const uint64_t data);
-		void   updateu32(const uint32_t data);
-		void   updatef(float data);
-		void   updatefv2(const float data[2]);
-		void   updatefv4(const float data[4]);
-		String digest();
-	};
-
 	Qk_EXPORT uint32_t mix32(uint32_t x);
 	Qk_EXPORT uint32_t mix32_fast(uint32_t x);
-	Qk_EXPORT uint32_t mix32_fastest(uint32_t x);
 	Qk_EXPORT uint64_t mix64(uint64_t x);
-	Qk_EXPORT uint64_t mix64_xx(uint64_t x);
 	Qk_EXPORT uint64_t mix64_fast(uint64_t x);
-	Qk_EXPORT uint64_t mix64_fastest(uint64_t x);
+	Qk_EXPORT uint32_t mix32_combine(uint32_t a, uint32_t b);
+	Qk_EXPORT uint32_t mix32_combine_fast(uint32_t a, uint32_t b);
+	Qk_EXPORT uint64_t mix64_combine(uint64_t a, uint64_t b);
+	Qk_EXPORT uint64_t mix64_combine_fast(uint64_t a, uint64_t b);
 	Qk_EXPORT uint64_t hash_code(cVoid* data, uint32_t len);
-	Qk_EXPORT String   hash_digest(uint64_t hash);
 	Qk_EXPORT String   hash_str(cVoid* data, uint32_t len);
 	Qk_EXPORT String   hash_str(cString& str);
+
+	class Qk_EXPORT Hash {
+		uint64_t _value;
+	public:
+		Hash();
+		uint64_t value() const { return _value; }
+		uint64_t hashCode() const { return mix64_fast(_value); }
+		uint32_t hashCode32() const;
+		String hashStr();
+		void update(cVoid* data, uint32_t len);
+		void updatestr(cString& str);
+		void updateu16v(const uint16_t *data, uint32_t len);
+		void updateu32v(const uint32_t *data, uint32_t len);
+		void updateu64v(const uint64_t *data, uint32_t len);
+		void updateu64(const uint64_t data);
+		void updatef64(const double data);
+		void updateu32(const uint32_t data);
+		void update1f(const float data);
+		void update2f(const float data[2]);
+		void update4f(const float data[4]);
+	};
 }
 #endif

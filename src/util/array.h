@@ -185,9 +185,9 @@ namespace qk {
 		Array<S, A> map(const std::function<S(const T& t, uint32_t i)>&) const;
 
 		/**
-		 * @func to_string() to_string
+		 * @func toString() to_string
 		 */
-		String to_string() const;
+		String toString() const;
 
 		/**
 		 * @method clear()

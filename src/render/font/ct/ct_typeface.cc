@@ -724,11 +724,18 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Big | alpha;
 	QkUniqueCFRef<CGContextRef> fCG(
 		CGBitmapContextCreate(
-			image.val() + paddInt * rowBytes + paddInt * sizeof(uint32_t),
-			w, h - paddInt * 2, 8, rowBytes, fRGBSpace.get(), bitmapInfo)
+			image.val() + paddInt * rowBytes +
+										paddInt * sizeof(uint32_t),
+			w,
+				h - paddInt * 2,
+			8,
+			rowBytes,
+			fRGBSpace.get(),
+			bitmapInfo
+		)
 	);
 
-	// Qkia handles quantization and subpixel positioning,
+	// handles quantization and subpixel positioning,
 	// so disable quantization and enable subpixel positioning in CG.
 	CGContextSetAllowsFontSubpixelQuantization(fCG.get(), false);
 	CGContextSetShouldSubpixelQuantizeFonts(fCG.get(), false);
@@ -745,8 +752,10 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	CGContextSetGrayFillColor(fCG.get(), 0.0f, 1.0f);
 
 	CGContextSetShouldAntialias(fCG.get(), antiAlias);
-	// CGContextSetAllowsFontSmoothing(fCG.get(), true);
-	CGContextSetShouldSmoothFonts(fCG.get(), false);
+	CGContextSetAllowsFontSmoothing(fCG.get(), true);
+	CGContextSetShouldSmoothFonts(fCG.get(), true);
+
+	// CGContextSetRGBFillColor(fCG.get(), 1.0, 1.0, 1.0, 1.0);
 
 	CTFontDrawGlyphs(fontRef, cgGlyph, *drawPoints, glyphs.length(), fCG.get());
 

@@ -28,29 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__view__root__
-#define __quark__view__root__
+#include <src/util/hash.h>
+#include <src/util/log.h>
+#include "../test.h"
 
-#include "./morph.h"
+using namespace qk;
 
-namespace qk {
-
-	/**
-	 * The root view of a window
-	 */
-	class Root: public Morph {
-	public:
-		ViewType view_type() const override;
-		bool can_become_focus() override;
-		void layout_forward(uint32_t mark) override;
-		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		void draw(Painter *render) override;
-		void apply_class_all(); // apply class for all subviews
-	private:
-		void reload_Rt(Vec2 size); // reload root view when window size changed
-		Root(Window *win);
-		friend class Window;
-	};
-
+Qk_TEST_Func(hash) {
+	Qk_Log("%lu", hash_code("\x01", 1));
+	Qk_Log("%lu", hash_code("\x01\x00", 2));
+	Qk_Log("%lu", hash_code("\x01\x00\x00", 3));
 }
-#endif

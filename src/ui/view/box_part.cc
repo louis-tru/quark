@@ -623,7 +623,7 @@ namespace qk {
 		auto white_space = opts->white_space_value();
 		//auto word_break = opts->word_break_value();
 		bool is_auto_wrap = true;
-		auto limitX = lines->limit_range().end.x();
+		auto limitX = lines->limit_range().max.x();
 		auto origin = lines->pre_width();
 
 		if (white_space == WhiteSpace::NoWrap ||

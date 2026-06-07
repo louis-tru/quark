@@ -18,7 +18,7 @@ Qk_CONSTANT(
 #vert
 void main() {
 	vec2 scale = pc.oResolution / pc.iResolution;
-	gl_Position = rMat.value * vec4(vertexIn.xy * scale, pc.depth, 1.0);
+	gl_Position = rMat.value * vec4(vertexIn.xy * scale, 0.0, 1.0);
 }
 
 #frag

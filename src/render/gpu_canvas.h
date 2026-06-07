@@ -36,6 +36,13 @@
 #include "./render.h"
 #include "./canvas.h"
 
+#define Qk_FLAG_CLIP (1u << 0)
+#define Qk_FLAG_AASIDE_LINE (1u << 2)
+#define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
+#define Qk_FLAGS_DARK_COLOR (1 << 3)
+#define Qk_FLAG_COUNT2 (1u << 3)
+#define Qk_FLAG_AASIDE_Inverted (1u << 3)
+
 namespace qk {
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 
@@ -108,7 +115,7 @@ namespace qk {
 
 	enum GC_ClearFlags {
 		kOnlyColor_ClearFlags, // only clear color
-		kClearAll_ClearFlags, // clear color and depth and stencil
+		kClearAll_ClearFlags, // clear color and reset render target state
 	};
 
 	class GC_Filter;
@@ -133,18 +140,17 @@ namespace qk {
 		void scale(Vec2 val) override;
 		void rotate(float z) override;
 		void clipPath(const Path& path, ClipOp op, bool antiAlias) override;
-		void clipPathv(const Pathv& path, ClipOp op, bool antiAlias) override;
 		void clipRect(const Rect& rect, ClipOp op, bool antiAlias) override;
 		void clearColor(const Color4f& color) override;
 		void drawColor(const Color4f& color, BlendMode mode) override;
 		void drawPath(const Path& path, const Paint& paint) override;
-		void drawPathv(const Pathv& path, const Paint& paint) override;
-		void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawRRectBlurColor(const Rect& rect,
-			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
+		void drawPathColor(const Path &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawPathColors(const Path* path[4], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		void drawRRectBlurColor(const Rect& rect, const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
 		void drawRect(const Rect& rect, const Paint& paint) override;
 		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
+		void drawRectPath(const RectPath& path, const Paint& paint) override;
+		void drawRectOutlinePath(const RectOutlinePath& path, const Color4f color[4], const Paint& paint) override;
 		float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		void drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) override;
@@ -158,8 +164,7 @@ namespace qk {
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
-		virtual void drawClipCmd(const VertexData &vertex, const VertexData &aaSide,
-				GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
+		virtual void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
 		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
@@ -188,8 +193,9 @@ namespace qk {
 		Vec2   _size, _scale; // size=surfaceSize/surfaceScale, _scale = matrix scale extracted
 		float  _surfaceScaleAverage, _scaleAverage, _allScaleAverage; // average of x/y scale
 		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
-		float  _phy2Pixel; // _phy2Pixel = 2 / _allScaleMin
-		float  _zDepth; // z depth for draw order
+		float  _1pxSize; // _1pxSize = 1 / _allScaleMin
+		float  _aaRadius, _aaRadiusRect; // anti-aliasing side radius, for path and rect respectively
+		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa

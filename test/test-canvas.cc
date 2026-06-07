@@ -9,26 +9,31 @@
 #include <src/render/render.h>
 #include <src/render/canvas.h>
 #include <src/render/font/pool.h>
+#include <src/ui/text/text_blob.h>
 #include "./test.h"
 
 using namespace qk;
 
-class MyCanvas: public Box {
-public:
+#define Qk_Debug_CANVAS 0
 
-	void draw(Painter *render) override {
-		// mark_none(kLayout_None); return;
+void test_gui_new(Box *r);
+
+class TestCanvas: public Box {
+	float i = 0;
+	Array<TextBlob> textBlobs;
+public:
+	void draw(Painter *painter) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
-		// clear color
-		//canvas->clearColor(Color4f(1,1,1));
-		//canvas->drawColor(Color4f(1,0,0));
+		i+=Qk_PI_RATIO_180*0.01;
+		float c = abs(sinf(i)) * 5;
+
 		Paint paint;
-		// paint.blendMode = kSrcOverLegacy_BlendMode;
 
 		// -------- clip ------
 		canvas->save();
+
 		if (1) { // clip
 			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
@@ -45,7 +50,7 @@ public:
 			paint.fill.gradient = &gPaint;
 
 			canvas->save();
-			canvas->setMatrix(canvas->getMatrix() * Mat({0,0}, {0.8, 0.8}, -0.2, {0.3,0}));
+			canvas->setMatrix(canvas->getMatrix() * Mat({0,0}, {0.8, 0.8}, c, {0.3,0}));
 			canvas->drawRect(rect, paint);
 			canvas->restore();
 		}
@@ -67,49 +72,138 @@ public:
 		canvas->translate(size*-0.5);
 
 		if (1) { // polygon
-			paint.fill.color = Color4f(0, 0, 0, 0.8);
-			Path path(   Vec2(0, size.y() - 10) );
-			path.lineTo( size );
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			Path path(   Vec2(110, size.y() - 150) );
 			path.lineTo( Vec2(size.x()*0.5, 0) );
+			path.lineTo( size );
 			path.close();
 			path.moveTo( Vec2(100, 100) );
+			path.lineTo( Vec2(200, 180) );
 			path.lineTo( Vec2(100, 200) );
-			path.lineTo( Vec2(200, 200) );
 			path.close();
 			canvas->drawPath(path, paint);
 		}
 
 		if (1) { // Arc
 			paint.fill.color = Color4f(0, 1, 0, 0.8);
-			canvas->drawPath(Path::MakeArc({Vec2(400, 100), Vec2(200, 100)}, 0, 4.5, 1), paint);
+			canvas->drawPath(Path::MakeArc({Vec2(500, 420), Vec2(200, 100)}, 0, 4.5, 1), paint);
 			paint.fill.color = Color4f(1, 0, 1, 0.8);
-			canvas->drawPath(Path::MakeArc({Vec2(450, 250), Vec2(200, 100)}, 4.5, 4, 0), paint);
-			paint.fill.color = Color4f(0, 0, 0, 0.8);
-			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI, 1), paint);
+			canvas->drawPath(Path::MakeArc({Vec2(200, 400), Vec2(200, 100)}, 4.5, 4, 0), paint);
+			paint.fill.color = Color4f(0, 1, 0, 0.8);
+			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI*0.5, 1), paint);
 		}
 
-		if (1) { // font text
+		if (1) { // font blob
 			paint.fill.color = Color4f(255,0,255);
+			paint.stroke.color = Color4f(0,0,0);
+			paint.strokeWidth = 5;
+			paint.style = Paint::kStroke_Style;
+			if (textBlobs.is_null()) {
+				TextOptions opts(shared_app()->defaultTextOptions());
+				opts.set_font_size({64});
+				opts.set_font_weight(FontWeight::Bold);
+				textBlobs = TextBlobBuilder::makeTextBlob("A 好 HgKr葵花pjAH", &opts);
+			}
+			Vec2 origin(10,160);
+			for (auto &blob: textBlobs) {
+				canvas->drawTextBlob(&blob.blob, origin + Vec2{blob.origin,0}, 64, paint);
+				origin[0] += 10;
+			}
+		}
+
+		if (0) { // font glyphs
+			paint.fill.color = Color4f(0,120,120);
+			paint.style = Paint::kFill_Style;
 			auto stype = FontStyle(FontWeight::Bold, FontWidth::Default, FontSlant::Normal);
 			auto pool = shared_app()->fontPool();
-			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
+			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "Hello World! 你好，世界！👋🌍");
 			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);
-			Vec2 origin(10,60);
+			Vec2 origin(10,500);
 			for (auto &fg: fgs) {
 				origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
 			}
 		}
 
 		if (1) { // outline
-			paint.fill.color = Color4f(0, 0, 0);
+			paint.style = Paint::kStrokeAndFill_Style;
+			paint.stroke.color = Color4f(0,0,0,0.3);
+			paint.strokeWidth = 8;
+			paint.fill.color = Color4f(0.5,0,0.3);
 			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
-			paint.fill.color = Color4f(0, 1, 1);
-			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-			//Qk_DLog("%d", sizeof(signed long));
-			paint.stroke.color = Color4f(0, 0, 0);
 			paint.style = Paint::kStroke_Style;
-			paint.strokeWidth = 4;
+			paint.fill.color = Color4f(0, 1, 1);
+			paint.stroke.color = Color4f(0,0,0);
+			paint.strokeWidth = 0.5;
+			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+			paint.stroke.color = Color4f(1, 1, 0);
+			paint.style = Paint::kStroke_Style;
+			paint.strokeWidth = 10;
 			canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
+		}
+
+		canvas->restore();
+
+		mark_rerender();
+	}
+};
+
+class DebugCanvas: public Box {
+public:
+
+	void draw(Painter *render) override {
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
+
+		Paint paint;
+
+		// window()->root()->set_background_color_direct({0,0,0});
+		canvas->save();
+		canvas->translate(size*-0.5);
+
+		if (1) { // polygon
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			Path path(   Vec2(110, size.y() - 150) ); // left/bottom
+			path.lineTo( Vec2(size.x()*0.5, 0) ); // top, 放下面逆时针方向
+			path.lineTo( size * 0.85 ); // right/bottom
+			path.close();
+			path.moveTo( Vec2(100, 100) ); // left/top
+			path.lineTo( Vec2(200, 200) ); // right/bottom, 放下面逆时针方向
+			path.lineTo( Vec2(100, 200) ); // left/bottom
+			path.close();
+			canvas->drawPath(path, paint);
+			paint.antiAlias = false;
+			paint.style = Paint::kStroke_Style;
+			////
+			// paint.stroke.color = Color4f(0, 0, 1, 0.3);
+			// paint.strokeWidth = 50;
+			// canvas->drawPath(path, paint);
+			////
+			// paint.strokeWidth = 0.5;
+			// paint.stroke.color = Color4f(1, 0, 0, 1);
+			// canvas->drawPath(path, paint);
+		}
+
+		if (0) { // line stroke
+			Path path;//(Vec2(100, 100));
+			// path.lineTo(Vec2(300, 300));
+			path.moveTo(Vec2(300, 100));
+			path.lineTo(Vec2(500, 300));
+			path.lineTo(Vec2(600, 100));
+			path.close();
+			// paint.antiAlias = false;
+			paint.style = Paint::kStroke_Style;
+			paint.fill.color = Color4f(0, 0, 0, 0.5);
+			paint.strokeWidth = 50;
+			paint.stroke.color = Color4f(1, 0, 0, 0.5);
+			canvas->drawPath(path, paint);
+		}
+
+		if (1) { // outline
+			paint.antiAlias = true;
+			paint.stroke.color = Color4f(0, 0, 1);
+			paint.style = Paint::kStroke_Style;
+			paint.strokeWidth = 20;
+			canvas->drawPath(Path::MakeCircle(Vec2(300,160), 100), paint);
 		}
 
 		canvas->restore();
@@ -121,12 +215,18 @@ public:
 
 Qk_TEST_Func(canvas) {
 	App app;
-	auto win = Window::Make({.fps=0x0});
+	auto win = Window::Make({.frame={{0,0}, {700,700}}});
 	win->activate();
-	// layout
-	auto t = win->root()->append_new<MyCanvas>();
+
+	test_gui_new(win->root());
+
+#if Qk_Debug_CANVAS
+	auto t = win->root()->append_new<DebugCanvas>();
+#else
+	auto t = win->root()->append_new<TestCanvas>();
+#endif
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });
-	// layout end
+
 	app.run();
 }

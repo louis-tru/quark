@@ -43,9 +43,9 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage({rect.begin-radius,width+radius*2}, {width}, kInvalid_ColorType, kSrcOverLegacy_BlendMode, true);
-		// auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverStraight_BlendMode, true);
-		// paint.blendMode = kSrcOverStraight_BlendMode;
+		auto img = canvas->readImage({rect.begin-radius,width+radius*2}, {width}, kInvalid_ColorType, kSrcOver_BlendMode, true);
+		//auto img = canvas->readImage({0,size}, size*2, kInvalid_ColorType, kSrcOverLegacy_BlendMode, true);
+		paint.blendMode = kSrcOverLegacy_BlendMode;
 		paint.fill.color = Color4f(1, 1, 1, 1);
 		paint.stroke.color = Color4f(1, 1, 1, 1);
 		paint.filter = nullptr;

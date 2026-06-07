@@ -99,8 +99,6 @@ namespace qk {
 			EGL_GREEN_SIZE, 8,
 			EGL_BLUE_SIZE,  8,
 			EGL_ALPHA_SIZE, 8,
-			EGL_DEPTH_SIZE, 0,
-			EGL_STENCIL_SIZE, 8,
 			EGL_SAMPLE_BUFFERS, MSAA > 1 ? 1 : 0,
 			EGL_SAMPLES, MSAA > 1 ? MSAA : 0,
 			EGL_NONE
@@ -139,14 +137,13 @@ namespace qk {
 
 			EGLConfig& cfg = supportedConfigs[configIndex];
 
-			EGLint r, g ,b, a, s, samples;
+			EGLint r, g ,b, a, samples;
 
 			bool hasMatch =
 					eglGetConfigAttrib(display, cfg, EGL_RED_SIZE,   &r) && r == 8
 				&& eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) && g == 8
 				&& eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE,  &b) && b == 8
 				&& eglGetConfigAttrib(display, cfg, EGL_ALPHA_SIZE, &a) && a == 8
-				&& eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &s) && s == 8
 				&& eglGetConfigAttrib(display, cfg, EGL_SAMPLES, &samples)
 				&& (MSAA <= 1 || samples >= MSAA)
 			;

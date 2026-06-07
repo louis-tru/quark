@@ -27,3 +27,4 @@ deps/spine
 src/ui/painter_*
 a.out
 test/test-demo
+.cursor

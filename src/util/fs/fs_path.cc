@@ -195,7 +195,7 @@ namespace qk {
 		Array<String> ls = path.split("/");
 		Array<String> rev;
 		int up = 0;
-		for (int i = Qk_Minus(ls.length(), 1); i > -1; i--) {
+		for (int i = ls.length() - 1; i > -1; i--) {
 			cString& v = ls[i];
 			if (!v.is_empty() && v != ".") {
 				if (v[0] == '.' && v[1] == '.') { // set up ../
@@ -214,7 +214,7 @@ namespace qk {
 		
 		if (rev.length()) {
 			// reverse
-			for (int i = Qk_Minus(rev.length(), 1); i > 0; i--) {
+			for (int i = rev.length() - 1; i > 0; i--) {
 				s.append(rev[i]).append('/');
 			}
 			s.append(rev[0]);

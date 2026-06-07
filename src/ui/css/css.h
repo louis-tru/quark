@@ -156,7 +156,7 @@ namespace qk {
 			virtual Property* copy() = 0; // @thread Rt
 		};
 		// define props
-		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
+		#define _Fun(Enum, Type, Name, From) StyleSheets* set_##Name(Type value);
 			Qk_Css_Props(_Fun)
 		#undef _Fun
 
@@ -471,11 +471,11 @@ namespace qk {
 		// Hash of the propagating stylesheet roots.
 		// Used to detect changes in propagation context
 		// and to short-circuit unnecessary descendant resolution.
-		Hash5381 _propagatingStylesHash_rt;
+		Hash _propagatingStylesHash_rt;
 
 		// Hash of all styles applied to this View.
 		// Used to detect whether style application actually changed.
-		Hash5381 _stylesHash_rt;
+		Hash _stylesHash_rt;
 
 		friend class View;
 	};

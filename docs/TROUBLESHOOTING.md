@@ -61,3 +61,100 @@ When output is black, stale, or a strange gradient, and forcing the final copy
 shader to output a constant color still does not work, do not stop at FBO,
 texture binding, or final-copy shader checks. Also verify active uniform blocks
 and buffer binding points have allocated storage and sane default contents.
+
+## GL: readImage() Corrupts The Current FBO Output Texture
+
+Symptom:
+
+- `test/test-blur.cc` rendered normally until `Canvas::readImage()` was called
+  on the current canvas/FBO contents.
+- After the read, following frames drew in the wrong place, almost offscreen, or
+  flashed black while dragging the window.
+- The blur path itself looked correct when the readback/copy step was disabled.
+
+Misleading clues:
+
+- The failure appeared after blur, so temporary blur textures, blend mode, and
+  FBO restore logic looked suspicious.
+- The read path used a shader copy from source to destination, so the problem
+  looked like a copy-coordinate or viewport issue.
+
+Root cause:
+
+- GL texture storage calls operate on the texture currently bound to
+  `GL_TEXTURE_2D`.
+- In `readImageCall()`, the source texture was bound before allocating storage
+  for the read destination.
+- When reading from the current canvas, `srcTex` is the canvas output texture.
+  Calling `glTexImage2D()` while `srcTex` is bound reallocates the canvas output
+  texture itself, so the next frame renders into a damaged or wrongly sized
+  render target.
+
+Final fix:
+
+- Bind the destination texture before `glTexImage2D()`.
+- Attach that destination texture to the FBO.
+- Rebind the source texture only for sampling during the copy draw.
+- Restore the FBO attachment after the copy.
+
+```cpp
+glBindTexture(GL_TEXTURE_2D, tex); // destination
+glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+
+glBindTexture(GL_TEXTURE_2D, srcTex); // source
+glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, srcTex, 0);
+```
+
+Prevention rule:
+
+- Before any `glTexImage2D()`, `glTexSubImage2D()`, or `glTexParameteri()` call,
+  explicitly verify which texture is currently bound.
+- In copy/readback paths, separate the destination-allocation phase from the
+  source-sampling phase. Do not rely on comments or variable names; GL only sees
+  the current binding.
+
+## UI: Window Resize Jitter From Stale Root Layout Mark
+
+Symptom:
+
+- Resizing a macOS window produced visible shimmer/jitter or a one-frame layout
+  delay.
+- The issue looked like a GL/Metal presentation or live-resize rendering
+  problem.
+- Experiments with display links, transaction timing, view redraw paths, and
+  backend present behavior did not clearly fix it.
+
+Misleading clues:
+
+- The artifact happened while dragging the native window, so render timing and
+  surface resize looked like the obvious suspects.
+- GL and Metal showed similar behavior, which made it easy to blame platform
+  presentation rather than layout invalidation.
+
+Root cause:
+
+- `Root::layout_forward(uint32_t mark)` receives a temporary local `mark` value.
+- During resize, `layout_lock_width()` / `layout_lock_height()` can add new
+  layout marks to the root.
+- The later layout code still used the old temporary `mark`, so child layout
+  invalidation could be missed until the next frame.
+
+Final fix:
+
+- After locking the new root size, refresh the local temporary mark from
+  `_mark_value` before continuing layout propagation.
+
+```cpp
+layout_lock_width(window()->size()[0]);
+layout_lock_height(window()->size()[1]);
+mark = _mark_value; // update mark value after layout lock
+```
+
+Prevention rule:
+
+- If a layout function mutates `_mark_value` while also using a local snapshot
+  of marks, refresh the local snapshot before making downstream decisions.
+- Resize bugs that look like rendering jitter can still be layout invalidation
+  bugs. Check mark propagation before spending more time on present timing.

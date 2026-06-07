@@ -113,6 +113,12 @@ namespace qk {
 		kUnpremul_AlphaType, //!< pixel components are independent of alpha
 	};
 
+	struct PixelBlockInfo {
+		uint8_t width;  //!< Pixel width covered by one storage block.
+		uint8_t height; //!< Pixel height covered by one storage block.
+		uint8_t bytes;  //!< Bytes occupied by one storage block.
+	};
+
 	class Qk_EXPORT PixelInfo {
 	public:
 		Qk_DEFINE_PROP_GET(int, width, Const); //!< bitmap width
@@ -124,6 +130,14 @@ namespace qk {
 		uint32_t rowbytes() const;
 		uint32_t bytes() const;
 		Vec2 size() const { return Vec2(_width, _height); }
+
+		/**
+		 * Returns bytes per pixel for integer-sized, non-block formats.
+		 * Block-compressed and planar formats return 0.
+		*/
+		static uint32_t bytes_per_pixel(ColorType type);
+		static PixelBlockInfo block_info(ColorType type);
+
 		friend class ImageSource;
 	};
 
@@ -132,11 +146,6 @@ namespace qk {
 	 */
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		/**
-		 * @method pixel_bit_size()
-		*/
-		static uint32_t bytes_per_pixel(ColorType type);
-
 		class Body {
 		public:
 			virtual void release() = 0;
