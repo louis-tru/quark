@@ -115,10 +115,7 @@ namespace qk {
 		if (fontSize <= 64) {
 			return 64;
 		}
-		if (fontSize <= 128) {
-			return 128;
-		}
-		return 256;
+		return 128; // limit max font size to 128
 	}
 
 }

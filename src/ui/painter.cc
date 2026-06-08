@@ -150,6 +150,65 @@ namespace qk {
 		}
 	}
 
+	void Painter::drawBoxBasic1(Box *v) {
+		if (!v->_color.a())
+			return;
+		drawBoxShadow(v);
+
+		_IfNotBorderReturn(v, {
+			drawBoxColor(v);
+			drawBoxFill(v);
+		});
+
+		auto addBatch = [](PathvBatchs &out, Color color, const qk::Path *pv) {
+			auto key = reinterpret_cast<uint32_t&>(color);
+			int i = 0;
+			for (; i < out.total; i++) {
+				auto &it = out.indexed[i];
+				if (it.key == key) {
+					it.pathv[it.count++] = pv;
+					return;
+				}
+			}
+			auto &it = out.indexed[i];
+			it.key = key;
+			it.color = color;
+			it.pathv[it.count++] = pv;
+			out.total++;
+		};
+
+		if (v->background()) {
+			drawBoxColor(v);
+			drawBoxFill(v);
+		}
+		else if (v->_background_color.a()) {
+			getInsideRectPath(v);
+			addBatch(_pathvs, v->_background_color, _boxData.inside);
+		}
+
+		getRRectOutlinePath(v);
+
+		if (_boxData.outline) {
+			Paint paint;
+			paint.antiAlias = v->_aa;
+			paint.style = Paint::kStroke_Style;
+			for (int i = 0; i < 4; i++) {
+				if (_border->width[i] && _border->color[i].a()) {
+					auto pv = &_boxData.outline->top + i;
+					addBatch(_pathvs, _border->color[i], pv);
+				}
+			}
+		}
+
+		if (_pathvs.total) {
+			for (int i = 0; i < _pathvs.total; i++) {
+				auto & it = _pathvs.indexed[i];
+				_canvas->drawPathColors(it.pathv, it.count, it.color.mul_color4f(_color), defaultBlendMode, v->_aa);
+			}
+			_pathvs = {0}; // reset batch
+		}
+	}
+
 	void Painter::drawBoxBorder(Box *v) {
 		_IfNotBorderReturn(v);
 		getRRectOutlinePath(v);

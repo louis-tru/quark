@@ -712,7 +712,9 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	top += cgBound.size.height + cgBound.origin.y + paddInt;
 
 	if (!h || !w) {
-		return { ImageSource::Make(Pixel(PixelInfo())) };
+		return {
+			ImageSource::Make(PixelInfo()), float(paddInt),top,right, fontSize, 1.0f,
+		}; // empty image
 	}
 
 	int rowBytes = w * sizeof(uint32_t);
@@ -752,8 +754,8 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	CGContextSetGrayFillColor(fCG.get(), 0.0f, 1.0f);
 
 	CGContextSetShouldAntialias(fCG.get(), antiAlias);
-	CGContextSetAllowsFontSmoothing(fCG.get(), true);
-	CGContextSetShouldSmoothFonts(fCG.get(), true);
+	// CGContextSetAllowsFontSmoothing(fCG.get(), true);
+	CGContextSetShouldSmoothFonts(fCG.get(), false);
 
 	// CGContextSetRGBFillColor(fCG.get(), 1.0, 1.0, 1.0, 1.0);
 

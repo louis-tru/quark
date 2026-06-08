@@ -49,12 +49,12 @@ void test_gui_new(Box *box) {
 	act->addFrame(1e6, LINEAR)->set_rotate_z(360);
 	act->set_loop(0xffffffff);
 	act->play();
-	r->set_action(act);
+	// r->set_action(act);
 
 	{
 		// Image
 		auto img = r->append_new<Image>();
-		img->set_src(fs_resources("jsapi/res/cc.tga"));
+		// img->set_src(fs_resources("jsapi/res/cc.tga"));
 		img->set_width({320});
 		// img->set_height({250});
 		img->set_color({255,255,255,uint8_t(255*0.6)});
@@ -69,7 +69,7 @@ void test_gui_new(Box *box) {
 		img->set_border_right_width(15);
 		img->set_border_bottom_width(15);
 		img->set_border_color({Color(255, 0, 255)});
-		img->set_border_top_color({Color(255, 0, 0)});
+		img->set_border_top_color({Color(255, 0, 0,0)});
 		// img->border_top_color(Color(0, 255, 255));
 		// img->border_bottom_color(Color(0, 0, 255));
 		// img->border_left_color(Color(255, 0, 0));
@@ -95,7 +95,7 @@ void test_gui_new(Box *box) {
 		div->set_align(Align::RightBottom);
 
 		auto sp1 = div->append_new<Image>();
-		sp1->set_src(fs_resources("jsapi/res/aa.webp"));
+		// sp1->set_src(fs_resources("jsapi/res/aa.webp"));
 		sp1->set_width({256});
 		sp1->set_height({256});
 	}
@@ -143,7 +143,7 @@ Qk_TEST_Func(gui) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 
-	// test_gui_new(win->root());
+	test_gui_new(win->root());
 
 	app.run();
 	Qk_DLog("Exit");

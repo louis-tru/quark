@@ -160,13 +160,13 @@ namespace qk {
 		if (_rectPath.get(key, out)) {
 			return (*out)->base;
 		}
-		if (border) {
+		if (border && is_not_Zero(border)) {
 			auto newRect = rect;
 			auto limit = std::min(newRect.size.x() * 0.5f, newRect.size.y() * 0.5f);
 			newRect.begin[0] += border[3]; // left
 			newRect.begin[1] += border[0]; // top
-			newRect.size  [0] -= border[3] + border[1]; // left + right
-			newRect.size  [1] -= border[0] + border[2]; // top + bottom
+			newRect.size [0] -= border[3] + border[1]; // left + right
+			newRect.size [1] -= border[0] + border[2]; // top + bottom
 
 			if (radius && is_not_Zero(radius)) {
 				float leftTop     = Qk_Min(radius[0],limit), rightTop   = Qk_Min(radius[1],limit);

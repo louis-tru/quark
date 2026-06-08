@@ -160,6 +160,7 @@ namespace qk {
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) override;
 		Vec2 surfaceSize() { return _surfaceSize; }
 		const Render::Options& opts() const { return _opts; }
+		void setBlendMode(BlendMode mode);
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;

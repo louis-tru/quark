@@ -866,7 +866,7 @@ namespace qk {
 		|__2____________|
 		*/
 		static auto equals = [](Path& path, Vec2 &p) {
-			return !path.ptsLen() || isPointEquals(path._pts.back(), p);
+			return path.ptsLen() && isPointEquals(path._pts.back(), p);
 		};
 
 		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, float angle, int mask) {
@@ -875,7 +875,10 @@ namespace qk {
 				int   sample = getRadianSample(radius, Qk_PI_2_1); // |0|1| = sample = 3
 				float angleStep = Qk_PI_2_1 / (sample - 1);
 				for (int i = 0; i < sample; i++) {
-					Vec2 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y());
+					Vec2 p(
+						center.x() + cosf(angle) * radius.x(),
+						center.y() - sinf(angle) * radius.y()
+					);
 					// First point can ignore, because it is repeat
 					if (i || !equals(*out, p)) {
 						out->lineTo(p);
@@ -888,7 +891,7 @@ namespace qk {
 			}
 		};
 
-		build(&out, {1    }, r.leftTop,     {x1,y1}, Qk_PI_2_1, 1); // top
+		build(&out, {1    }, r.leftTop,     {x1,y1}, Qk_PI_2_1, 1 << 0); // top
 		build(&out, {1, -1}, r.leftBottom,  {x1,y2}, Qk_PI, 1 << 3); // left
 		build(&out, {-1   }, r.rightBottom, {x2,y2}, -Qk_PI_2_1, 1 << 2); // bottom
 		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, 0, 1 << 1); // right
@@ -925,7 +928,7 @@ namespace qk {
 				// out->moveTo(v[3]); // TODO: fix aa sdf stroke error
 				out->lineTo(v[4]);
 				out->lineTo(v[5]);
-				out->lineTo(v[0]);
+				out->close(); //out->lineTo(v[0]);
 				outline.flags |= 1 << j;
 			} else {
 				out->moveTo(v[1]);

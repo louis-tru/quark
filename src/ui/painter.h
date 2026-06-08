@@ -70,6 +70,7 @@ namespace qk {
 		void getOutsideRectPath(Box *v);
 		void getRRectOutlinePath(Box *v);
 		void drawBoxBasic(Box *v);
+		void drawBoxBasic1(Box *v);
 		void drawBoxFill(Box *v);
 		void drawBoxFillImage(Box *v, FillImage *fill);
 		void drawBoxFillLinear(Box *v, FillGradientLinear *fill);
@@ -106,6 +107,16 @@ namespace qk {
 		BoxData _boxData; // reuse box data
 		// reuse container as layout calculation
 		View::Container _reuseContainer;
+		// batch pathv for color drawing
+		struct PathvBatchs {
+			struct Batch {
+				const Path* pathv[5];
+				Color color;
+				int count = 0;
+				uint32_t key;
+			} indexed[5];
+			int total = 0;
+		} _pathvs;
 		// Delay draw command for order drawing
 		struct DelayCmd {
 			View *view;
