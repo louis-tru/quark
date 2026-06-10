@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quark Compute AA WebGPU Prototype</title>
+<style>
+	:root {
+		color-scheme: dark;
+		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		background: #101216;
+		color: #e8edf4;
+	}
+	body {
+		margin: 0;
+		min-height: 100vh;
+		display: grid;
+		grid-template-rows: auto 1fr;
+		background: #101216;
+	}
+	header {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 12px 16px;
+		border-bottom: 1px solid #27303c;
+		background: #171b22;
+	}
+	h1 {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 650;
+		white-space: nowrap;
+	}
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px;
+	}
+	label {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		color: #bac4d2;
+	}
+	select, input[type="range"] {
+		accent-color: #54b7ff;
+	}
+	select {
+		height: 28px;
+		border: 1px solid #344050;
+		border-radius: 6px;
+		background: #10141b;
+		color: #e8edf4;
+	}
+	main {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 280px;
+		min-height: 0;
+	}
+	.stage {
+		position: relative;
+		min-width: 0;
+		min-height: 0;
+	}
+	canvas {
+		width: 100%;
+		height: 100%;
+		display: block;
+		background: #0b0d11;
+	}
+	canvas[hidden] {
+		display: none;
+	}
+	.stage canvas {
+		position: absolute;
+		inset: 0;
+	}
+	aside {
+		border-left: 1px solid #27303c;
+		background: #151922;
+		padding: 14px;
+		overflow: auto;
+	}
+	.stat {
+		display: grid;
+		grid-template-columns: 92px 1fr;
+		gap: 6px 10px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 12px;
+		line-height: 1.45;
+	}
+	.stat span:nth-child(odd) {
+		color: #8490a1;
+	}
+	.note {
+		margin-top: 14px;
+		color: #9facbd;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+</style>
+</head>
+<body>
+<header>
+	<h1>Compute AA Prototype</h1>
+	<div class="controls">
+		<label>Backend
+			<select id="backend">
+				<option value="auto">Auto</option>
+				<option value="gpu">WebGPU</option>
+				<option value="cpu">CPU</option>
+			</select>
+		</label>
+		<label>View
+			<select id="viewMode">
+				<option value="0">Solid color</option>
+				<option value="1">Coverage</option>
+				<option value="2">Tile heat</option>
+			</select>
+		</label>
+		<label>Fill
+			<select id="fillRule">
+				<option value="0">Non-zero</option>
+				<option value="1">Even-odd</option>
+				<option value="2">Positive</option>
+			</select>
+		</label>
+		<label>Samples
+			<input id="samples" type="range" min="1" max="8" step="1" value="4">
+			<span id="samplesText">4x4</span>
+		</label>
+		<label>
+			<input id="animate" type="checkbox" checked>
+			Animate
+		</label>
+	</div>
+</header>
+<main>
+	<div class="stage">
+		<canvas id="gpuCanvas"></canvas>
+		<canvas id="cpuCanvas" hidden></canvas>
+	</div>
+	<aside>
+		<div class="stat" id="stats"></div>
+		<div class="note">
+			This page runs the same first-pass model as the Metal prototype:
+			CPU path flattening and Y-range tile binning, then per-pixel winding
+			coverage in a compute-style shader. WebGPU is used when
+			available; otherwise JavaScript computes the same result on CPU.
+		</div>
+	</aside>
+</main>
+<script type="module">
+const TILE = 16;
+const stage = document.querySelector(".stage");
+const gpuCanvas = document.getElementById("gpuCanvas");
+const cpuCanvas = document.getElementById("cpuCanvas");
+let canvas = gpuCanvas;
+const stats = document.getElementById("stats");
+const backendEl = document.getElementById("backend");
+const viewModeEl = document.getElementById("viewMode");
+const fillRuleEl = document.getElementById("fillRule");
+const samplesEl = document.getElementById("samples");
+const samplesText = document.getElementById("samplesText");
+const animateEl = document.getElementById("animate");
+
+let width = 1;
+let height = 1;
+let mode = "CPU fallback";
+let gpu = null;
+let lastCPUFrameKey = "";
+
+function useGPU() {
+	return !!gpu && backendEl.value !== "cpu";
+}
+
+const wgsl = `
+struct Params {
+	width: u32,
+	height: u32,
+	tileCountX: u32,
+	tileCountY: u32,
+	fillRule: u32,
+	sampleGrid: u32,
+	viewMode: u32,
+	_pad0: u32,
+	color: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var<storage, read> edgeGeom: array<vec4f>;
+@group(0) @binding(2) var<storage, read> edgeInfo: array<vec4f>;
+@group(0) @binding(3) var<storage, read> tileHeader: array<vec4u>;
+@group(0) @binding(4) var<storage, read> tileEdgeIndices: array<u32>;
+@group(0) @binding(6) var outTex: texture_storage_2d<rgba8unorm, write>;
+@group(1) @binding(0) var blitTex: texture_2d<f32>;
+@group(1) @binding(1) var blitSampler: sampler;
+
+fn inside(w: i32, rule: u32) -> bool {
+	if rule == 1u {
+		return (abs(w) & 1) != 0;
+	}
+	if rule == 2u {
+		return w > 0;
+	}
+	return w != 0;
+}
+
+fn crossing(sample: vec2f, edgeIndex: u32) -> i32 {
+	let geom = edgeGeom[edgeIndex];
+	let info = edgeInfo[edgeIndex];
+	if sample.y < info.x || sample.y >= info.y {
+		return 0;
+	}
+	let dy = geom.w - geom.y;
+	if dy == 0.0 {
+		return 0;
+	}
+	let t = (sample.y - geom.y) / dy;
+	let crossX = geom.x + (geom.z - geom.x) * t;
+	if crossX <= sample.x {
+		return i32(info.z);
+	}
+	return 0;
+}
+
+@compute @workgroup_size(16, 16)
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+	if gid.x >= params.width || gid.y >= params.height {
+		return;
+	}
+
+	let tileX = gid.x / 16u;
+	let tileY = gid.y / 16u;
+	let tileIndex = tileY * params.tileCountX + tileX;
+	let header = tileHeader[tileIndex];
+	let grid = max(params.sampleGrid, 1u);
+	let invGrid = 1.0 / f32(grid);
+	var covered = 0.0;
+
+	for (var sy = 0u; sy < grid; sy = sy + 1u) {
+		for (var sx = 0u; sx < grid; sx = sx + 1u) {
+			let sample = vec2f(gid.xy) + (vec2f(f32(sx), f32(sy)) + vec2f(0.5)) * invGrid;
+			var winding = 0;
+			for (var i = 0u; i < header.y; i = i + 1u) {
+				let edgeIndex = tileEdgeIndices[header.x + i];
+				winding = winding + crossing(sample, edgeIndex);
+			}
+			if inside(winding, params.fillRule) {
+				covered = covered + 1.0;
+			}
+		}
+	}
+
+	let coverage = covered * invGrid * invGrid;
+	var color = vec4f(0.07, 0.08, 0.10, 1.0);
+	if params.viewMode == 1u {
+		color = vec4f(vec3f(coverage), 1.0);
+	} else if params.viewMode == 2u {
+		let heat = min(f32(header.y) / 10.0, 1.0);
+		color = vec4f(heat, coverage * 0.85, 1.0 - heat, 1.0);
+	} else {
+		let src = params.color * coverage;
+		color = src + color * (1.0 - src.a);
+	}
+	textureStore(outTex, vec2i(gid.xy), color);
+}
+
+struct BlitOut {
+	@builtin(position) position: vec4f,
+	@location(0) uv: vec2f,
+};
+
+@vertex
+fn blit_vs(@builtin(vertex_index) vertexIndex: u32) -> BlitOut {
+	var positions = array<vec2f, 3>(
+		vec2f(-1.0, -1.0),
+		vec2f( 3.0, -1.0),
+		vec2f(-1.0,  3.0)
+	);
+	var uvs = array<vec2f, 3>(
+		vec2f(0.0, 1.0),
+		vec2f(2.0, 1.0),
+		vec2f(0.0, -1.0)
+	);
+	var out: BlitOut;
+	out.position = vec4f(positions[vertexIndex], 0.0, 1.0);
+	out.uv = uvs[vertexIndex];
+	return out;
+}
+
+@fragment
+fn blit_fs(in: BlitOut) -> @location(0) vec4f {
+	return textureSample(blitTex, blitSampler, in.uv);
+}
+`;
+
+function resize() {
+	const dpr = Math.max(devicePixelRatio || 1, 1);
+	const rect = stage.getBoundingClientRect();
+	const scale = dpr;
+	width = Math.max(1, Math.floor(rect.width * scale));
+	height = Math.max(1, Math.floor(rect.height * scale));
+	for (const target of [gpuCanvas, cpuCanvas]) {
+		if (target.width !== width || target.height !== height) {
+			target.width = width;
+			target.height = height;
+		}
+	}
+}
+
+function transformPoint(p, t) {
+	const cx = width * 0.5;
+	const cy = height * 0.5;
+	const x = p[0] - 260;
+	const y = p[1] - 260;
+	const s = Math.min(width, height) / 620;
+	const a = t * 0.55;
+	const c = Math.cos(a);
+	const sn = Math.sin(a);
+	return [cx + (x * c - y * sn) * s, cy + (x * sn + y * c) * s];
+}
+
+function makeEdges(t) {
+	const edges = [];
+	const addClosed = pts => {
+		for (let i = 0; i < pts.length; i++) {
+			const a = transformPoint(pts[i], t);
+			const b = transformPoint(pts[(i + 1) % pts.length], t);
+			if (a[1] !== b[1]) edges.push([a[0], a[1], b[0], b[1]]);
+		}
+	};
+	const star = [];
+	for (let i = 0; i < 10; i++) {
+		const r = (i & 1) ? 86 : 190;
+		const a = i * Math.PI * 0.2 - Math.PI * 0.5;
+		star.push([260 + Math.cos(a) * r, 260 + Math.sin(a) * r]);
+	}
+	addClosed(star);
+	const bow = [];
+	const curveSegments = 360;
+	for (let i = 0; i < curveSegments; i++) {
+		const a = i / curveSegments * Math.PI * 2;
+		bow.push([260 + Math.sin(a * 2) * 175, 260 + Math.cos(a * 3) * 120]);
+	}
+	addClosed(bow);
+	return edges.map(e => {
+		const minY = Math.min(e[1], e[3]);
+		const maxY = Math.max(e[1], e[3]);
+		const winding = e[3] > e[1] ? 1 : -1;
+		return {p0x:e[0], p0y:e[1], p1x:e[2], p1y:e[3], minY, maxY, winding};
+	});
+}
+
+function buildTiles(edges) {
+	const tileCountX = Math.ceil(width / TILE);
+	const tileCountY = Math.ceil(height / TILE);
+	const tiles = Array.from({length: tileCountX * tileCountY}, (_, i) => ({
+		offset: 0,
+		count: 0,
+		originX: (i % tileCountX) * TILE,
+		originY: Math.floor(i / tileCountX) * TILE,
+		indices: [],
+	}));
+	for (let ei = 0; ei < edges.length; ei++) {
+		const e = edges[ei];
+		const tx0 = 0;
+		const tx1 = tileCountX - 1;
+		const ty0 = Math.max(0, Math.floor(e.minY / TILE));
+		const ty1 = Math.min(tileCountY - 1, Math.floor(e.maxY / TILE));
+		for (let ty = ty0; ty <= ty1; ty++) {
+			for (let tx = tx0; tx <= tx1; tx++) {
+				tiles[ty * tileCountX + tx].indices.push(ei);
+			}
+		}
+	}
+	const edgeIndices = [];
+	for (let i = 0; i < tiles.length; i++) {
+		const tile = tiles[i];
+		tile.offset = edgeIndices.length;
+		tile.count = tile.indices.length;
+		edgeIndices.push(...tile.indices);
+	}
+	return {tileCountX, tileCountY, tiles, edgeIndices};
+}
+
+function inside(w, rule) {
+	if (rule === 1) return (Math.abs(w) & 1) !== 0;
+	if (rule === 2) return w > 0;
+	return w !== 0;
+}
+
+function crossing(sampleX, sampleY, e) {
+	if (sampleY < e.minY || sampleY >= e.maxY) return 0;
+	const dy = e.p1y - e.p0y;
+	if (dy === 0) return 0;
+	const u = (sampleY - e.p0y) / dy;
+	const crossX = e.p0x + (e.p1x - e.p0x) * u;
+	return crossX <= sampleX ? e.winding : 0;
+}
+
+async function initWebGPU() {
+	if (!navigator.gpu) return null;
+	const adapter = await navigator.gpu.requestAdapter();
+	if (!adapter) return null;
+	const device = await adapter.requestDevice();
+	const context = gpuCanvas.getContext("webgpu");
+	const format = navigator.gpu.getPreferredCanvasFormat();
+	context.configure({
+		device,
+		format,
+		alphaMode: "opaque",
+		usage: GPUTextureUsage.RENDER_ATTACHMENT,
+	});
+	const module = device.createShaderModule({code: wgsl});
+	const pipeline = device.createComputePipeline({
+		layout: "auto",
+		compute: {module, entryPoint: "main"},
+	});
+	const renderPipeline = device.createRenderPipeline({
+		layout: "auto",
+		vertex: {module, entryPoint: "blit_vs"},
+		fragment: {
+			module,
+			entryPoint: "blit_fs",
+			targets: [{format}],
+		},
+		primitive: {topology: "triangle-list"},
+	});
+	const sampler = device.createSampler({
+		magFilter: "nearest",
+		minFilter: "nearest",
+	});
+	return {device, context, pipeline, renderPipeline, sampler, format};
+}
+
+function makeStorageBuffer(device, typed, usage = GPUBufferUsage.STORAGE) {
+	const size = Math.max(typed.byteLength, 4);
+	const buffer = device.createBuffer({
+		size: (size + 3) & ~3,
+		usage: usage | GPUBufferUsage.COPY_DST,
+	});
+	if (typed.byteLength) device.queue.writeBuffer(buffer, 0, typed);
+	return buffer;
+}
+
+function renderCPU(edges, tileData, sampleGrid, fillRule, viewMode) {
+	const ctx = cpuCanvas.getContext("2d");
+	const img = ctx.createImageData(width, height);
+	const data = img.data;
+	const invGrid = 1 / sampleGrid;
+	for (let y = 0; y < height; y++) {
+		const ty = Math.floor(y / TILE);
+		for (let x = 0; x < width; x++) {
+			const tx = Math.floor(x / TILE);
+			const tile = tileData.tiles[ty * tileData.tileCountX + tx];
+			let covered = 0;
+			for (let sy = 0; sy < sampleGrid; sy++) {
+				for (let sx = 0; sx < sampleGrid; sx++) {
+					const sampleX = x + (sx + 0.5) * invGrid;
+					const sampleY = y + (sy + 0.5) * invGrid;
+					let w = 0;
+					for (const ei of tile.indices) w += crossing(sampleX, sampleY, edges[ei]);
+					if (inside(w, fillRule)) covered++;
+				}
+			}
+			const coverage = covered / (sampleGrid * sampleGrid);
+			const off = (y * width + x) * 4;
+			if (viewMode === 1) {
+				const v = Math.round(coverage * 255);
+				data[off] = data[off + 1] = data[off + 2] = v;
+			} else if (viewMode === 2) {
+				const heat = Math.min(tile.count / 10, 1);
+				data[off] = Math.round(heat * 255);
+				data[off + 1] = Math.round(coverage * 216);
+				data[off + 2] = Math.round((1 - heat) * 255);
+			} else {
+				const bg = [18, 20, 26];
+				const fg = [52, 184, 255];
+				data[off] = Math.round(fg[0] * coverage + bg[0] * (1 - coverage));
+				data[off + 1] = Math.round(fg[1] * coverage + bg[1] * (1 - coverage));
+				data[off + 2] = Math.round(fg[2] * coverage + bg[2] * (1 - coverage));
+			}
+			data[off + 3] = 255;
+		}
+	}
+	ctx.putImageData(img, 0, 0);
+}
+
+function renderGPU(edges, tileData, sampleGrid, fillRule, viewMode) {
+	const {device, context, pipeline, renderPipeline, sampler} = gpu;
+	const edgeGeom = new Float32Array(edges.length * 4);
+	const edgeInfo = new Float32Array(edges.length * 4);
+	for (let i = 0; i < edges.length; i++) {
+		const e = edges[i];
+		edgeGeom.set([e.p0x, e.p0y, e.p1x, e.p1y], i * 4);
+		edgeInfo.set([e.minY, e.maxY, e.winding, 0], i * 4);
+	}
+	const tileHeader = new Uint32Array(tileData.tiles.length * 4);
+	for (let i = 0; i < tileData.tiles.length; i++) {
+		const t = tileData.tiles[i];
+		tileHeader.set([t.offset, t.count, t.originX, t.originY], i * 4);
+	}
+	const params = new ArrayBuffer(48);
+	const u32 = new Uint32Array(params);
+	const f32 = new Float32Array(params);
+	u32.set([width, height, tileData.tileCountX, tileData.tileCountY, fillRule, sampleGrid, viewMode, 0], 0);
+	f32.set([0.2, 0.72, 1.0, 1.0], 8);
+
+	const paramsBuffer = makeStorageBuffer(device, new Uint8Array(params), GPUBufferUsage.UNIFORM);
+	const edgeGeomBuffer = makeStorageBuffer(device, edgeGeom);
+	const edgeInfoBuffer = makeStorageBuffer(device, edgeInfo);
+	const tileHeaderBuffer = makeStorageBuffer(device, tileHeader);
+	const edgeIndexBuffer = makeStorageBuffer(device, new Uint32Array(tileData.edgeIndices));
+	const outputTex = device.createTexture({
+		size: [width, height],
+		format: "rgba8unorm",
+		usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING,
+	});
+	const bindGroup = device.createBindGroup({
+		layout: pipeline.getBindGroupLayout(0),
+		entries: [
+			{binding: 0, resource: {buffer: paramsBuffer}},
+			{binding: 1, resource: {buffer: edgeGeomBuffer}},
+			{binding: 2, resource: {buffer: edgeInfoBuffer}},
+			{binding: 3, resource: {buffer: tileHeaderBuffer}},
+			{binding: 4, resource: {buffer: edgeIndexBuffer}},
+			{binding: 6, resource: outputTex.createView()},
+		],
+	});
+	const currentTexture = context.getCurrentTexture();
+	const blitBindGroup = device.createBindGroup({
+		layout: renderPipeline.getBindGroupLayout(1),
+		entries: [
+			{binding: 0, resource: outputTex.createView()},
+			{binding: 1, resource: sampler},
+		],
+	});
+	const enc = device.createCommandEncoder();
+	const pass = enc.beginComputePass();
+	pass.setPipeline(pipeline);
+	pass.setBindGroup(0, bindGroup);
+	pass.dispatchWorkgroups(Math.ceil(width / TILE), Math.ceil(height / TILE));
+	pass.end();
+	const renderPass = enc.beginRenderPass({
+		colorAttachments: [{
+			view: currentTexture.createView(),
+			loadOp: "clear",
+			clearValue: {r: 0.07, g: 0.08, b: 0.10, a: 1.0},
+			storeOp: "store",
+		}],
+	});
+	renderPass.setPipeline(renderPipeline);
+	renderPass.setBindGroup(1, blitBindGroup);
+	renderPass.draw(3);
+	renderPass.end();
+	device.queue.submit([enc.finish()]);
+}
+
+function updateStats(edges, tileData, ms) {
+	const maxEdges = tileData.tiles.reduce((m, t) => Math.max(m, t.count), 0);
+	stats.innerHTML = [
+		["mode", mode],
+		["canvas", `${width} x ${height}`],
+		["edges", edges.length],
+		["tiles", `${tileData.tileCountX} x ${tileData.tileCountY}`],
+		["indices", tileData.edgeIndices.length],
+		["max/tile", maxEdges],
+		["samples", `${samplesEl.value} x ${samplesEl.value}`],
+		["frame", `${ms.toFixed(2)} ms`],
+	].map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join("");
+}
+
+let start = performance.now();
+async function frame() {
+	resize();
+	const runGPU = useGPU();
+	gpuCanvas.hidden = !runGPU;
+	cpuCanvas.hidden = runGPU;
+	canvas = runGPU ? gpuCanvas : cpuCanvas;
+	mode = runGPU ? "WebGPU compute" : "CPU fallback";
+	const requestedSamples = Number(samplesEl.value);
+	const sampleGrid = requestedSamples;
+	const fillRule = Number(fillRuleEl.value);
+	const viewMode = Number(viewModeEl.value);
+	samplesText.textContent = `${sampleGrid}x${sampleGrid}`;
+	const t = animateEl.checked ? (performance.now() - start) * 0.001 : 0.0;
+	const cpuFrameKey = `${width}:${height}:${sampleGrid}:${fillRule}:${viewMode}:${t}`;
+	if (!runGPU && cpuFrameKey === lastCPUFrameKey) {
+		requestAnimationFrame(frame);
+		return;
+	}
+	const edges = makeEdges(t);
+	const tileData = buildTiles(edges);
+	const t0 = performance.now();
+	if (runGPU) {
+		renderGPU(edges, tileData, sampleGrid, fillRule, viewMode);
+	} else {
+		renderCPU(edges, tileData, sampleGrid, fillRule, viewMode);
+		lastCPUFrameKey = cpuFrameKey;
+	}
+	updateStats(edges, tileData, performance.now() - t0);
+	requestAnimationFrame(frame);
+}
+
+try {
+	gpu = await initWebGPU();
+	mode = gpu ? "WebGPU compute" : "CPU fallback";
+} catch (err) {
+	console.warn("WebGPU init failed, using CPU fallback", err);
+	gpu = null;
+	mode = "CPU fallback";
+}
+if (!gpu) {
+	backendEl.value = "cpu";
+	backendEl.querySelector('option[value="gpu"]').disabled = true;
+	animateEl.checked = false;
+}
+backendEl.addEventListener("change", () => {
+	lastCPUFrameKey = "";
+	if (backendEl.value === "cpu") {
+		animateEl.checked = false;
+	}
+});
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

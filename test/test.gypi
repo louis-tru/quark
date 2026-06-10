@@ -105,6 +105,23 @@
 					'./launch/launch.png',
 				],
 			}],
+			['os=="mac"', {
+				'sources': [
+					'compute_aa/test_compute_aa.mm',
+					'compute_aa/mtl_compute_aa_prototype.h',
+					'compute_aa/mtl_compute_aa_prototype.mm',
+				],
+				'mac_bundle_resources': [
+					'compute_aa/compute_aa_prototype.metal',
+				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+					],
+				},
+			}],
 			['use_js==1', { # use jsapi
 				'conditions': [
 					['os in "mac ios"', { # mac ios
