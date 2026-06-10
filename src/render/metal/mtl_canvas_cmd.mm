@@ -537,9 +537,10 @@ namespace qk {
 		endPass(); // end current pass
 
 		id<MTLBlitCommandEncoder> blitEnc = nil;
-		if (_blendMode == kSrc_BlendMode && srcRect.size == dstSize &&
-				srcTex.pixelFormat == tex.pixelFormat)
-		{
+		if (_blendMode == kSrc_BlendMode &&
+				srcRect.size == dstSize &&
+				srcTex.pixelFormat == tex.pixelFormat
+		) {
 			blitEnc = [_cmdPack.current blitCommandEncoder];
 			[blitEnc copyFromTexture:srcTex
 									sourceSlice:0
@@ -555,7 +556,8 @@ namespace qk {
 			auto sampler = srcRect.size == dstSize ? _render->_nearestSampler : _render->_linearSampler;
 			auto colorTex = _outColorTex;
 			_outColorTex = tex;
-			beginPass(0, false);
+			// load raw color if need to blend with existing color
+			beginPass(0, _blendMode > kSrc_BlendMode ? true: false);
 			auto &cp = _shaders.cp;
 			auto enc = usePipeline(cp);
 			float x2 = _size[0], y2 = _size[1]; // canvas size

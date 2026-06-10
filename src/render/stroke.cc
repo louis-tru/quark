@@ -443,7 +443,7 @@ namespace qk {
 			*(_->ptr++) = _->first_a;
 			*(_->ptr++) = _->first_b;
 			*(_->ptr++) = _->prev_b;
-			_->out->reset(_->ptr - _->out->val());
+			_->out->reset(uint32_t(_->ptr - _->out->val()));
 			_->body->close(); // close the body path
 		}, &ctx);
 

@@ -15,10 +15,6 @@
 
 namespace qk {
 
-	static inline uint32_t ceil_to_u32(float v) {
-		return uint32_t(ceilf(std::max(v, 0.0f)));
-	}
-
 	static bool append_edge(ComputeAADrawData &out, Vec2 p0, Vec2 p1) {
 		if (p0.y() == p1.y()) // x轴扫描线算法，水平边不计入边列表
 			return false;
@@ -54,9 +50,11 @@ namespace qk {
 		const int tileSampleCount = kComputeAATileSize * sampleGrid;
 		const float invTileSize = 1.0f / float(kComputeAATileSize);
 		const int atlasSampleCount = out.tileCountY * tileSampleCount;
-		static_assert((kComputeAATileSize & (kComputeAATileSize - 1)) == 0 &&
+		static_assert(
+			(kComputeAATileSize & (kComputeAATileSize - 1)) == 0 &&
 			(kComputeAASampleGrid & (kComputeAASampleGrid - 1)) == 0,
-			"Compute AA tile/sample sizes must be powers of two");
+			"Compute AA tile/sample sizes must be powers of two"
+		);
 		constexpr int tileSampleShift =
 			__builtin_ctz(kComputeAATileSize * kComputeAASampleGrid);
 
@@ -208,8 +206,8 @@ namespace qk {
 		out.atlasOrigin = (out.bounds.begin-atlasPadding).floor();
 		Vec2 atlasEnd = (out.bounds.end+atlasPadding).ceil();
 		out.atlasSize = atlasEnd - out.atlasOrigin;
-		out.tileCountX = (ceil_to_u32(out.atlasSize.x()) + kComputeAATileSize - 1) / kComputeAATileSize;
-		out.tileCountY = (ceil_to_u32(out.atlasSize.y()) + kComputeAATileSize - 1) / kComputeAATileSize;
+		out.tileCountX = ceilf(out.atlasSize.x()/kComputeAATileSize);
+		out.tileCountY = ceilf(out.atlasSize.y()/kComputeAATileSize);
 
 		for (uint32_t i = 1; i < lines.length(); i += 2) {
 			append_edge(out, lines[i-1], lines[i]);

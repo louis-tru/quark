@@ -79,7 +79,7 @@ namespace qk {
 		_cmdPack.pipeline = nil;
 	}
 
-	MTLPassDesc MetalCanvas::beginPass(int level, bool isLoadColor) {
+	MTLPassDesc MetalCanvas::beginPass(int level, bool loadColor) {
 	 #if DEBUG
 		if (_cmdPack.beginPass) {
 			if (_cmdPack.pass.colorAttachments[0].texture == _outColorTex &&
@@ -95,7 +95,7 @@ namespace qk {
 
 		Qk_ASSERT(_outColorTex, "Output color texture should be created before beginning a pass");
 		pass.colorAttachments[0].texture = _outColorTex;
-		pass.colorAttachments[0].loadAction = recorded && isLoadColor ? MTLLoadActionLoad : MTLLoadActionDontCare;
+		pass.colorAttachments[0].loadAction = recorded && loadColor ? MTLLoadActionLoad : MTLLoadActionDontCare;
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = level;
 
