@@ -139,7 +139,7 @@ namespace qk {
 	}
 
 	uint32_t getId32() {
-		return (id++) % Uint32::limit_max;
+		return (id++) % U32::limit_max;
 	}
 
 	String version() {

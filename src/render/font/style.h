@@ -82,9 +82,9 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, value, Const);
 
 		FontStyle(FontWeight weight, FontWidth width, FontSlant slant) : _value(
-			(Uint32::clamp(uint32_t(weight), uint32_t(FontWeight::Inherit), uint32_t(FontWeight::ExtraBlack))) +
-			(Uint32::clamp(uint32_t(width), uint32_t(FontWidth::UltraCondensed), uint32_t(FontWidth::UltraExpanded)) << 16) +
-			(Uint32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
+			(U32::clamp(uint32_t(weight), uint32_t(FontWeight::Inherit), uint32_t(FontWeight::ExtraBlack))) +
+			(U32::clamp(uint32_t(width), uint32_t(FontWidth::UltraCondensed), uint32_t(FontWidth::UltraExpanded)) << 16) +
+			(U32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
 		) {}
 
 		FontStyle(): FontStyle{FontWeight::Regular, FontWidth::Normal, FontSlant::Normal} {}

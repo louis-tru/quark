@@ -393,13 +393,13 @@ namespace qk {
 		dest1->_pos = _pos;
 		dest1->_colors = _colors;
 
-		auto posLen = Uint32::min(
+		auto posLen = U32::min(
 			dest1->_pos.length(),
-			Uint32::min(_pos.length(), to1->_pos.length())
+			U32::min(_pos.length(), to1->_pos.length())
 		);
-		auto colorLen = Uint32::min(
+		auto colorLen = U32::min(
 			dest1->_colors.length(),
-			Uint32::min(_colors.length(), to1->_colors.length())
+			U32::min(_colors.length(), to1->_colors.length())
 		);
 		for (uint32_t i = 0; i < posLen; i++) {
 			dest1->_pos[i] = transition_value(_pos[i], to1->_pos[i], t);

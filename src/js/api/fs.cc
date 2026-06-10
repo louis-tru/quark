@@ -177,7 +177,7 @@ namespace qk { namespace js {
 				if (e.error) {
 					cbInt->reject(e.error);
 				} else {
-					Int32 i(len);
+					I32 i(len);
 					cbInt->resolve(&i);
 				}
 			});
@@ -1280,7 +1280,7 @@ namespace qk { namespace js {
 					if (e.error) {
 						cbInt->reject(e.error);
 					} else {
-						Int32 i(len);
+						I32 i(len);
 						cbInt->resolve(&i);
 					}
 				}));

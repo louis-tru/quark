@@ -162,7 +162,7 @@ namespace qk {
 
 		void set_volume(float value) override {
 			ScopeLock scope(_mutex);
-			_volume = Float32::clamp(value, 0, 1);
+			_volume = F32::clamp(value, 0, 1);
 			Qk_ASSERT_EQ(noErr,
 				AudioQueueSetParameter(_audio, kAudioQueueParam_Volume, _mute ? 0: _volume)
 			);

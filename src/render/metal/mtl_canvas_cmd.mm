@@ -361,8 +361,8 @@ namespace qk {
 		for (int i = 0; i < 4; i++) {
 			auto horn = horns[i];
 			float v[] = { c[0],c[1],horn[0],c[1],horn[0],horn[1],c[0],horn[1] };
-			float r0 = Float32::min(Vec2(radius[i], s1).length(), rmax);
-			float r1 = Float32::min(Vec2(radius[i], s2).length(), rmax);
+			float r0 = F32::min(Vec2(radius[i], s1).length(), rmax);
+			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
 			float n = 2.0 * r1 / r0;
 			MSLColorRrectBlur::PcArgs pc{
 				horn,

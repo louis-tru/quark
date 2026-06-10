@@ -79,11 +79,11 @@ namespace qk {
 	}
 
 	float Container::clamp_width(float value) const {
-		return Float32::clamp(value, pre_width_min, pre_width_max);
+		return F32::clamp(value, pre_width_min, pre_width_max);
 	}
 
 	float Container::clamp_height(float value) const {
-		return Float32::clamp(value, pre_height_min, pre_height_max);
+		return F32::clamp(value, pre_height_min, pre_height_max);
 	}
 
 	bool Container::set_pre_width(Container::Pre pre) {

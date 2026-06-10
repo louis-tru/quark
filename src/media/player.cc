@@ -56,7 +56,7 @@ namespace qk {
 
 	void Player::set_volume(float val) {
 		PlayerLock lock(this);
-		_volume = Float32::clamp(val, 0, 1);
+		_volume = F32::clamp(val, 0, 1);
 		if (_pcm) {
 			_pcm->set_volume(_volume);
 		}

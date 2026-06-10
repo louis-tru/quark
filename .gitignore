@@ -28,3 +28,7 @@ src/ui/painter_*
 a.out
 test/test-demo
 .cursor
+.lldbinit-Xcode
+.clangd
+.ide/compile_commands.json
+.ide/.cache

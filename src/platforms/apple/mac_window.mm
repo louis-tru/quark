@@ -346,8 +346,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 void Window::openImpl(Options &opts) {
 	post_message_main(Cb([&opts,this](auto e) {
-		auto impl = [[QkWindowDelegate alloc]
-								 init:opts win:this render:_render];
+		auto impl = [[QkWindowDelegate alloc] init:opts win:this render:_render];
 		CFBridgingRetain(impl);
 		_impl = (__bridge WindowImpl*)impl;
 		activate();

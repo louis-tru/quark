@@ -255,7 +255,7 @@ namespace qk {
 					return;
 				int levels = 1; // 默认每个pixel做为一个独立纹理层并自动动生成mipmap，
 				// 如果满足条件则使用 pixels 中的多层数据作为 mipmap levels 数据
-				int texLen = Int32::min(pixels.length(), 8);
+				int texLen = I32::min(pixels.length(), 8);
 				if (texLen > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
 					if (pixels[0].width() >> 1 == pixels[1].width()) {
 						levels = texLen; // mipmap levels

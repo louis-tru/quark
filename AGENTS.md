@@ -5,12 +5,13 @@
 AI 助手进入项目后，先读：
 
 1. `docs/AI_CONTEXT.md`：长期项目记忆和工作规则
-2. `docs/CURRENT_WORK.md`：当前正在推进的改动和风险
-3. `docs/RENDERING.md`：渲染系统结构和 GL/Metal 对齐规则
+2. `docs/ENGINEERING_RULES.md`：工程决策必须遵守的长期硬性规则
+3. `docs/CURRENT_WORK.md`：当前正在推进的改动和风险
+4. `docs/RENDERING.md`：渲染系统结构和 GL/Metal 对齐规则
 
 如果任务涉及 GPU 2D 反走样 / AADist / coverage，请再读：
 
-4. `docs/GPU_2D_ANTIALIASING.md`：GPU AA 研究记录、AADist 语义和后续方向
+5. `docs/GPU_2D_ANTIALIASING.md`：GPU AA 研究记录、AADist 语义和后续方向
 
 不要默认阅读这些依赖/产物目录，通常会浪费上下文：
 

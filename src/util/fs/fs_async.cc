@@ -1022,7 +1022,7 @@ namespace qk {
 	}
 
 	// open/close file fd
-	void fs_open(cString& path, int flag, Callback<Int32> cb) {
+	void fs_open(cString& path, int flag, Callback<I32> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 
@@ -1036,7 +1036,7 @@ namespace qk {
 				Handle<FileReq> handle(req);
 				if ( uv_req->result > 0 ) {
 					int fd = (int)uv_req->result;
-					async_resolve(req->cb(), Int32(fd));
+					async_resolve(req->cb(), I32(fd));
 				} else { // open file fail
 					async_err_callback(req->cb(), uv_req, *req->data().path);
 				}
@@ -1056,7 +1056,7 @@ namespace qk {
 		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, flag }));
 	}
 
-	void fs_open(cString& path, Callback<Int32> cb) {
+	void fs_open(cString& path, Callback<I32> cb) {
 		fs_open(path, FOPEN_R, cb);
 	}
 

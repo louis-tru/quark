@@ -322,10 +322,10 @@ namespace qk {
 			float size_x = _host->content_size().x() + _host->padding_left() + _host->padding_right();
 			float left_margin = scrollbar_margin();
 			float right_margin = _scrollbar_v ? left_margin + scrollbar_width() : left_margin;
-			float h_scrollbar_max_size = Float32::max(size_x - left_margin - right_margin, 0);
+			float h_scrollbar_max_size = F32::max(size_x - left_margin - right_margin, 0);
 
 			float h_scrollbar_indicator_size = roundf(powf(h_scrollbar_max_size, 2) / _scroll_size.x());
-			h_scrollbar_indicator_size = Float32::max(h_scrollbar_indicator_size, 8);
+			h_scrollbar_indicator_size = F32::max(h_scrollbar_indicator_size, 8);
 			float h_scrollbar_max_scroll = h_scrollbar_max_size - h_scrollbar_indicator_size;
 			float h_scrollbar_prop = h_scrollbar_max_scroll / _scroll_max.x();
 
@@ -353,10 +353,10 @@ namespace qk {
 			float size_y = _host->content_size().y() + _host->padding_top() + _host->padding_bottom();
 			float top_margin = scrollbar_margin();
 			float bottom_margin = _scrollbar_h ? top_margin + scrollbar_width() : top_margin;
-			float v_scrollbar_max_size = Float32::max(size_y - top_margin - bottom_margin, 0);
+			float v_scrollbar_max_size = F32::max(size_y - top_margin - bottom_margin, 0);
 
 			float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / _scroll_size.y());
-			v_scrollbar_indicator_size = Float32::max(v_scrollbar_indicator_size, 8);
+			v_scrollbar_indicator_size = F32::max(v_scrollbar_indicator_size, 8);
 
 			float v_scrollbar_max_scroll = v_scrollbar_max_size - v_scrollbar_indicator_size;
 			float v_scrollbar_prop = v_scrollbar_max_scroll / _scroll_max.y();
@@ -368,11 +368,11 @@ namespace qk {
 
 			if ( pos < 0 ) {
 				size = v_scrollbar_indicator_size + roundf(pos * 3);
-				size = Float32::max(size, 8);
+				size = F32::max(size, 8);
 				pos = 0;
 			} else if ( pos > v_scrollbar_max_scroll ) {
 				size = v_scrollbar_indicator_size - roundf((pos - v_scrollbar_max_scroll) * 3);
-				size = Float32::max(size, 8);
+				size = F32::max(size, 8);
 				pos = v_scrollbar_max_scroll + v_scrollbar_indicator_size - size;
 			}
 
@@ -784,12 +784,12 @@ namespace qk {
 	}
 
 	void ScrollView::set_scrollbar_width_direct(float value, bool isRT) {
-		_scrollbar_width = Float32::max(1.0, value);
+		_scrollbar_width = F32::max(1.0, value);
 		_host->mark_rerender();
 	}
 
 	void ScrollView::set_scrollbar_margin_direct(float value, bool isRT) {
-		_scrollbar_margin = Float32::max(1.0, value);
+		_scrollbar_margin = F32::max(1.0, value);
 		_host->mark_rerender();
 	}
 
@@ -879,7 +879,7 @@ namespace qk {
 			_this->immediate_end_all_task(); // change size immediate task
 		}
 		auto cSize = _host->content_size();
-		_scroll_max = Vec2(Float32::min(cSize.x() - size.x(), 0), Float32::min(cSize.y() - size.y(), 0));
+		_scroll_max = Vec2(F32::min(cSize.x() - size.x(), 0), F32::min(cSize.y() - size.y(), 0));
 
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);

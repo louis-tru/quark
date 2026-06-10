@@ -1,0 +1,17 @@
+-I..
+-I../out
+-I../deps/freetype/include
+-I../deps/libtess2/Include
+-I../deps/libjpeg
+-I../deps/libgif/lib
+-I../deps/libpng
+-I../deps/libwebp/src
+-I../deps/libuv/include
+-I../deps/rapidjson/include
+-I../deps/http_parser
+-I../deps/openssl/openssl/include
+-I../deps/zlib
+-I../deps/lmdb/libraries/liblmdb
+-I../deps/v8/include
+-I../deps/spine/spine-cpp/include
+-I../deps/ffmpeg

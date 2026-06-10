@@ -425,7 +425,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 			for (int j = 0; j < axisDefinitions.length(); ++j) {
 				const auto& coordinate = current[j];
 				if (axisDefinition.fTag == coordinate.axis) {
-					const QkScalar axisValue = qk::Float32::clamp(coordinate.value, axisMin, axisMax);
+					const QkScalar axisValue = qk::F32::clamp(coordinate.value, axisMin, axisMax);
 					axisValues[i] = QkScalarToFixed(axisValue);
 					break;
 				}
@@ -438,7 +438,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 		for (int j = position.coordinateCount; j --> 0;) {
 			const auto& coordinate = position.coordinates[j];
 			if (axisDefinition.fTag == coordinate.axis) {
-				const QkScalar axisValue = qk::Float32::clamp(coordinate.value, axisMin, axisMax);
+				const QkScalar axisValue = qk::F32::clamp(coordinate.value, axisMin, axisMax);
 				if (coordinate.value != axisValue) {
 					LOG_INFO("Requested font axis value out of range: "
 							 "%s '%c%c%c%c' %f; pinned to %f.\n",
@@ -1309,8 +1309,8 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 			gm.fAdvanceY = right;
 			right += gm.fAdvanceX * scale;
 		}
-		top = qk::Float32::max(top, -gm.fTop);
-		bottom = qk::Float32::max(bottom, gm.fHeight + gm.fTop);
+		top = qk::F32::max(top, -gm.fTop);
+		bottom = qk::F32::max(bottom, gm.fHeight + gm.fTop);
 	}
 
 	FT_Glyph_Format ft_format = fFace->glyph->format;

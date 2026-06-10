@@ -1,0 +1,36 @@
+settings set target.inline-breakpoint-strategy always
+
+command script import {{QK_LLDB_PY}}
+
+type summary add qk::Vec2 --summary-string "(${var.val[0]}, ${var.val[1]})"
+type summary add "qk::Vec<float, 2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
+type summary add "qk::Vec<float,2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
+type summary add qk::Vec3 --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add "qk::Vec<float, 3>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add "qk::Vec<float,3>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add "qk::Vec<float, 4>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
+type summary add "qk::Vec<float,4>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
+
+type summary add qk::Mat -F qk_lldb.mat_summary
+type summary add qk::Mat4 -F qk_lldb.mat4_summary
+
+type summary add qk::Rect --summary-string "{ origin=${var.begin}, size=${var.size} }"
+type summary add qk::Range --summary-string "{ begin=${var.begin}, end=${var.end} }"
+type summary add qk::Region --summary-string "{ begin=${var.begin}, end=${var.end}, origin=${var.origin} }"
+type summary add qk::LimitRange --summary-string "{ min=${var.min}, max=${var.max} }"
+
+type summary add -x "^qk::StringImpl<.+>$" -F qk_lldb.string_summary
+type summary add -e -x "^qk::Array<.+>$" -F qk_lldb.array_summary
+type synthetic add -x "^qk::Array<.+>$" -l qk_lldb.ArraySyntheticProvider
+type summary add -e -x "^qk::ArrayWeak<.+>$" -F qk_lldb.array_weak_summary
+type synthetic add -x "^qk::ArrayWeak<.+>$" -l qk_lldb.ArraySyntheticProvider
+type summary add -e -x "^qk::List<.+>$" -F qk_lldb.list_summary
+type synthetic add -x "^qk::List<.+>$" -l qk_lldb.ListSyntheticProvider
+type summary add -e -x "^qk::Dict<.+>$" -F qk_lldb.dict_summary
+type synthetic add -x "^qk::Dict<.+>$" -l qk_lldb.DictSyntheticProvider
+type summary add -e -x "^qk::Set<.+>$" -F qk_lldb.dict_summary
+type synthetic add -x "^qk::Set<.+>$" -l qk_lldb.DictSyntheticProvider
+type summary add -e -x "^qk::SimpleIterator<.+>$" -F qk_lldb.iterator_summary
+type synthetic add -x "^qk::SimpleIterator<.+>$" -l qk_lldb.SimpleIteratorSyntheticProvider
+type summary add -e -x "^qk::ComplexIterator<.+>$" -F qk_lldb.iterator_summary
+type synthetic add -x "^qk::ComplexIterator<.+>$" -l qk_lldb.ComplexIteratorSyntheticProvider

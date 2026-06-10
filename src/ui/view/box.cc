@@ -29,8 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./box.h"
-#include "../app.h"
-#include "../window.h"
 #include "../geometry.h"
 
 #define _Border() auto _border = this->_border.load()
@@ -58,7 +56,7 @@ namespace qk {
 		, _border_bottom_right_radius(0), _border_bottom_left_radius(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{},0,Float32::limit_max,0,Float32::limit_max,kNone_FloatState,kNone_FloatState,false,false})
+		, _container({{},{},0,F32::limit_max,0,F32::limit_max,kNone_FloatState,kNone_FloatState,false,false})
 		, _background(nullptr)
 		, _box_shadow(nullptr)
 		, _border(nullptr)

@@ -232,7 +232,7 @@ namespace qk {
 				clearPart(_capacity - _maxCapacity);
 			}
 		} else if (flags == 1) { // memory warning, clean half or clean to max limit
-			clearPart(Int32::max(_capacity * 0.5, _capacity - _maxCapacity));
+			clearPart(I32::max(_capacity * 0.5, _capacity - _maxCapacity));
 		} else { // clear all
 			clearAll(false);
 		}

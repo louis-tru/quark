@@ -245,7 +245,7 @@ namespace qk {
 					out.dataitems = 2;
 					Qk_ASSERT_EQ(_avf->format, AV_PIX_FMT_NV12);
 				}
-				out.pts = Int64::max(_avf->pts * unit, 0);
+				out.pts = I64::max(_avf->pts * unit, 0);
 				out.pkt_duration = _avf->pkt_duration * unit;
 				out.nb_samples = 0;
 				out.width = w;
@@ -279,7 +279,7 @@ namespace qk {
 				}
 				Qk_ASSERT_EQ(_avf->format, AV_SAMPLE_FMT_S16);
 				out.dataitems = 1;
-				out.pts = Int64::max(_avf->pts * unit, 0);
+				out.pts = I64::max(_avf->pts * unit, 0);
 				out.pkt_duration = _avf->pkt_duration * unit;;
 				out.nb_samples = _avf->nb_samples;
 				out.format = AV_SAMPLE_FMT_S16;
@@ -288,7 +288,7 @@ namespace qk {
 		}
 
 		void set_threads(uint32_t value) override {
-			_threads = Uint32::clamp(value, 1, 8);
+			_threads = U32::clamp(value, 1, 8);
 		}
 
 		bool finished() override {

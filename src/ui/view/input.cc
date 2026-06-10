@@ -174,7 +174,7 @@ namespace qk {
 					auto line_height = ctx->_lines->line(0).end_y;
 					switch ( arg ) {
 						case KEYCODE_LEFT:
-							ctx->_cursor_index = Int32::max(0, ctx->_cursor_index - 1);
+							ctx->_cursor_index = I32::max(0, ctx->_cursor_index - 1);
 							break;
 						case KEYCODE_UP: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -183,7 +183,7 @@ namespace qk {
 							break;
 						}
 						case KEYCODE_RIGHT:
-							ctx->_cursor_index = Int32::min(ctx->text_length(), ctx->_cursor_index + 1);
+							ctx->_cursor_index = I32::min(ctx->text_length(), ctx->_cursor_index + 1);
 							break;
 						case KEYCODE_DOWN: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -492,7 +492,7 @@ namespace qk {
 						break;
 					//else if (blob.line > line->line) {
 						// line_feed
-					//	auto idx = Int32::max(0, int32_t(blob.index) - 1);
+					//	auto idx = I32::max(0, int32_t(blob.index) - 1);
 					//	_cursor_index = idx;
 					//	goto end_action;
 					//}
@@ -507,7 +507,7 @@ namespace qk {
 				if ( x <= offset_start ) { // 行开始位置
 					_cursor_index = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor_index = Float32::min(
+					_cursor_index = F32::min(
 						_blob[cell_end].index + _blob[cell_end].blob.glyphs.length(), text_length()
 					); // end_action
 				} else {

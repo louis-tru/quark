@@ -631,3 +631,30 @@ Known unresolved limits:
 
 The next serious AA pass should be treated as a major Compute AA project, not a
 small tweak to `aaSide`.
+
+## Compute AA Prototype Follow-up
+
+The Metal prototype in `test/compute_aa/` has validated the basic coverage
+rasterization model:
+
+```text
+flattened edges
+  -> local 16x16 tile edge lists
+  -> tile-left backdrop winding
+  -> 4x4 per-pixel sample evaluation
+  -> coverage atlas
+```
+
+Backdrop is the winding already accumulated to the left of a tile. It allows a
+tile shader to scan only locally intersecting edges without losing global fill
+state. For multisample coverage, backdrop must match the Y sampling positions:
+the current 4x4 prototype stores 16 pixel rows times 4 Y subsamples per tile.
+A single winding per tile or one value per pixel-row is insufficient and can
+produce horizontal artifacts where subsample windings differ.
+
+CPU backdrop construction currently records each edge's contribution as a
+delta at the first tile to its right, then performs an X prefix sum for each
+tile-row/Y-subsample. This removes the original correctness-first behavior of
+copying every edge into every tile to its right. The next optimization target
+is reducing rebuild/allocation/upload cost rather than changing the core
+winding algorithm.

@@ -243,26 +243,28 @@ namespace qk {
 	}
 
 	void Hash::updatef64(const double data) {
-		_value = mix64_combine_fast(_value, reinterpret_cast<const uint64_t&>(data));
+		_value = mix64_combine_fast(_value, bitwise_cast<uint64_t>(data));
 	}
 
 	void Hash::updateu32(const uint32_t data) {
-		_value = mix64_combine_fast(_value, uint64_t(data)); // update u32
+		_value = mix64_combine_fast(_value, data); // update u32
 	}
 
 	void Hash::update1f(const float data) {
-		union { float f; uint64_t u; } x = { .u=0 };
-		x.f = data;
-		_value = mix64_combine_fast(_value, x.u); // update
+		_value = mix64_combine_fast(_value, bitwise_cast<uint32_t>(data)); // update
 	}
 
 	void Hash::update2f(const float data[2]) {
-		_value = mix64_combine_fast(_value, reinterpret_cast<const uint64_t*>(data)[0]); // update
+		uint64_t bits;
+		memcpy(&bits, data, sizeof(bits));
+		_value = mix64_combine_fast(_value, bits);
 	}
 
 	void Hash::update4f(const float data[4]) {
-		_value = mix64_combine_fast(_value, reinterpret_cast<const uint64_t*>(data)[0]); // update u64
-		_value = mix64_combine_fast(_value, reinterpret_cast<const uint64_t*>(data)[1]); // update u64
+		uint64_t bits[2];
+		memcpy(bits, data, sizeof(bits));
+		_value = mix64_combine_fast(_value, bits[0]);
+		_value = mix64_combine_fast(_value, bits[1]);
 	}
 
 	void Hash::updatestr(cString& str) {

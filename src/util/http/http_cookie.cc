@@ -241,7 +241,7 @@ namespace qk {
 		if (opts.get(MAX_AGE, outStr)) {
 			expires = outStr.to_number<int64_t>() * 1e3 + time_millisecond();
 		} else if (opts.get(EXPIRES, outStr)) {
-			expires = Int64::max(parse_time(outStr), expires);
+			expires = I64::max(parse_time(outStr), expires);
 		}
 
 		// Example: BD_NOT_HTTPS=1; path=/; Max-Age=300

@@ -319,7 +319,7 @@ namespace qk {
 				ScopeLock scope(_mutex);
 				auto cu = _frames.begin(), it = cu.next();
 				if ((*cu)->pts) {
-					auto len = Uint32::min(_frames.length() - 1, 5);
+					auto len = U32::min(_frames.length() - 1, 5);
 					for (int i = 0; i < len; i++) {
 						if ((*cu)->pts > (*it)->pts)
 							cu = it; // Sort frames

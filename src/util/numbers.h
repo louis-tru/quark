@@ -32,6 +32,7 @@
 #define __quark__util__numbers__
 
 #include "./object.h"
+#include <limits>
 
 namespace qk {
 
@@ -51,8 +52,8 @@ namespace qk {
 		template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
 		template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
 		T value;
-		static const T limit_min;
-		static const T limit_max;
+		static constexpr T limit_min = std::numeric_limits<T>::min();
+		static constexpr T limit_max = std::numeric_limits<T>::max();
 
 		static inline T max(T a, T b) {
 			return a > b ? a: b;
@@ -65,17 +66,16 @@ namespace qk {
 		}
 	};
 
-	#define define_number(N, T) \
-		typedef Number<T> N; template<> \
-		Qk_EXPORT const T N::limit_min; template<> const T N::limit_max
+	#define Qk_Numbers(F) \
+		F(I8, int8_t) F(U8, uint8_t) \
+		F(I16, int16_t) F(U16, uint16_t) \
+		F(I32, int32_t) F(U32, uint32_t) \
+		F(I64, int64_t) F(U64, uint64_t) \
+		F(F32, float) F(F64, double) \
+		F(Bool, bool)
 
-	define_number(Int8, int8_t);   define_number(Uint8 , uint8_t);
-	define_number(Int16, int16_t); define_number(Uint16, uint16_t);
-	define_number(Int32, int32_t); define_number(Uint32, uint32_t);
-	define_number(Int64, int64_t); define_number(Uint64, uint64_t);
-	define_number(Float32, float); define_number(Float64, double);
-	define_number(Bool, bool);
-
-	#undef define_number
+	#define _typedef_number(N, T) typedef Number<T> N;
+	Qk_Numbers(_typedef_number)
+	#undef _typedef_number
 }
 #endif

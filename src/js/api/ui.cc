@@ -87,8 +87,8 @@ namespace qk { namespace js {
 
 		switch ( kTypesMask_UIEventFlags & key->flags() ) {
 			case kError_UIEventFlags: cData = JsConverter::Instance<Error>(); break;
-			case kFloat32_UIEventFlags: cData = JsConverter::Instance<Float32>(); break;
-			case kUint64_UIEventFlags: cData = JsConverter::Instance<Uint64>(); break;
+			case kFloat32_UIEventFlags: cData = JsConverter::Instance<F32>(); break;
+			case kUint64_UIEventFlags: cData = JsConverter::Instance<U64>(); break;
 		}
 
 		typedef EventNoticerBasic Basic;

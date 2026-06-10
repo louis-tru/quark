@@ -372,7 +372,7 @@ namespace qk {
 				if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
 					Qk_DLog("output EOS");
 				}
-				int64_t pts = Int64::max(info.presentationTimeUs, 0);
+				int64_t pts = I64::max(info.presentationTimeUs, 0);
 
 				if (pts == 0) {
 					Qk_DLog("presentationTimeUs: 0");

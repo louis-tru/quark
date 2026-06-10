@@ -168,7 +168,7 @@ namespace qk {
 					auto align = v->layout_align();
 					auto crossAlign = align == Align::Normal ? _cross_align: CrossAlign(align);
 					if (is_float_cross)
-						cross_size = Float32::max(cross_size, size[crossIdx]);
+						cross_size = F32::max(cross_size, size[crossIdx]);
 					main_total += size[mainIdx];
 					weight_total += weight;
 					items.push({size, weight, v, crossAlign, crossAlign == CrossAlign::Both});

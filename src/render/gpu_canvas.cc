@@ -63,7 +63,7 @@ namespace qk {
 					_scale = scale;
 					_scaleAverage = sqrtf(scale.x() * scale.y());
 					_allScaleAverage = _surfaceScaleAverage * _scaleAverage;
-					_allScaleMin = _surfaceScaleAverage * Float32::min(scale.x(), scale.y());
+					_allScaleMin = _surfaceScaleAverage * F32::min(scale.x(), scale.y());
 					_1pxSize = 1.0f / _allScaleMin;
 					_aaRadius = _1pxSize * 0.75;
 					_aaRadiusRect = _1pxSize * 0.75;
@@ -198,7 +198,7 @@ namespace qk {
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
-		capacity = Uint32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/);
+		capacity = U32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/);
 		_cache = new PathvCache(capacity, render);
 		_stateStack.push({ .matrix=Mat() });
 		_state = &_stateStack.back();
@@ -212,12 +212,12 @@ namespace qk {
 	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, bool mipmap) {
 		// limit texture size to surface size,
 		// to avoid memory waste and performance loss on large render targets
-		int w = Int32::clamp(upPow2(size.x()), 1, _surfaceSize[0]);
-		int h = Int32::clamp(upPow2(size.y()), 1, _surfaceSize[1]);
+		int w = I32::clamp(upPow2(size.x()), 1, _surfaceSize[0]);
+		int h = I32::clamp(upPow2(size.y()), 1, _surfaceSize[1]);
 		// limit texture aspect ratio to 4:1,
 		// to avoid memory waste and performance loss on large render targets
-		if (w > h * 4) h = Int32::min(w / 4, _surfaceSize[1]);
-		if (h > w * 4) w = Int32::min(h / 4, _surfaceSize[0]);
+		if (w > h * 4) h = I32::min(w / 4, _surfaceSize[1]);
+		if (h > w * 4) w = I32::min(h / 4, _surfaceSize[0]);
 
 		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | (type << 1) | mipmap;
 		auto &pool = _texPools[key];
@@ -301,7 +301,7 @@ namespace qk {
 	void GPUCanvas::restore(uint32_t count) {
 		if (!count || _stateStack.length() == 1)
 			return;
-		count = Uint32::min(count, _stateStack.length() - 1);
+		count = U32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
 			do {
@@ -517,8 +517,8 @@ namespace qk {
 		_this->setBlendMode(mode); // switch blend mode
 		auto o = src.begin;
 		auto s = Vec2{
-			Float32::min(o.x()+src.size.x(), _size.x()) - o.x(),
-			Float32::min(o.y()+src.size.y(), _size.y()) - o.y()
+			F32::min(o.x()+src.size.x(), _size.x()) - o.x(),
+			F32::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dst[0] > 0 && dst[1] > 0) {
 			type = type ? type: _opts.colorType; // default to surface color type

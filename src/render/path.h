@@ -33,7 +33,6 @@
 
 #include "../util/array.h"
 #include "../util/hash.h"
-#include "./bezier.h"
 #include "./paint.h"
 
 namespace qk {
@@ -121,19 +120,19 @@ namespace qk {
 		 * @method getEdgeLines() convert to edge lines
 		 * @return {Array<Vec2>} points { x, y }[]
 		*/
-		Array<Vec2> getEdgeLines(float epsilon = 1.0) const;
+		Array<Vec2> getEdgeLines(float precision = 1.0) const;
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
 		 * @return {VertexData} { .vertex={ x, y, z }[] }
 		*/
-		VertexData getTriangles(float epsilon = 1.0, float z = 0.0) const;
+		VertexData getTriangles(float precision = 1.0, float z = 0.0) const;
 
 		/**
 		 * @method getAASideTriangle() returns signed aa side triangle vertices and body triangles
 		 * @return {VertexData} {.vertex={ x, y, aaSide }[]}, aaSide < 0 inside, aaSide > 0 outside
 		*/
-		VertexData getAASideTriangle(float radius, float epsilon = 1.0, bool onlyAASide = false) const;
+		VertexData getAASideTriangle(float radius, float precision = 1.0, bool onlyAASide = false) const;
 
 		/**
 		 * @method dashPath() returns the dash path
@@ -146,8 +145,9 @@ namespace qk {
 		Path strokePath(float width,
 			Cap cap = Cap::kButt_Cap, Join join = Join::kMiter_Join, float miterLimit = 0) const;
 
-		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-		Path& normalizedPath(float epsilon = 1.0); // normal
+		// flatten path, convert bezier to line segments,
+		// precision is the scale of the number of segments, the larger the value, the more segments
+		Path& normalizedPath(float precision = 1.0); // spline sample precision scale
 		// matrix transform
 		void transform(const Mat& matrix);
 		// scale transform
@@ -166,8 +166,8 @@ namespace qk {
 		// get region bounds from pts, do not check unit matrix
 		static Range getBoundsFromPoints(const Vec2 pts[], uint32_t ptsLen, const Mat* matrix = nullptr);
 	private:
-		const Path* normalized(Path *out, float epsilon, bool updateHash) const;
-		const Path* boundaryPath(Path *out, float epsilon) const;
+		const Path* normalized(Path *out, float precision, bool updateHash) const;
+		const Path* boundaryPath(Path *out, float precision) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		// Props field:

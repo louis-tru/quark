@@ -140,6 +140,7 @@
 			'render/blend.h',
 			'render/canvas.h',
 			'render/canvas.cc',
+			'render/gpu_canvas_filter.h',
 			'render/gpu_canvas.h',
 			'render/gpu_canvas.cc',
 			'render/paint.h',

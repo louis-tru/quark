@@ -217,8 +217,8 @@ namespace qk { namespace js {
 		return get_callback_for_type<Bool>(worker, cb);
 	}
 
-	Callback<Int32> get_callback_for_int(Worker* worker, JSValue* cb) {
-		return get_callback_for_type<Int32>(worker, cb);
+	Callback<I32> get_callback_for_int(Worker* worker, JSValue* cb) {
+		return get_callback_for_type<I32>(worker, cb);
 	}
 
 	Callback<FileStat> get_callback_for_file_stat(Worker* worker, JSValue* cb) {

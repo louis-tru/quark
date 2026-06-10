@@ -31,6 +31,7 @@
 #include "src/ui/app.h"
 #include "src/util/thread.h"
 #include "src/util/string.h"
+#include "src/util/macros.h"
 #include "./test.h"
 
 using namespace qk;
@@ -138,6 +139,14 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(zlib) \
 	F(hash) \
 
+#if Qk_MacOS
+#define TEST_MacOS(F) \
+	F(compute_aa) \
+
+#else
+#define TEST_MacOS(F)
+#endif
+
 #define TEST_All(F) \
 	TEST_UTILS(F) \
 	F(action) \
@@ -165,6 +174,7 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(spine) \
 	F(little_border) \
 	F(mtv) \
+	TEST_MacOS(F) \
 
 #define _Fun(n) Qk_TEST_Func(n);
 TEST_All(_Fun)

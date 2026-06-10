@@ -5,6 +5,9 @@ that helped and the final fix. Keep entries practical: symptom,
 misleading clues, root cause, and the code rule that prevents the issue from
 coming back.
 
+General decision rules, including the requirement to ground advice in Quark's
+actual engineering environment, live in `docs/ENGINEERING_RULES.md`.
+
 ## GL: Strange Gradient Or Black Output With Complete FBOs
 
 Symptom:
@@ -158,3 +161,50 @@ Prevention rule:
   of marks, refresh the local snapshot before making downstream decisions.
 - Resize bugs that look like rendering jitter can still be layout invalidation
   bugs. Check mark propagation before spending more time on present timing.
+
+## C++: Do Not Mechanically Replace Quark's Union bitwise_cast
+
+Context:
+
+- `qk::bitwise_cast<TO>(FROM)` currently uses an equal-sized union, writes the
+  `FROM` member, then reads the `TO` member.
+- It is used for deliberate low-level bit reinterpretation such as
+  `float -> uint32_t`, `double -> uint64_t`, and JavaScriptCore encoded values.
+- Quark targets known Clang/GCC-style toolchains where this common union
+  type-punning pattern works as intended for the project's scalar/POD uses.
+
+Misleading advice:
+
+- A standards-only review may label every read of the other union member as
+  invalid and recommend mechanically replacing the implementation with
+  `memcpy`.
+- That advice ignores the actual types, supported compilers, generated machine
+  code, and the useful compile-time behavior of the current union.
+
+Practical finding:
+
+- For equal-sized scalar/POD types such as `float <-> uint32_t` and
+  `double <-> uint64_t`, the current union implementation performs the desired
+  bit reinterpretation on Quark's supported platforms.
+- A union containing many non-trivial types cannot be default-constructed or
+  destroyed, so incorrect `bitwise_cast` instantiations often fail to compile
+  naturally.
+- A naive `TO out; memcpy(&out, &in, sizeof(out));` replacement can allow some
+  non-trivial `TO` types to compile and then overwrite live object state,
+  creating a more concrete ownership/destruction problem.
+- `reinterpret_cast<T&>` through unrelated references is a separate pattern;
+  do not treat it as equivalent to the contained union implementation without
+  checking its aliasing and lifetime behavior.
+
+Prevention rule:
+
+- Do not change low-level cast code solely because an abstract language rule
+  dislikes the pattern.
+- First inspect every instantiated type, the project's compiler/platform
+  contract, the generated optimized code, and whether the proposed replacement
+  accepts unsafe types that the old implementation rejected.
+- Prefer changes that solve an observed bug, portability requirement, sanitizer
+  failure, or unsupported compiler target. Avoid standards-compliance rewrites
+  that do not improve Quark's actual behavior.
+- Keep `bitwise_cast` limited to deliberate equal-sized bit reinterpretation;
+  it is not a general object conversion or copying API.

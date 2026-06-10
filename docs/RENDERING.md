@@ -30,10 +30,9 @@ Key files:
 `GPUCanvas` owns behavior that should not be duplicated in each backend:
 
 - state stack, save/restore, current matrix
-- clip stack orchestration and stencil ref accounting
+- clip-mask stack orchestration and restore behavior
 - surface size, root matrix, scale values
-- z-depth sequencing
-- path normalization, fill/stroke selection, software AA side paths
+- path normalization, fill/stroke selection, and AASide geometry selection
 - text image selection and SDF text path
 - blur filter lifetime wrapper
 - high-level `readImage()` and `outputImage()` flow
@@ -71,7 +70,7 @@ Important GL notes after the refactor:
 
 Use GL as a behavior reference for Metal, especially for:
 
-- clipping and stencil behavior
+- clipping and clip-mask combination behavior
 - blur filter behavior
 - read/output image semantics
 - drawTriangles data lifetime
@@ -94,7 +93,8 @@ Metal-specific rule of thumb:
 - It does not automatically require a new command buffer.
 - Use a new command buffer only when ordering/ownership makes it necessary.
 - Prefer generated shader indices (`shader.fragment.*`, `shader.bufferIndex`) over fixed slot numbers.
-- Metal blur/read/output code is under active migration; inspect current code before assuming it matches GL behavior.
+- Metal implements the main GL-aligned clip/blur/read/output paths, but visual
+  validation is still useful for difficult combinations and edge cases.
 
 ## Texture And Image Lifecycle
 
@@ -130,7 +130,6 @@ Resource lifecycle rules:
 - creates an `ImageSource` with requested destination size/type
 - sets mipmap preference
 - calls backend `readImageCmd(srcRect, currentOutput, dest)`
-- advances z depth
 
 `GPUCanvas::outputImage()`:
 
@@ -151,7 +150,8 @@ Blur filter notes:
 - `GPUCanvas` computes blur sampling, image LOD, and `clearPad`.
 - `clearPad` guards blur sampling near temporary texture edges; it accounts for scaled/mipmapped sampling.
 - `bounds` passed to blur backend methods already includes the blur radius.
-- Metal blur uses temporary ping-pong textures (`_outTexA`, `_outTexB`) and is still being validated.
+- Metal blur uses pooled temporary `ImageSource` textures for ping-pong
+  rendering and restores the previous output/root matrix afterward.
 
 ## Shader Slots
 
@@ -164,21 +164,19 @@ Do not hard-code texture and buffer slots when a shader wrapper exposes indices.
 
 This matters because generated GL/Metal shader wrappers may move slots.
 
-## Current Metal Gaps
+## Current Validation Risks
 
-As of the current worktree, these Metal areas are still incomplete or high risk:
+The primary Metal drawing paths are implemented. Remaining work is mainly
+validation and performance hardening:
 
-- `MetalCanvas::drawClipCmd`
-- Metal blur filter end path still needs careful validation/cleanup; do not treat it as feature-complete.
-- Metal `drawTrianglesCmd()` data lifetime and buffer reuse may need revisiting.
+- anti-aliased difference clips and nested clip restore behavior
+- blur edge sampling and temporary texture reuse
+- output-image mipmap use and render-target transitions
+- `drawTrianglesCmd()` transient buffer lifetime and buffer reuse
+- upload staging-buffer and compatible texture reuse
 
-Before implementing them, read the GL equivalents:
-
-- `GLC_CmdPack::drawClip(...)` and clip call handling
-- `blurFilterBeginCall(...)`
-- `blurFilterEndCall(...)`
-- `GLC_CmdPack::blurFilterBegin(...)`
-- `GLC_CmdPack::blurFilterEnd(...)`
+When changing these paths, read the GL equivalents for behavior and the current
+Metal implementation for explicit encoder/resource lifetime.
 
 ## Common Mistakes
 
@@ -187,6 +185,7 @@ Before implementing them, read the GL equivalents:
 - Hard-coding shader resource slots.
 - Forgetting that GL commands are deferred and may need copied data.
 - Creating extra Metal command buffers just to switch render targets.
+- Reintroducing old depth/stencil or z-order assumptions into the AASide path.
 - Losing mipmap generation when render output is used as a texture.
 - Replacing `ImageSource` texture pointers without respecting `TexStat` ownership.
 - Assuming files in `deps/`, `node_modules/`, `tools/ndk/`, `tools/pkgs/`, `tools/linux/`, or `out/` are useful for Quark architecture context.

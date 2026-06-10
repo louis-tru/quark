@@ -42,13 +42,17 @@ namespace qk {
 	template<typename T, typename A = Allocator, typename B = NonObject>
 	class List: public B {
 	public:
-		struct Node {
-			typedef T Data;
-			inline Node* prev() const { return _prev; }
-			inline Node* next() const { return _next; }
-			inline T&    data() { return *reinterpret_cast<T*>((&_next) + 1); }
-			inline const T& data() const { return *reinterpret_cast<const T*>((&_next) + 1); }
+		struct Node;
+		struct BaseNode {
 			Node *_prev, *_next;
+		};
+		struct Node: BaseNode {
+			typedef T Data;
+			inline Node* prev() const { return this->_prev; }
+			inline Node* next() const { return this->_next; }
+			inline T&    data() { return value; }
+			inline const T& data() const { return value; }
+			T value;
 		};
 		typedef ComplexIterator<Node, false> Iterator;
 		typedef ComplexIterator<Node, true>  IteratorConst;
@@ -102,13 +106,14 @@ namespace qk {
 		void init_();
 		void fill_(Node* first, Node* last, uint32_t len);
 		void erase_(Node* node);
+		Node* end_() { return static_cast<Node*>(&_end); }
+		const Node* end_() const { return static_cast<const Node*>(&_end); }
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
 
-		struct Sham { T _item; }; // Used to call data destructors
-		Node _end; // { _prev = last, _next = first }
-		void *_nullptr; // End empty space, is length zero then List<T*>::Iterator.data() return nullptr
-		uint32_t _length;
+		uint32_t _length; // List length, not include end node
+		BaseNode _end; // { _prev = last, _next = first }
+		// char _nullptr[sizeof(T)]; // End empty space
 	};
 
 	template<typename T, typename A = Allocator, typename B = NonObject> using cList = const List<T, A, B>;
@@ -167,18 +172,18 @@ namespace qk {
 	List<T, A, B>& List<T, A, B>::operator=(List&& ls) {
 		clear();
 		splice(IteratorConst(_end._prev), ls,
-			IteratorConst(ls._end._next), IteratorConst(&ls._end));
+			IteratorConst(ls._end._next), IteratorConst(ls.end_()));
 		return *this;
 	}
 
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::Iterator List<T, A, B>::push_back(const T& item) {
-		return insert(IteratorConst(&_end), item);
+		return insert(IteratorConst(end_()), item);
 	}
 
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::Iterator List<T, A, B>::push_back(T&& item) {
-		return insert(IteratorConst(&_end), std::move(item));
+		return insert(IteratorConst(end_()), std::move(item));
 	}
 
 	template<typename T, typename A, typename B>
@@ -194,7 +199,7 @@ namespace qk {
 	template<typename T, typename A, typename B>
 	void List<T, A, B>::splice(IteratorConst it, List& ls) {
 		splice(it, ls,
-			IteratorConst(ls._end._next), IteratorConst(&ls._end));
+			IteratorConst(ls._end._next), IteratorConst(ls.end_()));
 	}
 
 	template<typename T, typename A, typename B>
@@ -231,8 +236,8 @@ namespace qk {
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::Iterator
 	List<T, A, B>::insert(IteratorConst after, const T& item) {
-		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
-		new(node + 1) T(item);
+		auto node = (Node*)A::shared()->malloc(sizeof(Node));
+		new(&node->value) T(item);
 		auto next = node_(after);
 		link_(next->_prev, node);
 		link_(node, next);
@@ -243,8 +248,8 @@ namespace qk {
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::Iterator
 	List<T, A, B>::insert(IteratorConst after, T&& item) {
-		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
-		new(node + 1) T(std::move(item));
+		auto node = (Node*)A::shared()->malloc(sizeof(Node));
+		new(&node->value) T(std::move(item));
 		auto next = node_(after);
 		link_(next->_prev, node);
 		link_(node, next);
@@ -263,7 +268,7 @@ namespace qk {
 			_length--;
 			return Iterator(next);
 		} else {
-			return Iterator(&_end);
+			return Iterator(end_());
 		}
 	}
 
@@ -283,7 +288,7 @@ namespace qk {
 
 	template<typename T, typename A, typename B>
 	void List<T, A, B>::clear() {
-		erase(IteratorConst(_end._next), IteratorConst(&_end));
+		erase(IteratorConst(_end._next), IteratorConst(end_()));
 	}
 
 	template<typename T, typename A, typename B>
@@ -331,7 +336,7 @@ namespace qk {
 
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::IteratorConst List<T, A, B>::end() const {
-		return IteratorConst(&_end);
+		return IteratorConst(end_());
 	}
 
 	template<typename T, typename A, typename B>
@@ -341,7 +346,7 @@ namespace qk {
 
 	template<typename T, typename A, typename B>
 	typename List<T, A, B>::Iterator List<T, A, B>::end() {
-		return Iterator(&_end);
+		return Iterator(end_());
 	}
 
 	template<typename T, typename A, typename B>
@@ -351,22 +356,22 @@ namespace qk {
 
 	template<typename T, typename A, typename B>
 	void List<T, A, B>::init_() {
-		fill_(&_end, &_end, 0);
-		_nullptr = nullptr;
+		fill_(end_(), end_(), 0);
+		// memset(_nullptr, 0, sizeof(T));
 	}
 
 	template<typename T, typename A, typename B>
 	void List<T, A, B>::fill_(Node* first, Node* last, uint32_t len) {
 		_end._prev = last;
 		_end._next = first;
-		first->_prev = &_end;
-		last->_next = &_end;
+		first->_prev = end_();
+		last->_next = end_();
 		_length = len;
 	}
 
 	template<typename T, typename A, typename B>
 	void List<T, A, B>::erase_(Node* node) {
-		reinterpret_cast<Sham*>(node + 1)->~Sham(); // destructor
+		node->~Node(); // destructor
 		A::shared()->free(node);
 	}
 

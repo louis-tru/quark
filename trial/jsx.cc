@@ -217,7 +217,7 @@ namespace qk {
 
 	static inline int64_t int64_multiplication(int64_t i, int multiple, int add) {
 		
-		double f = 1.0 * i / Int64::limit_max;
+		double f = 1.0 * i / I64::limit_max;
 		
 		if (f * multiple > 1) { // 溢出
 			return -1;

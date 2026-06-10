@@ -374,7 +374,7 @@ namespace qk
 		}
 
 		void set_master_volume(int volume) {
-			volume = Int32::clamp(volume, 0, 100);
+			volume = I32::clamp(volume, 0, 100);
 			// const snd_mixer_selem_channel_id_t chs[] = {
 			// 	SND_MIXER_SCHN_FRONT_LEFT,
 			// 	SND_MIXER_SCHN_FRONT_RIGHT,

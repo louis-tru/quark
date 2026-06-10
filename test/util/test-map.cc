@@ -38,17 +38,17 @@
 using namespace qk;
 
 Qk_TEST_Func(map) {
-	
+
 	std::map<int, String> m;
-	
+
 	m[0] = "-100900978";
 	m[100] = "-0";
-	
+
 	Qk_Log(m[0]);
 	Qk_Log(m[100]);
-	
+
 	m.erase(100);
-	
+
 	Qk_Log(m[0]);
 	
 	Qk_Log("%d", m.size());
@@ -80,7 +80,15 @@ Qk_TEST_Func(map) {
 	map.set("AA8", "BB7");
 	map.set("AA9", "BB8");
 	map.set("AA0", "BB9");
-	
+	List<String> list;
+	list.push_back("ABCD");
+	list.push_back("XXXX");
+	Array<String> arr;
+	arr.push("ABCD");
+	arr.push("KKKK");
+	auto begin1 = map.begin();
+	auto begin2 = list.begin();
+	auto begin3 = ++arr.begin();
 	Qk_Log(map["AA8"]);
 	Qk_Log(map["AA4"]);
 	Qk_Log(map["AA7"]);

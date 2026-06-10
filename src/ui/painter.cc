@@ -827,7 +827,7 @@ namespace qk {
 		// draw cursor
 		if (twinkle) {
 			auto &line = lines->line(_cursor_line);
-			auto x = Float32::max(0, offset.x() + _cursor_x - 1.0f);
+			auto x = F32::max(0, offset.x() + _cursor_x - 1.0f);
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});

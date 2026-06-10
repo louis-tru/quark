@@ -83,16 +83,19 @@ namespace qk {
 	class Dict: public B {
 	public:
 		typedef qk::Pair<Key, Value> Pair;
-
-		struct Node {
-			typedef Pair Data;
-			typedef const Data cData;
-			inline Node* prev() const { return _prev; }
-			inline Node* next() const { return _next; }
-			inline Data& data() { return *reinterpret_cast<Data*>((&_conflict) + 1); }
-			inline cData& data() const { return *reinterpret_cast<cData*>((&_conflict) + 1); }
+		struct Node;
+		struct BaseNode {
 			uint64_t hashCode;
 			Node *_prev, *_next, *_conflict;
+		};
+		struct Node: BaseNode {
+			typedef Pair Data;
+			typedef const Pair cPair;
+			inline Node* prev() const { return this->_prev; }
+			inline Node* next() const { return this->_next; }
+			inline Pair& data() { return pair; }
+			inline cPair& data() const { return pair; }
+			Pair pair;
 		};
 		typedef ComplexIterator<Node, true>  IteratorConst;
 		typedef ComplexIterator<Node, false> Iterator;
@@ -152,14 +155,17 @@ namespace qk {
 		bool make_(const Key& key, Pair** data);
 		void erase_(Node* node);
 		void optimize_();
+		inline Node* end_() { return static_cast<Node*>(&_end); }
+		inline const Node* end_() const { return static_cast<const Node*>(&_end); }
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
 		const Node* findFor_(uint64_t hashCode, const Node* end) const;
 		const Node* find_(const Key& key, const Node* end = nullptr) const;
 
 		Node**    _indexed;
-		Node      _end; // { _prev = last, _next = first }
 		uint32_t  _length, _capacity;
+		BaseNode  _end; // { _prev = last, _next = first }
+		// char _nullptr[sizeof(Pair)]; // End empty space
 	};
 
 	template<typename K, typename V, typename C = Compare<K>, typename A = Allocator, typename B = NonObject>
@@ -257,22 +263,22 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::find(const K& key) {
-		return Iterator(const_cast<Node*>(find_(key, &_end)));
+		return Iterator(const_cast<Node*>(find_(key, end_())));
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::find(const K& key) const {
-		return IteratorConst(find_(key, &_end));
+		return IteratorConst(find_(key, end_()));
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::find_for(uint64_t hash) {
-		return Iterator(const_cast<Node*>(findFor_(hash, &_end)));
+		return Iterator(const_cast<Node*>(findFor_(hash, end_())));
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::find_for(uint64_t hash) const {
-		return IteratorConst(findFor_(hash, &_end));
+		return IteratorConst(findFor_(hash, end_()));
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
@@ -426,7 +432,7 @@ namespace qk {
 			// optimize_();
 			return Iterator(next);
 		} else {
-			return Iterator(&_end);
+			return Iterator(end_());
 		}
 	}
 
@@ -447,7 +453,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	void Dict<K, V, C, A, B>::clear() {
-		erase(IteratorConst(_end._next), IteratorConst(&_end));
+		erase(IteratorConst(_end._next), IteratorConst(end_()));
 		A::shared()->free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
@@ -461,7 +467,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::IteratorConst Dict<K, V, C, A, B>::end() const {
-		return IteratorConst(&_end);
+		return IteratorConst(end_());
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
@@ -471,19 +477,20 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	typename Dict<K, V, C, A, B>::Iterator Dict<K, V, C, A, B>::end() {
-		return Iterator(&_end);
+		return Iterator(end_());
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
 	uint32_t Dict<K, V, C, A, B>::length() const {
 		return _length;
 	}
-	
+
 	template<typename K, typename V, typename C, typename A, typename B>
 	void Dict<K, V, C, A, B>::init_() {
 		_end.hashCode = 0;
 		_end._conflict = nullptr;
-		fill_(nullptr, &_end, &_end, 0, 0);
+		// memset(_nullptr, 0, sizeof(Pair));
+		fill_(nullptr, end_(), end_(), 0, 0);
 	}
 
 	template<typename K, typename V, typename C, typename A, typename B>
@@ -491,8 +498,8 @@ namespace qk {
 		_indexed = indexed;
 		_end._prev = last;
 		_end._next = first;
-		first->_prev = &_end;
-		last->_next = &_end;
+		first->_prev = end_();
+		last->_next = end_();
 		_length = len;
 		_capacity = capacity;
 	}
@@ -509,7 +516,7 @@ namespace qk {
 		auto node = _indexed[index];
 		while (node) {
 			if (node->hashCode == hash) {
-				*data = &node->data();
+				*data = &node->pair;
 				return false;
 			}
 			node = node->_conflict;
@@ -518,13 +525,13 @@ namespace qk {
 		optimize_();
 		index = hash % _capacity;
 		// insert new key
-		node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(Pair));
+		node = (Node*)A::shared()->malloc(sizeof(Node));
 		node->hashCode = hash;
 		node->_conflict = _indexed[index];
 		link_(_end._prev, node);
-		link_(node, &_end);
+		link_(node, end_());
 		_indexed[index] = node;
-		*data = &node->data();
+		*data = &node->pair;
 		return true;
 	}
 
@@ -539,7 +546,7 @@ namespace qk {
 				begin = begin->_conflict;
 			begin->_conflict = node->_conflict;
 		}
-		node->data().~Pair(); // destructor
+		node->pair.~Pair(); // destructor
 		A::shared()->free(node);
 	}
 

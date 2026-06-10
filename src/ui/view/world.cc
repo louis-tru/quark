@@ -103,23 +103,23 @@ namespace qk {
 	}
 
 	void World::set_discoveryThresholdBuffer(float value) {
-		_discoveryThresholdBuffer = Float32::clamp(value, 0.0f, 100.0f);
+		_discoveryThresholdBuffer = F32::clamp(value, 0.0f, 100.0f);
 	}
 
 	void World::set_subSteps(int value) {
-		_subSteps = Int32::clamp(value, 1, 5);
+		_subSteps = I32::clamp(value, 1, 5);
 	}
 
 	void World::set_timeScale(float value) {
-		_timeScale = Float32::clamp(value, 0.1f, 10.0f);
+		_timeScale = F32::clamp(value, 0.1f, 10.0f);
 	}
 
 	void World::set_predictionTime(float value) {
-		_predictionTime = Float32::clamp(value, 0.05f, 2.0f);
+		_predictionTime = F32::clamp(value, 0.05f, 2.0f);
 	}
 
 	void World::set_waypointRadius(float value) {
-		_waypointRadius = Float32::max(value, 0.0f);
+		_waypointRadius = F32::max(value, 0.0f);
 	}
 
 	ViewType World::view_type() const {

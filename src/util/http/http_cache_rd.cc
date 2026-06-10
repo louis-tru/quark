@@ -103,7 +103,7 @@ namespace qk {
 								int64_t expires = parse_time(_header["expires"]);
 								if ( expires > time_millisecond() ) { // Use caching completely if valid cache
 									_host->on_http_readystate_change(HTTP_READY_STATE_RESPONSE);
-									_host->_download_total = Int64::max(_size - _offset, 0);
+									_host->_download_total = I64::max(_size - _offset, 0);
 									_host->on_http_header(200, std::move(_header), true); // from cache
 									read_advance();
 								}

@@ -156,7 +156,7 @@ namespace qk { namespace js {
 	Callback<StreamResponse> get_callback_for_io_stream_http_error(Worker* worker, JSValue* cb);
 	Callback<Array<Dirent>> get_callback_for_array_dirent(Worker* worker, JSValue* cb);
 	Callback<Bool> get_callback_for_bool(Worker* worker, JSValue* cb);
-	Callback<Int32> get_callback_for_int(Worker* worker, JSValue* cb);
+	Callback<I32> get_callback_for_int(Worker* worker, JSValue* cb);
 	Callback<FileStat> get_callback_for_file_stat(Worker* worker, JSValue* cb);
 	Cb get_callback_for_none(Worker* worker, JSValue* cb);
 

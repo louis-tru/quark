@@ -31,7 +31,6 @@
 #include "tesselator.h"
 #include "./path.h"
 #include "./bezier.h"
-#include "../util/handle.h"
 #include <math.h>
 
 namespace qk {
@@ -110,10 +109,10 @@ namespace qk {
 		origin = inside_origin;
 		end    = inside_end;
 
-		a = { Float32::max(a.x() - left, 0.0), Float32::max(a.y() - top, 0.0) }; // left/top
-		b = { Float32::max(b.x() - right, 0.0), Float32::max(b.y() - top, 0.0) }; // left/bottom
-		c = { Float32::max(c.x() - right, 0.0), Float32::max(c.y() - bottom, 0.0) }; // right/bottom
-		d = { Float32::max(d.x() - left, 0.0), Float32::max(d.y() - bottom, 0.0) }; // right/top
+		a = { F32::max(a.x() - left, 0.0), F32::max(a.y() - top, 0.0) }; // left/top
+		b = { F32::max(b.x() - right, 0.0), F32::max(b.y() - top, 0.0) }; // left/bottom
+		c = { F32::max(c.x() - right, 0.0), F32::max(c.y() - bottom, 0.0) }; // right/bottom
+		d = { F32::max(d.x() - left, 0.0), F32::max(d.y() - bottom, 0.0) }; // right/top
 
 		// ccw
 		arc(origin, a, Vec2(0), Qk_PI_2_1, Qk_PI_2_1); // left-top
@@ -258,7 +257,7 @@ namespace qk {
 			lineTo(Vec2(cx, cy));
 			return;
 		}
-		sweepAngle = Float32::clamp(sweepAngle, -Qk_PI_2, Qk_PI_2);
+		sweepAngle = F32::clamp(sweepAngle, -Qk_PI_2, Qk_PI_2);
 		startAngle = -startAngle;
 		float rx = radius.x();
 		float ry = radius.y();
@@ -355,9 +354,9 @@ namespace qk {
 		return (cArray<PathVerb>&)_verbs;
 	}
 
-	Array<Vec2> Path::getEdgeLines(float epsilon) const {
+	Array<Vec2> Path::getEdgeLines(float precision) const {
 		Path tmp;
-		const Path *self = normalized(&tmp,epsilon,false);
+		const Path *self = normalized(&tmp, precision, false);
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
@@ -377,7 +376,6 @@ namespace qk {
 					isZero = false;
 					break;
 				case kClose_Verb: // close
-					//Qk_ASSERT(verb == kClose_Verb);
 					if (!isZero) {
 						if (move != from) { // close path
 							edges.push(from);
@@ -386,10 +384,11 @@ namespace qk {
 						isZero = true;
 					}
 					break;
-				default: Qk_Fatal("Path::getEdgeLines");
+				default:
+					Qk_Fatal("Path::getEdgeLines() invalid verb");
 			}
 		}
-		
+
 		Qk_ReturnLocal(edges);
 	}
 
@@ -430,14 +429,14 @@ namespace qk {
 		return added;
 	}
 
-	const Path* Path::boundaryPath(Path *out, float epsilon) const {
+	const Path* Path::boundaryPath(Path *out, float precision) const {
 		Qk_ASSERT(!out->_sealed, "Path::boundaryPath() requires a non-sealed output");
 		Qk_ASSERT(out != this, "Path::boundaryPath() requires a separate output");
 		if (_isBoundaryPath)
 			return this;
 
 		Path tmp;
-		auto self = normalized(&tmp, epsilon, false);
+		auto self = normalized(&tmp, precision, false);
 		auto tess = tessNewTess(nullptr);
 
 		if (tessAddPathContours(tess, self) &&
@@ -467,9 +466,9 @@ namespace qk {
 		return out;
 	}
 
-	VertexData Path::getTriangles(float epsilon, float z) const {
+	VertexData Path::getTriangles(float precision, float z) const {
 		Path tmp;
-		auto *self = normalized(&tmp, epsilon, false);
+		auto *self = normalized(&tmp, precision, false);
 		VertexData out;
 
 		int polySize = 3;
@@ -523,7 +522,7 @@ namespace qk {
 			do {
 				stageIdx = (stageIdx + step + stageCount) % stageCount;
 				stage = stageP[stageIdx];
-				auto use = Float32::min(offset, stage);
+				auto use = F32::min(offset, stage);
 				stage -= use;
 				offset -= use;
 			} while (offset > 0);
@@ -544,7 +543,7 @@ namespace qk {
 					nextStage();
 					if (useStage) out.moveTo(from);
 				}
-				float use = Float32::min(len - useLen, stage);
+				float use = F32::min(len - useLen, stage);
 				useLen += use; stage -= use;
 				from = start + point * Vec2(useLen / len);
 			}
@@ -579,11 +578,11 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
-	Path& Path::normalizedPath(float epsilon) {
+	Path& Path::normalizedPath(float precision) {
 		if (_sealed) return *this;
 		if (!_IsNormalized) {
 			Path tmp;
-			normalized(&tmp, epsilon, true);
+			normalized(&tmp, precision, true);
 			*this = std::move(tmp);
 		}
 		return *this;
@@ -591,6 +590,7 @@ namespace qk {
 
 	void Path::transform(const Mat& matrix) {
 		if (_sealed) return;
+		if (matrix.is_identity_matrix()) return;
 		Vec2* pts = *_pts;
 		Vec2* e = pts + _pts.length();
 		while (pts < e) {
@@ -621,39 +621,44 @@ namespace qk {
 
 	// get rect bounds from pts
 	Range Path::getBoundsFromPoints(const Vec2 *pts, uint32_t ptsLen, const Mat* mat) {
-		const Vec2* e = pts + ptsLen;
-		float top = Float32::limit_max,
-					right = Float32::limit_min,
-					bottom = right, left = top;
-		Vec2 offset;
-		bool isMul = false;
-
-		if (mat) {
-			offset = {mat->val[2], mat->val[5]}; // translate
-			isMul = mat->val[0] != 1 || mat->val[4] != 1; // is call mul_vec2_no_translate
+		if (ptsLen == 0) {
+			return {0,0}; // empty range
 		}
 
-		while (pts < e) {
+		bool isMul = false;
+		if (mat) {
+			// if not only translate, need mul_vec2_no_translate
+			isMul = !mat->is_translation_matrix();
+		}
+		const Vec2* e = pts + ptsLen;
+		auto begin = isMul ? mat->mul_vec2_no_translate(*pts): *pts;
+		auto end = begin;
+
+		while (++pts < e) {
 			auto p = isMul ? mat->mul_vec2_no_translate(*pts): *pts;
 			auto x = p.x(), y = p.y();
-			if (x < left) {
-				left = x;
-			} else if (right < x) {
-				right = x;
+			if (x < begin[0]) {
+				begin[0] = x;
+			} else if (x > end[0]) {
+				end[0] = x;
 			}
-			if (y < top) {
-				top = y;
-			} else if (bottom < y) {
-				bottom = y;
+			if (y < begin[1]) {
+				begin[1] = y;
+			} else if (y > end[1]) {
+				end[1] = y;
 			}
-			pts++;
 		}
-		return {{offset.x()+left,offset.y()+top}, {offset.x()+right,offset.y()+bottom}};
+		if (mat) {
+			Vec2 offset{mat->val[2], mat->val[5]}; // translate
+			begin += offset; // apply translate to bounds
+			end += offset;
+		}
+		return {begin,end};
 	}
 
 	// estimate sample rate
-	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
-	static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
+	static int getQuadraticBezierSample(const QuadraticBezier& curve, float precision);
+	static int getCubicBezierSample(const CubicBezier& curve, float precision);
 
 	/**
 	 * The connections point between multiple different paths may not be standard, 
@@ -668,7 +673,7 @@ namespace qk {
 		return (a - b).lengthSq() < 0.01f;
 	}
 
-	const Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
+	const Path* Path::normalized(Path *out, float precision, bool updateHash) const {
 		Qk_ASSERT(!out->_sealed, "Path::normalized() sealed path can not be modified");
 		Qk_ASSERT(out != this, "Path::normalized() output path must be different from input path");
 		if (_IsNormalized)
@@ -702,7 +707,7 @@ namespace qk {
 						add(Zero, kMove_Verb);
 					QuadraticBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1]);
 					pts+=2;
-					int sample = getQuadraticBezierSample(bezier, epsilon) - 1;
+					int sample = getQuadraticBezierSample(bezier, precision) - 1;
 					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample);
 					auto points = &line._pts[line._pts.length() - sample];
@@ -720,7 +725,7 @@ namespace qk {
 						add(Zero, kMove_Verb);
 					CubicBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
-					int sample = getCubicBezierSample(bezier, epsilon) - 1;
+					int sample = getCubicBezierSample(bezier, precision) - 1;
 					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample);
 					auto points = &line._pts[line._pts.length() - sample];
@@ -750,64 +755,26 @@ namespace qk {
 		return out;
 	}
 
-	static float sqrt_sqrtf(int i) {
-		static Array<float> num;
-		if (!num.length()) {
-			num.extend(5001);
-#if DEBUG
-			uint64_t t = qk::time_monotonic();
-#endif
-			for (int i = 0; i < 5001; i++) {
-				num[i] = sqrtf(sqrtf(float(i)));
-			}
-			Qk_DLog("sqrt_sqrtf, %ld Microsecond", qk::time_monotonic() - t);
-		}
-		if (i > 5000) {
-			return num[5000] * i * 0.0002; // 5000.0
-		}
-		return num[i];
+	static constexpr float bezierBasePrecision = 16.0f;
+
+	static int getQuadraticBezierSample(const QuadraticBezier& curve, float precision) {
+		Vec2 v = curve.p0() - curve.p1() * 2.0f + curve.p2();
+		precision *= bezierBasePrecision;
+		float segmentsP4 = v.lengthSq() * precision * precision * 0.0625f;
+		int segments = ceilf(sqrtf(sqrtf(segmentsP4)));
+		return std::max(segments, 2);
 	}
 
-	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon) {
-		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2();
-		// calculate triangle area by point cross multiplication
-
-		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x()) + (C.x()*A.y() - C.y()*A.x());
-		float S_2 = abs(S_ABC) * epsilon; // *0.5
-
-		if (S_2 < 5000.0) {
-			constexpr float count = 22.0 / 8.408964152537145;
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
-			return i;
-		} else {
-			return 22;
-		}
-	}
-
-	static int getCubicBezierSample(const CubicBezier& curve, float epsilon) {
-		/*
-		function get_cubic_bezier_sample(A, B, C, D, epsilon = 1) {
-			let S_ABC = (A.x*B.y - A.y*B.x) + (B.x*C.y - B.y*C.x);
-			let S_CDA = (C.x*D.y - C.y*D.x) + (D.x*A.y - D.y*A.x);
-			let S = (S_ABC + S_CDA) * 0.5 * epsilon;
-			return S;
-		}
-		console.log(get_cubic_bezier_sample({x:0,y:0}, {x:10,y:0}, {x:10,y:10}, {x:0,y:10}));
-		*/
+	static int getCubicBezierSample(const CubicBezier& curve, float precision) {
 		Vec2 A = curve.p0(), B = curve.p1(), C = curve.p2(), D = curve.p3();
-		// calculate the area of two triangles by point cross multiplication
-
-		float S_ABC = (A.x()*B.y() - A.y()*B.x()) + (B.x()*C.y() - B.y()*C.x());// + (C.x()*A.y() - C.y()*A.x());
-		float S_CDA = (C.x()*D.y() - C.y()*D.x()) + (D.x()*A.y() - D.y()*A.x());// + (A.x()*C.y() - A.y()*C.x());
-		float S_2 = abs(S_ABC + S_CDA) * epsilon; // S = S_2 * 0.5
-
-		if (S_2 < 5000.0) { // circle radius < 80
-			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 3);
-			return i;
-		} else {
-			return 30;
-		}
+		Vec2 v0 = A - B * 2.0f + C;
+		Vec2 v1 = B - C * 2.0f + D;
+		precision *= bezierBasePrecision;
+		float segmentsP4 =
+			std::max(v0.lengthSq(), v1.lengthSq()) *
+			precision * precision * 0.5625f;
+		int segments = ceilf(sqrtf(sqrtf(segmentsP4)));
+		return std::max(segments, 3);
 	}
 
 	/**
@@ -817,7 +784,7 @@ namespace qk {
 		float S_2 = abs(radius.x() * radius.y() * radian * 0.25); // width * height
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 3);
+			int i = std::max(sqrtf(sqrtf(S_2)) * count, 3.0f);
 			return i;
 		} else {
 			return 30;

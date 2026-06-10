@@ -372,7 +372,7 @@ namespace qk {
 	}
 
 	void http_set_max_connect_pool_size(uint32_t size) {
-		http_max_connect_pool_size_ = Uint32::clamp(size, 2, 100);
+		http_max_connect_pool_size_ = U32::clamp(size, 2, 100);
 	}
 
 }

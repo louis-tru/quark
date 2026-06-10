@@ -42,7 +42,7 @@
 
 namespace qk {
 
-	TextLinesCore::TextLinesCore(): _max_width(0), _min_origin(Float32::limit_max), _visible_area(false) {
+	TextLinesCore::TextLinesCore(): _max_width(0), _min_origin(F32::limit_max), _visible_area(false) {
 	}
 
 	void TextLinesCore::solve_visible_area(View* host, const Mat &mat) {
@@ -170,7 +170,7 @@ namespace qk {
 		_finished.clear();
 		_finished.push({});
 		_core->_max_width = 0;
-		_core->_min_origin = Float32::limit_max;
+		_core->_min_origin = F32::limit_max;
 		_visible_area = false;
 	}
 
@@ -228,8 +228,8 @@ namespace qk {
 		if (_last->line_height == 0) { // first time init use max metrics
 			FontMetricsBase metrics;
 			shared_fontPool()->getUnitMetrics(&metrics, font_size);
-			top = Float32::max(-metrics.fAscent, top);
-			bottom = Float32::max(bottom, metrics.fDescent + metrics.fLeading);
+			top = F32::max(-metrics.fAscent, top);
+			bottom = F32::max(bottom, metrics.fDescent + metrics.fLeading);
 		}
 		if (line_height != 0) { // value, not auto
 			auto height = top + bottom;
@@ -239,7 +239,7 @@ namespace qk {
 					line_height *= _limit_range.min.y(); // use percentage
 					if (line_height < height) {
 						// try use to max value
-						line_height = Float32::min(rawLineHeight * _limit_range.max.y(), height);
+						line_height = F32::min(rawLineHeight * _limit_range.max.y(), height);
 					}
 				} else {
 					return set_line_height(top, bottom); // use auto
@@ -286,7 +286,7 @@ namespace qk {
 		finish_line();
 
 		float host_width = _float_width ?
-			Float32::max(_core->_max_width, _limit_range.min.x()): _limit_range.max.x();
+			F32::max(_core->_max_width, _limit_range.min.x()): _limit_range.max.x();
 		int lineNum = 0;
 
 		for (auto &line: **_core) {

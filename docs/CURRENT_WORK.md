@@ -177,3 +177,55 @@ For small render backend changes:
 - Use targeted `rg` and local source inspection first.
 - Do not run broad builds unless requested.
 - If compiling is needed, ask or use the project’s known lightweight command if available.
+
+## Compute AA Prototype State
+
+An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
+wired into the macOS test target. It demonstrates CPU-flattened path edges,
+16x16 tile binning, fixed-grid subpixel winding coverage, a coverage texture, and solid
+color composition. A matching WebGPU/CPU comparison page also exists in the
+same directory.
+
+The prototype uses local tile edge lists plus a per-tile **backdrop**: the
+winding already accumulated at the tile's left boundary. `build_tile_edges()`
+walks each edge across X tile columns using one `dy/dx` slope. A step does
+nothing unless its discrete Y-sample-grid position changes. Changed sample
+ranges add one original-edge reference with a local sample range to crossed
+tiles and append one backdrop event. CPU construction never expands backdrop
+winding across tiles to the right. During coverage, each tile threadgroup
+cooperatively resolves its tile row's backdrop events into threadgroup memory.
+This removes the previous edge-bounding-box fill, repeated crossing
+calculations, per-tile backdrop storage/writes, backdrop delta buffer, and CPU X
+prefix sum. The X-tile scan now advances directly in sample-grid Y coordinates:
+fixed power-of-two sample/tile divisions use shifts, tile-boundary Y uses
+incremental addition, and the inner X-tile loop contains no division or
+per-iteration multiplication.
+
+The current prototype remains intentionally CPU-heavy and rebuilds/uploads data
+frequently. Important future work includes caching immutable path data, pooled
+GPU buffers/textures, dirty-path rebuilds, batching multiple paths into an
+atlas, and eventually moving more binning/backdrop work onto the GPU.
+The current algorithm and data contracts are documented in Chinese in
+`test/compute_aa/README.md`.
+
+The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
+shader compilation was unavailable in the assistant sandbox because `xcrun`
+could not locate the separately installed Metal Toolchain; validate the visual
+result through the existing Xcode test target.
+
+## Debugger Helpers
+
+Custom Xcode LLDB formatters live in `.lldb/qk_lldb.py`, with the committed
+template `.lldb/lldbinit-Xcode`. `tools/configure.js` generates the root
+`.lldbinit-Xcode` using the absolute local script path.
+
+Current formatters cover common Quark vectors, matrices, ranges, strings,
+arrays, lists, dictionaries, sets, and iterators. Container synthetic children
+retain useful raw members and limit displayed data items to avoid expanding
+very large containers. Xcode does not render newlines inside value summaries,
+so `Mat` and `Mat4` summaries must remain compact single-line matrices.
+
+Long-term guidance for Quark's union-based `bitwise_cast` is recorded in
+`docs/TROUBLESHOOTING.md`. Do not mechanically replace it based only on abstract
+standards advice; inspect actual types, toolchains, generated code, and the
+replacement's misuse surface first.

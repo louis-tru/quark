@@ -230,8 +230,7 @@ namespace qk {
 	}
 	
 	Vec2 Vec2::round() const {
-		float r[2] = {roundf(val[0]), roundf(val[1])};
-		return *reinterpret_cast<Vec2*>(r);
+		return {roundf(val[0]), roundf(val[1])};
 	}
 
 	Vec2 Vec2::min(const Vec2 &b) const {
@@ -855,11 +854,7 @@ namespace qk {
 	}
 
 	bool Mat::operator==(const Mat& b) const {
-		return (
-			*reinterpret_cast<const double*>(val+0) == *reinterpret_cast<const double*>(b.val+0) &&
-			*reinterpret_cast<const double*>(val+2) == *reinterpret_cast<const double*>(b.val+2) &&
-			*reinterpret_cast<const double*>(val+4) == *reinterpret_cast<const double*>(b.val+4)
-		);
+		return memcmp(val, b.val, sizeof(float) * 6) == 0;
 	}
 
 	Mat Mat::operator*(const Mat& b) const {
@@ -996,13 +991,9 @@ namespace qk {
 	}
 
 	bool Mat::is_translation_matrix() const {
-		union {
-			struct { float a,b,c,d; } f;
-			struct { uint64_t a,b; } u;
-		} constexpr const _ = {.f={1,0,0,1}};
-		auto ok = *((uint64_t*)(val)) == _.u.a &&
-							*((uint64_t*)(val+3)) == _.u.b;
-		return ok;
+		constexpr float a[4] = {1,0,0,1};
+		float b[4] = {val[0], val[1], val[3], val[4]};
+		return memcmp(a, b, sizeof(a)) == 0;
 	}
 
 	Mat Mat::inverse() const {

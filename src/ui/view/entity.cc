@@ -403,11 +403,11 @@ namespace qk {
 	}
 
 	void Agent::set_avoidanceFactor(float value) {
-		_avoidanceFactor = Float32::clamp(value, 0.0f, 10.0f);
+		_avoidanceFactor = F32::clamp(value, 0.0f, 10.0f);
 	}
 
 	void Agent::set_avoidanceVelocityFactor(float value) {
-		_avoidanceVelocityFactor = Float32::clamp(value, 0.0f, 3.0f);
+		_avoidanceVelocityFactor = F32::clamp(value, 0.0f, 3.0f);
 	}
 
 	void Agent::set_active(bool val) {
@@ -431,7 +431,7 @@ namespace qk {
 	}
 
 	void Agent::set_safetyBuffer(float val) {
-		_safetyBuffer = Float32::clamp(val, 0.0f, 100.0f);
+		_safetyBuffer = F32::clamp(val, 0.0f, 100.0f);
 	}
 
 	cArray<float>& Agent::discoveryDistances() const {

@@ -88,7 +88,7 @@ namespace qk {
 			// slightly more detail than a diameter-based estimate, but in practice the
 			// result is usually smoother and requires fewer downsample passes.
 			constexpr float lodRadiusFactor = 1.0f; // maybe 1.5f for high-frequency content
-			imageLod = ceilf(Float32::max(0, log2f(radius * lodRadiusFactor / sample)));
+			imageLod = ceilf(F32::max(0, log2f(radius * lodRadiusFactor / sample)));
 			return sample;
 		}
 

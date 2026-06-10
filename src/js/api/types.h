@@ -160,25 +160,25 @@ namespace qk {
 		inline
 		JSValue* jsvalue(const Bool& v) { return worker->newBool(v.value); }
 		inline
-		JSValue* jsvalue(const Float32& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const F32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Float64& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const F64& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int8& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const I8& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint8& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const U8& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int16& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const I16& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint16& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const U16& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int32& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const I32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint32& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const U32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int64& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const I64& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint64& v) { return worker->newValue(v.value); }
+		JSValue* jsvalue(const U64& v) { return worker->newValue(v.value); }
 		JSValue* jsvalue(const Dirent& val);
 		JSValue* jsvalue(const FileStat& val);
 		JSValue* jsvalue(const Array<Dirent>& val);

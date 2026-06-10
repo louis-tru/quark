@@ -264,8 +264,8 @@ namespace qk {
 	Qk_EXPORT void fs_write_file(cString& path, Buffer buffer, Callback<Buffer> cb = 0);
 		// open file fd
 	Qk_EXPORT int  fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
-	Qk_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Callback<Int32> cb = 0);
-	Qk_EXPORT void fs_open(cString& path, Callback<Int32> cb);
+	Qk_EXPORT void fs_open(cString& path, int flag = FOPEN_R, Callback<I32> cb = 0);
+	Qk_EXPORT void fs_open(cString& path, Callback<I32> cb);
 	Qk_EXPORT void fs_close_sync(int fd) throw(Error);
 	Qk_EXPORT void fs_close(int fd, Cb cb = 0);
 		// read with fd

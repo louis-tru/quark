@@ -115,7 +115,7 @@ namespace qk {
 		};
 
 		static auto adjust_non_negative = [](Box* self, float value) {
-			return Float32::max(adjust(self, value), 0);
+			return F32::max(adjust(self, value), 0);
 		};
 
 		switch (_min_width.kind) {
@@ -236,7 +236,7 @@ namespace qk {
 		};
 
 		static auto adjust_non_negative = [](Box* self, float value) {
-			return Float32::max(adjust(self, value), 0);
+			return F32::max(adjust(self, value), 0);
 		};
 
 		switch (_min_height.kind) {
@@ -427,7 +427,7 @@ namespace qk {
 
 		content =
 			_max_width.kind == BoxSizeKind::None ? // no limit
-			Float32::max(content, 0):
+			F32::max(content, 0):
 			_container.clamp_width(content); // limit
 
 		_client_size[0] = bp_x + content;
@@ -456,7 +456,7 @@ namespace qk {
 
 		content =
 			_max_height.kind == BoxSizeKind::None ? // no limit
-			Float32::max(content, 0):
+			F32::max(content, 0):
 			_container.clamp_height(content); // limit
 
 		_client_size[1] = bp_y + content;
@@ -498,7 +498,7 @@ namespace qk {
 						} else { // use float
 							float_x = v->layout_size().x();
 						}
-						cur_x = Float32::max(cur_x, float_x);
+						cur_x = F32::max(cur_x, float_x);
 					}
 					v = v->next_rt();
 				} while(v);
@@ -536,14 +536,14 @@ namespace qk {
 				auto new_line_width = line_width + size.x();
 				if (new_line_width > cur_x && line_width != 0) { // new line
 					solveCenter();
-					max_width = Float32::max(max_width, line_width); // select max
+					max_width = F32::max(max_width, line_width); // select max
 					left = right = 0;
 					offset_y += line_height;
 					line_width = size.x();
 					line_height = size.y();
 				} else {
 					line_width = new_line_width;
-					line_height = Float32::max(line_height, size.y()); // select max
+					line_height = F32::max(line_height, size.y()); // select max
 				}
 			};
 
@@ -584,7 +584,7 @@ namespace qk {
 						last:
 							offset_y += line_height;
 							v->set_layout_offset({left,offset_y});
-							max_width = Float32::max(max_width, left + size.x());
+							max_width = F32::max(max_width, left + size.x());
 							left = right = 0;
 							line_width = line_height = 0;
 							offset_y += size.y();
@@ -594,7 +594,7 @@ namespace qk {
 				v = v->next_rt();
 			} while(v);
 			solveCenter();
-			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
+			inner_size = Vec2(F32::max(max_width, line_width), offset_y + line_height);
 		} else {
 			if (_container.float_x()) { // float width
 				cur_x = _container.clamp_width(0);

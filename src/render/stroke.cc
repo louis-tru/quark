@@ -218,7 +218,7 @@ namespace qk {
 			if (edgeLenSq > 1e-5f) {
 				auto normal = edge.normalized().rotate90z();
 				auto mid = (a + b) * 0.5f;
-				float probe = Float32::clamp(edgeLenSq * 1e-4f, 1e-5f, 0.25f);
+				float probe = F32::clamp(edgeLenSq * 1e-4f, 1e-5f, 0.25f);
 
 				// `normalSide` is the sign assigned to the +normal side. For an
 				// isolated contour, the filled side is negative, so this steps
@@ -321,9 +321,9 @@ namespace qk {
 	 * @method getAASideTriangle() returns signed aa side stroke triangle vertices and body triangles
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
-	VertexData Path::getAASideTriangle(float radius, float epsilon, bool onlyAASide) const {
+	VertexData Path::getAASideTriangle(float radius, float precision, bool onlyAASide) const {
 		Path tmp;
-		//auto self = normalized(&tmp, epsilon, false);
+		//auto self = normalized(&tmp, precision, false);
 		// boundaryPath() asks libtess2 for TESS_BOUNDARY_CONTOURS using the
 		// positive winding rule. Since tess uses `normal=nullptr`, it chooses
 		// the projection normal itself; that can make the emitted CW/CCW meaning
@@ -331,7 +331,7 @@ namespace qk {
 		// therefore calibrates the aaSide sign once from the first contour.
 		// Later contours use the same sign mapping while their own traversal
 		// direction naturally flips normals for holes.
-		auto self = boundaryPath(&tmp, epsilon);
+		auto self = boundaryPath(&tmp, precision);
 		Path body;
 		VertexData out;
 		Array<Vec3> aaSide;
@@ -344,7 +344,7 @@ namespace qk {
 		// Tune this to adjust the generated band placement.
 		// 0 means all expansion goes outward; 1 means a centered band.
 		const float innerRatio = 0.85f;
-		const float offset = radius - Float32::clamp(innerRatio, 0, 2) * radius;
+		const float offset = radius - F32::clamp(innerRatio, 0, 2) * radius;
 
 		struct Ctx {
 			Array<Vec3>        *out;
@@ -451,7 +451,7 @@ namespace qk {
 			out.vCount = aaSide.length();
 			out.vertex = std::move(aaSide);
 		} else {
-			out = body.getTriangles(epsilon, -1.0f);
+			out = body.getTriangles(precision, -1.0f);
 			out.vertex.write(aaSide.val(), aaSide.length()); // merge body and aaSide vertices
 			out.vCount += aaSide.length();
 		}
@@ -553,7 +553,7 @@ namespace qk {
 
 		// The public stroke width is full width; all offset calculations use
 		// half width from the source centerline to either side.
-		miterLimit = Float32::min(miterLimit, 1024);
+		miterLimit = F32::min(miterLimit, 1024);
 		width *= 0.5;
 
 		Path tmp,out;

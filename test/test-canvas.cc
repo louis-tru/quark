@@ -14,14 +14,19 @@
 
 using namespace qk;
 
-#define Qk_Debug_CANVAS 0
+#define Qk_TEST_CANVAS(Fn) Fn(2)
 
 void test_gui_new(Box *r);
 
-class TestCanvas: public Box {
+class TestCanvas0: public Box {
 	float i = 0;
 	Array<TextBlob> textBlobs;
-public:
+	View* init(Window* win) override {
+		View::init(win);
+		test_gui_new(win->root());
+		return this;
+	}
+
 	void draw(Painter *painter) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
@@ -147,16 +152,14 @@ public:
 	}
 };
 
-class DebugCanvas: public Box {
-public:
-
+class TestCanvas1: public Box {
 	void draw(Painter *render) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
 		Paint paint;
 
-		// window()->root()->set_background_color_direct({0,0,0});
+		window()->root()->set_background_color_direct({0,0,0}, true);
 		canvas->save();
 		canvas->translate(size*-0.5);
 
@@ -213,18 +216,54 @@ public:
 
 };
 
+static Path make_compute_aa_path(float t) {
+	Path path;
+	Vec2 center(260, 260);
+	float rot = t * 0.9f;
+	for (int i = 0; i < 10; i++) {
+		float r = (i & 1) ? 84.0f : 190.0f;
+		float a = rot + float(i) * Qk_PI * 0.2f - Qk_PI_2_1;
+		Vec2 p(center.x() + cosf(a) * r, center.y() + sinf(a) * r);
+		if (i == 0) path.moveTo(p);
+		else path.lineTo(p);
+	}
+	path.close();
+
+	path.moveTo({110, 260});
+	path.cubicTo({160, 35}, {360, 485}, {410, 260});
+	path.cubicTo({360, 35}, {160, 485}, {110, 260});
+	path.close();
+	return path;
+}
+
+class TestCanvas2: public Box {
+	uint32_t f = 0;
+	void draw(Painter *render) override {
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
+		float t = float(f++) / 60.0f;
+		Paint paint;
+
+		canvas->translate(size*-0.5);
+
+		paint.fill.color = Color4f(1, 0, 0);
+
+		canvas->drawPath(make_compute_aa_path(t), paint);
+		// canvas->drawPath(Path::MakeCircle(200, 250), paint);
+
+		mark_rerender();
+	}
+};
+
+#define _DefFn(id) typedef TestCanvas ##id TestCanvas
+Qk_TEST_CANVAS(_DefFn);
 Qk_TEST_Func(canvas) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {700,700}}});
 	win->activate();
 
-	test_gui_new(win->root());
-
-#if Qk_Debug_CANVAS
-	auto t = win->root()->append_new<DebugCanvas>();
-#else
 	auto t = win->root()->append_new<TestCanvas>();
-#endif
+
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });
 

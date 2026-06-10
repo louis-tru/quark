@@ -35,6 +35,7 @@ var host_os = process.platform == 'darwin' ? 'mac': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('qktool/arguments');
 var { syscall, execSync, exec } = require('qktool/node/syscall');
+var gen_ide_config = require('./gen_ide_config');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
@@ -1098,6 +1099,7 @@ async function configure() {
 
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
+	gen_ide_config.write(path.resolve(__dirname, '..'));
 
 	require('./touch');
 }

@@ -281,7 +281,7 @@ namespace qk {
 			}
 			if (streams.length()) {
 				ex->_streams = std::move(streams); // update streams on extractor
-				ex->_stream_index = Uint32::min(ex->_stream_index, ex->_streams.length() - 1);
+				ex->_stream_index = U32::min(ex->_stream_index, ex->_streams.length() - 1);
 			} else {
 				Qk_Log("No streams object the program of switch_program to %d, keep last", index);
 			}
@@ -305,7 +305,7 @@ namespace qk {
 
 	bool Inl::switch_stream(Extractor *ex, uint32_t index) {
 		Lock lock(_cm.mutex);
-		index = Uint32::min(index, ex->_streams.length() - 1);
+		index = U32::min(index, ex->_streams.length() - 1);
 		if ( ex->_stream_index != index ) {
 			ex->_stream_index = index;
 			lock.unlock();
@@ -360,7 +360,7 @@ namespace qk {
 			_status = kPlaying_MediaSourceStatus;
 			_fmt_ctx = fmt_ctx;
 			_cm.unlock();
-			switch_program_sure(Uint32::min(_programs.length() - 1, _program_idx), false);
+			switch_program_sure(U32::min(_programs.length() - 1, _program_idx), false);
 			_delegate->media_source_open(_host);
 			// Qk_ASSERT_NE(_extractors.length(), 0, "No Extractors on MediaSource");
 			if (_extractors.length())
@@ -614,7 +614,7 @@ namespace qk {
 	Extractor* MediaSource::video() { return _inl->_video_ex; }
 	Extractor* MediaSource::audio() { return _inl->_audio_ex; }
 	bool MediaSource::switch_program(uint32_t index) {
-		return Uint32::min(_inl->_programs.length() - 1, index) == _inl->_program_idx ?
+		return U32::min(_inl->_programs.length() - 1, index) == _inl->_program_idx ?
 			false: (_inl->switch_program_sure(index, true), true);
 	}
 	Extractor* MediaSource::extractor(MediaType type) { return _inl->extractor(type); }

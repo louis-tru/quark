@@ -190,7 +190,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 		// CGFloat angle = touch.altitudeAngle;
 		// CGFloat max_force = touch.maximumPossibleForce;
 		rv.push_back({
-			uint32_t((size_t)touch % Uint32::limit_max),
+			uint32_t((size_t)touch % U32::limit_max),
 			{0, 0},
 			Vec2(point.x * scale_x, point.y * scale_y),
 			float(touch.force),
@@ -265,8 +265,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 void Window::openImpl(Options &opts) {
 	post_message_main(Cb([&opts,this](auto e) {
-		auto impl = [[QkWindowDelegate alloc]
-								 init:opts win:this render:_render];
+		auto impl = [[QkWindowDelegate alloc] init:opts win:this render:_render];
 		CFBridgingRetain(impl); // Retain
 		_impl = (__bridge WindowImpl*)impl;
 		activate();

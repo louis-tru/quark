@@ -32,16 +32,9 @@
 #include <limits>
 
 namespace qk {
-	#define define_number(N, T) \
-	template<> const T Number<T>::limit_min(std::numeric_limits<T>::min());\
-	template<> const T Number<T>::limit_max(std::numeric_limits<T>::max());
+	// #define define_number(N, T) \
+	// template<> const T Number<T>::limit_min(std::numeric_limits<T>::min());\
+	// template<> const T Number<T>::limit_max(std::numeric_limits<T>::max());
 
-	define_number(Int8, int8_t); define_number(Uint8 , uint8_t);
-	define_number(Int16, int16_t); define_number(Uint16, uint16_t);
-	define_number(Int32, int32_t); define_number(Uint32, uint32_t);
-	define_number(Int64, int64_t); define_number(Uint64, uint64_t);
-	define_number(Float32, float); define_number(Float64, double);
-	define_number(Bool, bool);
-
-	#undef define_number
+	// Qk_Numbers(define_number)
 }

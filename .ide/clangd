@@ -1,0 +1,49 @@
+# Common C/C++/Objective-C++ configuration.
+CompileFlags:
+  CompilationDatabase: {{QK_IDE_DIR}}
+
+Index:
+  Background: Build
+
+InlayHints:
+  ParameterNames: false
+  DeducedTypes: false
+  Designators: false
+
+---
+
+If:
+  PathMatch: .*\.(h|hh|hpp|hxx|inl)$
+
+CompileFlags:
+  Add:
+    - -xc++-header
+    - -std=c++14
+
+---
+
+If:
+  PathMatch: .*\.(cc|cpp|cxx|mm)$
+
+CompileFlags:
+  Add:
+    - -std=c++14
+
+# {{METAL_LSP_BEGIN}}
+---
+
+# Generated from the locally installed rayanhtt.metal-lsp extension.
+If:
+  PathMatch: .*\.metal
+
+CompileFlags:
+  Add:
+    - -xc++
+    - -std=c++14
+    - -Wno-unknown-attributes
+    - -Wno-reserved-user-defined-literal
+    - -include
+    - {{METAL_LSP_COMPAT_HEADER}}
+    - -isystem
+    - {{METAL_LSP_STUBS}}
+# {{METAL_LSP_END}}

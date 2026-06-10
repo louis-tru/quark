@@ -42,9 +42,9 @@ class Test{
 };
 
 Qk_TEST_Func(list) {
-	
+
 	String str = "a,b,c,d,s,d,f,g,gh,t,r,w,cs,dsfsd,fsdf,dsf,sdf,sd";
-	
+
 	Array<String> ls = str.split(",");
 	
 	Qk_Log("%d", ls.length());
@@ -60,7 +60,8 @@ Qk_TEST_Func(list) {
 	Qk_Log(ls.join("-"));
 	
 	String str2(str);
-	
+	List<String> list;
+	list.push_back("ABCDE");
 	Qk_Log(str2.toString());
 	Qk_Log(str2.copy().collapse());
 	
