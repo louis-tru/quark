@@ -102,17 +102,14 @@ kernel void qk_compute_aa_coverage(
 	// 一个 threadgroup 使用 sampleCount 个线程，每个线程负责一条 local Y
 	// sample 行。每条边在该 Y sample 上只计算一次交点，然后通过 X
 	// sample delta 前缀和生成这一整行的 inside mask。
-	// X sample 放在第一维，使所有线程同步推进 X 时访问连续地址。
-	threadgroup short windingDelta[
-		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
-	][
-		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
-	];
+	// windingDelta 由当前线程独占，用于隔离共享 delta 的成本；insideMask
+	// 仍由 threadgroup 共享，以便第二阶段合并相邻 Y sample 行。
+	constexpr uint sampleCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID;
+	short windingDelta[sampleCount];
 	threadgroup ulong insideMask[
 		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
 	];
 
-	constexpr uint sampleCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID;
 	const device ComputeAATile &tile = tiles[tileId.y * params.tileCountX + tileId.x];
 	float invGrid = 1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID);
 	float sampleY = float(tile.originY) + (float(threadIndex) + 0.5) * invGrid;
@@ -130,7 +127,7 @@ kernel void qk_compute_aa_coverage(
 	}
 
 	for (uint sampleX = 0; sampleX < sampleCount; sampleX++) {
-		windingDelta[sampleX][threadIndex] = 0;
+		windingDelta[sampleX] = 0;
 	}
 	for (uint i = 0; i < tile.edgeCount; i++) {
 		const device ComputeAATileEdge &tileEdge = tileEdges[tile.edgeOffset + i];
@@ -142,14 +139,14 @@ kernel void qk_compute_aa_coverage(
 			));
 			firstSampleX = clamp(firstSampleX, 0, int(sampleCount));
 			if (firstSampleX < int(sampleCount)) {
-				windingDelta[firstSampleX][threadIndex] += short(edge.winding);
+				windingDelta[firstSampleX] += short(edge.winding);
 			}
 		}
 	}
 
 	ulong mask = 0;
 	for (uint sampleX = 0; sampleX < sampleCount; sampleX++) {
-		winding += int(windingDelta[sampleX][threadIndex]);
+		winding += int(windingDelta[sampleX]);
 		if (qk_aa_inside(winding, params.fillRule)) {
 			mask |= 1ul << sampleX;
 		}

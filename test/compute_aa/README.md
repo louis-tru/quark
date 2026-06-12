@@ -274,6 +274,7 @@ experiment/compute-aa-row-mask-render-composite
 ```text
 experiment/compute-aa-row-mask    706ec42bc
 experiment/compute-aa-cpu-backdrop 8e8e2682a
+experiment/compute-aa-gpu-backdrop-private-delta
 ```
 
 ### 已验证的 GPU 性能结论
@@ -316,8 +317,24 @@ Composite: 27.75%
 
 据此估算 Coverage 约为 `0.86-0.92ms`，Composite 约为 `0.33-0.35ms`。
 共享 row-mask 的 Coverage 单项已经明显慢于 CPU backdrop + 私有 delta 分支
-约 `0.60ms` 的完整帧，因此共享 `windingDelta[64][64]`、共享
-`insideMask[64]` 和 barrier 结构不应继续作为主优化方向。
+约 `0.60ms` 的完整帧。当时只能确认整个共享 row-mask 结构存在问题，不能
+区分共享 delta、共享 mask、barrier 和 GPU backdrop 各自的成本。
+
+随后只将共享 `windingDelta[64][64]` 改成每线程私有
+`windingDelta[64]`，其余 GPU backdrop、共享 `insideMask[64]`、barrier 和
+Composite 均保持不变，实测为：
+
+```text
+Compute AA GPU average: 0.733-0.773ms
+Coverage: 65.61%
+Composite: 34.39%
+```
+
+据此估算 Coverage 约为 `0.48-0.51ms`，比共享 delta 版本降低约 `44%-45%`；
+完整帧降低约 `39%`。这确认共享二维 delta 是旧 Coverage 的主要瓶颈，而
+GPU backdrop events 本身可以暂时保留。与 CPU backdrop + 私有 delta 的
+约 `0.60ms` 相比，GPU backdrop 版本仍慢约 `0.13-0.17ms`，但避免了对应的
+CPU 构建和上传成本。
 
 ## 重要不变量
 

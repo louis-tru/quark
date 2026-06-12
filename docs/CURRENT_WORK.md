@@ -239,6 +239,9 @@ subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
   presentation path is modernized: compute clear/composite are replaced by one
   render clear+composite pass. Use this branch to measure the original shared
   Coverage kernel without unrelated pass overhead.
+- `experiment/compute-aa-gpu-backdrop-private-delta`: keeps GPU backdrop events,
+  shared `insideMask`, and the barrier, but replaces shared
+  `windingDelta[64][64]` with a private `windingDelta[64]` per Y-sample thread.
 
 Do not compare old total-frame numbers directly unless clear/composite use the
 same render-pass structure. Xcode GPU Capture labels the two remaining stages
@@ -256,21 +259,29 @@ Observed Compute AA performance direction:
 - Repeatedly rescanning edges to avoid delta storage regressed badly. Do not
   revisit that structure without a new complexity argument.
 
-Immediate next step: measure
-`experiment/compute-aa-row-mask-render-composite`, then compare it directly
-against `experiment/compute-aa-cpu-backdrop`. After that comparison, prioritize
-an edge-tile-only Compute AA architecture: use Compute Coverage only on tiles
-containing boundaries, fill solid interior regions through a cheaper hardware
-raster path, and avoid compositing untouched atlas regions.
-
 The fair shared-row-mask measurement is now complete:
 
 - Total GPU time: `1.194-1.274ms`.
 - Coverage: `72.25%`, approximately `0.86-0.92ms`.
 - Composite: `27.75%`, approximately `0.33-0.35ms`.
 - Shared-row-mask Coverage alone is slower than the CPU-backdrop/private-delta
-  branch's approximately `0.60ms` complete frame. Treat the shared
-  `windingDelta` + `insideMask` + barrier design as rejected for the main path.
+  branch's approximately `0.60ms` complete frame. This rejected the combined
+  shared-row-mask structure, but did not yet identify which component caused
+  the cost.
+
+The GPU-backdrop/private-delta single-variable experiment measured:
+
+- Total GPU time: `0.733-0.773ms`.
+- Coverage: `65.61%`, approximately `0.48-0.51ms`.
+- Composite: `34.39%`, approximately `0.25-0.27ms`.
+- Replacing only shared delta reduced Coverage by approximately `44%-45%` and
+  total frame time by approximately `39%`.
+
+This establishes shared `windingDelta[64][64]` as the major old Coverage
+bottleneck. GPU backdrop events are not free, but may be worth keeping to avoid
+CPU backdrop construction/upload. A smaller follow-up may isolate shared
+`insideMask` and the barrier. The larger architectural priority remains an
+edge-tile-only Compute AA path that avoids full-atlas coverage and composition.
 
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
