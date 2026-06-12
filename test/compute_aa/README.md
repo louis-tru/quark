@@ -16,7 +16,7 @@
 - `mtl_compute_aa_prototype.mm`
   - 路径展平、tile 数据构建、Metal buffer 上传与 compute 编码。
 - `compute_aa_prototype.metal`
-  - coverage、清屏和纯色合成 kernel。
+  - coverage compute kernel，以及普通 render composite vertex/fragment shader。
 - `test_compute_aa.mm`
   - macOS Metal 动态测试窗口。
 - `compute_aa_webgpu.html`
@@ -244,6 +244,37 @@ int y = ceilf(sampleY - 0.5f);
 - 缓存不变路径的构建结果；
 - 复用 Metal buffer 和 coverage texture；
 - 统计每个 yTile 行的 backdrop event 数，评估 GPU event 扫描成本。
+
+### 当前公平对比分支
+
+当前分支：
+
+```text
+experiment/compute-aa-row-mask-render-composite
+```
+
+它用于重新测量共享 row-mask Coverage kernel 的纯成本：
+
+- `sampleGrid = 4`；
+- GPU 扫描 backdrop events；
+- 每个 Y sample 线程遍历一次 tile edges；
+- 使用 threadgroup `windingDelta[64][64]`；
+- 使用 `insideMask[64]` 和一次 barrier；
+- 不使用 CPU 完整 backdrop；
+- 不使用线程私有 delta；
+- 删除 compute Clear 与 compute Composite；
+- 普通 Composite render pass 使用 `MTLLoadActionClear`，在同一个 pass 中
+  清屏、采样 coverage，并通过固定功能 premultiplied-alpha blending 合成。
+
+因此该分支与 `experiment/compute-aa-cpu-backdrop` 的总 GPU 时间可以公平比较，
+差异主要来自 Coverage/backdrop/delta 结构，而不是额外 Clear/Composite pass。
+
+相关保存点：
+
+```text
+experiment/compute-aa-row-mask    706ec42bc
+experiment/compute-aa-cpu-backdrop 8e8e2682a
+```
 
 ## 重要不变量
 

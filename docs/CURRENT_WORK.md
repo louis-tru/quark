@@ -224,10 +224,29 @@ barrier, the same threads cooperatively merge and write all tile pixels. This
 removes per-pixel repeated edge traversal without requiring atomics or
 subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
 
-The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
-shader compilation was unavailable in the assistant sandbox because `xcrun`
-could not locate the separately installed Metal Toolchain; validate the visual
-result through the existing Xcode test target.
+### Compute AA Experiment Branches
+
+- `experiment/compute-aa-row-mask` at `706ec42bc`: saved GPU-backdrop-event
+  baseline with shared `windingDelta`, `insideMask`, barrier, and the older
+  compute clear/composite test passes.
+- `experiment/compute-aa-cpu-backdrop` at `8e8e2682a`: saved CPU-backdrop and
+  private-delta experiment. It also replaces compute clear/composite with one
+  normal render pass that clears and blends the coverage atlas. Latest measured
+  total was about `0.60ms`, versus about `0.20ms` for the AASide comparison.
+- `experiment/compute-aa-row-mask-render-composite`: active fair-comparison
+  branch. Coverage is intentionally restored to the GPU-backdrop-event/shared
+  row-mask implementation from `706ec42bc`, with `sampleGrid=4`. Only the test
+  presentation path is modernized: compute clear/composite are replaced by one
+  render clear+composite pass. Use this branch to measure the original shared
+  Coverage kernel without unrelated pass overhead.
+
+Do not compare old total-frame numbers directly unless clear/composite use the
+same render-pass structure. Xcode GPU Capture labels the two remaining stages
+as `Compute AA Coverage` and `Compute AA Composite`.
+
+Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
+currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
+constant and the unrelated Clipboard visibility warning.
 
 ## Debugger Helpers
 

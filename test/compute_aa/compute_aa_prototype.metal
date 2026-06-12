@@ -17,7 +17,7 @@
 using namespace metal;
 
 constant uint QK_COMPUTE_AA_TILE_SIZE = 16;
-constant uint QK_COMPUTE_AA_SAMPLE_GRID = 1;
+constant uint QK_COMPUTE_AA_SAMPLE_GRID = 4;
 constant uint QK_COMPUTE_AA_NON_ZERO = 0;
 constant uint QK_COMPUTE_AA_EVEN_ODD = 1;
 constant uint QK_COMPUTE_AA_POSITIVE = 2;
@@ -65,19 +65,11 @@ struct ComputeAAParams {
 	uint sampleGrid;
 	uint outputOriginX;
 	uint outputOriginY;
+	uint outputWidth;
+	uint outputHeight;
+	uint2 _pad;
 	float4 color;
 };
-
-kernel void qk_compute_aa_clear(
-	constant ComputeAAParams &params [[buffer(0)]],
-	texture2d<float, access::write> colorTex [[texture(0)]],
-	uint2 gid [[thread_position_in_grid]])
-{
-	if (gid.x >= colorTex.get_width() || gid.y >= colorTex.get_height()) {
-		return;
-	}
-	colorTex.write(params.color, gid);
-}
 
 static inline bool qk_aa_inside(int winding, uint fillRule) {
 	if (fillRule == QK_COMPUTE_AA_EVEN_ODD) {
@@ -189,23 +181,39 @@ kernel void qk_compute_aa_coverage(
 	}
 }
 
-kernel void qk_compute_aa_composite_solid(
-	constant ComputeAAParams &params [[buffer(0)]],
-	texture2d<float, access::read> coverageTex [[texture(0)]],
-	texture2d<float, access::read_write> colorTex [[texture(1)]],
-	uint2 gid [[thread_position_in_grid]])
-{
-	if (gid.x >= params.width || gid.y >= params.height) {
-		return;
-	}
+struct CompositeVertexOut {
+	float4 position [[position]];
+	float2 atlasCoord;
+};
 
-	float coverage = coverageTex.read(gid).r;
-	float4 src = params.color * coverage;
-	uint2 dstCoord = gid + uint2(params.outputOriginX, params.outputOriginY);
-	if (dstCoord.x >= colorTex.get_width() || dstCoord.y >= colorTex.get_height()) {
-		return;
-	}
-	float4 dst = colorTex.read(dstCoord);
-	float4 outColor = src + dst * (1.0 - src.a);
-	colorTex.write(outColor, dstCoord);
+vertex CompositeVertexOut qk_compute_aa_composite_vertex(
+	constant ComputeAAParams &params [[buffer(0)]],
+	uint vertexId [[vertex_id]])
+{
+	const float2 corners[4] = {
+		float2(0.0, 0.0), float2(1.0, 0.0),
+		float2(0.0, 1.0), float2(1.0, 1.0),
+	};
+	float2 corner = corners[vertexId];
+	float2 pixel = float2(params.outputOriginX, params.outputOriginY) +
+		corner * float2(params.width, params.height);
+	float2 viewport = float2(params.outputWidth, params.outputHeight);
+
+	CompositeVertexOut out;
+	out.position = float4(
+		pixel.x * 2.0 / viewport.x - 1.0,
+		1.0 - pixel.y * 2.0 / viewport.y,
+		0.0, 1.0
+	);
+	out.atlasCoord = corner * float2(params.width, params.height);
+	return out;
+}
+
+fragment float4 qk_compute_aa_composite_fragment(
+	CompositeVertexOut in [[stage_in]],
+	constant ComputeAAParams &params [[buffer(0)]],
+	texture2d<float, access::read> coverageTex [[texture(0)]])
+{
+	uint2 coord = min(uint2(in.atlasCoord), uint2(params.width - 1, params.height - 1));
+	return params.color * coverageTex.read(coord).r;
 }

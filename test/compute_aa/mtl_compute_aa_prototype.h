@@ -20,8 +20,7 @@
 //          -> the same threads cooperatively merge and write all tile pixels
 //          -> write one-channel coverage atlas
 //   Graphics:
-//     draw path bounds and sample coverage atlas, or run a second compute
-//     prototype kernel to composite a solid color.
+//     clear and composite the coverage atlas through one render pass.
 
 #ifndef __quark_test_mtl_compute_aa_prototype__
 #define __quark_test_mtl_compute_aa_prototype__
@@ -36,7 +35,7 @@
 namespace qk {
 
 	static constexpr uint32_t kComputeAATileSize = 16;
-	static constexpr uint32_t kComputeAASampleGrid = 1;
+	static constexpr uint32_t kComputeAASampleGrid = 4;
 	static_assert(kComputeAATileSize * kComputeAASampleGrid <= 64,
 		"Compute AA inside mask only supports up to 64 X samples per tile");
 
@@ -106,6 +105,9 @@ namespace qk {
 		uint32_t sampleGrid;
 		uint32_t outputOriginX;
 		uint32_t outputOriginY;
+		uint32_t outputWidth;
+		uint32_t outputHeight;
+		uint32_t _pad[2];
 		Vec4 color; // premultiplied when used by the composite kernel
 	};
 
@@ -151,12 +153,12 @@ namespace qk {
 			const ComputeAADrawData &drawData,
 			ComputeAAFillRule fillRule = kComputeAANonZero_FillRule);
 
-		// Optional second pass for inspecting the result without adding a render
-		// pipeline. The caller owns qk_compute_aa_composite_solid.
+		// Draws the coverage atlas through a premultiplied-alpha render pipeline.
 		static bool encodeSolidComposite(id<MTLCommandBuffer> commandBuffer,
-			id<MTLComputePipelineState> compositePipeline,
+			id<MTLRenderPipelineState> compositePipeline,
 			id<MTLTexture> coverageTexture,
 			id<MTLTexture> colorTexture,
+			Vec4 clearColor,
 			Vec4 premulColor,
 			Vec2 outputOrigin,
 			const ComputeAADrawData &drawData,

@@ -316,9 +316,10 @@ namespace qk {
 	}
 
 	bool MetalComputeAAPrototype::encodeSolidComposite(id<MTLCommandBuffer> commandBuffer,
-		id<MTLComputePipelineState> compositePipeline,
+		id<MTLRenderPipelineState> compositePipeline,
 		id<MTLTexture> coverageTexture,
 		id<MTLTexture> colorTexture,
+		Vec4 clearColor,
 		Vec4 premulColor,
 		Vec2 outputOrigin,
 		const ComputeAADrawData &drawData,
@@ -336,17 +337,23 @@ namespace qk {
 		params.sampleGrid = kComputeAASampleGrid;
 		params.outputOriginX = uint32_t(outputOrigin.x());
 		params.outputOriginY = uint32_t(outputOrigin.y());
+		params.outputWidth = uint32_t(colorTexture.width);
+		params.outputHeight = uint32_t(colorTexture.height);
 		params.color = premulColor;
 
-		auto enc = [commandBuffer computeCommandEncoder];
+		MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+		pass.colorAttachments[0].texture = colorTexture;
+		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+		pass.colorAttachments[0].clearColor = MTLClearColorMake(
+			clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		auto enc = [commandBuffer renderCommandEncoderWithDescriptor:pass];
 		enc.label = @"Compute AA Composite";
-		[enc setComputePipelineState:compositePipeline];
-		[enc setBytes:&params length:sizeof(params) atIndex:0];
-		[enc setTexture:coverageTexture atIndex:0];
-		[enc setTexture:colorTexture atIndex:1];
-		MTLSize tg = MTLSizeMake(kComputeAATileSize, kComputeAATileSize, 1);
-		MTLSize grid = MTLSizeMake(params.width, params.height, 1);
-		[enc dispatchThreads:grid threadsPerThreadgroup:tg];
+		[enc setRenderPipelineState:compositePipeline];
+		[enc setVertexBytes:&params length:sizeof(params) atIndex:0];
+		[enc setFragmentBytes:&params length:sizeof(params) atIndex:0];
+		[enc setFragmentTexture:coverageTexture atIndex:0];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 		[enc endEncoding];
 		return true;
 	}
