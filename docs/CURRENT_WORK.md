@@ -263,6 +263,15 @@ an edge-tile-only Compute AA architecture: use Compute Coverage only on tiles
 containing boundaries, fill solid interior regions through a cheaper hardware
 raster path, and avoid compositing untouched atlas regions.
 
+The fair shared-row-mask measurement is now complete:
+
+- Total GPU time: `1.194-1.274ms`.
+- Coverage: `72.25%`, approximately `0.86-0.92ms`.
+- Composite: `27.75%`, approximately `0.33-0.35ms`.
+- Shared-row-mask Coverage alone is slower than the CPU-backdrop/private-delta
+  branch's approximately `0.60ms` complete frame. Treat the shared
+  `windingDelta` + `insideMask` + barrier design as rejected for the main path.
+
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
 constant and the unrelated Clipboard visibility warning.

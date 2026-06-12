@@ -306,6 +306,19 @@ experiment/compute-aa-cpu-backdrop 8e8e2682a
 Compute Coverage 的 tile 数量：只对边界 tile 做高精度 coverage，完全内部
 区域由普通硬件光栅化或其他低成本路径填充，并尽量避免全 atlas composite。
 
+共享 row-mask 公平对比分支的最新实测为：
+
+```text
+Compute AA GPU average: 1.194-1.274ms
+Coverage: 72.25%
+Composite: 27.75%
+```
+
+据此估算 Coverage 约为 `0.86-0.92ms`，Composite 约为 `0.33-0.35ms`。
+共享 row-mask 的 Coverage 单项已经明显慢于 CPU backdrop + 私有 delta 分支
+约 `0.60ms` 的完整帧，因此共享 `windingDelta[64][64]`、共享
+`insideMask[64]` 和 barrier 结构不应继续作为主优化方向。
+
 ## 重要不变量
 
 - CPU 与 Metal 中的 tile size、sample grid 和结构体布局必须严格一致。
