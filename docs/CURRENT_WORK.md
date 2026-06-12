@@ -217,18 +217,18 @@ complete for now; the next profiling and optimization work should focus on GPU
 coverage/composition, dispatch shape, buffer upload/reuse, and reducing
 CPU-to-GPU synchronization.
 
-The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
-tile. Each thread computes one complete Y-sample row, evaluating every relevant
-edge only once and producing a 64-bit inside mask. After one threadgroup
-barrier, the same threads cooperatively merge and write all tile pixels. This
-removes per-pixel repeated edge traversal without requiring atomics or
-subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
+The current Metal coverage experiment uses one 32-thread group for two
+horizontal 16x16 tiles. Each tile gets 16 threads, one per pixel row. A thread
+loops over that row's four Y samples, scans GPU backdrop events for initial
+winding, evaluates tile edges into private delta storage, and directly
+accumulates/writes the row's coverage. This matches the fastest CPU-backdrop
+kernel shape while keeping backdrop calculation on the GPU.
 
 ### Compute AA Experiment Branches
 
-- `experiment/compute-aa-row-mask` at `706ec42bc`: saved GPU-backdrop-event
-  baseline with shared `windingDelta`, `insideMask`, barrier, and the older
-  compute clear/composite test passes.
+- `experiment/compute-aa-row-mask` now points at `9bf955c3e`, replacing the
+  rejected all-shared/three-compute-pass route with the GPU-backdrop,
+  private-delta/shared-mask baseline plus its recorded measurements.
 - `experiment/compute-aa-cpu-backdrop` at `8e8e2682a`: saved CPU-backdrop and
   private-delta experiment. It also replaces compute clear/composite with one
   normal render pass that clears and blends the coverage atlas. Latest measured
@@ -240,8 +240,8 @@ subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
   render clear+composite pass. Use this branch to measure the original shared
   Coverage kernel without unrelated pass overhead.
 - `experiment/compute-aa-gpu-backdrop-private-delta`: keeps GPU backdrop events,
-  shared `insideMask`, and the barrier, but replaces shared
-  `windingDelta[64][64]` with a private `windingDelta[64]` per Y-sample thread.
+  and currently experiments with the 16-thread-per-tile row-coverage structure
+  from the fastest CPU-backdrop branch, paired into 32-thread/two-tile groups.
 
 Do not compare old total-frame numbers directly unless clear/composite use the
 same render-pass structure. Xcode GPU Capture labels the two remaining stages
@@ -285,6 +285,14 @@ time from `0.733-0.773ms` to `0.858-0.882ms`, despite retaining all 64 lanes in
 the write stage. Keep the shared mask/barrier baseline. The larger architectural
 priority remains an edge-tile-only Compute AA path that avoids full-atlas
 coverage and composition.
+
+The 16-thread-per-tile follow-up removes row masks/barriers without shuffle by
+assigning one thread per pixel row and pairing two adjacent tiles into one
+SIMD32 group. It measured `0.730-0.772ms`, effectively identical to the
+64-thread/shared-mask baseline's `0.733-0.773ms`. Removing shared mask/barrier
+cost was offset by each thread serially processing four Y-sample rows. The
+remaining gap to the approximately `0.60ms` CPU-backdrop version makes GPU
+backdrop-event scanning the leading difference to investigate.
 
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`

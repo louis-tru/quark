@@ -128,8 +128,8 @@ static Path make_compute_aa_path(float t) {
 	_alloc.reset();
 	AllocatorScope scope(&_alloc); // 这个测试里所有的临时数据都放在 _alloc 里
 
-	//float time = float(_frame++) / 5000.0f;
-	float time = float(_frame++) / 60.0f;
+	float time = float(_frame++) / 5000.0f;
+	// float time = float(_frame++) / 60.0f;
 	Path path = make_compute_aa_path(time);
 	ComputeAADrawData data = MetalComputeAAPrototype::buildDrawData(path, Mat(0,{3},0,0), 1.0f);
 	if (!data.edges.length() || data.atlasSize.is_zero_axis())

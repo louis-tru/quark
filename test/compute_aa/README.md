@@ -153,45 +153,32 @@ CPU 只追加这条记录，不展开写入右侧所有 tile。
 
 ## GPU Coverage 流程
 
-一个 Metal threadgroup 对应一个 `16x16` tile，并使用
-`16 * sampleGrid` 个线程。
+一个 Metal threadgroup 使用 32 个线程，同时处理横向相邻的两个 `16x16`
+tile。每个 tile 使用 16 个线程，每线程负责一整行像素。
 
-### 1. 生成 sample inside mask
+### 1. 累计像素行 coverage
 
-`16 * sampleGrid` 个线程各自负责一个 local Y sample 行：
-
-```text
-扫描当前 yTile 行的 backdrop events
-累加 firstTileX <= 当前 tileX 的 winding
-每条局部边只计算一次与当前 Y sample 的 X 交点
-沿 64 个 X samples 做 winding 前缀和
-将 inside 结果压成一个 64-bit mask
-```
-
-所有线程写完自己的独占 mask 后执行一次：
-
-```metal
-threadgroup_barrier(mem_flags::mem_threadgroup);
-```
-
-这确保第二阶段读取其他 Y sample 行的 inside mask 时，所有 mask 都已经完成。
-第一阶段中每个线程只写自己的 delta 行与 mask，不需要原子操作或额外同步。
-
-### 2. 合并像素 coverage
-
-同一批线程以 `16 * sampleGrid` 为步长分担 tile 内全部 `256` 个像素。
-在 `sampleGrid = 4` 时映射等价于：
+每个线程依次处理当前像素行的 `sampleGrid` 条 local Y sample：
 
 ```text
-thread 0..15  -> pixel row 0..3,  每线程独占一个 pixel X
-thread 16..31 -> pixel row 4..7
-thread 32..47 -> pixel row 8..11
-thread 48..63 -> pixel row 12..15
+for each local Y sample:
+    扫描当前 yTile 行的 backdrop events，得到初始 winding
+    遍历 tile edges，生成线程私有 winding delta
+    沿 64 个 X samples 做 winding 前缀和
+    将 inside sample 累加到当前像素行的 16 个 coverage 计数
 ```
 
-每个线程从 inside mask 中读取四个独立像素的 `4x4` samples，合并并写入
-coverage texture。每个像素只由一个线程读取和写入，因此这一阶段不需要
-原子操作、shuffle 或第二次 barrier。
+横向相邻的两个 tile 合并为一个 SIMD32 threadgroup，避免单个 tile 的
+16 线程浪费一半 SIMD32 执行槽：
+
+```text
+thread 0..15  -> 左侧 tile 的 pixel row 0..15
+thread 16..31 -> 右侧 tile 的 pixel row 0..15
+```
+
+delta 与 coverage 计数均为线程私有数据，不使用 threadgroup memory、
+barrier、原子操作或 shuffle。与约 `0.60ms` 的 CPU-backdrop 快速版本相比，
+当前实验只将每条 Y sample 的初始 winding 改为扫描 GPU backdrop events。
 
 `ComputeAATileEdge::sampleBegin/sampleEnd` 已经将边限制到当前 tile 内实际
 跨过的离散 Y sample 范围，因此 coverage kernel 命中该范围后无需再次检查
@@ -247,7 +234,7 @@ int y = ceilf(sampleY - 0.5f);
 
 ### 当前公平对比分支
 
-当前分支：
+旧共享 row-mask 公平对比分支：
 
 ```text
 experiment/compute-aa-row-mask-render-composite
@@ -269,12 +256,12 @@ experiment/compute-aa-row-mask-render-composite
 因此该分支与 `experiment/compute-aa-cpu-backdrop` 的总 GPU 时间可以公平比较，
 差异主要来自 Coverage/backdrop/delta 结构，而不是额外 Clear/Composite pass。
 
-相关保存点：
+相关保存点与当前实验：
 
 ```text
-experiment/compute-aa-row-mask    706ec42bc
+experiment/compute-aa-row-mask    已更新为 private-delta/shared-mask 基线
 experiment/compute-aa-cpu-backdrop 8e8e2682a
-experiment/compute-aa-gpu-backdrop-private-delta
+experiment/compute-aa-gpu-backdrop-private-delta 当前工作树为 16线程/双tile + GPU backdrop
 ```
 
 ### 已验证的 GPU 性能结论
@@ -346,11 +333,27 @@ Compute AA GPU average: 0.858-0.882ms
 相比共享 mask + barrier 基线的 `0.733-0.773ms` 慢约 `14%-20%`。因此已撤回
 shuffle 版本；不要仅为删除这块共享 mask 和 barrier 再次采用该结构。
 
+当前版本采用与 CPU-backdrop 快速版本相同的 16线程/双 tile 行累计
+结构，但继续由 GPU backdrop events 计算初始 winding。它用于判断
+`0.733-0.773ms` 基线与约 `0.60ms` CPU-backdrop 版本之间的差距，有多少来自
+row mask/barrier，又有多少来自 GPU backdrop 扫描。
+
+该版本实测为：
+
+```text
+Compute AA GPU average: 0.730-0.772ms
+```
+
+与 64线程/shared-mask 基线的 `0.733-0.773ms` 没有明显差异。16线程版本删除
+了 shared mask 和 barrier，但每个线程串行处理 4 条 Y sample 行，两部分
+成本基本互相抵消。与约 `0.60ms` CPU-backdrop 版本仍存在的差距，进一步
+说明 GPU backdrop event 扫描是主要差异候选。
+
 ## 重要不变量
 
 - CPU 与 Metal 中的 tile size、sample grid 和结构体布局必须严格一致。
 - `ComputeAATileEdge` 的 sample 范围是 tile 内局部范围。
 - `ComputeAABackdropEvent` 从 `firstTileX` 开始生效，包含该 tile。
 - backdrop event 与 tile-edge 必须刚好覆盖同一批新跨过的 Y sample。
-- coverage kernel 使用固定 `16 * sampleGrid` 个线程；每个 threadgroup 对应一个完整 `16x16` tile。
-- barrier 前不得按像素越界提前 return。
+- coverage kernel 使用固定 32 个线程；每个 threadgroup 对应横向相邻的两个 `16x16` tile。
+- 奇数 tile 列的最后一个 threadgroup 中，右侧 tile 的 16 个线程会提前 return。

@@ -15,9 +15,9 @@
 //     Path -> flattened line edges -> device/atlas coordinates
 //          -> 16x16 local edge bins + per-tile-row backdrop spans
 //   GPU:
-//     one tileSampleCount-thread threadgroup per 16x16 tile
-//          -> one thread per local Y sample row builds a 64-bit inside mask
-//          -> the same threads cooperatively merge and write all tile pixels
+//     one 32-thread threadgroup per two horizontal 16x16 tiles
+//          -> 16 threads per tile, one thread per pixel row
+//          -> each thread resolves four Y samples from GPU backdrop events
 //          -> write one-channel coverage atlas
 //   Graphics:
 //     clear and composite the coverage atlas through one render pass.
@@ -37,7 +37,7 @@ namespace qk {
 	static constexpr uint32_t kComputeAATileSize = 16;
 	static constexpr uint32_t kComputeAASampleGrid = 4;
 	static_assert(kComputeAATileSize * kComputeAASampleGrid <= 64,
-		"Compute AA inside mask only supports up to 64 X samples per tile");
+		"Compute AA prototype expects at most 64 X samples per tile");
 
 	struct AllocatorA: LinearAllocator {
 	};

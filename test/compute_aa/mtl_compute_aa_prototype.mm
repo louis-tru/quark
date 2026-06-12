@@ -308,8 +308,8 @@ namespace qk {
 		[enc setBuffer:backdropRows offset:0 atIndex:5];
 		[enc setTexture:coverageTexture atIndex:0];
 
-		MTLSize tg = MTLSizeMake(kComputeAATileSize * kComputeAASampleGrid, 1, 1);
-		MTLSize groups = MTLSizeMake(params.tileCountX, params.tileCountY, 1);
+		MTLSize tg = MTLSizeMake(kComputeAATileSize * 2, 1, 1);
+		MTLSize groups = MTLSizeMake((params.tileCountX + 1) / 2, params.tileCountY, 1);
 		[enc dispatchThreadgroups:groups threadsPerThreadgroup:tg];
 		[enc endEncoding];
 		return true;
