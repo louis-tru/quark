@@ -377,10 +377,11 @@ namespace qk {
 		auto ascent = -metrics.fAscent;
 		auto origin = _last->width;
 
-		auto &blob = pre.blobOut->push({
+		pre.blobOut->push({
 			ascent, height, origin, line, pre.index_of_unichar,
 			{pre.typeface, glyphs, offset},
 		});
+		auto &blob = pre.blobOut->back();
 
 		// adjust offset
 		if (frontOffset < 0) {

@@ -61,10 +61,10 @@ Qk_TEST_Func(list) {
 	
 	String str2(str);
 	List<String> list;
-	list.push_back("ABCDE");
+	list.pushBack("ABCDE");
 	Qk_Log(str2.toString());
 	Qk_Log(str2.copy().collapse());
-	
+
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
 		Qk_Log(*i);
 	}

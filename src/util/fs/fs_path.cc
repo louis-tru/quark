@@ -52,7 +52,7 @@ namespace qk {
 	static String fs_split_path(cString& path, bool basename) {
 		String s = path;
 #if Qk_WIN
-			s = s.replace_all('\\', '/');
+			s = s.replaceAll('\\', '/');
 #endif
 		int start = path.length();
 		if (path[start - 1] == '/') {
@@ -60,7 +60,7 @@ namespace qk {
 			start -= 2;
 		}
 		
-		int index = s.last_index_of("/", start);
+		int index = s.lastIndexOf("/", start);
 		if (index != -1) {
 			if (basename) {
 				return s.substring(index + 1);
@@ -86,7 +86,7 @@ namespace qk {
 
 	String fs_extname(cString& path) {
 		String s = fs_split_path(path, true);
-		int index = s.last_index_of(".");
+		int index = s.lastIndexOf(".");
 		if (index != -1) {
 			return s.substr(index);
 		}
@@ -97,7 +97,7 @@ namespace qk {
 #if Qk_WIN
 		char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 		_getcwd(cwd + 8, 1024);
-		String str = String(cwd).replace_all('\\', '/');
+		String str = String(cwd).replaceAll('\\', '/');
 		if (str.length() == 10)
 			str.push('/'); //
 		return str;
@@ -121,7 +121,7 @@ namespace qk {
 
 	bool fs_is_local_absolute(cString& path) {
 #if Qk_WIN
-		if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
+		if (Chars.indexOf(s[0]) != -1 && path[1] == ':') {
 			return true;
 		}
 #else
@@ -197,7 +197,7 @@ namespace qk {
 		int up = 0;
 		for (int i = ls.length() - 1; i > -1; i--) {
 			cString& v = ls[i];
-			if (!v.is_empty() && v != ".") {
+			if (!v.isEmpty() && v != ".") {
 				if (v[0] == '.' && v[1] == '.') { // set up ../
 					up++;
 				}
@@ -227,7 +227,7 @@ namespace qk {
 
 #if Qk_WIN
 		// TODO wondows ...
-		s = path.replace_all('\\', '/');
+		s = path.replaceAll('\\', '/');
 		
 		String prefix;
 		
@@ -238,7 +238,7 @@ namespace qk {
 		}
 		else if ( s.length() > 7 && is_local_zip(s) ) {
 			
-			if (Chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
+			if (Chars.indexOf(s[7]) != -1 && s[8] == ':') { // zip:///c:
 				if (s.length() < 10) {
 					return s.substr(0, 9).append('/');
 				} else if (s[9] == '/') { // zip:///c:/
@@ -255,7 +255,7 @@ namespace qk {
 			
 		} else if ( s.length() >= 8 && is_local_file( s ) ) { // file:///
 			
-			if (Chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
+			if (Chars.indexOf(s[8]) != -1 && s[9] == ':') { // file:///c:
 				if (s.length() < 11) {
 					return s.substr(0, 10).append('/');
 				} else if (s[10] == '/') { // file:///c:/
@@ -271,7 +271,7 @@ namespace qk {
 			}
 		} else { // Relative path
 			if (s.length() >= 2 &&
-					Chars.index_of(s[0]) != -1 && s[1] == ':' &&
+					Chars.indexOf(s[0]) != -1 && s[1] == ':' &&
 					(s.length() < 3 || s[2] == '/')
 					) { // Windows absolute path
 				prefix = String("file:///").push(*s, 2).push('/');

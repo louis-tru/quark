@@ -129,20 +129,20 @@ namespace qk { namespace js {
 			switch (en) {
 				case kBinary_Encoding: {
 					WeakBuffer binaray(chAddr, lenPart);
-					Js_Return( worker->newStringOneByte(binaray.copy().collapse_string()) );
+					Js_Return( worker->newStringOneByte(binaray.copy().collapseString()) );
 					break;
 				}
 				case kAscii_Encoding: {
 					// decode to ucs1
 					auto ucs1 = codec_decode_to_ucs1(en, WeakBuffer(chAddr, lenPart).buffer());
 					// ucs1 to js uft16 string
-					Js_Return( worker->newStringOneByte(ucs1.collapse_string()) );
+					Js_Return( worker->newStringOneByte(ucs1.collapseString()) );
 					break;
 				}
 				case kHex_Encoding: // convert to hex or base64 string
 				case kBase64_Encoding: {
 					Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
-					Js_Return( worker->newStringOneByte(buff.collapse_string()) );
+					Js_Return( worker->newStringOneByte(buff.collapseString()) );
 					break;
 				}
 				case kUTF8_Encoding: {
@@ -163,7 +163,7 @@ namespace qk { namespace js {
 					// decode to unicode
 					auto unicode = codec_decode_to_unicode(en, WeakBuffer(chAddr, lenPart).buffer());
 					// unicode to js uft16 string
-					Js_Return( worker->newValue(unicode.collapse_string()) );
+					Js_Return( worker->newValue(unicode.collapseString()) );
 					break;
 				}
 			}

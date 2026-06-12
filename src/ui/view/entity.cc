@@ -194,7 +194,7 @@ namespace qk {
 
 	void Entity::trigger_listener_change(uint64_t name, int count, int change) {
 		if ( change > 0 ) {
-			auto it = UIEventNames.find_for(name);
+			auto it = UIEventNames.findFor(name);
 			if (it != UIEventNames.end()) {
 				if (it->second.category() >= kClick_UIEventCategory &&
 					it->second.category() <= kUIState_UIEventCategory) {

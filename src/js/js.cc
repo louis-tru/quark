@@ -403,7 +403,7 @@ namespace js {
 	}
 
 	JSString* Worker::newValue(cString4& data) {
-		return newValue(codec_unicode_to_utf16(data.array().buffer()).collapse_string());
+		return newValue(codec_unicode_to_utf16(data.array().buffer()).collapseString());
 	}
 
 	template<typename T>
@@ -558,7 +558,7 @@ namespace js {
 		ArrayString args = cmd.split(' ');
 
 		for (auto& arg: args.concat(argv_in)) {
-			if (!arg.is_empty()) {
+			if (!arg.isEmpty()) {
 				argv_s.append(' ');
 				argv_s.append(arg);
 				argv_idx.push(argv_s.length());
@@ -586,7 +586,7 @@ namespace js {
 		auto putkv = [&args](cString& k, cString& v) {
 			String *old;
 			if (args.options.get(k, old)) {
-				if (old->is_empty())
+				if (old->isEmpty())
 					*old = v;
 				else
 					old->append(" ").append(v);
@@ -599,7 +599,7 @@ namespace js {
 			String arg(argv[i]);
 			if (arg[0] == '-') {
 				auto kv = arg.split('=');
-				auto k = kv[0].replace_all('-', '_');
+				auto k = kv[0].replaceAll('-', '_');
 				auto v = kv.length() > 1 ? kv[1]: String();
 				if (arg.length() > 1 && arg[1] != '-') { // -
 					if (kv.length() > 1)
@@ -666,7 +666,7 @@ namespace js {
 					auto host = inspect->split(':');
 					int port = 9229;
 					if (host.length() > 1)
-						host[1].to_number<int>(&port);
+						host[1].toNumber<int>(&port);
 					runDebugger(worker, {brk, port, host[0], script_path});
 				}
 
@@ -740,7 +740,7 @@ namespace js {
 				}
 			}
 	
-			if (!start.is_empty()) {
+			if (!start.isEmpty()) {
 				return js::Start(start);
 			} else if (argc > 0) {
 				return js::Start(argc, argv);

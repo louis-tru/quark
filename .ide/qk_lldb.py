@@ -250,7 +250,7 @@ class _LinkedNodeSyntheticProvider:
 class ListSyntheticProvider(_LinkedNodeSyntheticProvider):
     next_field = "_next"
     data_after_field = "_next"
-    raw_children = ["_end", "_length"]
+    raw_children = ["_allocator", "_length", "_end"]
 
     def _length(self):
         return _list_length(self.value)
@@ -287,7 +287,7 @@ def dict_summary(value, _internal_dict):
 class DictSyntheticProvider(_LinkedNodeSyntheticProvider):
     next_field = "_next"
     data_after_field = "_conflict"
-    raw_children = ["_indexed", "_end", "_length", "_capacity"]
+    raw_children = ["_allocator", "_indexed", "_length", "_capacity", "_end"]
 
     def _length(self):
         return _dict_length(self.value)

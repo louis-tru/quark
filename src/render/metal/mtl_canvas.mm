@@ -188,7 +188,7 @@ namespace qk {
 	void MetalCanvas::flushSubcanvas(MetalCanvas *sub) {
 		Qk_ASSERT_EQ(sub->_render, _render, "Subcanvas should belong to the same render for flush");
 		auto cmds = sub->flushBuffer(); // flush subcanvas to get command buffers
-		if (cmds.is_null())
+		if (cmds.isNull())
 			return; // if no command buffers, skip
 
 		endPass(); // end current pass to ensure all commands are encoded before flush

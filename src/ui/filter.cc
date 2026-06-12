@@ -259,7 +259,7 @@ namespace qk {
 		, _y(init.y)
 		, _repeat(init.repeat)
 	{
-		if (!src.is_empty()) {
+		if (!src.isEmpty()) {
 			set_src(src);
 		}
 	}

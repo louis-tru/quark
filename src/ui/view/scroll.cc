@@ -212,7 +212,7 @@ namespace qk {
 
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
-				task->m_id2 = _tasks.push_back(task);
+				task->m_id2 = _tasks.pushBack(task);
 				pre_render().addtask(task);
 				task->run_task(0, 0);
 			}

@@ -9,85 +9,111 @@
 // Prototype only. This file is not wired into the current Metal backend.
 
 #import "./mtl_compute_aa_prototype.h"
+#include "src/render/math.h"
+#include "src/util/object.h"
 
 #include <math.h>
 #include <string.h>
 
 namespace qk {
 
-	static bool append_edge(ComputeAADrawData &out, Vec2 p0, Vec2 p1) {
-		if (p0.y() == p1.y()) // x轴扫描线算法，水平边不计入边列表
-			return false;
-		ComputeAAEdge edge;
-		p0 -= out.atlasOrigin;
-		p1 -= out.atlasOrigin;
-		edge.p0 = p0;
-		edge.p1 = p1;
-		edge.minY = std::min(p0.y(), p1.y());
-		edge.maxY = std::max(p0.y(), p1.y());
-		edge.winding = p1.y() > p0.y() ? 1 : -1;
-		edge._pad = 0;
-		out.edges.push(edge);
-		return true;
+	template<bool NeedClip>
+	static void append_edges(ComputeAADrawData &out, Array<Vec2> &lines) {
+		auto begin = out.bounds.begin,
+				end = out.bounds.end;
+		for (uint32_t i = 1; i < lines.length(); i += 2) {
+			auto p0 = lines[i-1], p1 = lines[i];
+			if (p0.y() == p1.y()) // x扫描线算法，水平边不计入边列表
+				continue;
+			// 需要裁剪边界外的线段，先进行一次粗略的 CPU 裁剪，减少后续 GPU 处理的边数,
+			// 无法处理左边界为负的情况，因为x扫描线算法需要统计tile左边的backdrop值。
+			if (NeedClip) {
+				// 整条边都在bounds上方的无效区域，不生成任何数据
+				if (p0.y() <= begin.y() && p1.y() <= begin.y())
+					continue;
+				// 整条边都在bounds下方的无效区域，不生成任何数据
+				if (p0.y() >= end.y() && p1.y() >= end.y())
+					continue;
+				// 整条边都在bounds右侧的无效区域，不生成任何数据
+				if (p0.x() >= end.x() && p1.x() >= end.x())
+					continue;
+			}
+			p0 -= begin;
+			p1 -= begin;
+			auto minY = p0.y(), maxY = p1.y();
+			int32_t winding = 1;
+			if (minY > maxY) { // 设定p0为左边，往上为逆时针方向，屏幕座标y往上更小。
+				std::swap(minY, maxY);
+				winding = -1;
+			}
+			out.edges.push({p0,p1,minY,maxY,winding,0});
+		}
 	}
+
+	struct TileScratch {
+		Array<ComputeAATileEdge> edges;
+	};
+	struct BackdropRowScratch {
+		Array<ComputeAABackdropEvent> events;
+	};
+	struct TileScratchs: Array<TileScratch> {
+		~TileScratchs() {
+			Qk_ASSERT(_ptr.allocator->isLinearAllocator(), "TileScratchs should use a linear allocator");
+			// 由于目前的实现是线性分配器，直接丢弃整个数组即可，无需逐个调用析构函数。
+			_ptr.extra = 0;
+		}
+	};
+	struct BackdropRowScratchs: Array<BackdropRowScratch> {
+		~BackdropRowScratchs() {
+			// 由于目前的实现是线性分配器，直接丢弃整个数组即可，无需逐个调用析构函数。
+			_ptr.extra = 0;
+		}
+	};
 
 	static void build_tile_edges(ComputeAADrawData &out) {
 		// 临时数组按 tile / tile-row 分桶，最后再压平为连续 GPU buffer。
-		// 这里的小 Array 分配目前仍是 CPU 构建阶段的主要性能问题之一。
-		struct TileScratch {
-			Array<ComputeAATileEdge> edges;
-		};
-		struct BackdropRowScratch {
-			Array<ComputeAABackdropEvent> events;
-		};
-		Array<TileScratch> scratch;
+		// 这里的小 Array 分配必需使用线性分配器，后续直接丢弃整个数组，无需逐个调用析构函数。
+		TileScratchs scratch;
 		scratch.reset(out.tileCountX * out.tileCountY);
-		Array<BackdropRowScratch> backdropScratch;
+		BackdropRowScratchs backdropScratch;
 		backdropScratch.reset(out.tileCountY);
 		out.tiles.reset(out.tileCountX * out.tileCountY);
 
 		const int sampleGrid = kComputeAASampleGrid;
 		const int tileSampleCount = kComputeAATileSize * sampleGrid;
 		const float invTileSize = 1.0f / float(kComputeAATileSize);
-		const int atlasSampleCount = out.tileCountY * tileSampleCount;
 		static_assert(
 			(kComputeAATileSize & (kComputeAATileSize - 1)) == 0 &&
-			(kComputeAASampleGrid & (kComputeAASampleGrid - 1)) == 0,
-			"Compute AA tile/sample sizes must be powers of two"
+			(kComputeAASampleGrid & (kComputeAASampleGrid - 1)) == 0, "Compute AA tile/sample sizes must be powers of two"
 		);
-		constexpr int tileSampleShift =
-			__builtin_ctz(kComputeAATileSize * kComputeAASampleGrid);
+		// tileSampleShift 是 tile/sample 数量的二进制位数，用于整数转换代替除法。log2(16*4) = 6
+		const int tileSampleShift = __builtin_ctz(tileSampleCount);
 
-		auto sample_grid_y = [&](float sampleY) {
-			Qk_ASSERT(sampleY >= 0.0f, "sampleY should not be negative");
-			// sampleY 已经是非负的 Y sample-grid 坐标。这里用整数转换快速近似
-			// ceilf(sampleY - 0.5f)：0.499999f 的轻微负偏置让正好落在 sample
-			// 中心边界上的点仍属于前一个半开区间，同时吸收边界附近很小的正向浮点误差。
-			constexpr float sampleBoundaryEpsilon = 0.0001f; // 0.0000001f
-			int y = int(sampleY + 0.5f - sampleBoundaryEpsilon);
-			Qk_ASSERT(y <= atlasSampleCount, "sampleY should not exceed atlas sample count");
+		auto sample_grid_y = [](float sampleY) {
+			// 直接使用 ceilf 来计算 sample 网格索引，确保 sampleY 落在 [n+0.5, n+1.5) 区间时得到正确的 n+1 索引。
+			int y = ceilf(sampleY - 0.5f);
 			return y;
 		};
 
 		auto add_sample_range = [&](uint32_t edgeIndex, int tx,
 			int sampleBegin, int sampleEnd, int32_t winding)
 		{
+			Qk_ASSERT(tx < out.tileCountX, "tile x index out of bounds");
 			Qk_ASSERT(sampleBegin != sampleEnd, "should not add empty sample range");
 			if (sampleBegin > sampleEnd) {
 				std::swap(sampleBegin, sampleEnd); // 确保 sampleBegin < sampleEnd
 			}
 			// [sampleBegin, sampleEnd) 是边在当前 X tile 步骤中新跨过的全局
 			// Y sample 区间。它可能跨越多个 yTile，因此先按 yTile 拆分。
-			int ty0 = sampleBegin >> tileSampleShift;
-			int ty1 = (sampleEnd - 1) >> tileSampleShift;
-			int firstTileX = tx + 1; // 这个 sample 区间从这个 tile 的下一列开始完全位于边的右侧
-			Qk_ASSERT(firstTileX > 0, "firstTileX should be positive");
+			int tileY0 = sampleBegin >> tileSampleShift; // sampleBegin / tileSampleCount
+			int tileY1 = (sampleEnd - 1) >> tileSampleShift;
+			int firstTileX = std::max(0, tx + 1); // 这个 sample 区间从这个 tile 的下一列开始完全位于边的右侧
+			int tileRowOffset = tileY0 * out.tileCountX; // 当前 tile 行的起始偏移
 
-			for (int ty = ty0; ty <= ty1; ty++) {
-				int tileSampleBegin = ty << tileSampleShift;
-				int localBegin = I32::max(sampleBegin - tileSampleBegin, 0);
-				int localEnd = I32::min(sampleEnd - tileSampleBegin, tileSampleCount);
-				uint32_t tileRowOffset = ty * out.tileCountX;
+			for (int ty = tileY0; ty <= tileY1; ty++, tileRowOffset += out.tileCountX) {
+				int tileSampleBegin = ty << tileSampleShift; // 当前 tile 的 Y sample 网格起点
+				int localBegin = std::max(sampleBegin - tileSampleBegin, 0); // 限制在 tile 内的局部 sample 区间
+				int localEnd = std::min(sampleEnd - tileSampleBegin, tileSampleCount);
 				if (tx >= 0 && tx < out.tileCountX) {
 					// 当前 tile 内，只有这个 local sample 区间仍需要 GPU
 					// 使用原始边做精确 X 交点测试；tile 内其他 sample 不测试此边。
@@ -112,16 +138,25 @@ namespace qk {
 			}
 		};
 
+		auto add_sample_range_final = [&](uint32_t edgeIndex, int tx,
+			int sampleBegin, float rightY, int32_t winding)
+		{
+			if (tx < out.tileCountX) {
+				int sampleEnd = sample_grid_y(rightY * sampleGrid);
+				if (sampleBegin != sampleEnd) {
+					add_sample_range(edgeIndex, tx, sampleBegin, sampleEnd, winding);
+				}
+			}
+		};
+
+		int edgeIndex = 0;
 		// 将 tile 当作粗像素沿 X 扫描。只有 Y sample 网格位置发生变化时，
 		// 才为当前 tile 列添加边和为右侧 tile 添加 backdrop。
-		for (uint32_t edgeIndex = 0; edgeIndex < out.edges.length(); edgeIndex++) {
-			auto &edge = out.edges[edgeIndex];
+		for (auto &edge : out.edges) {
 			Vec2 left = edge.p0, right = edge.p1;
 			if (left.x() > right.x()) {
 				std::swap(left, right);
 			}
-			Qk_ASSERT(left.x() >= 0.0f, "edge should not have negative x coordinate");
-			Qk_ASSERT(edge.minY >= 0.0f, "edge should not have negative y coordinate");
 
 			float dx = right.x() - left.x();
 			float lastSampleY = left.y() * sampleGrid;
@@ -130,18 +165,15 @@ namespace qk {
 			if (dx == 0.0f) {
 				// 竖边不需要沿 X 推进：边左侧 tile 做局部精确测试，
 				// 边右侧 tile 从对应列开始继承 backdrop。
-				int sampleGridY = sample_grid_y(right.y() * sampleGrid);
-				if (lastSampleGridY != sampleGridY) {
-					int tx = right.x() * invTileSize - 0.000001f; // 左闭右开
-					add_sample_range(edgeIndex, tx, lastSampleGridY, sampleGridY, edge.winding);
-				}
+				int tx = right.x() * invTileSize - 0.000001f; // 左闭右开
+				add_sample_range_final(edgeIndex++, tx, lastSampleGridY, right.y(), edge.winding);
 				continue;
 			}
 
 			// 向下取整，做为当前 tile 的 X 索引
 			int tx = left.x() * invTileSize;
 			// 右端点使用半开 X tile 范围：端点正好落在 tile 边界时，最后负责此边的仍是边界左侧 tile。
-			int finalTx = right.x() * invTileSize - 0.000001f; // 左闭右开
+			int finalTx = I32::min(right.x() * invTileSize - 0.000001f, out.tileCountX); // 左闭右开
 			if (tx < finalTx) {
 				float sampleSlope = (right.y() - left.y()) * sampleGrid / dx;
 				float tileSampleYStep = sampleSlope * kComputeAATileSize;
@@ -160,39 +192,41 @@ namespace qk {
 					tx++; // 推进一个 X tile
 				} while (tx < finalTx);
 			}
-
 			// 最后一个 X tile 通常不足一个完整 tile 宽，直接使用右端点，
 			// 避免增量浮点误差改变端点所属的半开 sample 区间。
-			int sampleGridY = sample_grid_y(right.y() * sampleGrid);
-			if (lastSampleGridY != sampleGridY) {
-				add_sample_range(edgeIndex, tx, lastSampleGridY, sampleGridY, edge.winding);
-			}
+			add_sample_range_final(edgeIndex, tx, lastSampleGridY, right.y(), edge.winding);
+			edgeIndex++;
 		}
 
 		out.backdropRows.reset(out.tileCountY);
 		// 临时分桶数据压平为连续数组，供 Metal buffer 直接上传。
-		for (uint32_t ty = 0; ty < out.tileCountY; ty++) {
-			uint32_t tileRowOffset = ty * out.tileCountX;
-			for (uint32_t tx = 0; tx < out.tileCountX; tx++) {
+		uint32_t tileRowOffset = 0;
+		for (uint32_t ty = 0, originY = 0; ty < out.tileCountY; ty++) {
+			for (uint32_t tx = 0, originX = 0; tx < out.tileCountX; tx++) {
 				auto &tile = out.tiles[tileRowOffset + tx];
 				auto &src = scratch[tileRowOffset + tx].edges;
-				tile.edgeOffset = out.tileEdges.length();
-				tile.edgeCount = src.length();
-				tile.originX = tx * kComputeAATileSize;
-				tile.originY = ty * kComputeAATileSize;
+				out.tiles[tileRowOffset + tx] = {
+					.edgeOffset=out.tileEdges.length(),
+					.edgeCount=src.length(),
+					.originX=originX,
+					.originY=originY
+				};
 				out.tileEdges.write(src.val(), src.length());
+				originX += kComputeAATileSize;
 			}
-			auto &row = out.backdropRows[ty];
 			auto &events = backdropScratch[ty].events;
-			row.eventOffset = out.backdropEvents.length();
-			row.eventCount = events.length();
+			out.backdropRows[ty] = {
+				.eventOffset=out.backdropEvents.length(),
+				.eventCount=events.length()
+			};
 			out.backdropEvents.write(events.val(), events.length());
+			tileRowOffset += out.tileCountX;
+			originY += kComputeAATileSize;
 		}
 	}
 
 	ComputeAADrawData MetalComputeAAPrototype::buildDrawData(const Path &path,
 		const Mat &viewMatrix,
-		Vec2 atlasPadding,
 		float flattenPrecision)
 	{
 		ComputeAADrawData out;
@@ -202,17 +236,22 @@ namespace qk {
 		if (!lines.length())
 			return out;
 
-		out.bounds = transformPath.getBounds();
-		out.atlasOrigin = (out.bounds.begin-atlasPadding).floor();
-		Vec2 atlasEnd = (out.bounds.end+atlasPadding).ceil();
-		out.atlasSize = atlasEnd - out.atlasOrigin;
+		// 计算边界并进行整数扩展，确保边界上的像素也被覆盖.
+		auto bounds = transformPath.getBounds().expandToInteger();
+		// 目前先限制为非负坐标，如果有裁剪参数使用参数进行更灵活的边界控制。
+		out.bounds = bounds.clip({0, bounds.end});
+		out.atlasOrigin = Vec2(); // 目前直接在原点处生成 atlas，后续可根据实际边界进行更紧凑的布局
+		out.atlasSize = out.bounds.size(); // 目前直接使用 bounds 大小作为 atlas 大小
 		out.tileCountX = ceilf(out.atlasSize.x()/kComputeAATileSize);
 		out.tileCountY = ceilf(out.atlasSize.y()/kComputeAATileSize);
 
-		for (uint32_t i = 1; i < lines.length(); i += 2) {
-			append_edge(out, lines[i-1], lines[i]);
+		if (bounds.begin.y() < out.bounds.begin.y() || bounds.end.y() > out.bounds.end.y()
+			|| bounds.end.x() > out.bounds.end.x()
+		) {
+			append_edges<true>(out, lines); // 线段可能在边界外，需要裁剪
+		} else { // 所有线段都在边界内，无需裁剪，直接添加
+			append_edges<false>(out, lines);
 		}
-
 		build_tile_edges(out);
 		return out;
 	}

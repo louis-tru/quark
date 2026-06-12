@@ -227,7 +227,7 @@ namespace qk {
 			f->height = h;
 			f->format = kYUV420SP_ColorType; // yuv420sp
 
-			self->_frames.push_back(f);
+			self->_frames.pushBack(f);
 		}
 
 		CMSampleBufferRef new_sample_data(const Packet *pkt) {

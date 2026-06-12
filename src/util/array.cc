@@ -29,15 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./array.h"
-#include "./string.h"
 #include <string.h>
 #include <math.h>
 
 namespace qk {
 
-	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,A,B,APPEND_ZERO,APPEND_CODE) \
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,B,APPEND_ZERO,APPEND_CODE) \
 		\
-		template<> void Array<T, A, B>::reset(uint32_t length) { \
+		template<> void Array<T, B>::reset(uint32_t length) { \
 			if (length < _ptr.extra) { /* clear Partial data */ \
 				_ptr.extra = length;\
 				APPEND_CODE(_ptr,length); \
@@ -46,7 +45,7 @@ namespace qk {
 			} \
 		} \
 		\
-		template<> void Array<T, A, B>::extend(uint32_t length) \
+		template<> void Array<T, B>::extend(uint32_t length) \
 		{ \
 			if (length > _ptr.extra) {  \
 				_ptr.extra = length; \
@@ -55,14 +54,14 @@ namespace qk {
 			}\
 		}\
 		\
-		template<> std::vector<T> Array<T, A, B>::vector() const { \
+		template<> std::vector<T> Array<T, B>::vector() const { \
 			std::vector<T> r(_ptr.extra); \
 			if (_ptr.extra) \
 				memcpy(r.data(), _ptr.val, sizeof(T) * _ptr.extra); \
 			Qk_ReturnLocal(r); \
 		} \
 		\
-		template<> void Array<T, A, B>::concat_(T* src, uint32_t src_length) { \
+		template<> void Array<T, B>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_ptr.extra += src_length; \
 				_ptr.extend(_ptr.extra + APPEND_ZERO); \
@@ -73,7 +72,7 @@ namespace qk {
 			} \
 		} \
 		\
-		template<> uint32_t Array<T, A, B>::write(const T* src, uint32_t size, int to) { \
+		template<> uint32_t Array<T, B>::write(const T* src, uint32_t size, int to) { \
 			if (size) { \
 				if ( to == -1 ) to = _ptr.extra; \
 				_ptr.extra = Qk_Max(to + size, _ptr.extra); \
@@ -84,19 +83,17 @@ namespace qk {
 			return size; \
 		} \
 		\
-		template<> \
-		T& Array<T, A, B>::push(const T& item) { \
+		template<> void Array<T, B>::push(const T& item) { \
 			_ptr.extend(_ptr.extra + APPEND_ZERO + 1); \
-			_ptr.val[_ptr.extra] = item;\
-			return _ptr.val[_ptr.extra++]; \
+			_ptr.val[_ptr.extra++] = item;\
 		} \
-		template<> \
-		T& Array<T, A, B>::push(T&& item) { \
+		\
+		template<> void Array<T, B>::push(T&& item) { \
 			_ptr.extend(_ptr.extra + APPEND_ZERO + 1); \
-			_ptr.val[_ptr.extra] = item;\
-			return _ptr.val[_ptr.extra++]; \
+			_ptr.val[_ptr.extra++] = item;\
 		} \
-		template<> void Array<T, A, B>::pop(uint32_t count) { \
+		\
+		template<> void Array<T, B>::pop(uint32_t count) { \
 			uint32_t j = uint32_t(Qk_Max(_ptr.extra - count, 0)); \
 			if (_ptr.extra > j) {  \
 				_ptr.extra = j;  \
@@ -104,14 +101,14 @@ namespace qk {
 			} \
 		} \
 		\
-		template<> void Array<T, A, B>::clear() { \
+		template<> void Array<T, B>::clear() { \
 			if (_ptr.val) { \
 				_ptr.free(); \
 				_ptr.extra = 0; \
 			} \
 		} \
 		\
-		template<> void Array<T, A, B>::copy_(Ptr* dst, uint32_t start, uint32_t len) const { \
+		template<> void Array<T, B>::copy_(Ptr* dst, uint32_t start, uint32_t len) const { \
 			dst->resize(len+APPEND_ZERO); \
 			memcpy(dst->val, _ptr.val + start, len * sizeof(T)); \
 			APPEND_CODE((*dst),len);\
@@ -121,14 +118,16 @@ namespace qk {
 #define Qk_DEF_ARRAY_APPEND_CODE(ptr,len) ptr.val[len] = '\0'
 
 #define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,APPEND_ZERO,APPEND_CODE) \
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Allocator,Object,APPEND_ZERO,APPEND_CODE)
-	// Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Allocator,NonObject,APPEND_ZERO,APPEND_CODE)
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Object,APPEND_ZERO,APPEND_CODE)
 
-#ifndef Qk_ARRAY_SKIP_DEFAULT_IMPL
-	template<> void Array<char, Allocator, Object>::_Reverse(void *src, size_t size, uint32_t len) {
+#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple(T) \
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,1,Qk_DEF_ARRAY_APPEND_CODE)
+Qk_IsOrdinaryTypes(Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple)
+
+	template<> void Array<char, Object>::_Reverse(Ptr *ptr, size_t size, uint32_t len) {
 		if (len > 1) {
-			char* _src = (char*)src;
-			void* tmp = malloc(size);
+			char* _src = (char*)ptr->val;
+			void* tmp = ptr->allocator->malloc(uint32_t(size));
 			uint32_t len2 = floor(len / 2);
 			uint32_t i = 0;
 			while (i < len2) {
@@ -139,20 +138,8 @@ namespace qk {
 				memcpy(dest, tmp, size);
 				i++;
 			}
-			free(tmp);
+			ptr->allocator->free(tmp);
 		}
 	}
-
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint8_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float,1,Qk_DEF_ARRAY_APPEND_CODE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double,1,Qk_DEF_ARRAY_APPEND_CODE);
-#endif
 
 }

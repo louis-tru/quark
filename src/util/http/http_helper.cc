@@ -91,7 +91,7 @@ namespace qk {
 					scb->resolve(&data);
 				} else {
 					if ( response_data ) {
-						data.push(buffer.collapse_string());
+						data.push(buffer.collapseString());
 					}
 				}
 			}
@@ -166,11 +166,11 @@ namespace qk {
 			task->scb = scb;
 			task->isStream = isStream;
 
-			if ( !options.upload.is_empty() ) { // 需要上传文件
+			if ( !options.upload.isEmpty() ) { // 需要上传文件
 				req->set_upload_file("file", options.upload);
 			}
 
-			if ( !options.save.is_empty() ) {
+			if ( !options.save.isEmpty() ) {
 				task->response_data = 0;
 				req->set_save_path(options.save);
 			}
@@ -330,7 +330,7 @@ namespace qk {
 	}
 
 	String http_user_agent() {
-		if (http_user_agent_.is_empty()) {
+		if (http_user_agent_.isEmpty()) {
 			http_user_agent_ = String::format(
 				"Quark/" Qk_VERSION " %s/%s %s %s (%s)",
 				*os_name(), *os_version(), *os_arch(), *os_brand(), *os_model()
@@ -344,7 +344,7 @@ namespace qk {
 	}
 
 	String http_cache_path() {
-		if (http_cache_path_.is_empty()) {
+		if (http_cache_path_.isEmpty()) {
 			http_set_cache_path(fs_temp("http_cache"));
 		}
 		return http_cache_path_;
@@ -361,7 +361,7 @@ namespace qk {
 
 	void http_clear_cache() {
 		// delete cache files
-		if ( ! http_cache_path_.is_empty() ) {
+		if ( ! http_cache_path_.isEmpty() ) {
 			fs_remove_recursion_sync(http_cache_path_);
 			http_set_cache_path(http_cache_path_);
 		}

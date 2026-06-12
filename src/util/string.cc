@@ -329,7 +329,7 @@ namespace qk {
 	String _Str::printfv(cChar* f, va_list arg) {
 		auto base = _Str::sPrintfv(1, f, arg);
 		if (base.ptr.val) {
-			return Buffer::from((char*)base.ptr.val, base.ptr.extra, base.ptr.capacity).collapse_string();
+			return Buffer::from((char*)base.ptr.val, base.ptr.extra, base.ptr.capacity).collapseString();
 		}
 		return String();
 	}
@@ -342,11 +342,11 @@ namespace qk {
 		if (len == 1)
 			return it(data, &tmp), tmp;
 
-		auto spLen = sp.is_empty() ? 0: I32::max(len - 1, 0);
+		auto spLen = sp.isEmpty() ? 0: I32::max(len - 1, 0);
 		Array<String> strs(len + spLen);
 		int total = spLen * sp.length(), i = 0;
 
-		if (sp.is_empty()) {
+		if (sp.isEmpty()) {
 			while (it(data, &tmp)) {
 				total += tmp.length();
 				strs[i++] = tmp;

@@ -43,6 +43,20 @@ namespace qk {
 	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
 	/**
+	 * @class AllocatorConfig
+	 * @brief Configuration for allocator behavior based on type size.
+	 */
+	template <typename T> struct AllocatorConfig {
+		// Capacity growth policy:
+		// - For small element types (<= 8 bytes), enforce minimum capacity of 4
+		//   to reduce realloc churn.
+		// - For large element types, do NOT enforce minimum capacity.
+		//   Typical size is often 1; extra capacity would be pure waste.
+		static constexpr uint32_t kSmallTypeSize = 8;
+		static constexpr uint32_t kMinCapacity = sizeof(T) <= kSmallTypeSize ? 4 : 1;
+	};
+
+	/**
 	 * @class Allocator
 	 * @brief Base class for custom memory allocators.
 	 *
@@ -66,7 +80,7 @@ namespace qk {
 		template<typename T, typename A = Allocator, typename Extra = uint32_t>
 		struct Ptr {
 			/// Default constructor using the shared global allocator.
-			Ptr(): allocator(Allocator::shared()), val(nullptr), capacity(0), extra{} {
+			Ptr(): allocator(A::current()), val(nullptr), capacity(0), extra{} {
 				Qk_ASSERT(allocator);
 			}
 
@@ -116,6 +130,13 @@ namespace qk {
 			(this->*_free)(ptr);
 		}
 
+		/// Get the capacity for a given size based on the type's configuration.
+		template<typename T>
+		inline static uint32_t getCapacity(uint32_t capacity) {
+			return capacity < AllocatorConfig<T>::kMinCapacity ?
+					AllocatorConfig<T>::kMinCapacity : capacity;
+		}
+
 		/// Allocate memory for an array of @p count elements of type @p T.
 		template<typename T>
 		inline T* alloc(uint32_t count) {
@@ -131,13 +152,19 @@ namespace qk {
 		/// Resize a Ptr container to hold @p size elements.
 		template<typename T, typename A>
 		inline void resize(Ptr<T, A> *ptr, uint32_t size) {
-			resize((Ptr<void>*)ptr, size, sizeof(T));
+			if (size > ptr->capacity) {
+				extend_((Ptr<void>*)ptr, getCapacity<T>(size), sizeof(T));
+			} else {
+				shrink((Ptr<void>*)ptr, size, sizeof(T));
+			}
 		}
 
 		/// Extend a Ptr container by @p size elements.
 		template<typename T, typename A>
 		inline void extend(Ptr<T, A> *ptr, uint32_t size) {
-			extend((Ptr<void>*)ptr, size, sizeof(T));
+			if (size > ptr->capacity) {
+				extend_((Ptr<void>*)ptr, getCapacity<T>(size), sizeof(T));
+			}
 		}
 
 		/// Shrink a Ptr container by @p size elements.
@@ -152,7 +179,13 @@ namespace qk {
 		 * @param size New number of elements.
 		 * @param sizeOf Size of each element in bytes.
 		 */
-		void resize(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf);
+		inline void resize(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf) {
+			if (size > ptr->capacity) {
+				extend_(ptr, size, sizeOf);
+			} else {
+				shrink(ptr, size, sizeOf);
+			}
+		}
 
 		/**
 		 * @brief Extend a generic Ptr container.
@@ -160,7 +193,11 @@ namespace qk {
 		 * @param size Number of elements to add.
 		 * @param sizeOf Size of each element in bytes.
 		 */
-		void extend(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf);
+		inline void extend(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf) {
+			if (size > ptr->capacity) {
+				extend_(ptr, size, sizeOf);
+			}
+		}
 
 		/**
 		 * @brief Shrink a generic Ptr container.
@@ -176,6 +213,36 @@ namespace qk {
 		 */
 		inline static Allocator* shared() { return &_shared; }
 
+		/**
+		* @brief Access the current thread-local allocator.
+		* @return Pointer to the current thread-local Allocator instance.
+		*/
+		inline static Allocator* current() { return _current; }
+
+		/**
+		 * @brief Push a new allocator onto the thread-local stack.
+		 * @param allocator Pointer to the Allocator to push.
+		 *
+		 * Subsequent calls to `Allocator::current()` will return this allocator
+		 * until it is popped. This allows for temporary overrides of the current
+		 * allocator within a scope.
+		 */
+		static void pushAllocator(Allocator* allocator);
+
+		/**
+		 * @brief Pop the most recently pushed allocator from the thread-local stack.
+		 *
+		 * Restores the previous allocator as the current one. Should be called
+		 * after `pushAllocator()` to maintain stack integrity.
+		 */
+		static void popAllocator();
+
+		/**
+		 * @brief Check if this allocator is a LinearAllocator.
+		 * @return True if this allocator is a LinearAllocator, false otherwise.
+		*/
+		inline bool isLinearAllocator() const { return _isLinearAllocator; }
+
 	protected:
 		/// Constructor with explicit function pointers.
 		Allocator(void*(Allocator::*malloc)(uint32_t size),
@@ -183,18 +250,43 @@ namespace qk {
 				void  (Allocator::*free)(void *ptr));
 
 	private:
-		static Allocator _shared; ///< Default global allocator.
+		/**
+		* @brief Extend allocated memory if size exceeds current capacity.
+		* @param ptr Pointer wrapper holding memory and capacity
+		* @param size Requested element count
+		* @param sizeOf Size of each element
+		*/
+		void extend_(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf);
 
-		friend class Allocator* shared_allocator();
+		static Allocator _shared; ///< Default global allocator.
+		static thread_local Allocator* _current; ///< Thread-local current allocator for push/pop.
+
+		friend Allocator* sharedAllocator();
 
 		void* (Allocator::*_malloc)(uint32_t size); ///< malloc function pointer
 		void* (Allocator::*_mrealloc)(void* ptr, uint32_t size); ///< realloc function pointer
 		void  (Allocator::*_free)(void *ptr); ///< free function pointer
+
+		Allocator *_prev, *_next; ///< Pointers for push/pop stack (if needed)
+	protected:
+		// This flag can be set by derived classes (e.g. LinearAllocator) to indicate their type.
+		bool _isLinearAllocator;
 	};
 
-	inline Allocator* shared_allocator() {
+	inline Allocator* sharedAllocator() {
 		return &Allocator::_shared;
 	}
+
+	/**
+	 * @brief Helper class to manage allocator push/pop in a scope.
+	*/
+	struct AllocatorScope {
+		Allocator* allocator;
+		AllocatorScope(Allocator* a): allocator(a) { Allocator::pushAllocator(a); }
+		~AllocatorScope() { Allocator::popAllocator(); }
+		AllocatorScope(const AllocatorScope&) = delete;
+		AllocatorScope& operator=(const AllocatorScope&) = delete;
+	};
 
 	/**
 	 * @class LinearAllocator
@@ -302,6 +394,9 @@ namespace qk {
 		Block* _current;   ///< Current block used for allocation.
 
 		char *_lastPtr;    ///< Pointer to the last allocated memory (for realloc).
+
+		uint32_t _blocks;  ///< Total number of blocks allocated.
+		uint32_t _capacity; ///< Total capacity across all blocks in bytes.
 
 		/**
 		 * @brief Allocate a new block and append it to the block list.

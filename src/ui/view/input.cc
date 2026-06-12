@@ -167,7 +167,7 @@ namespace qk {
 			// Qk_DLog("Input::onKeydown");
 			_async_call({
 				auto ctx = self;
-				if (!ctx->_marked_text.is_empty()) {
+				if (!ctx->_marked_text.isEmpty()) {
 					return; // When there is marked text, ignore arrow key operations and use IME processing.
 				}
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
@@ -569,7 +569,7 @@ namespace qk {
 			String s = text;
 			if ( !is_multiline() ) {
 				if ( s.length() > 1 ) {
-					s = s.replace_all('\n', String());
+					s = s.replaceAll('\n', String());
 				} else if ( s.length() == 1 ) {
 					if ( s[0] == '\n' )
 						return String4();
@@ -763,7 +763,8 @@ namespace qk {
 			else if ( value_u4.length() && _security ) { // password
 				const Unichar pwd = 9679; /*●*/
 				Array<Array<Unichar>> lines;
-				for (auto &i: lines.push(Array<Unichar>(value_u4.length()))) {
+				lines.push(Array<Unichar>(value_u4.length()));
+				for (auto &i: lines.back()) {
 					i = pwd;
 				}
 				tbb.make(lines);
@@ -1005,7 +1006,7 @@ namespace qk {
 
 	void Input::input_marked(cString& text, int caret_pos) {
 		if ( _editing ) {
-			if (text.is_empty())
+			if (text.isEmpty())
 				return input_unmark(text); // some IME send empty marked to cancel marked text
 			_this->input_marked_text(_this->delete_line_feed_format(text), caret_pos);
 			_this->_is_marked_text = true;

@@ -368,18 +368,18 @@ namespace qk {
 		// Split by '>' → direct child selectors
 		for ( auto &i : exp.split('>') ) { // direct child only
 			auto part = i.trim();
-			if ( part.is_empty() ) continue;
+			if ( part.isEmpty() ) continue;
 
 			// Split by spaces → descendant selectors
 			for ( auto &j : part.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
 				bool isExt = false; // is extend selector
 				auto e = j.trim();
-				if ( e.is_empty() ) continue;
+				if ( e.isEmpty() ) continue;
 				if ( e[0] != '.' ) return invalid(exp);
 
 				// Split by '.' → continuous selectors
 				for ( auto &n: e.split('.') ) { // .div_cls.div_cls2
-					if ( n.is_empty() ) continue;
+					if ( n.isEmpty() ) continue;
 					auto state = kNone_UIState;
 					// Handle pseudo selector
 					auto k = n.split(':'); // .div_cls:hover
@@ -388,7 +388,7 @@ namespace qk {
 						if (!UIStateKeys.get(k[1], state))
 							return invalid(exp);
 						n = k[0];
-						if (n.is_empty()) continue;
+						if (n.isEmpty()) continue;
 					}
 					ss = ss->findAndMake(CSSCName(n), state, isExt, make, directChildOnly);
 					if ( !ss ) {

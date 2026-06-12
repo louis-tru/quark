@@ -38,10 +38,6 @@
 #include <arm_neon.h>
 #endif
 
-#define Qk_ARRAY_SKIP_DEFAULT_IMPL 1
-
-#include "../util/array.cc"
-
 namespace qk {
 
 	float math_invSqrt(float x) {
@@ -233,26 +229,26 @@ namespace qk {
 		return {roundf(val[0]), roundf(val[1])};
 	}
 
-	Vec2 Vec2::min(const Vec2 &b) const {
-		return Vec2(
-			val[0] < b.val[0] ? val[0] : b.val[0],
-			val[1] < b.val[1] ? val[1] : b.val[1]
-		);
-	}
-
-	Vec2 Vec2::max(const Vec2 &b) const {
-		return Vec2(
-			val[0] > b.val[0] ? val[0] : b.val[0],
-			val[1] > b.val[1] ? val[1] : b.val[1]
-		);
-	}
-
 	Vec2 Vec2::floor() const {
 		return { floorf(val[0]), floorf(val[1]) };
 	}
 
 	Vec2 Vec2::ceil() const {
 		return { ceilf(val[0]), ceilf(val[1]) };
+	}
+
+	Vec2 Vec2::min(const Vec2 &b) const {
+		return Vec2(
+			std::min(val[0], b.val[0]),
+			std::min(val[1], b.val[1])
+		);
+	}
+
+	Vec2 Vec2::max(const Vec2 &b) const {
+		return Vec2(
+			std::max(val[0], b.val[0]),
+			std::max(val[1], b.val[1])
+		);
 	}
 
 	// ------------------------------------------
@@ -1626,9 +1622,4 @@ namespace qk {
 
 		return matrix;
 	}
-
-
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec2,0,Qk_DEF_ARRAY_APPEND_CODE_NONE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Vec3,0,Qk_DEF_ARRAY_APPEND_CODE_NONE);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(Color,0,Qk_DEF_ARRAY_APPEND_CODE_NONE);
 }

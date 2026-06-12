@@ -119,7 +119,7 @@ namespace qk {
 		cString& res = fs_resources(); // 把资源目录加入进来
 		
 		if (fs_is_local_zip(res)) { // zip pkg
-			int i = res.index_of("@/");
+			int i = res.indexOf("@/");
 			if (i != -1) {
 				add_zip_search_path(/*zip://*/res.substring(6, i), res.substr(i + 2));
 			} else if (res[res.length() - 1] == '@') {
@@ -155,14 +155,14 @@ namespace qk {
 				}
 			}
 		}
-		m_search_paths.push_back(new FileSearch::SearchPath(str));
+		m_search_paths.pushBack(new FileSearch::SearchPath(str));
 	}
 
 	void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 		String _zip_path = fs_format("%s", *zip_path);
 		String _path = path;
 #if Qk_WIN
-			_path = path.replace_all('\\', '/');
+			_path = path.replaceAll('\\', '/');
 #endif
 		_path = fs_format_part_path(path);
 		
@@ -180,7 +180,7 @@ namespace qk {
 		}
 		auto p = new FileSearch::ZipInSearchPath(_zip_path, _path);
 		if (p->open()) {
-			m_search_paths.push_back(p);
+			m_search_paths.pushBack(p);
 		} else {
 			delete p;
 		}
@@ -222,7 +222,7 @@ namespace qk {
 	}
 
 	bool FileSearch::searchPath(cString& path, String *outAbsolute) const {
-		if (path.is_empty()) {
+		if (path.isEmpty()) {
 			return false;
 		}
 		if (fs_is_local_zip(path)) { // abs path
@@ -258,7 +258,7 @@ namespace qk {
 	}
 
 	Buffer FileSearch::read(cString& path) const {
-		if (path.is_empty()) {
+		if (path.isEmpty()) {
 			return Buffer();
 		}
 		if (fs_is_local_zip(path)) { // zip pkg inner file

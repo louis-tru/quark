@@ -235,7 +235,7 @@ namespace qk {
 			}
 		}
 
-		if (agents.is_null() && follows.is_null()) {
+		if (agents.isNull() && follows.isNull()) {
 			return false; // no active agents
 		}
 

@@ -36,7 +36,7 @@
 #include <stdlib.h>
 
 namespace qk {
-	template<typename T = char, typename A = Allocator>
+	template<typename T = char>
 	class StringImpl;
 	typedef StringImpl<> String;
 	typedef const String cString;
@@ -267,6 +267,18 @@ namespace qk {
 	};
 
 	/**
+	 * @struct IsOrdinaryType
+	 * @brief Helper to determine if a type is an ordinary type (non-pointer).
+	*/
+	template <typename T> struct IsOrdinaryType {
+		static constexpr bool value = false;
+	};
+
+	template <typename T> struct IsOrdinaryType<T*> {
+		static constexpr bool value = true;
+	};
+
+	/**
 	 * @struct IsPointer
 	 * @brief Helper to determine if a type is a pointer and manage its retention.
 	*/
@@ -310,10 +322,24 @@ namespace qk {
 	 */
 	template<typename T>
 	inline void Releasep(std::atomic<T*>& obj) {
-		// auto v = obj.exchange(nullptr); // first set to nullptr
-		// IsPointer<T*>::Release(v); // then release
 		object_traits<T>::Release(obj.exchange(nullptr)); // release and set to nullptr
 	}
 
+	#define Qk_IsOrdinaryTypes(Fn) \
+		Fn(char) \
+		Fn(uint8_t) \
+		Fn(int16_t) \
+		Fn(uint16_t) \
+		Fn(int32_t) \
+		Fn(uint32_t) \
+		Fn(int64_t) \
+		Fn(uint64_t) \
+		Fn(float) \
+		Fn(double)
+
+	#define Qk_DefIsOrdinaryType(T) template<> struct IsOrdinaryType<T> { static constexpr bool value = true; };
+	Qk_DefIsOrdinaryType(bool)
+	Qk_IsOrdinaryTypes(Qk_DefIsOrdinaryType)
+	#undef Qk_DefIsOrdinaryType
 }
 #endif

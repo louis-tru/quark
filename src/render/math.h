@@ -278,16 +278,6 @@ namespace qk {
 		Vec2 round() const;
 
 		/**
-		 * @method min return min of two vector
-		 */
-		Vec2 min(const Vec2 &b) const;
-
-		/**
-		 * @method max return max of two vector
-		 */
-		Vec2 max(const Vec2 &b) const;
-
-		/**
 		 * @method floor return floor of vector
 		 */
 		Vec2 floor() const;
@@ -296,6 +286,16 @@ namespace qk {
 		 * @method ceil return ceil of vector
 		 */
 		Vec2 ceil() const;
+
+		/**
+		 * @method min return min of two vector
+		 */
+		Vec2 min(const Vec2 &b) const;
+
+		/**
+		 * @method max return max of two vector
+		 */
+		Vec2 max(const Vec2 &b) const;
 
 		/**
 		 * @method angleTo(to) return vector angle
@@ -319,8 +319,18 @@ namespace qk {
 	// ------------------------------------------
 
 	template<typename T> struct MRect { T begin,size; }; // rect
-	template<typename T> struct MRange { T begin,end;}; // range
-	template<typename T> struct MRegion { T begin,end,origin;}; // region
+	template<typename T> struct MRange { // range
+		T begin,end;
+		inline T size() const { return end - begin; }
+		// expand begin/end to integer values, useful for pixel coverage calculation
+		inline MRange expandToInteger() const;
+		// clip to another range, useful for pixel coverage calculation with a clip rect
+		inline MRange clip(const MRange &clip) const;
+	};
+	template<typename T> struct MRegion {
+		// range = (origin+begin, origin+end), size = end - begin
+		T begin,end,origin;
+	};
 	template<typename T> struct MLimitRange { T min,max; }; // limit range
 
 	typedef Vec<float,4>      Vec4; // typedef vec
@@ -333,6 +343,14 @@ namespace qk {
 	typedef Vec<int,4>        IVec4;
 	typedef MRect<IVec2>      IRect;
 
+	template<>
+	inline Range Range::expandToInteger() const {
+		return {begin.floor(), end.ceil()};
+	}
+	template<>
+	inline Range Range::clip(const Range &clip) const {
+		return {begin.max(clip.begin), end.min(clip.end)};
+	}
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const;
 	template<>
@@ -480,8 +498,9 @@ namespace qk {
 	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
 	Qk_EXPORT float math_sqrt(float x);
 
-	Qk_DEF_ARRAY_SPECIAL(Vec2);
-	Qk_DEF_ARRAY_SPECIAL(Vec3);
-	Qk_DEF_ARRAY_SPECIAL(Color);
+	template<> struct IsOrdinaryType<Vec2> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<Vec3> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<Vec4> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<Color> { static constexpr bool value = true; };
 }
 #endif

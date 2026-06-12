@@ -39,6 +39,9 @@ namespace qk {
 	static constexpr uint32_t kComputeAATileSize = 16;
 	static constexpr uint32_t kComputeAASampleGrid = 4;
 
+	struct AllocatorA: LinearAllocator {
+	};
+
 	enum ComputeAAFillRule: uint32_t {
 		kComputeAANonZero_FillRule = 0,
 		kComputeAAEvenOdd_FillRule = 1,
@@ -117,13 +120,23 @@ namespace qk {
 		Array<ComputeAABackdropRow> backdropRows;
 	};
 
+	// 配置以使用普通的平凡类型，这在容器中可以优化为不调用构造函数和析构函数。
+	template<> struct IsOrdinaryType<ComputeAAEdge> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<ComputeAATileEdge> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<ComputeAATile> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<ComputeAABackdropEvent> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<ComputeAABackdropRow> { static constexpr bool value = true; };
+	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
+	template<> struct AllocatorConfig<ComputeAAEdge> { static constexpr uint32_t kMinCapacity = 4; };
+	template<> struct AllocatorConfig<ComputeAATileEdge> { static constexpr uint32_t kMinCapacity = 4; };
+	template<> struct AllocatorConfig<ComputeAABackdropEvent> { static constexpr uint32_t kMinCapacity = 4; };
+
 	class MetalComputeAAPrototype {
 	public:
 		// Builds CPU-side buffers for the compute prototype. The path may contain
 		// curves; Path::getEdgeLines() flattens them first.
 		static ComputeAADrawData buildDrawData(const Path &path,
 			const Mat &viewMatrix,
-			Vec2 atlasPadding = Vec2(1.0f),
 			float flattenPrecision = 1.0f);
 
 #ifdef __OBJC__

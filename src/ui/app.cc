@@ -274,7 +274,7 @@ namespace qk {
 
 	void AppInl::add_delay_task(Cb cb) {
 		_delayTasksMutex.lock();
-		_delayTasks.push_back({cb,2});
+		_delayTasks.pushBack({cb,2});
 		_delayTasksMutex.unlock();
 	}
 

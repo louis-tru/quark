@@ -94,7 +94,7 @@ namespace qk {
 	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
 	{
 		auto img = new ImageSource(loop);
-		if (!uri.is_empty())
+		if (!uri.isEmpty())
 			img->_uri = fs_reader()->format(uri);
 		return img;
 	}
@@ -163,7 +163,7 @@ namespace qk {
 		if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
 			return false;
 
-		if (!_loop || _uri.is_empty()) // empty uri or loop null
+		if (!_loop || _uri.isEmpty()) // empty uri or loop null
 			return false;
 
 		_loop->post(Cb([this](auto e) { // to call from mt
@@ -619,10 +619,10 @@ namespace qk {
 	}
 
 	bool ImageSourceHold::set_src(String val) {
-		if (val.starts_with("data:image")) {
+		if (val.startsWith("data:image")) {
 			// data:image/png;base64,
 			// data:image/svg+xml;base64,
-			int base64Idx = val.last_index_of(";base64,", 32);
+			int base64Idx = val.lastIndexOf(";base64,", 32);
 			if (base64Idx == -1) {
 				Qk_Warn("Invalid data URI: %s", val.substr(0, 32).c_str());
 				return set_source(nullptr); // invalid data uri

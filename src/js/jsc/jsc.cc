@@ -113,7 +113,7 @@ namespace qk { namespace js {
 		int bufferSize = (int)JSStringGetMaximumUTF8CStringSize(value);
 		char* str = (char*)malloc(bufferSize);
 		int size = (int)JSStringGetUTF8CString(value, str, bufferSize);
-		return Buffer(str, size, bufferSize).collapse_string();
+		return Buffer(str, size, bufferSize).collapseString();
 	}
 
 	String jsToString(JSContextRef ctx, JSValueRef value) {
@@ -816,7 +816,7 @@ namespace qk { namespace js {
 			size_t len = JSStringGetLength(*s);
 			const JSChar* ch = JSStringGetCharactersPtr(*s);
 			auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(ch, len).buffer());
-			ret.push(buf.collapse_string());
+			ret.push(buf.collapseString());
 		}
 		Qk_ReturnLocal(ret);
 	}
@@ -869,17 +869,17 @@ namespace qk { namespace js {
 		DCHECK(isString());
 		ENV(w);
 		auto s = JsValueToStringCopy(ctx, Back(this), JsFatal("JSString::value()"));
-		size_t len = JSStringGetLength(*s);
+		auto len = (uint32_t)JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);
 		auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(ch, len).buffer());
-		return buf.collapse_string();
+		return buf.collapseString();
 	}
 
 	String2 JSString::value2(Worker* w) const {
 		DCHECK(isString());
 		ENV(w);
 		auto s = JsValueToStringCopy(ctx, Back(this), JsFatal("JSString::value2()"));
-		size_t len = JSStringGetLength(*s);
+		auto len = (uint32_t)JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);
 		return String2(ch, len);
 	}
@@ -888,10 +888,10 @@ namespace qk { namespace js {
 		DCHECK(isString());
 		ENV(w);
 		auto s = JsValueToStringCopy(ctx, Back(this), JsFatal("JSString::value4()"));
-		size_t len = JSStringGetLength(*s);
+		auto len = (uint32_t)JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);
 		auto str4 = codec_utf16_to_unicode(ArrayWeak<uint16_t>(ch, len).buffer());
-		return str4.collapse_string();
+		return str4.collapseString();
 	}
 
 	int JSArray::length() const {
@@ -973,7 +973,7 @@ namespace qk { namespace js {
 		DCHECK(isArrayBuffer());
 		ENV(w);
 		auto len = JSObjectGetArrayBufferByteLength(ctx, Back<JSObjectRef>(this), JsFatal("JSArrayBuffer::byteLength()"));
-		return len;
+		return (uint32_t)len;
 	}
 
 	Char* JSArrayBuffer::data(Worker* w) {
@@ -995,14 +995,14 @@ namespace qk { namespace js {
 		DCHECK(isTypedArray());
 		ENV(w);
 		auto len = JSObjectGetTypedArrayByteLength(ctx, Back<JSObjectRef>(this), JsFatal("JSTypedArray::byteLength()"));
-		return len;
+		return (uint32_t)len;
 	}
 
 	uint32_t JSTypedArray::byteOffset(Worker* w) const {
 		DCHECK(isTypedArray());
 		ENV(w);
 		auto off = JSObjectGetTypedArrayByteOffset(ctx, Back<JSObjectRef>(this), JsFatal("JSTypedArray::byteOffset()"));
-		return off;
+		return (uint32_t)off;
 	}
 
 	inline bool isSet(Worker* w, JSValue* val) {
@@ -1287,7 +1287,7 @@ namespace qk { namespace js {
 				sandboxRet += k + ',';
 			}
 			auto body = String::format("(function(__sandbox){%s; (function(){%s})(); return {%s}})",
-				*sandboxExpand, source.is_empty() ? *jsSource->value(this): *source, *sandboxRet
+				*sandboxExpand, source.isEmpty() ? *jsSource->value(this): *source, *sandboxRet
 			);
 			auto script = JsStringWithUTF8(*body);
 			auto func = JSEvaluateScript(ctx, *script, nullptr, *url, 1, OK(nullptr));
@@ -1298,7 +1298,7 @@ namespace qk { namespace js {
 			if (jsSource) {
 				script = JsValueToStringCopy(ctx, Back(jsSource), OK(nullptr));
 			} else {
-				DCHECK(!source.is_empty());
+				DCHECK(!source.isEmpty());
 				script = JsStringWithUTF8(*source);
 			}
 			DCHECK(script);

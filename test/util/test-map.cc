@@ -81,8 +81,8 @@ Qk_TEST_Func(map) {
 	map.set("AA9", "BB8");
 	map.set("AA0", "BB9");
 	List<String> list;
-	list.push_back("ABCD");
-	list.push_back("XXXX");
+	list.pushBack("ABCD");
+	list.pushBack("XXXX");
 	Array<String> arr;
 	arr.push("ABCD");
 	arr.push("KKKK");

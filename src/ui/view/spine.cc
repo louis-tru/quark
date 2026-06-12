@@ -112,7 +112,7 @@ namespace qk {
 
 	void Spine::set_skin(String val) {
 		_IfAutoMutex();
-		skel->_skeleton.setSkin(val.is_empty() ? nullptr: val.c_str());
+		skel->_skeleton.setSkin(val.isEmpty() ? nullptr: val.c_str());
 	}
 
 	void Spine::set_speed(float val) {
@@ -132,7 +132,7 @@ namespace qk {
 
 	void Spine::set_attachment(cString &slotName, cString &name) {
 		_IfAutoMutex();
-		skel->_skeleton.setAttachment(slotName.c_str(), name.is_empty() ? nullptr: name.c_str());
+		skel->_skeleton.setAttachment(slotName.c_str(), name.isEmpty() ? nullptr: name.c_str());
 	}
 
 	void Spine::set_default_mix(float val) {

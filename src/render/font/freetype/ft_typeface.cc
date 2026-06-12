@@ -358,7 +358,7 @@ bool Scanner::scanFont(
 			{ String("ultralight"), FontWeight::Ultralight },
 		});
 		FontWeight out;
-		if (commonWeights.get(String(psFontInfo.weight).lower_case(), out)) {
+		if (commonWeights.get(String(psFontInfo.weight).lowerCase(), out)) {
 			weight = out;
 		} else {
 			LOG_INFO("Do not know weight for: %s (%s) \n", face->family_name, psFontInfo.weight);

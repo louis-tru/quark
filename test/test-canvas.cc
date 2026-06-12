@@ -103,7 +103,7 @@ class TestCanvas0: public Box {
 			paint.stroke.color = Color4f(0,0,0);
 			paint.strokeWidth = 5;
 			paint.style = Paint::kStroke_Style;
-			if (textBlobs.is_null()) {
+			if (textBlobs.isNull()) {
 				TextOptions opts(shared_app()->defaultTextOptions());
 				opts.set_font_size({64});
 				opts.set_font_weight(FontWeight::Bold);

@@ -94,28 +94,8 @@ namespace qk {
 	Allocator::Allocator(void*(Allocator::*malloc)(uint32_t size),
 			void* (Allocator::*mrealloc)(void* ptr, uint32_t size),
 			void  (Allocator::*free)(void *ptr))
-		: _malloc(malloc), _mrealloc(mrealloc), _free(free) {}
-
-	/**
-	 * @brief Extend allocated memory if size exceeds current capacity.
-	 * @param self Pointer to the allocator
-	 * @param ptr Pointer wrapper holding memory and capacity
-	 * @param size Requested element count
-	 * @param sizeOf Size of each element
-	 */
-	static void Allocator_extend(Allocator* self, VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
-		// Capacity growth policy:
-		// - For small element types (<= 8 bytes), enforce minimum capacity of 4
-		//   to reduce realloc churn.
-		// - For large element types, do NOT enforce minimum capacity.
-		//   Typical size is often 1; extra capacity would be pure waste.
-		if (sizeOf <= kSmallTypeSize && size < kMinSmallCapacity)
-			size = kMinSmallCapacity; // minimum capacity for small types
-		size = upPow2(size);
-		ptr->val = self->mrealloc(ptr->val, sizeOf * size);
-		ptr->capacity = size;
-		Qk_ASSERT(ptr->val);
-	}
+		: _malloc(malloc), _mrealloc(mrealloc), _free(free)
+		, _prev(nullptr), _next(nullptr), _isLinearAllocator(false) {}
 
 	/**
 	 * @brief Shrinks allocated memory if usage is much smaller than capacity.
@@ -133,39 +113,43 @@ namespace qk {
 			size = Qk_Min(size, capacity);
 			ptr->val = size ? mrealloc(ptr->val, sizeOf * size): (free(ptr->val), nullptr);
 			ptr->capacity = size;
-			Qk_ASSERT(ptr->val);
+			Qk_ASSERT(ptr->val, "Reallocation failed during shrink");
 		}
 	}
 
 	/**
-	 * @brief Ensures capacity >= size by extending if needed.
+	 * @brief Extend allocated memory
 	 * @param ptr Pointer wrapper holding memory and capacity
 	 * @param size Requested element count
 	 * @param sizeOf Size of each element
 	 */
-	void Allocator::extend(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
-		if (size > ptr->capacity) {
-			Allocator_extend(this, ptr, size, sizeOf);
-		}
+	void Allocator::extend_(VoidPtr *ptr, uint32_t size, uint32_t sizeOf) {
+		size = upPow2(size);
+		ptr->val = mrealloc(ptr->val, sizeOf * size);
+		ptr->capacity = size;
+		Qk_ASSERT(ptr->val, "Reallocation failed during extend");
 	}
 
-	/**
-	 * @brief Adjusts capacity to fit size. 
-	 * - If size > capacity: extend
-	 * - Else: shrink if much smaller
-	 * @param ptr Pointer wrapper holding memory and capacity
-	 * @param size Requested element count
-	 * @param sizeOf Size of each element
-	 */
-	void Allocator::resize(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
-		if (size > ptr->capacity) {
-			Allocator_extend(this, ptr, size, sizeOf);
-		} else {
-			shrink(ptr, size, sizeOf);
+	Allocator Allocator::_shared; ///< Default global allocator instance
+	thread_local Allocator* Allocator::_current = &_shared; ///< Thread-local current allocator for push/pop.
+
+	void Allocator::pushAllocator(Allocator* allocator) {
+		Qk_CHECK(allocator != &_shared, "Cannot push the shared global allocator");
+		Qk_CHECK(!allocator->_prev && !allocator->_next, "Allocator must not already be in the stack");
+		allocator->_prev = _current;
+		if (_current != &_shared) {
+			_current->_next = allocator;
 		}
+		_current = allocator;
 	}
 
-	Allocator Allocator::_shared;
+	void Allocator::popAllocator() {
+		Qk_CHECK(_current != &_shared, "Cannot pop the shared global allocator");
+		auto cur = _current;
+		_current = cur->_prev;
+		_current->_next = nullptr;
+		cur->_prev = nullptr;
+	}
 
 	// ============================================================================
 	// LinearAllocator Implementation
@@ -179,7 +163,8 @@ namespace qk {
 		: Allocator((void*(Allocator::*)(uint32_t))&LinearAllocator::_malloc,
 			(void* (Allocator::*)(void*, uint32_t))&LinearAllocator::_mrealloc,
 			(void (Allocator::*)(void*))&LinearAllocator::_free)
-		, _head(nullptr), _current(nullptr), _lastPtr(nullptr) {
+		, _head(nullptr), _current(nullptr), _lastPtr(nullptr), _blocks(0), _capacity(0) {
+		_isLinearAllocator = true;
 		newBlock(initialSize);
 	}
 
@@ -205,9 +190,9 @@ namespace qk {
 
 		// If not enough space, move to or create a new block
 		if (_current->offset + allSize > _current->capacity) {
-			size_t newSize = _current->capacity * 2;
+			size_t newSize = _current->capacity << 1; // Double current block size
 			if (newSize < allSize) {
-				newSize = upPow2((uint32_t)allSize);
+				newSize = upPow2((uint32_t)allSize); // Ensure new block can fit requested size
 			}
 			addBlock(newSize);
 		}
@@ -251,7 +236,7 @@ namespace qk {
 			}
 		}
 
-		void* newPtr = malloc(size);
+		void* newPtr = _malloc(size);
 		::memcpy(newPtr, ptr, oldSize);
 		return newPtr;
 	}
@@ -291,6 +276,8 @@ namespace qk {
 		_head->offset = 0;
 		_current = _head;
 		_lastPtr = nullptr;
+		_blocks = 1;
+		_capacity = _head->capacity;
 	}
 
 	/**
@@ -312,6 +299,9 @@ namespace qk {
 			_current->next = block;
 			_current = block;
 		}
+
+		_blocks++;
+		_capacity += blockSize;
 	}
 
 	/**

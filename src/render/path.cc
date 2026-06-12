@@ -589,18 +589,33 @@ namespace qk {
 	}
 
 	void Path::transform(const Mat& matrix) {
-		if (_sealed) return;
-		if (matrix.is_identity_matrix()) return;
+		if (_sealed)
+			return;
+		if (matrix.is_identity_matrix())
+			return;
 		Vec2* pts = *_pts;
 		Vec2* e = pts + _pts.length();
-		while (pts < e) {
-			*pts = matrix * (*pts);
-			pts++;
+		if (matrix.is_translation_matrix()) { // only translate, no multiply
+			float tx = matrix.val[2],
+						ty = matrix.val[5];
+			while (pts < e) {
+				pts[0][0] += tx;
+				pts[0][1] += ty;
+				pts++;
+			}
+		} else {
+			while (pts < e) {
+				*pts = matrix * (*pts);
+				pts++;
+			}
 		}
 	}
 
 	void Path::scale(Vec2 scale) {
-		if (_sealed) return;
+		if (_sealed)
+			return;
+		if (scale == Vec2(1.0f))
+			return;
 		Vec2* pts = *_pts;
 		Vec2* e = pts + _pts.length();
 		while (pts < e) {

@@ -253,7 +253,7 @@ namespace qk {
 			lock.unlock();
 			WaitSelfEnd wait;
 			String name(t->name);
-			t->waitSelfEnd.push_back(&wait);
+			t->waitSelfEnd.pushBack(&wait);
 			t->mutex.unlock();
 			Qk_DLog("thread_join_for(), ..., %p, %s", id, name.c_str());
 			if (!wait.end)

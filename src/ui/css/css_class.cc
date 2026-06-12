@@ -119,7 +119,7 @@ namespace qk {
 
 		for (auto &j: name) {
 			auto s = j.trim();
-			if (!s.is_empty()) {
+			if (!s.isEmpty()) {
 				auto hash = CSSCName(s).hashCode();
 				// Filter out undefined and duplicate class names
 				if (hash != UndefinedHashCode && hashs->add(hash)) {
@@ -147,7 +147,7 @@ namespace qk {
 	void CStyleSheetsClass::add(cString &name) {
 		_IfHost(this);
 		auto name_ = name.trim();
-		if (name_.is_empty()) return;
+		if (name_.isEmpty()) return;
 		if (!_names.add(name_)) return; // already exists
 
 		_async_call([](auto self, auto hash) {
@@ -161,7 +161,7 @@ namespace qk {
 	void CStyleSheetsClass::remove(cString &name) {
 		_IfHost(this);
 		auto name_ = name.trim();
-		if (name_.is_empty()) return;
+		if (name_.isEmpty()) return;
 		if (!_names.erase(name_)) return; // not present
 		_async_call([](auto self, auto hash) {
 			_IfHost(self);
@@ -174,7 +174,7 @@ namespace qk {
 	bool CStyleSheetsClass::toggle(cString &name) {
 		_IfHost(this, false);
 		auto name_ = name.trim();
-		if (name_.is_empty()) return false;
+		if (name_.isEmpty()) return false;
 		if (_names.erase(name_)) { // removed
 			_async_call([](auto self, auto hash) {
 				_IfHost(self);

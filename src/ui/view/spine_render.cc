@@ -40,7 +40,7 @@ namespace qk {
 	{
 		if (_source)
 			_source->retain();
-		_triangles.verts = shared_allocator()->alloc<V3F_T2F_C4B_C4B>(vertCount);
+		_triangles.verts = sharedAllocator()->alloc<V3F_T2F_C4B_C4B>(vertCount);
 		_triangles.vertCount = vertCount;
 		_triangles.indices = triangles;
 		_triangles.indexCount = indexCount;
@@ -97,7 +97,7 @@ namespace qk {
 	}
 
 	AttachmentEx::~AttachmentEx() {
-		shared_allocator()->free(_triangles.verts);
+		sharedAllocator()->free(_triangles.verts);
 		if (_source)
 			_source->release();
 	}

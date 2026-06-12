@@ -54,7 +54,7 @@ namespace qk {
 	 * To save memory space, we separate the rendering related data
 	 * from the text lines data structure.
 	*/
-	class TextLinesCore: public Array<TextLine, Allocator, Reference> {
+	class TextLinesCore: public Array<TextLine, Reference> {
 		Qk_DISABLE_COPY(TextLinesCore);
 	public:
 		typedef TextLine Line;

@@ -208,6 +208,15 @@ atlas, and eventually moving more binning/backdrop work onto the GPU.
 The current algorithm and data contracts are documented in Chinese in
 `test/compute_aa/README.md`.
 
+The CPU construction pass has now been tightened around a thread-local
+`LinearAllocator`: temporary tile/backdrop buckets use arena-backed arrays,
+ordinary Compute AA records skip unnecessary construction/destruction, path
+translation has a multiply-free fast path, and edge/tile traversal avoids
+several repeated calculations. Treat CPU-side prototype optimization as mostly
+complete for now; the next profiling and optimization work should focus on GPU
+coverage/composition, dispatch shape, buffer upload/reuse, and reducing
+CPU-to-GPU synchronization.
+
 The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
 shader compilation was unavailable in the assistant sandbox because `xcrun`
 could not locate the separately installed Metal Toolchain; validate the visual

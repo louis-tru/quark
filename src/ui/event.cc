@@ -463,7 +463,7 @@ namespace qk {
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
 						if ( view->overlap_test(i->position) ) {
-							clipIn.push_back(*i);
+							clipIn.pushBack(*i);
 							in.erase(i++);
 						} else {
 							i++;
