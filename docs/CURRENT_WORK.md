@@ -279,9 +279,12 @@ The GPU-backdrop/private-delta single-variable experiment measured:
 
 This establishes shared `windingDelta[64][64]` as the major old Coverage
 bottleneck. GPU backdrop events are not free, but may be worth keeping to avoid
-CPU backdrop construction/upload. A smaller follow-up may isolate shared
-`insideMask` and the barrier. The larger architectural priority remains an
-edge-tile-only Compute AA path that avoids full-atlas coverage and composition.
+CPU backdrop construction/upload. Replacing shared `insideMask` and the barrier
+with private masks exchanged through simdgroup shuffles regressed total GPU
+time from `0.733-0.773ms` to `0.858-0.882ms`, despite retaining all 64 lanes in
+the write stage. Keep the shared mask/barrier baseline. The larger architectural
+priority remains an edge-tile-only Compute AA path that avoids full-atlas
+coverage and composition.
 
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
