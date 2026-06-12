@@ -56,6 +56,13 @@ struct ComputeAATile {
 	uint originY;
 };
 
+struct ComputeAAUniformTile {
+	uint originX;
+	uint originY;
+	int winding;
+	uint _pad;
+};
+
 struct ComputeAAParams {
 	uint width;
 	uint height;
@@ -88,6 +95,28 @@ static inline float qk_aa_edge_cross_x(float sampleY, const device ComputeAAEdge
 	return fma(sampleY - edge.p0.y, edge.dxdy, edge.p0.x);
 }
 
+kernel void qk_compute_aa_uniform_tiles(
+	constant ComputeAAParams &params [[buffer(0)]],
+	const device ComputeAAUniformTile *uniformTiles [[buffer(1)]],
+	texture2d<float, access::write> coverageTex [[texture(0)]],
+	uint tileIndex [[threadgroup_position_in_grid]],
+	uint threadIndex [[thread_index_in_threadgroup]])
+{
+	const device ComputeAAUniformTile &tile = uniformTiles[tileIndex];
+	float coverage = qk_aa_inside(tile.winding, params.fillRule) ? 1.0 : 0.0;
+	constexpr uint pixelCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_TILE_SIZE;
+	constexpr uint threadCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID;
+	for (uint pixelIndex = threadIndex; pixelIndex < pixelCount; pixelIndex += threadCount) {
+		uint2 pixel = uint2(
+			tile.originX + (pixelIndex & (QK_COMPUTE_AA_TILE_SIZE - 1)),
+			tile.originY + (pixelIndex >> 4)
+		);
+		if (pixel.x < params.width && pixel.y < params.height) {
+			coverageTex.write(float4(coverage, 0.0, 0.0, 1.0), pixel);
+		}
+	}
+}
+
 kernel void qk_compute_aa_coverage(
 	constant ComputeAAParams &params [[buffer(0)]],
 	const device ComputeAAEdge *edges [[buffer(1)]],
@@ -95,8 +124,9 @@ kernel void qk_compute_aa_coverage(
 	const device ComputeAATile *tiles [[buffer(3)]],
 	const device ComputeAABackdropEvent *backdropEvents [[buffer(4)]],
 	const device ComputeAABackdropRow *backdropRows [[buffer(5)]],
+	const device uint *boundaryTileIndices [[buffer(6)]],
 	texture2d<float, access::write> coverageTex [[texture(0)]],
-	uint2 tileId [[threadgroup_position_in_grid]],
+	uint boundaryTileIndex [[threadgroup_position_in_grid]],
 	uint threadIndex [[thread_index_in_threadgroup]])
 {
 	// 一个 threadgroup 使用 sampleCount 个线程，每个线程负责一条 local Y
@@ -110,15 +140,17 @@ kernel void qk_compute_aa_coverage(
 		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
 	];
 
-	const device ComputeAATile &tile = tiles[tileId.y * params.tileCountX + tileId.x];
+	const device ComputeAATile &tile = tiles[boundaryTileIndices[boundaryTileIndex]];
+	uint tileX = tile.originX >> 4;
+	uint tileY = tile.originY >> 4;
 	float invGrid = 1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID);
 	float sampleY = float(tile.originY) + (float(threadIndex) + 0.5) * invGrid;
 
-	const device ComputeAABackdropRow &row = backdropRows[tileId.y];
+	const device ComputeAABackdropRow &row = backdropRows[tileY];
 	int winding = 0;
 	for (uint i = 0; i < row.eventCount; i++) {
 		const device ComputeAABackdropEvent &event = backdropEvents[row.eventOffset + i];
-		if (event.firstTileX <= tileId.x &&
+		if (event.firstTileX <= tileX &&
 			threadIndex >= event.sampleBegin &&
 			threadIndex < event.sampleEnd)
 		{

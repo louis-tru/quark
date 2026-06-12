@@ -245,37 +245,30 @@ int y = ceilf(sampleY - 0.5f);
 - 复用 Metal buffer 和 coverage texture；
 - 统计每个 yTile 行的 backdrop event 数，评估 GPU event 扫描成本。
 
-### 当前公平对比分支
+### 实验分支总表
 
-当前分支：
+目前远端保存了 4 个 Compute AA 实验分支，都是后续选择方案时需要比较的
+候选结构。
 
-```text
-experiment/compute-aa-row-mask-render-composite
-```
+| 分支 | HEAD | Coverage / backdrop 结构 | 实测总 GPU 时间 | 状态 |
+| --- | --- | --- | --- | --- |
+| `experiment/compute-aa-row-mask` | `9bf955c3e` | GPU backdrop events；每 tile 64线程，每线程负责一条 Y sample；私有 `windingDelta[64]`；共享 `insideMask[64]` + 一次 barrier | `0.733-0.773ms` | 64线程 GPU-backdrop 基线 |
+| `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | CPU 二维差分与前缀和生成完整 backdrop；每 tile 16线程，两个 tile 配成 SIMD32；每线程负责一行像素；无共享 mask/barrier | 约 `0.60ms` | 当前最快，但增加 CPU 构建与上传 |
+| `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | 与 CPU-backdrop 分支相同的 16线程/双 tile 行累计结构，但每条 Y sample 在 GPU 扫描 backdrop events | `0.730-0.772ms` | 用于隔离 GPU backdrop 扫描成本 |
+| `experiment/compute-aa-boundary-tiles` | 当前工作分支 | CPU 分类边界/纯色 tile；独立 Compute pass 写满纯色 0/1；64线程 GRID kernel 只 dispatch 边界 tile | 待测 | 当前重大优化实验 |
 
-它用于重新测量共享 row-mask Coverage kernel 的纯成本：
+`experiment/compute-aa-row-mask` 原来保存过全共享/全 compute pass 版本，现已
+用更有价值的 64线程/private-delta 基线覆盖。全共享公平对比分支实测
+`1.194-1.274ms` 后已经删除，结果继续保留在下方性能结论中。
 
-- `sampleGrid = 4`；
-- GPU 扫描 backdrop events；
-- 每个 Y sample 线程遍历一次 tile edges；
-- 使用 threadgroup `windingDelta[64][64]`；
-- 使用 `insideMask[64]` 和一次 barrier；
-- 不使用 CPU 完整 backdrop；
-- 不使用线程私有 delta；
-- 删除 compute Clear 与 compute Composite；
-- 普通 Composite render pass 使用 `MTLLoadActionClear`，在同一个 pass 中
-  清屏、采样 coverage，并通过固定功能 premultiplied-alpha blending 合成。
+当前选择结论：
 
-因此该分支与 `experiment/compute-aa-cpu-backdrop` 的总 GPU 时间可以公平比较，
-差异主要来自 Coverage/backdrop/delta 结构，而不是额外 Clear/Composite pass。
-
-相关保存点：
-
-```text
-experiment/compute-aa-row-mask    706ec42bc
-experiment/compute-aa-cpu-backdrop 8e8e2682a
-experiment/compute-aa-gpu-backdrop-private-delta
-```
+- GPU 时间最快的是 CPU 完整 backdrop 分支，但它把压力转移到了 CPU 构建和
+  完整 backdrop buffer 上传。
+- 64线程/shared-mask 与 16线程/GPU-event 两个版本基本持平，说明只改变线程
+  组织、shared mask 和 barrier 并不能突破当前瓶颈。
+- 全共享 `windingDelta[64][64]` 路线已经确认不通过。
+- 最终保留哪个方案仍未决定；后续实验结束后再从四个候选中选择。
 
 ### 已验证的 GPU 性能结论
 
@@ -345,6 +338,92 @@ Compute AA GPU average: 0.858-0.882ms
 
 相比共享 mask + barrier 基线的 `0.733-0.773ms` 慢约 `14%-20%`。因此已撤回
 shuffle 版本；不要仅为删除这块共享 mask 和 barrier 再次采用该结构。
+
+## 下一阶段：解析面积 Coverage
+
+当前固定 GRID 算法的计算量和 coverage 级数都随 `sampleGrid²` 增长：
+
+```text
+4x4   -> 16 samples  -> 17 个 coverage 值
+16x16 -> 256 samples -> 257 个 coverage 值
+```
+
+因此继续提高 GRID 无法高效获得完整 8-bit 灰度。下一条主要质量研究路线是
+解析面积 coverage：边穿过像素时计算连续的有符号梯形面积和 cover delta，
+再沿 X 扫描得到 coverage。它不是 SDF，不计算到最近边的距离。
+
+现有的扁平有向边、tile 分桶和扫描线 fill-rule 语义仍可复用；需要替换的是
+离散 Y sample backdrop、`insideMask` 和固定子像素网格。解析版本的 incoming
+backdrop/cover 将是连续行状态，边在一行内跨过多个 X cell 时会为每个 cell
+产生局部面积贡献。
+
+这条路线的目标是让高质量计算量主要取决于边实际穿过的像素/cell，而不是
+全 atlas 像素数乘以 `sampleGrid²`。详细设计方向记录在
+`docs/GPU_2D_ANTIALIASING.md` 的 “Analytic Area Compute Coverage Direction”。
+
+## 重大优化方向：边界 Tile 与纯色 Tile
+
+对当前 GRID 和未来解析面积 coverage 都成立的关键结论：
+
+```text
+没有有效边界穿过的连续 tile，必然整体为空或整体为实心。
+```
+
+不可能存在“没有边界穿过，但 tile 内一半 inside、一半 outside”的第三种
+状态；inside/outside 的任何变化都必然需要跨过边界。
+
+CPU 构建阶段需要按当前 coverage 算法的语义分类：
+
+```text
+boundary tile -> 需要精确 coverage
+uniform outside tile -> R8 全部写 0
+uniform inside tile  -> R8 全部写 1
+```
+
+R8 coverage texture 必须始终完整。不能让 outside tile 保持未初始化，也不能
+让后续 Composite shader 额外理解“哪些 tile 有效”。后续可能有很多 paint /
+composite shader 依赖这张 R8，完整的 0..1 coverage 语义必须保持简单稳定。
+
+第一版正确执行模型是继续使用一个规则 Coverage compute pass：
+
+```text
+纯色 tile:
+    快速写满 0 或 1
+
+边界 tile:
+    执行昂贵 GRID coverage
+    或未来执行解析面积 coverage
+```
+
+纯色 tile 仍然写入 256 个 R8 texel，但不再遍历边、不求交、不扫描 GRID
+samples，也不需要额外 clear pass、稀疏 Composite、普通 render shader 或
+tile span 合并。只有边界 tile 执行昂贵算法。
+
+这可能是当前 GRID 路线剩余最大的性能突破，也是解析面积 coverage 的重要
+基础：未来连续面积计算同样只应运行于边界 tile，其他 tile 继续快速写完整
+的 0/1 coverage。
+
+### 当前边界 Tile 实验分支
+
+分支：
+
+```text
+experiment/compute-aa-boundary-tiles
+```
+
+它从 64线程/private-delta/shared-mask 基线创建，当前实现：
+
+- CPU 使用所有几何边标记 boundary tile，水平边只参与标记，不进入 winding
+  edge 列表；
+- CPU 将 boundary tile 压成紧凑索引列表；
+- CPU 使用 backdrop events 的代表 sample 为无边界 tile 计算整数 winding；
+- 独立 `Compute AA Uniform Tiles` pass 为无边界 tile 写满 0 或 1；
+- `Compute AA Boundary Coverage` pass 只 dispatch boundary tile，内部继续使用
+  原 64线程 GRID coverage；
+- Composite 仍读取语义完整的整张 R8 coverage texture。
+
+窗口标题会显示 `boundary` / `uniform` tile 数量。该版本仍需视觉验证和 GPU
+计时，重点观察独立纯色 pass 的固定成本是否低于跳过的大量 GRID coverage。
 
 ## 重要不变量
 

@@ -226,22 +226,30 @@ subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
 
 ### Compute AA Experiment Branches
 
-- `experiment/compute-aa-row-mask` at `706ec42bc`: saved GPU-backdrop-event
-  baseline with shared `windingDelta`, `insideMask`, barrier, and the older
-  compute clear/composite test passes.
-- `experiment/compute-aa-cpu-backdrop` at `8e8e2682a`: saved CPU-backdrop and
-  private-delta experiment. It also replaces compute clear/composite with one
-  normal render pass that clears and blends the coverage atlas. Latest measured
-  total was about `0.60ms`, versus about `0.20ms` for the AASide comparison.
-- `experiment/compute-aa-row-mask-render-composite`: active fair-comparison
-  branch. Coverage is intentionally restored to the GPU-backdrop-event/shared
-  row-mask implementation from `706ec42bc`, with `sampleGrid=4`. Only the test
-  presentation path is modernized: compute clear/composite are replaced by one
-  render clear+composite pass. Use this branch to measure the original shared
-  Coverage kernel without unrelated pass overhead.
-- `experiment/compute-aa-gpu-backdrop-private-delta`: keeps GPU backdrop events,
-  shared `insideMask`, and the barrier, but replaces shared
-  `windingDelta[64][64]` with a private `windingDelta[64]` per Y-sample thread.
+There are four saved remote experiment branches:
+
+| Branch | Head | Purpose / structure | Measured total |
+| --- | --- | --- | --- |
+| `experiment/compute-aa-row-mask` | `9bf955c3e` | Current 64-thread GPU-backdrop baseline: one thread per Y sample, private `windingDelta[64]`, shared `insideMask[64]`, one barrier, render-pass composite. | `0.733-0.773ms` |
+| `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Fastest result so far: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
+| `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | Same 16-thread/two-tile row-coverage structure as the CPU-backdrop branch, but each Y sample scans compact GPU backdrop events instead of reading a CPU-built complete backdrop. | `0.730-0.772ms` |
+| `experiment/compute-aa-boundary-tiles` | working branch | CPU classifies boundary/uniform tiles; a separate compute pass writes uniform 0/1 tiles, and the 64-thread GRID kernel dispatches only boundary tiles. | pending |
+
+The old `experiment/compute-aa-row-mask` all-shared branch head was deliberately
+replaced with the useful 64-thread/private-delta baseline. The rejected
+all-shared comparison branch was deleted after measuring `1.194-1.274ms`;
+its result remains documented below.
+
+Selection status:
+
+- Fastest GPU time: `experiment/compute-aa-cpu-backdrop`, at the cost of more
+  CPU construction and a larger complete-backdrop upload.
+- Lowest CPU backdrop work among current candidates:
+  `experiment/compute-aa-row-mask` and
+  `experiment/compute-aa-gpu-backdrop-private-delta`.
+- The 64-thread/shared-mask and 16-thread/GPU-event versions are effectively
+  tied, so thread organization alone is not the deciding factor.
+- The final branch/approach has not been selected yet.
 
 Do not compare old total-frame numbers directly unless clear/composite use the
 same render-pass structure. Xcode GPU Capture labels the two remaining stages
@@ -285,6 +293,30 @@ time from `0.733-0.773ms` to `0.858-0.882ms`, despite retaining all 64 lanes in
 the write stage. Keep the shared mask/barrier baseline. The larger architectural
 priority remains an edge-tile-only Compute AA path that avoids full-atlas
 coverage and composition.
+
+The next quality-oriented Compute AA direction is analytic signed-area
+coverage. It should replace fixed `N*N` inside samples with continuous
+edge/cell area plus cover accumulation, while retaining flattened directed
+edges, tile binning, scanline fill rules, and an incoming row-cover concept.
+This is not SDF rendering. Keep the current GRID branches as comparison
+baselines; avoid deep GRID micro-optimization before testing an analytic-area
+reference. Detailed notes are in `docs/GPU_2D_ANTIALIASING.md`.
+
+A major shared breakthrough for GRID and analytic-area coverage is explicit
+boundary-tile classification. A tile with no effective boundary crossing is
+topologically uniform: all outside or all inside. Keep one complete R8 coverage
+texture and one regular Coverage compute pass; uniform tiles cheaply write all
+0 or all 1, while only boundary tiles run expensive coverage. Do not leave
+outside tiles uninitialized or leak sparse-valid-tile semantics into later
+composite shaders. Detailed rationale is recorded in
+`docs/GPU_2D_ANTIALIASING.md`.
+
+The active `experiment/compute-aa-boundary-tiles` working branch implements
+the first version of that design from the 64-thread baseline. CPU geometry
+marks boundary tiles including horizontal edges; horizontal edges remain
+excluded from winding edges. A separate uniform-tile compute pass writes full
+0/1 coverage, and the original 64-thread GRID kernel dispatches only a compact
+boundary-tile index list. Visual validation and GPU timing are pending.
 
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`

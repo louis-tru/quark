@@ -658,3 +658,154 @@ tile-row/Y-subsample. This removes the original correctness-first behavior of
 copying every edge into every tile to its right. The next optimization target
 is reducing rebuild/allocation/upload cost rather than changing the core
 winding algorithm.
+
+## Analytic Area Compute Coverage Direction
+
+The fixed-grid prototype is a useful baseline, but its quality and cost both
+scale with the number of discrete samples:
+
+```text
+sampleGrid = N
+per-pixel sample work ~= N * N
+coverage levels = N * N + 1
+```
+
+A `4x4` grid produces only 17 coverage values. A `16x16` grid reaches full
+8-bit coverage resolution, but requires 256 samples per pixel and is not a
+practical general solution.
+
+The next high-quality Compute AA direction should investigate **analytic signed
+area coverage**. It is not SDF rendering:
+
+- SDF searches for the nearest edge distance.
+- Fixed-grid coverage tests many discrete points for inside/outside.
+- Analytic area coverage clips each directed edge against crossed pixels/cells
+  and accumulates continuous signed area plus cover deltas.
+
+Conceptual flow:
+
+```text
+flattened directed edges
+  -> bin edges into tiles / pixel rows
+  -> clip an edge across crossed X cells
+  -> accumulate per-cell signed area and cover delta
+  -> scan X using incoming row cover/backdrop
+  -> resolve fill rule and write continuous coverage
+```
+
+Potential advantages:
+
+- One edge/cell area contribution can replace many discrete subpixel tests.
+- Floating-point coverage naturally uses the full final `R8` range.
+- Expensive work can be proportional to boundary crossings rather than full
+  atlas pixels multiplied by `sampleGrid * sampleGrid`.
+- Fully outside regions can be skipped and fully inside spans can be filled
+  from scanline cover state.
+
+Useful parts of the current prototype remain: flattened directed line edges,
+tile/tile-row binning, scanline fill-rule semantics, and an incoming left-side
+cover/backdrop concept. The current integer winding per discrete Y sample,
+`insideMask`, fixed sample grid, and sample delta representation must change.
+Analytic rows need continuous incoming cover state, and a sloped edge can
+contribute signed trapezoid area to several X cells in one pixel row.
+
+The main implementation risks are efficient accumulation when multiple edges
+touch the same cell, avoiding atomics/threadgroup memory as a new bottleneck,
+and preserving fill-rule/self-intersection/shared-vertex semantics across tile
+boundaries.
+
+Recommended first prototype:
+
+1. Build a CPU reference for directed line segments crossing one pixel row.
+2. Compare continuous cell coverage numerically against high-resolution
+   supersampling for simple polygons, holes, self-intersections, and fill rules.
+3. Move only tile-local analytic cell accumulation to Metal.
+4. Compare quality and GPU cost against the current `4x4` GRID branches.
+5. Investigate edge-only tile dispatch and interior-span filling after the
+   analytic data contract is proven.
+
+Treat analytic area Compute AA as the primary future quality breakthrough
+candidate. Keep the GRID implementation as its correctness/performance
+comparison baseline rather than continuing deep GRID micro-optimization.
+
+## Boundary-Tile Coverage Breakthrough
+
+The major shared optimization opportunity for both fixed-GRID and future
+analytic-area coverage is to distinguish **boundary tiles** from **uniform
+tiles** before expensive coverage evaluation.
+
+Topological invariant:
+
+```text
+if no effective path boundary crosses a connected tile:
+    the whole tile is outside, or
+    the whole tile is inside
+```
+
+A tile with no boundary crossing cannot contain both inside and outside
+regions. Any transition between them would itself require a boundary crossing.
+Therefore there is no third "partially filled but boundary-free" tile class.
+
+For the current GRID rasterizer, CPU construction already has the information
+needed to classify whether a tile requires local edge/sample correction and,
+with backdrop/fill-rule state, whether a uniform tile is all outside or all
+inside. The exact classification contract must match the active coverage
+algorithm: an edge that has no effect on any GRID sample does not require GRID
+coverage work, while an analytic-area implementation must classify actual
+continuous boundary crossings.
+
+The coverage texture contract is equally important:
+
+```text
+outside uniform tile -> every R8 texel must be 0
+inside uniform tile  -> every R8 texel must be 1
+boundary tile        -> every R8 texel receives calculated coverage
+```
+
+The R8 coverage texture must remain complete and independently sampleable by
+all later composition shaders. Do not leave skipped tiles uninitialized, and
+do not require downstream shaders to know a separate valid-tile map. That
+would complicate every future paint/composite path and weaken the meaning of
+the coverage texture.
+
+Recommended first execution model:
+
+```text
+one regular Coverage compute pass over all tiles
+
+uniform tile:
+    run a very cheap fast path that writes 0 or 1 to all tile pixels
+
+boundary tile:
+    run expensive fixed-GRID or analytic-area coverage
+```
+
+This preserves:
+
+- one complete R8 texture;
+- one simple downstream composition contract;
+- regular compute dispatch organization;
+- no extra coverage clear pass;
+- no requirement to merge interior/exterior tile spans;
+- no dependency on ordinary render shaders for correctness.
+
+It also changes the dominant work from "expensive coverage for every tile in
+the atlas bounds" to "expensive coverage only for tiles touched by the
+effective boundary". Uniform tiles still write their texels, but skip edge
+iteration, intersection work, sample-grid scans, or analytic cell-area work.
+
+This is potentially the largest remaining performance improvement for the
+current GRID route because the test path contains many uniform tiles. It is
+also foundational for analytic-area coverage: the continuous-area algorithm
+should only run on boundary tiles, while the same uniform-tile fast path writes
+complete 0/1 coverage elsewhere.
+
+Do not conflate this optimization with:
+
+- geometric boolean reconstruction of a body mesh;
+- skipping outside tile writes and relying on uninitialized R8 data;
+- composing only a sparse subset of tiles;
+- merging uniform tiles into spans inside the compute pass.
+
+Those are separate architectural choices and are not required for the first
+boundary-tile experiment.

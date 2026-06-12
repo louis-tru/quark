@@ -17,6 +17,111 @@
 
 namespace qk {
 
+	static bool clip_boundary_line(Vec2 &p0, Vec2 &p1, Vec2 size) {
+		float t0 = 0.0f, t1 = 1.0f;
+		Vec2 d = p1 - p0;
+		auto clip = [&](float p, float q) {
+			if (p == 0.0f)
+				return q >= 0.0f;
+			float r = q / p;
+			if (p < 0.0f) {
+				if (r > t1) return false;
+				t0 = std::max(t0, r);
+			} else {
+				if (r < t0) return false;
+				t1 = std::min(t1, r);
+			}
+			return true;
+		};
+		if (!clip(-d.x(), p0.x()) || !clip(d.x(), size.x() - p0.x()) ||
+			!clip(-d.y(), p0.y()) || !clip(d.y(), size.y() - p0.y()))
+			return false;
+		Vec2 start = p0;
+		p0 = start + d * t0;
+		p1 = start + d * t1;
+		return true;
+	}
+
+	static void mark_boundary_tiles(ComputeAADrawData &out, const Array<Vec2> &lines,
+		Array<uint8_t> &boundary)
+	{
+		boundary.reset(out.tileCountX * out.tileCountY);
+		memset(boundary.val(), 0, boundary.length());
+		Vec2 size = out.atlasSize;
+		auto mark = [&](int tx, int ty) {
+			if (tx >= 0 && tx < int(out.tileCountX) &&
+				ty >= 0 && ty < int(out.tileCountY))
+				boundary[ty * out.tileCountX + tx] = 1;
+		};
+		auto tile_x = [&](float x) {
+			return std::min(int(x / kComputeAATileSize), int(out.tileCountX) - 1);
+		};
+		auto tile_y = [&](float y) {
+			return std::min(int(y / kComputeAATileSize), int(out.tileCountY) - 1);
+		};
+
+		for (uint32_t i = 1; i < lines.length(); i += 2) {
+			Vec2 p0 = lines[i-1] - out.bounds.begin;
+			Vec2 p1 = lines[i] - out.bounds.begin;
+			if (!clip_boundary_line(p0, p1, size))
+				continue;
+
+			float dx = p1.x() - p0.x();
+			float dy = p1.y() - p0.y();
+			if (dy == 0.0f) {
+				int ty = tile_y(p0.y());
+				int tx0 = tile_x(std::min(p0.x(), p1.x()));
+				int tx1 = tile_x(std::max(p0.x(), p1.x()));
+				bool onTileBoundary = fmodf(p0.y(), float(kComputeAATileSize)) == 0.0f;
+				for (int tx = tx0; tx <= tx1; tx++) {
+					mark(tx, ty);
+					if (onTileBoundary)
+						mark(tx, ty - 1);
+				}
+				continue;
+			}
+			if (dx == 0.0f) {
+				int tx = tile_x(p0.x());
+				int ty0 = tile_y(std::min(p0.y(), p1.y()));
+				int ty1 = tile_y(std::max(p0.y(), p1.y()));
+				bool onTileBoundary = fmodf(p0.x(), float(kComputeAATileSize)) == 0.0f;
+				for (int ty = ty0; ty <= ty1; ty++) {
+					mark(tx, ty);
+					if (onTileBoundary)
+						mark(tx - 1, ty);
+				}
+				continue;
+			}
+
+			int tx = tile_x(p0.x()), ty = tile_y(p0.y());
+			int endTx = tile_x(p1.x()), endTy = tile_y(p1.y());
+			int stepX = dx > 0.0f ? 1 : -1;
+			int stepY = dy > 0.0f ? 1 : -1;
+			float nextX = float((stepX > 0 ? tx + 1 : tx) * kComputeAATileSize);
+			float nextY = float((stepY > 0 ? ty + 1 : ty) * kComputeAATileSize);
+			float tMaxX = (nextX - p0.x()) / dx;
+			float tMaxY = (nextY - p0.y()) / dy;
+			float tDeltaX = float(kComputeAATileSize) / fabsf(dx);
+			float tDeltaY = float(kComputeAATileSize) / fabsf(dy);
+			mark(tx, ty);
+			while (tx != endTx || ty != endTy) {
+				if (tMaxX < tMaxY) {
+					tx += stepX;
+					tMaxX += tDeltaX;
+				} else if (tMaxY < tMaxX) {
+					ty += stepY;
+					tMaxY += tDeltaY;
+				} else {
+					tx += stepX;
+					ty += stepY;
+					tMaxX += tDeltaX;
+					tMaxY += tDeltaY;
+				}
+				mark(tx, ty);
+			}
+		}
+	}
+
 	template<bool NeedClip>
 	static void append_edges(ComputeAADrawData &out, Array<Vec2> &lines) {
 		auto begin = out.bounds.begin,
@@ -67,7 +172,7 @@ namespace qk {
 		}
 	};
 
-	static void build_tile_edges(ComputeAADrawData &out) {
+	static void build_tile_edges(ComputeAADrawData &out, const Array<uint8_t> &boundary) {
 		// 临时数组按 tile / tile-row 分桶，最后再压平为连续 GPU buffer。
 		// 这里的小 Array 分配必需使用线性分配器，后续直接丢弃整个数组，无需逐个调用析构函数。
 		TileScratchs scratch;
@@ -196,11 +301,24 @@ namespace qk {
 		}
 
 		out.backdropRows.reset(out.tileCountY);
+		out.boundaryTileIndices.clear();
+		out.uniformTiles.clear();
 		// 临时分桶数据压平为连续数组，供 Metal buffer 直接上传。
 		uint32_t tileRowOffset = 0;
 		for (uint32_t ty = 0, originY = 0; ty < out.tileCountY; ty++) {
+			Array<int32_t> tileWinding;
+			tileWinding.reset(out.tileCountX + 1);
+			memset(tileWinding.val(), 0, tileWinding.length() * sizeof(int32_t));
+			const int representativeSample = tileSampleCount >> 1;
+			for (auto &event : backdropScratch[ty].events) {
+				if (representativeSample >= event.sampleBegin &&
+					representativeSample < event.sampleEnd)
+					tileWinding[event.firstTileX] += event.winding;
+			}
+			int32_t winding = 0;
 			for (uint32_t tx = 0, originX = 0; tx < out.tileCountX; tx++) {
-				auto &tile = out.tiles[tileRowOffset + tx];
+				uint32_t tileIndex = tileRowOffset + tx;
+				auto &tile = out.tiles[tileIndex];
 				auto &src = scratch[tileRowOffset + tx].edges;
 				out.tiles[tileRowOffset + tx] = {
 					.edgeOffset=out.tileEdges.length(),
@@ -209,6 +327,13 @@ namespace qk {
 					.originY=originY
 				};
 				out.tileEdges.write(src.val(), src.length());
+				winding += tileWinding[tx];
+				if (boundary[tileIndex]) {
+					out.boundaryTileIndices.push(tileIndex);
+				} else {
+					Qk_ASSERT(!src.length(), "uniform tile should not contain coverage edges");
+					out.uniformTiles.push({originX, originY, winding, 0});
+				}
 				originX += kComputeAATileSize;
 			}
 			auto &events = backdropScratch[ty].events;
@@ -242,6 +367,8 @@ namespace qk {
 		out.atlasSize = out.bounds.size(); // 目前直接使用 bounds 大小作为 atlas 大小
 		out.tileCountX = ceilf(out.atlasSize.x()/kComputeAATileSize);
 		out.tileCountY = ceilf(out.atlasSize.y()/kComputeAATileSize);
+		Array<uint8_t> boundary;
+		mark_boundary_tiles(out, lines, boundary);
 
 		if (bounds.begin.y() < out.bounds.begin.y() || bounds.end.y() > out.bounds.end.y()
 			|| bounds.end.x() > out.bounds.end.x()
@@ -250,18 +377,19 @@ namespace qk {
 		} else { // 所有线段都在边界内，无需裁剪，直接添加
 			append_edges<false>(out, lines);
 		}
-		build_tile_edges(out);
+		build_tile_edges(out, boundary);
 		return out;
 	}
 
 	bool MetalComputeAAPrototype::encodeCoverage(id<MTLDevice> device,
 		id<MTLCommandBuffer> commandBuffer,
+		id<MTLComputePipelineState> uniformPipeline,
 		id<MTLComputePipelineState> coveragePipeline,
 		id<MTLTexture> coverageTexture,
 		const ComputeAADrawData &drawData,
 		ComputeAAFillRule fillRule)
 	{
-		if (!device || !commandBuffer || !coveragePipeline || !coverageTexture ||
+		if (!device || !commandBuffer || !uniformPipeline || !coveragePipeline || !coverageTexture ||
 			!drawData.edges.length() || !drawData.tiles.length())
 			return false;
 
@@ -272,6 +400,10 @@ namespace qk {
 			drawData.backdropEvents.length() * sizeof(ComputeAABackdropEvent);
 		auto backdropRowBytes =
 			drawData.backdropRows.length() * sizeof(ComputeAABackdropRow);
+		auto boundaryTileIndexBytes =
+			drawData.boundaryTileIndices.length() * sizeof(uint32_t);
+		auto uniformTileBytes =
+			drawData.uniformTiles.length() * sizeof(ComputeAAUniformTile);
 		id<MTLBuffer> edges = [device newBufferWithBytes:drawData.edges.val()
 				length:edgeBytes options:MTLResourceStorageModeShared];
 		id<MTLBuffer> indices = indexBytes ?
@@ -288,6 +420,16 @@ namespace qk {
 				options:MTLResourceStorageModeShared];
 		id<MTLBuffer> backdropRows = [device newBufferWithBytes:drawData.backdropRows.val()
 				length:backdropRowBytes options:MTLResourceStorageModeShared];
+		id<MTLBuffer> boundaryTileIndices = boundaryTileIndexBytes ?
+			[device newBufferWithBytes:drawData.boundaryTileIndices.val()
+				length:boundaryTileIndexBytes options:MTLResourceStorageModeShared]:
+			[device newBufferWithLength:sizeof(uint32_t)
+				options:MTLResourceStorageModeShared];
+		id<MTLBuffer> uniformTiles = uniformTileBytes ?
+			[device newBufferWithBytes:drawData.uniformTiles.val()
+				length:uniformTileBytes options:MTLResourceStorageModeShared]:
+			[device newBufferWithLength:sizeof(ComputeAAUniformTile)
+				options:MTLResourceStorageModeShared];
 
 		ComputeAAParams params = {};
 		params.width = uint32_t(drawData.atlasSize.x());
@@ -297,21 +439,34 @@ namespace qk {
 		params.fillRule = fillRule;
 		params.sampleGrid = kComputeAASampleGrid;
 
-		auto enc = [commandBuffer computeCommandEncoder];
-		enc.label = @"Compute AA Coverage";
-		[enc setComputePipelineState:coveragePipeline];
-		[enc setBytes:&params length:sizeof(params) atIndex:0];
-		[enc setBuffer:edges offset:0 atIndex:1];
-		[enc setBuffer:indices offset:0 atIndex:2];
-		[enc setBuffer:tiles offset:0 atIndex:3];
-		[enc setBuffer:backdropEvents offset:0 atIndex:4];
-		[enc setBuffer:backdropRows offset:0 atIndex:5];
-		[enc setTexture:coverageTexture atIndex:0];
-
 		MTLSize tg = MTLSizeMake(kComputeAATileSize * kComputeAASampleGrid, 1, 1);
-		MTLSize groups = MTLSizeMake(params.tileCountX, params.tileCountY, 1);
-		[enc dispatchThreadgroups:groups threadsPerThreadgroup:tg];
-		[enc endEncoding];
+		if (drawData.uniformTiles.length()) {
+			auto enc = [commandBuffer computeCommandEncoder];
+			enc.label = @"Compute AA Uniform Tiles";
+			[enc setComputePipelineState:uniformPipeline];
+			[enc setBytes:&params length:sizeof(params) atIndex:0];
+			[enc setBuffer:uniformTiles offset:0 atIndex:1];
+			[enc setTexture:coverageTexture atIndex:0];
+			[enc dispatchThreadgroups:MTLSizeMake(drawData.uniformTiles.length(), 1, 1)
+				threadsPerThreadgroup:tg];
+			[enc endEncoding];
+		}
+		if (drawData.boundaryTileIndices.length()) {
+			auto enc = [commandBuffer computeCommandEncoder];
+			enc.label = @"Compute AA Boundary Coverage";
+			[enc setComputePipelineState:coveragePipeline];
+			[enc setBytes:&params length:sizeof(params) atIndex:0];
+			[enc setBuffer:edges offset:0 atIndex:1];
+			[enc setBuffer:indices offset:0 atIndex:2];
+			[enc setBuffer:tiles offset:0 atIndex:3];
+			[enc setBuffer:backdropEvents offset:0 atIndex:4];
+			[enc setBuffer:backdropRows offset:0 atIndex:5];
+			[enc setBuffer:boundaryTileIndices offset:0 atIndex:6];
+			[enc setTexture:coverageTexture atIndex:0];
+			[enc dispatchThreadgroups:MTLSizeMake(drawData.boundaryTileIndices.length(), 1, 1)
+				threadsPerThreadgroup:tg];
+			[enc endEncoding];
+		}
 		return true;
 	}
 

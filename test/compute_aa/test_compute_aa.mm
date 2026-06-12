@@ -47,6 +47,7 @@ static Path make_compute_aa_path(float t) {
 	CAMetalLayer *_layer;
 	id<MTLDevice> _device;
 	id<MTLCommandQueue> _queue;
+	id<MTLComputePipelineState> _uniformPipeline;
 	id<MTLComputePipelineState> _coveragePipeline;
 	id<MTLRenderPipelineState> _compositePipeline;
 	LinearAllocator _alloc;
@@ -84,6 +85,7 @@ static Path make_compute_aa_path(float t) {
 		NSLog(@"Compute AA Metal shader error: %@", err);
 		return self;
 	}
+	_uniformPipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_uniform_tiles"] error:&err];
 	_coveragePipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_coverage"] error:&err];
 	MTLRenderPipelineDescriptor *compositeDesc = [MTLRenderPipelineDescriptor new];
 	compositeDesc.label = @"Compute AA Composite Pipeline";
@@ -97,7 +99,7 @@ static Path make_compute_aa_path(float t) {
 	colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
 	colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 	_compositePipeline = [_device newRenderPipelineStateWithDescriptor:compositeDesc error:&err];
-	if (!_coveragePipeline || !_compositePipeline) {
+	if (!_uniformPipeline || !_coveragePipeline || !_compositePipeline) {
 		NSLog(@"Compute AA pipeline error: %@", err);
 	}
 
@@ -118,7 +120,7 @@ static Path make_compute_aa_path(float t) {
 }
 
 - (void)drawFrame {
-	if (!_device || !_queue || !_coveragePipeline || !_compositePipeline)
+	if (!_device || !_queue || !_uniformPipeline || !_coveragePipeline || !_compositePipeline)
 		return;
 
 	id<CAMetalDrawable> drawable = [_layer nextDrawable];
@@ -145,7 +147,8 @@ static Path make_compute_aa_path(float t) {
 
 	id<MTLCommandBuffer> cmd = [_queue commandBuffer];
 	cmd.label = @"Compute AA Frame";
-	MetalComputeAAPrototype::encodeCoverage(_device, cmd, _coveragePipeline, coverage, data, kComputeAAEvenOdd_FillRule);
+	MetalComputeAAPrototype::encodeCoverage(_device, cmd, _uniformPipeline,
+		_coveragePipeline, coverage, data, kComputeAAEvenOdd_FillRule);
 	Vec2 origin(
 		(float(drawable.texture.width) - data.atlasSize.x()) * 0.5f,
 		(float(drawable.texture.height) - data.atlasSize.y()) * 0.5f
@@ -171,8 +174,9 @@ static Path make_compute_aa_path(float t) {
 	[cmd commit];
 
 	self.window.title = [NSString stringWithFormat:
-		@"Compute AA prototype - edges:%u tiles:%u atlas:%ux%u",
-		data.edges.length(), data.tiles.length(), uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
+		@"Compute AA prototype - edges:%u boundary:%u uniform:%u atlas:%ux%u",
+		data.edges.length(), data.boundaryTileIndices.length(), data.uniformTiles.length(),
+		uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
 }
 
 @end

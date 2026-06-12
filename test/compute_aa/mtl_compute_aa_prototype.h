@@ -96,6 +96,15 @@ namespace qk {
 	static_assert(sizeof(ComputeAATile) == sizeof(uint32_t) * 4,
 		"Metal tile ABI mismatch");
 
+	struct alignas(16) ComputeAAUniformTile {
+		uint32_t originX;
+		uint32_t originY;
+		int32_t winding;
+		uint32_t _pad;
+	};
+	static_assert(sizeof(ComputeAAUniformTile) == sizeof(uint32_t) * 4,
+		"Metal uniform-tile ABI mismatch");
+
 	struct alignas(16) ComputeAAParams {
 		uint32_t width;
 		uint32_t height;
@@ -120,6 +129,8 @@ namespace qk {
 		Array<ComputeAAEdge> edges;
 		Array<ComputeAATileEdge> tileEdges;
 		Array<ComputeAATile> tiles;
+		Array<uint32_t> boundaryTileIndices;
+		Array<ComputeAAUniformTile> uniformTiles;
 		Array<ComputeAABackdropEvent> backdropEvents;
 		Array<ComputeAABackdropRow> backdropRows;
 	};
@@ -128,6 +139,7 @@ namespace qk {
 	template<> struct IsOrdinaryType<ComputeAAEdge> { static constexpr bool value = true; };
 	template<> struct IsOrdinaryType<ComputeAATileEdge> { static constexpr bool value = true; };
 	template<> struct IsOrdinaryType<ComputeAATile> { static constexpr bool value = true; };
+	template<> struct IsOrdinaryType<ComputeAAUniformTile> { static constexpr bool value = true; };
 	template<> struct IsOrdinaryType<ComputeAABackdropEvent> { static constexpr bool value = true; };
 	template<> struct IsOrdinaryType<ComputeAABackdropRow> { static constexpr bool value = true; };
 	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
@@ -148,6 +160,7 @@ namespace qk {
 		// for qk_compute_aa_coverage in compute_aa_prototype.metal.
 		static bool encodeCoverage(id<MTLDevice> device,
 			id<MTLCommandBuffer> commandBuffer,
+			id<MTLComputePipelineState> uniformPipeline,
 			id<MTLComputePipelineState> coveragePipeline,
 			id<MTLTexture> coverageTexture,
 			const ComputeAADrawData &drawData,
