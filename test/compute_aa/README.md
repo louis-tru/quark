@@ -91,7 +91,7 @@ sampleGridY     = edge 在 X=10 时的离散 sample
 
 ### `ComputeAAEdge`
 
-原始展平直线边。保存几何端点、Y 半开范围 `[minY, maxY)` 和 winding。
+原始展平直线边。保存几何端点、CPU 预计算的 `dx/dy` 和 winding。
 
 水平边不进入列表，因为水平扫描线算法不需要它们。
 
@@ -153,36 +153,50 @@ CPU 只追加这条记录，不展开写入右侧所有 tile。
 
 ## GPU Coverage 流程
 
-一个 Metal threadgroup 对应一个 `16x16` tile。
+一个 Metal threadgroup 对应一个 `16x16` tile，并使用
+`16 * sampleGrid` 个线程。
 
-### 1. 解析 backdrop
+### 1. 生成 sample inside mask
 
-前 `16 * sampleGrid` 个线程各自负责一个 local Y sample：
+`16 * sampleGrid` 个线程各自负责一个 local Y sample 行：
 
 ```text
 扫描当前 yTile 行的 backdrop events
 累加 firstTileX <= 当前 tileX 的 winding
-写入 threadgroup backdrop 数组
+每条局部边只计算一次与当前 Y sample 的 X 交点
+沿 64 个 X samples 做 winding 前缀和
+将 inside 结果压成一个 64-bit mask
 ```
 
-完成后执行：
+所有线程写完自己的独占 mask 后执行一次：
 
 ```metal
 threadgroup_barrier(mem_flags::mem_threadgroup);
 ```
 
-这确保 tile 内所有像素线程读取 backdrop 前，共享数据已经完成初始化。
-所有线程必须先到达 barrier，越界线程只能在 barrier 后退出。
+这确保第二阶段读取其他 Y sample 行的 inside mask 时，所有 mask 都已经完成。
+第一阶段中每个线程只写自己的 delta 行与 mask，不需要原子操作或额外同步。
 
-### 2. 计算像素 coverage
+### 2. 合并像素 coverage
 
-每个像素线程遍历固定 sample 网格：
+同一批线程以 `16 * sampleGrid` 为步长分担 tile 内全部 `256` 个像素。
+在 `sampleGrid = 4` 时映射等价于：
 
-1. 从 threadgroup backdrop 取得 tile 左边界 winding；
-2. 遍历当前 tile 的 `ComputeAATileEdge`；
-3. 只有当前 sample 位于 tile-edge 的有效 sample 范围内时，才测试原始边交点；
-4. 根据 fill rule 判断 sample 是否在图形内；
-5. 汇总为最终 coverage。
+```text
+thread 0..15  -> pixel row 0..3,  每线程独占一个 pixel X
+thread 16..31 -> pixel row 4..7
+thread 32..47 -> pixel row 8..11
+thread 48..63 -> pixel row 12..15
+```
+
+每个线程从 inside mask 中读取四个独立像素的 `4x4` samples，合并并写入
+coverage texture。每个像素只由一个线程读取和写入，因此这一阶段不需要
+原子操作、shuffle 或第二次 barrier。
+
+`ComputeAATileEdge::sampleBegin/sampleEnd` 已经将边限制到当前 tile 内实际
+跨过的离散 Y sample 范围，因此 coverage kernel 命中该范围后无需再次检查
+原始边的 `[minY, maxY)`。边的 `dx/dy` 也由 CPU 每条边预计算一次，GPU
+通过一次 FMA 求交，不再逐 sample 执行除法。
 
 ## 半开区间规则
 
@@ -197,11 +211,11 @@ Y 范围统一使用：
 连续 Y 坐标转换为离散 sample-grid Y 时，当前代码使用：
 
 ```cpp
-int y = int(max(sampleY, 0) + 0.499999f);
+int y = ceilf(sampleY - 0.5f);
 ```
 
-它是在非负 sample-grid 坐标下对 `ceilf(sampleY - 0.5f)` 的快速近似。
-轻微负偏置用于维持 sample 中心边界的半开区间归属，并吸收很小的正向浮点误差。
+它将连续位置映射到以半整数为中心的离散 sample 行，并维持共享顶点的半开
+区间归属。
 
 如果修改此规则，必须重新验证：
 
@@ -237,5 +251,5 @@ int y = int(max(sampleY, 0) + 0.499999f);
 - `ComputeAATileEdge` 的 sample 范围是 tile 内局部范围。
 - `ComputeAABackdropEvent` 从 `firstTileX` 开始生效，包含该 tile。
 - backdrop event 与 tile-edge 必须刚好覆盖同一批新跨过的 Y sample。
-- coverage kernel 使用固定 `16x16` threadgroup；不要随意改为不完整边缘 threadgroup。
+- coverage kernel 使用固定 `16 * sampleGrid` 个线程；每个 threadgroup 对应一个完整 `16x16` tile。
 - barrier 前不得按像素越界提前 return。

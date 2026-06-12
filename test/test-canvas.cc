@@ -248,8 +248,9 @@ class TestCanvas2: public Box {
 
 		paint.fill.color = Color4f(1, 0, 0);
 
-		canvas->drawPath(make_compute_aa_path(t), paint);
-		// canvas->drawPath(Path::MakeCircle(200, 250), paint);
+		auto path = make_compute_aa_path(t);
+		path.transform(Mat({-50,-50},{1.5},0,0));
+		canvas->drawPath(path, paint);
 
 		mark_rerender();
 	}

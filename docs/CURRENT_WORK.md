@@ -217,6 +217,13 @@ complete for now; the next profiling and optimization work should focus on GPU
 coverage/composition, dispatch shape, buffer upload/reuse, and reducing
 CPU-to-GPU synchronization.
 
+The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
+tile. Each thread computes one complete Y-sample row, evaluating every relevant
+edge only once and producing a 64-bit inside mask. After one threadgroup
+barrier, the same threads cooperatively merge and write all tile pixels. This
+removes per-pixel repeated edge traversal without requiring atomics or
+subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
+
 The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
 shader compilation was unavailable in the assistant sandbox because `xcrun`
 could not locate the separately installed Metal Toolchain; validate the visual

@@ -40,13 +40,10 @@ namespace qk {
 			}
 			p0 -= begin;
 			p1 -= begin;
-			auto minY = p0.y(), maxY = p1.y();
-			int32_t winding = 1;
-			if (minY > maxY) { // 设定p0为左边，往上为逆时针方向，屏幕座标y往上更小。
-				std::swap(minY, maxY);
-				winding = -1;
-			}
-			out.edges.push({p0,p1,minY,maxY,winding,0});
+			// 屏幕坐标 y-down：向下为正 winding，向上为负 winding。
+			int32_t winding = p1.y() > p0.y() ? 1 : -1;
+			float dxdy = (p1.x() - p0.x()) / (p1.y() - p0.y());
+			out.edges.push({p0,p1,dxdy,winding,{0,0}});
 		}
 	}
 
@@ -236,8 +233,9 @@ namespace qk {
 		if (!lines.length())
 			return out;
 
-		// 计算边界并进行整数扩展，确保边界上的像素也被覆盖.
-		auto bounds = transformPath.getBounds().expandToInteger();
+		// 使用实际参与 coverage 的扁平化边计算边界。Path::getBounds()
+		// 会把 Bézier 控制点也计入范围，可能产生固定的大块空白 atlas。
+		auto bounds = Path::getBoundsFromPoints(lines.val(), lines.length()).expandToInteger();
 		// 目前先限制为非负坐标，如果有裁剪参数使用参数进行更灵活的边界控制。
 		out.bounds = bounds.clip({0, bounds.end});
 		out.atlasOrigin = Vec2(); // 目前直接在原点处生成 atlas，后续可根据实际边界进行更紧凑的布局
@@ -300,6 +298,7 @@ namespace qk {
 		params.sampleGrid = kComputeAASampleGrid;
 
 		auto enc = [commandBuffer computeCommandEncoder];
+		enc.label = @"Compute AA Coverage";
 		[enc setComputePipelineState:coveragePipeline];
 		[enc setBytes:&params length:sizeof(params) atIndex:0];
 		[enc setBuffer:edges offset:0 atIndex:1];
@@ -309,7 +308,7 @@ namespace qk {
 		[enc setBuffer:backdropRows offset:0 atIndex:5];
 		[enc setTexture:coverageTexture atIndex:0];
 
-		MTLSize tg = MTLSizeMake(kComputeAATileSize, kComputeAATileSize, 1);
+		MTLSize tg = MTLSizeMake(kComputeAATileSize * kComputeAASampleGrid, 1, 1);
 		MTLSize groups = MTLSizeMake(params.tileCountX, params.tileCountY, 1);
 		[enc dispatchThreadgroups:groups threadsPerThreadgroup:tg];
 		[enc endEncoding];
@@ -340,6 +339,7 @@ namespace qk {
 		params.color = premulColor;
 
 		auto enc = [commandBuffer computeCommandEncoder];
+		enc.label = @"Compute AA Composite";
 		[enc setComputePipelineState:compositePipeline];
 		[enc setBytes:&params length:sizeof(params) atIndex:0];
 		[enc setTexture:coverageTexture atIndex:0];

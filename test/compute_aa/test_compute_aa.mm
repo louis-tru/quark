@@ -53,6 +53,8 @@ static Path make_compute_aa_path(float t) {
 	LinearAllocator _alloc;
 	NSTimer *_timer;
 	uint64_t _frame;
+	double _gpuTimeTotal;
+	uint32_t _gpuTimeSamples;
 }
 
 - (CALayer*)makeBackingLayer {
@@ -133,9 +135,11 @@ static Path make_compute_aa_path(float t) {
 	id<MTLTexture> coverage = [_device newTextureWithDescriptor:coverageDesc];
 
 	id<MTLCommandBuffer> cmd = [_queue commandBuffer];
+	cmd.label = @"Compute AA Frame";
 	ComputeAAParams clear = {};
 	clear.color = Vec4(0.5f, 0.09f, 0.10f, 1.0f);
 	auto clearEnc = [cmd computeCommandEncoder];
+	clearEnc.label = @"Compute AA Clear";
 	[clearEnc setComputePipelineState:_clearPipeline];
 	[clearEnc setBytes:&clear length:sizeof(clear) atIndex:0];
 	[clearEnc setTexture:drawable.texture atIndex:0];
@@ -151,6 +155,19 @@ static Path make_compute_aa_path(float t) {
 	MetalComputeAAPrototype::encodeSolidComposite(cmd, _compositePipeline, coverage,
 		drawable.texture, Vec4(0.2f, 0.8f, 0.50f, 1.0f), origin, data);
 
+	[cmd addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
+		double gpuMs = (buffer.GPUEndTime - buffer.GPUStartTime) * 1000.0;
+		if (gpuMs > 0.0) {
+			_gpuTimeTotal += gpuMs;
+			_gpuTimeSamples++;
+			if (_gpuTimeSamples == 120) {
+				NSLog(@"Compute AA GPU average: %.3f ms over %u frames",
+					_gpuTimeTotal / double(_gpuTimeSamples), _gpuTimeSamples);
+				_gpuTimeTotal = 0.0;
+				_gpuTimeSamples = 0;
+			}
+		}
+	}];
 	[cmd presentDrawable:drawable];
 	[cmd commit];
 

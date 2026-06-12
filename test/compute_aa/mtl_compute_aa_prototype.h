@@ -15,10 +15,9 @@
 //     Path -> flattened line edges -> device/atlas coordinates
 //          -> 16x16 local edge bins + per-tile-row backdrop spans
 //   GPU:
-//     one 16x16 threadgroup per tile
-//          -> cooperatively resolve backdrop spans into threadgroup memory
-//     one compute thread per output pixel
-//          -> evaluate subpixel winding coverage
+//     one tileSampleCount-thread threadgroup per 16x16 tile
+//          -> one thread per local Y sample row builds a 64-bit inside mask
+//          -> the same threads cooperatively merge and write all tile pixels
 //          -> write one-channel coverage atlas
 //   Graphics:
 //     draw path bounds and sample coverage atlas, or run a second compute
@@ -37,7 +36,9 @@
 namespace qk {
 
 	static constexpr uint32_t kComputeAATileSize = 16;
-	static constexpr uint32_t kComputeAASampleGrid = 4;
+	static constexpr uint32_t kComputeAASampleGrid = 1;
+	static_assert(kComputeAATileSize * kComputeAASampleGrid <= 64,
+		"Compute AA inside mask only supports up to 64 X samples per tile");
 
 	struct AllocatorA: LinearAllocator {
 	};
@@ -52,11 +53,12 @@ namespace qk {
 	struct alignas(16) ComputeAAEdge {
 		Vec2 p0;          // atlas-space start point, y-down
 		Vec2 p1;          // atlas-space end point, y-down
-		float minY;       // cached y range for quick sample rejection
-		float maxY;
+		float dxdy;       // cached dx/dy for GPU X intersection
 		int32_t winding;  // +1 for downward edge, -1 for upward edge
-		uint32_t _pad;
+		uint32_t _pad[2];
 	};
+	static_assert(sizeof(ComputeAAEdge) == sizeof(float) * 8,
+		"Metal edge ABI mismatch");
 
 	struct ComputeAATileEdge {
 		uint32_t edgeIndex;
