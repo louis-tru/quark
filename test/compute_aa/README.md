@@ -276,6 +276,36 @@ experiment/compute-aa-row-mask    706ec42bc
 experiment/compute-aa-cpu-backdrop 8e8e2682a
 ```
 
+### 已验证的 GPU 性能结论
+
+目前测量均来自同一测试画面，具体数值会随机器和 capture 状态变化，但相对
+趋势已经比较稳定：
+
+- 最早使用独立 compute Clear / Coverage / Composite 的完整帧约
+  `1.4-1.6ms`，其中 Coverage 通常占约 `60%-70%`；
+- CPU 完整计算 backdrop 可以降低一部分 GPU 时间，但会增加 CPU 构建和上传
+  成本，不能单独解决主要瓶颈；
+- CPU backdrop + 线程私有 `windingDelta[64]` + render clear/composite 的实验
+  总时间约 `0.60ms`；
+- 相同画面的 AASide 总时间约 `0.20ms`，说明全 atlas 的固定 coverage 与
+  composite 工作量仍然明显偏大。
+
+已经验证的关键现象：
+
+- 注释边交点计算后 Coverage 仍然很重，说明瓶颈不只来自边遍历；
+- 初始化共享 `windingDelta[64][64]`、沿 X 做 winding 前缀和、生成和读取
+  `insideMask` 都有显著成本；
+- 完全删除 delta、反复扫描边寻找下一个交点，会把复杂度变成近似
+  `edgeCount * crossingCount`，实测反而退化到约 `2.0-2.4ms`；
+- 每 tile 仅使用 16 个线程会浪费 SIMD32 的一半执行槽；将两个 tile 配成
+  32 个线程后有改善，但不能消除算法本身的固定工作量；
+- 将 Clear 合并进普通 Composite render pass 是有效优化，删除了一个完整
+  compute pass，但 Coverage 仍是主要成本。
+
+当前最值得验证的架构方向不是继续微调一次 FMA 或一个分支，而是减少进入
+Compute Coverage 的 tile 数量：只对边界 tile 做高精度 coverage，完全内部
+区域由普通硬件光栅化或其他低成本路径填充，并尽量避免全 atlas composite。
+
 ## 重要不变量
 
 - CPU 与 Metal 中的 tile size、sample grid 和结构体布局必须严格一致。

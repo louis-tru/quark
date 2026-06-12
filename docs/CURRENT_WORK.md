@@ -244,6 +244,25 @@ Do not compare old total-frame numbers directly unless clear/composite use the
 same render-pass structure. Xcode GPU Capture labels the two remaining stages
 as `Compute AA Coverage` and `Compute AA Composite`.
 
+Observed Compute AA performance direction:
+
+- The original three-compute-pass version measured around `1.4-1.6ms`.
+- CPU backdrop + private per-thread delta + one render clear/composite pass
+  measured around `0.60ms`.
+- The equivalent AASide scene measured around `0.20ms`.
+- Removing edge-crossing work did not remove most Coverage cost; shared delta
+  initialization, X prefix winding, inside-mask production/consumption, full
+  atlas writes, and composition are all material.
+- Repeatedly rescanning edges to avoid delta storage regressed badly. Do not
+  revisit that structure without a new complexity argument.
+
+Immediate next step: measure
+`experiment/compute-aa-row-mask-render-composite`, then compare it directly
+against `experiment/compute-aa-cpu-backdrop`. After that comparison, prioritize
+an edge-tile-only Compute AA architecture: use Compute Coverage only on tiles
+containing boundaries, fill solid interior regions through a cheaper hardware
+raster path, and avoid compositing untouched atlas regions.
+
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
 constant and the unrelated Clipboard visibility warning.
