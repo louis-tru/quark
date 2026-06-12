@@ -17,7 +17,7 @@
 using namespace metal;
 
 constant uint QK_COMPUTE_AA_TILE_SIZE = 16;
-constant uint QK_COMPUTE_AA_SAMPLE_GRID = 1;
+constant uint QK_COMPUTE_AA_SAMPLE_GRID = 4;
 constant uint QK_COMPUTE_AA_NON_ZERO = 0;
 constant uint QK_COMPUTE_AA_EVEN_ODD = 1;
 constant uint QK_COMPUTE_AA_POSITIVE = 2;
@@ -37,18 +37,6 @@ struct ComputeAATileEdge {
 	ushort sampleEnd;
 };
 
-struct ComputeAABackdropEvent {
-	uint firstTileX;
-	ushort sampleBegin;
-	ushort sampleEnd;
-	int winding;
-};
-
-struct ComputeAABackdropRow {
-	uint eventOffset;
-	uint eventCount;
-};
-
 struct ComputeAATile {
 	uint edgeOffset;
 	uint edgeCount;
@@ -65,19 +53,11 @@ struct ComputeAAParams {
 	uint sampleGrid;
 	uint outputOriginX;
 	uint outputOriginY;
+	uint outputWidth;
+	uint outputHeight;
+	uint2 _pad;
 	float4 color;
 };
-
-kernel void qk_compute_aa_clear(
-	constant ComputeAAParams &params [[buffer(0)]],
-	texture2d<float, access::write> colorTex [[texture(0)]],
-	uint2 gid [[thread_position_in_grid]])
-{
-	if (gid.x >= colorTex.get_width() || gid.y >= colorTex.get_height()) {
-		return;
-	}
-	colorTex.write(params.color, gid);
-}
 
 static inline bool qk_aa_inside(int winding, uint fillRule) {
 	if (fillRule == QK_COMPUTE_AA_EVEN_ODD) {
@@ -101,111 +81,98 @@ kernel void qk_compute_aa_coverage(
 	const device ComputeAAEdge *edges [[buffer(1)]],
 	const device ComputeAATileEdge *tileEdges [[buffer(2)]],
 	const device ComputeAATile *tiles [[buffer(3)]],
-	const device ComputeAABackdropEvent *backdropEvents [[buffer(4)]],
-	const device ComputeAABackdropRow *backdropRows [[buffer(5)]],
+	const device int *backdrops [[buffer(4)]],
 	texture2d<float, access::write> coverageTex [[texture(0)]],
-	uint2 tileId [[threadgroup_position_in_grid]],
+	uint2 tileGroupId [[threadgroup_position_in_grid]],
 	uint threadIndex [[thread_index_in_threadgroup]])
 {
-	// 一个 threadgroup 使用 sampleCount 个线程，每个线程负责一条 local Y
-	// sample 行。每条边在该 Y sample 上只计算一次交点，然后通过 X
-	// sample delta 前缀和生成这一整行的 inside mask。
-	// X sample 放在第一维，使所有线程同步推进 X 时访问连续地址。
-	threadgroup short windingDelta[
-		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
-	][
-		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
-	];
-	threadgroup ulong insideMask[
-		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
-	];
-
 	constexpr uint sampleCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID;
-	const device ComputeAATile &tile = tiles[tileId.y * params.tileCountX + tileId.x];
+	uint tileInGroup = threadIndex >> 4;
+	uint pixelY = threadIndex & (QK_COMPUTE_AA_TILE_SIZE - 1);
+	uint tileX = tileGroupId.x * 2 + tileInGroup;
+	if (tileX >= params.tileCountX) {
+		return;
+	}
+	uint tileIndex = tileGroupId.y * params.tileCountX + tileX;
+	const device ComputeAATile &tile = tiles[tileIndex];
 	float invGrid = 1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID);
-	float sampleY = float(tile.originY) + (float(threadIndex) + 0.5) * invGrid;
 
-	const device ComputeAABackdropRow &row = backdropRows[tileId.y];
-	int winding = 0;
-	for (uint i = 0; i < row.eventCount; i++) {
-		const device ComputeAABackdropEvent &event = backdropEvents[row.eventOffset + i];
-		if (event.firstTileX <= tileId.x &&
-			threadIndex >= event.sampleBegin &&
-			threadIndex < event.sampleEnd)
-		{
-			winding += event.winding;
+	// 一个 SIMD32 threadgroup 同时处理横向相邻的两个 tile。每组 16 个
+	// 线程负责一个 tile，每个线程直接累计一整行的 coverage。delta 只
+	// 属于当前线程和当前 Y sample 行，不需要 threadgroup 数组或 barrier。
+	ushort covered[QK_COMPUTE_AA_TILE_SIZE] = {};
+	for (uint sy = 0; sy < QK_COMPUTE_AA_SAMPLE_GRID; sy++) {
+		uint localSampleY = pixelY * QK_COMPUTE_AA_SAMPLE_GRID + sy;
+		float sampleY = float(tile.originY) + (float(localSampleY) + 0.5) * invGrid;
+		int winding = backdrops[tileIndex * sampleCount + localSampleY];
+		short windingDelta[QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID] = {};
+
+		for (uint i = 0; i < tile.edgeCount; i++) {
+			const device ComputeAATileEdge &tileEdge = tileEdges[tile.edgeOffset + i];
+			if (localSampleY >= tileEdge.sampleBegin && localSampleY < tileEdge.sampleEnd) {
+				const device ComputeAAEdge &edge = edges[tileEdge.edgeIndex];
+				int crossX = int(ceil(
+					(qk_aa_edge_cross_x(sampleY, edge) - float(tile.originX)) *
+					float(QK_COMPUTE_AA_SAMPLE_GRID) - 0.5
+				));
+				crossX = clamp(crossX, 0, int(sampleCount));
+				if (crossX < int(sampleCount)) {
+					windingDelta[crossX] += short(edge.winding);
+				}
+			}
 		}
-	}
 
-	for (uint sampleX = 0; sampleX < sampleCount; sampleX++) {
-		windingDelta[sampleX][threadIndex] = 0;
-	}
-	for (uint i = 0; i < tile.edgeCount; i++) {
-		const device ComputeAATileEdge &tileEdge = tileEdges[tile.edgeOffset + i];
-		if (threadIndex >= tileEdge.sampleBegin && threadIndex < tileEdge.sampleEnd) {
-			const device ComputeAAEdge &edge = edges[tileEdge.edgeIndex];
-			float crossX = qk_aa_edge_cross_x(sampleY, edge);
-			int firstSampleX = int(ceil(
-				(crossX - float(tile.originX)) * float(QK_COMPUTE_AA_SAMPLE_GRID) - 0.5
-			));
-			firstSampleX = clamp(firstSampleX, 0, int(sampleCount));
-			if (firstSampleX < int(sampleCount)) {
-				windingDelta[firstSampleX][threadIndex] += short(edge.winding);
+		for (uint sampleX = 0; sampleX < sampleCount; sampleX++) {
+			winding += int(windingDelta[sampleX]);
+			if (qk_aa_inside(winding, params.fillRule)) {
+				covered[sampleX / QK_COMPUTE_AA_SAMPLE_GRID]++;
 			}
 		}
 	}
 
-	ulong mask = 0;
-	for (uint sampleX = 0; sampleX < sampleCount; sampleX++) {
-		winding += int(windingDelta[sampleX][threadIndex]);
-		if (qk_aa_inside(winding, params.fillRule)) {
-			mask |= 1ul << sampleX;
-		}
-	}
-	insideMask[threadIndex] = mask;
-
-	// 第二阶段由同一批线程分担 tile 内全部像素。映射只依赖 sampleCount，
-	// 因此 GRID=1/2/4 都不需要固定的线程数量或像素行分组。
-	threadgroup_barrier(mem_flags::mem_threadgroup);
-
-	constexpr uint pixelCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_TILE_SIZE;
-	constexpr ulong sampleMask = (1ul << QK_COMPUTE_AA_SAMPLE_GRID) - 1ul;
-	for (uint pixelIndex = threadIndex; pixelIndex < pixelCount; pixelIndex += sampleCount) {
-		uint pixelX = pixelIndex & (QK_COMPUTE_AA_TILE_SIZE - 1);
-		uint pixelY = pixelIndex >> 4;
-		uint firstSampleX = pixelX * QK_COMPUTE_AA_SAMPLE_GRID;
-		ulong sampleBits = sampleMask << firstSampleX;
-		uint covered = 0;
-		uint firstSampleY = pixelY * QK_COMPUTE_AA_SAMPLE_GRID;
-		for (uint sy = 0; sy < QK_COMPUTE_AA_SAMPLE_GRID; sy++) {
-			covered += popcount(insideMask[firstSampleY + sy] & sampleBits);
-		}
+	for (uint pixelX = 0; pixelX < QK_COMPUTE_AA_TILE_SIZE; pixelX++) {
 		uint2 pixel = uint2(tile.originX + pixelX, tile.originY + pixelY);
 		if (pixel.x < params.width && pixel.y < params.height) {
-			float coverage = float(covered) *
+			float coverage = float(covered[pixelX]) *
 				(1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID * QK_COMPUTE_AA_SAMPLE_GRID));
 			coverageTex.write(float4(coverage, 0.0, 0.0, 1.0), pixel);
 		}
 	}
 }
 
-kernel void qk_compute_aa_composite_solid(
-	constant ComputeAAParams &params [[buffer(0)]],
-	texture2d<float, access::read> coverageTex [[texture(0)]],
-	texture2d<float, access::read_write> colorTex [[texture(1)]],
-	uint2 gid [[thread_position_in_grid]])
-{
-	if (gid.x >= params.width || gid.y >= params.height) {
-		return;
-	}
+struct CompositeVertexOut {
+	float4 position [[position]];
+	float2 atlasCoord;
+};
 
-	float coverage = coverageTex.read(gid).r;
-	float4 src = params.color * coverage;
-	uint2 dstCoord = gid + uint2(params.outputOriginX, params.outputOriginY);
-	if (dstCoord.x >= colorTex.get_width() || dstCoord.y >= colorTex.get_height()) {
-		return;
-	}
-	float4 dst = colorTex.read(dstCoord);
-	float4 outColor = src + dst * (1.0 - src.a);
-	colorTex.write(outColor, dstCoord);
+vertex CompositeVertexOut qk_compute_aa_composite_vertex(
+	constant ComputeAAParams &params [[buffer(0)]],
+	uint vertexId [[vertex_id]])
+{
+	const float2 corners[4] = {
+		float2(0.0, 0.0), float2(1.0, 0.0),
+		float2(0.0, 1.0), float2(1.0, 1.0),
+	};
+	float2 corner = corners[vertexId];
+	float2 pixel = float2(params.outputOriginX, params.outputOriginY) +
+		corner * float2(params.width, params.height);
+	float2 viewport = float2(params.outputWidth, params.outputHeight);
+
+	CompositeVertexOut out;
+	out.position = float4(
+		pixel.x * 2.0 / viewport.x - 1.0,
+		1.0 - pixel.y * 2.0 / viewport.y,
+		0.0, 1.0
+	);
+	out.atlasCoord = corner * float2(params.width, params.height);
+	return out;
+}
+
+fragment float4 qk_compute_aa_composite_fragment(
+	CompositeVertexOut in [[stage_in]],
+	constant ComputeAAParams &params [[buffer(0)]],
+	texture2d<float, access::read> coverageTex [[texture(0)]])
+{
+	uint2 coord = min(uint2(in.atlasCoord), uint2(params.width - 1, params.height - 1));
+	return params.color * coverageTex.read(coord).r;
 }

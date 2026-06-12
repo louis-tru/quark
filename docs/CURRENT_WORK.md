@@ -186,20 +186,18 @@ wired into the macOS test target. It demonstrates CPU-flattened path edges,
 color composition. A matching WebGPU/CPU comparison page also exists in the
 same directory.
 
+The active branch is `experiment/compute-aa-cpu-backdrop`. It is based on
+commit `706ec42bc` on the pushed `experiment/compute-aa-row-mask` branch, but
+its current CPU-backdrop/private-delta work is intentionally uncommitted for
+continued measurement.
+
 The prototype uses local tile edge lists plus a per-tile **backdrop**: the
 winding already accumulated at the tile's left boundary. `build_tile_edges()`
 walks each edge across X tile columns using one `dy/dx` slope. A step does
 nothing unless its discrete Y-sample-grid position changes. Changed sample
-ranges add one original-edge reference with a local sample range to crossed
-tiles and append one backdrop event. CPU construction never expands backdrop
-winding across tiles to the right. During coverage, each tile threadgroup
-cooperatively resolves its tile row's backdrop events into threadgroup memory.
-This removes the previous edge-bounding-box fill, repeated crossing
-calculations, per-tile backdrop storage/writes, backdrop delta buffer, and CPU X
-prefix sum. The X-tile scan now advances directly in sample-grid Y coordinates:
-fixed power-of-two sample/tile divisions use shifts, tile-boundary Y uses
-incremental addition, and the inner X-tile loop contains no division or
-per-iteration multiplication.
+ranges add one original-edge reference with a local sample range. The active
+branch records backdrop as per-row 2D deltas, then performs CPU Y/X prefix
+passes to upload one final winding for every tile-local Y sample.
 
 The current prototype remains intentionally CPU-heavy and rebuilds/uploads data
 frequently. Important future work includes caching immutable path data, pooled
@@ -217,17 +215,61 @@ complete for now; the next profiling and optimization work should focus on GPU
 coverage/composition, dispatch shape, buffer upload/reuse, and reducing
 CPU-to-GPU synchronization.
 
-The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
-tile. Each thread computes one complete Y-sample row, evaluating every relevant
-edge only once and producing a 64-bit inside mask. After one threadgroup
-barrier, the same threads cooperatively merge and write all tile pixels. This
-removes per-pixel repeated edge traversal without requiring atomics or
-subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
+The active Metal coverage kernel uses one SIMD32-sized threadgroup for two
+horizontally adjacent 16x16 tiles. Each tile gets 16 threads, and each thread
+computes one complete pixel row and directly accumulates its samples into 16
+pixel coverage values. Each thread uses one private 64-entry winding delta for
+the current Y sample row, so edges are traversed once per sample row without
+using a large threadgroup `windingDelta`, `insideMask`, or a barrier. Measure
+register/local-memory pressure before keeping this structure.
 
-The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
-shader compilation was unavailable in the assistant sandbox because `xcrun`
-could not locate the separately installed Metal Toolchain; validate the visual
-result through the existing Xcode test target.
+Clear and solid composite are no longer compute kernels. Composite is a normal
+render pass that uses `MTLLoadActionClear`, draws one atlas-sized quad, samples
+the R8 coverage texture, and uses fixed-function premultiplied-alpha blending.
+This removed the standalone clear pass and explicit drawable read-modify-write.
+
+### Latest Measurements
+
+Measurements used the rotating/scaled comparison path, a roughly 1039x1085
+atlas, 4x4 samples, and about 4420 tiles. Values vary by capture/run, but the
+direction is consistent:
+
+- Saved row-mask/GPU-event versions were around 1.4-1.6 ms total.
+- CPU-precomputed backdrop reduced the total to about 1.11-1.30 ms, but raised
+  CPU construction/upload cost.
+- Deleting shared delta/mask data and repeatedly searching unsorted crossings
+  regressed to roughly 2.0-2.4 ms; do not repeat this approach.
+- A 16-thread single-tile row kernel left half of SIMD32 idle. Pairing two
+  adjacent tiles into one 32-thread group brought that experiment near 1.2 ms.
+- The active 32-thread/private-delta kernel plus render composite measured about
+  0.88-0.91 ms before pass cleanup.
+- Replacing compute clear/composite with one clear+composite render pass reduced
+  total GPU time to about 0.60 ms. Xcode showed roughly 62% Coverage and 38%
+  Composite.
+- The equivalent AASide comparison remains around 0.20 ms, so full-atlas
+  Compute AA is still about 3x slower even after the major structural wins.
+
+### Findings And Next Direction
+
+- Edge intersection math is not the dominant cost. Commenting it out left much
+  of Coverage time intact.
+- Dense shared `windingDelta[64][64]`, inside-mask construction, and the barrier
+  had substantial fixed cost. The private per-thread delta structure is better.
+- CPU-precomputed per-tile backdrop helps GPU time only modestly and trades away
+  CPU time plus upload bandwidth.
+- CPU sorting intersections per Y sample would approach CPU scanline
+  rasterization and does not solve the full-atlas/intermediate-texture cost.
+- Even with a free Coverage pass, sampling and compositing a full coverage atlas
+  is already near the AASide total cost.
+- The most promising next architectural experiment is to dispatch precise
+  Compute AA only for boundary/edge tiles, skip exterior tiles, and fill solid
+  interior regions through ordinary hardware rasterization. Full-atlas Compute
+  AA is unlikely to match AASide for dynamic paths.
+
+Metal shader compilation, metallib creation, ObjC++ syntax checks, and
+`git diff --check` currently pass. Existing warnings are the unused
+`QK_COMPUTE_AA_NON_ZERO` constant and the unrelated Clipboard visibility
+warning.
 
 ## Debugger Helpers
 
