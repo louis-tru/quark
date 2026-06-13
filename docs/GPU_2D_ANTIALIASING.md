@@ -859,3 +859,39 @@ major performance experiment should fuse coverage application with final
 drawing, or otherwise avoid writing and then sampling a complete R8 atlas.
 Future analytic-area coverage should retain the same boundary/uniform
 classification and run continuous-area work only on boundary tiles.
+
+### Compute GRID AA Prototype Completion
+
+The follow-up sparse-crossing experiment completes the current fixed-GRID
+algorithmic direction. Each boundary-tile Y-sample thread now:
+
+1. resolves its incoming winding from compact backdrop events;
+2. evaluates each active local edge once;
+3. accumulates winding changes directly into one of 64 discrete X buckets;
+4. tracks non-empty buckets with one 64-bit crossing mask;
+5. extracts only real crossing positions in ascending order with `ctz`;
+6. fills complete inside intervals directly into a 64-bit row mask.
+
+This removes full delta-table clearing, fixed 64-position prefix scanning,
+sorting, repeated edge scans, and crossing-list overflow. Boundary-row
+complexity is now `O(edgeCount + uniqueCrossingX)`, where
+`uniqueCrossingX <= 64`.
+
+Representative Boundary Coverage share fell from `19.41%` to about `9%`;
+Composite then accounted for about `78%`. The Compute GRID AA prototype is
+therefore considered algorithmically complete enough for formal Quark renderer
+integration. It remains slower than AASide, so the intended roles are:
+
+```text
+AASide     -> fastest path for suitable simple geometry
+Compute AA -> general, stable high-quality path for complex geometry
+```
+
+The first integration task is to extend `tools/gen_glsl_natives.js` and the
+generated native shader model to support compute stages and Metal compute
+pipelines. The current generator assumes every document contains `#vert` and
+`#frag`, builds paired render-pipeline metadata, and has no compute-stage
+representation. After the Compute AA shader enters that generated source path,
+renderer integration should focus on resource reuse, command encoding,
+clipping/blending semantics, batching, and eventually reducing the complete R8
+coverage-atlas plus Composite round trip.

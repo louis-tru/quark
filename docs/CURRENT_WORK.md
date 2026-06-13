@@ -201,11 +201,14 @@ fixed power-of-two sample/tile divisions use shifts, tile-boundary Y uses
 incremental addition, and the inner X-tile loop contains no division or
 per-iteration multiplication.
 
-The current prototype remains intentionally CPU-heavy and rebuilds/uploads data
-frequently. Important future work includes caching immutable path data, pooled
-GPU buffers/textures, dirty-path rebuilds, batching multiple paths into an
-atlas, and eventually moving more binning/backdrop work onto the GPU.
-The current algorithm and data contracts are documented in Chinese in
+The Compute GRID AA prototype algorithm is now considered complete enough to
+enter Quark's rendering architecture. It still rebuilds/uploads data frequently
+and remains intentionally isolated, but correctness, data contracts, tile
+classification, coverage generation, and representative performance have been
+validated. Important production work includes caching immutable path data,
+pooled GPU buffers/textures, dirty-path rebuilds, batching multiple paths into
+an atlas, and reducing the full coverage-atlas/composite round trip. The current
+algorithm and data contracts are documented in Chinese in
 `test/compute_aa/README.md`.
 
 The CPU construction pass has now been tightened around a thread-local
@@ -226,14 +229,15 @@ subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
 
 ### Compute AA Experiment Branches
 
-There are four saved remote experiment branches:
+There are five saved experiment branches:
 
 | Branch | Head | Purpose / structure | Measured total |
 | --- | --- | --- | --- |
 | `experiment/compute-aa-row-mask` | `9bf955c3e` | Current 64-thread GPU-backdrop baseline: one thread per Y sample, private `windingDelta[64]`, shared `insideMask[64]`, one barrier, render-pass composite. | `0.733-0.773ms` |
 | `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Fastest result so far: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
 | `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | Same 16-thread/two-tile row-coverage structure as the CPU-backdrop branch, but each Y sample scans compact GPU backdrop events instead of reading a CPU-built complete backdrop. | `0.730-0.772ms` |
-| `experiment/compute-aa-boundary-tiles` | working branch | CPU classifies boundary/uniform tiles during the existing X-tile scan; a separate compute pass writes uniform 0/1 tiles, and the GRID kernel dispatches only boundary tiles. | stable `0.32-0.40ms`; transient lows `0.23-0.24ms` |
+| `experiment/compute-aa-boundary-tiles` | `25279aca6` | CPU classifies boundary/uniform tiles during the existing X-tile scan; a separate compute pass writes uniform 0/1 tiles, and the GRID kernel dispatches only boundary tiles. | stable `0.32-0.40ms`; transient lows `0.23-0.24ms` |
+| `experiment/compute-aa-sorted-crossings` | current branch | Selected integration baseline: boundary/uniform split plus sparse X crossing buckets and interval-mask fill. | Boundary share about `9%`; Composite about `78%` |
 
 The old `experiment/compute-aa-row-mask` all-shared branch head was deliberately
 replaced with the useful 64-thread/private-delta baseline. The rejected
@@ -242,14 +246,15 @@ its result remains documented below.
 
 Selection status:
 
-- Fastest GPU time: `experiment/compute-aa-cpu-backdrop`, at the cost of more
-  CPU construction and a larger complete-backdrop upload.
-- Lowest CPU backdrop work among current candidates:
-  `experiment/compute-aa-row-mask` and
-  `experiment/compute-aa-gpu-backdrop-private-delta`.
-- The 64-thread/shared-mask and 16-thread/GPU-event versions are effectively
-  tied, so thread organization alone is not the deciding factor.
-- The final branch/approach has not been selected yet.
+- `experiment/compute-aa-sorted-crossings` is the selected baseline for formal
+  renderer integration.
+- It combines compact GPU backdrop events, boundary/uniform tile separation,
+  one thread per Y-sample row, sparse X crossing buckets, interval mask fill,
+  shared inside masks, and one barrier.
+- AASide remains the faster path for suitable simple geometry; Compute AA is
+  intended as the more general and stable high-quality path.
+- Further Boundary kernel micro-optimization is low priority because Composite
+  now dominates the measured GPU cost.
 
 Do not compare old total-frame numbers directly unless clear/composite use the
 same render-pass structure. Xcode GPU Capture labels the two remaining stages
@@ -337,6 +342,29 @@ This is a Compute AA milestone:
   is to avoid the complete R8 write/read round trip by applying coverage during
   final drawing.
 
+The `experiment/compute-aa-sorted-crossings` branch is a focused Boundary
+Coverage comparison built from the boundary-tile branch. Its current sparse
+bucket variant directly accumulates winding into a private
+`short crossingDelta[64]` indexed by discrete X sample. A 64-bit crossing mask
+tracks initialized buckets; repeatedly extracting its lowest set bit visits
+only real crossing positions in ascending X order and fills the intervals
+between them. It requires no full-table clear, fixed 64-position prefix scan,
+sorting, crossing-count limit, or fallback. CPU data, dispatch shape, Uniform
+Tiles, and Composite remain unchanged, so Boundary Coverage time is the primary
+comparison.
+
+The crossing-interval experiments reduced Boundary Coverage time by
+approximately half. The insertion-sorted event-list version measured `9.44%`
+Boundary Coverage; the safer sparse-bucket version measured about `9.19%`.
+Both are effectively in the same range, compared with the previous
+representative Boundary Coverage share of `19.41%`. This confirms that typical
+boundary Y-sample rows contain few effective crossing positions: processing
+actual crossing positions and filling intervals is cheaper than clearing and
+prefix-scanning all 64 X-sample buckets. The sparse-bucket version is selected
+because it removes sorting and crossing-list overflow without losing measured
+performance. Composite is now even more clearly the dominant remaining GPU
+cost.
+
 ### Resolved CPU Profiling Trap: Per-Frame Window Titles
 
 The apparent large CPU regression from writing `tile.boundary = true` was not
@@ -374,9 +402,11 @@ The two boundary algorithms intentionally produce different counts:
   boundary, including horizontal edges and edges that do not change a discrete
   sample row. It is more conservative and its counts are generally more stable.
 
-Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
-currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`
-constant and the unrelated Clipboard visibility warning.
+Earlier prototype revisions passed Metal shader/metallib compilation and
+ObjC++ syntax checks. The final sparse-crossing documentation/cleanup pass was
+intentionally not compiled per the current testing workflow; only lightweight
+source review and `git diff --check` were performed. The user has manually
+reviewed the current code and will report any integration/compiler issue.
 
 ## Debugger Helpers
 

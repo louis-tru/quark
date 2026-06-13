@@ -7,7 +7,54 @@
 - Metal Compute Shader 使用固定子采样网格计算 winding coverage；
 - coverage texture 最终合成到颜色纹理。
 
-它不是生产渲染器的一部分，数据结构和算法仍可能继续变化。
+它目前仍是独立实验代码，但核心算法已经验证完成，可作为下一阶段接入 Quark
+正式渲染模型的实现基线。
+
+## 原型完成总结
+
+当前 Compute GRID AA 原型已经完成从路径数据构建到 Metal 输出的完整闭环：
+
+- CPU 将曲线展平为有方向边，并在一次 X-tile 扫描中建立局部边引用、backdrop
+  event 与 boundary/uniform tile 分类；
+- GPU 只对约 `11%` 的 boundary tile 执行昂贵 GRID coverage，uniform tile
+  直接写入全 0 或全 1；
+- 每条 Y sample 线程对每条有效边只求一次交点；
+- 离散交点直接累加到 `crossingDelta[64]`，通过 `crossingMask + ctz()` 只遍历
+  真实存在的 X 交点位置，并按区间一次生成完整 inside mask；
+- 同一 X 的多个交点直接累计 winding，不需要排序、不需要清零完整 delta 表，
+  也不存在交点事件数组溢出；
+- 线程组通过共享 `insideMask` 和一次 barrier，将 `4x4` samples 合并成像素
+  coverage；
+- Uniform、Boundary Coverage 与 Composite 的语义和性能均已完成验证。
+
+当前算法复杂度已经接近此 GRID/tile 结构下的最优形式：
+
+```text
+CPU：边实际跨越的 tile/sample 范围 + 最终输出记录数量
+GPU Boundary 行：O(edgeCount + uniqueCrossingX)，uniqueCrossingX <= 64
+```
+
+已知性能结论：
+
+- boundary/uniform 分类将稳定总 GPU 时间从 `0.733-0.773ms` 降至约
+  `0.32-0.40ms`；
+- 稀疏交点区间方向将 Boundary Coverage 占比从代表性的 `19.41%` 降至约
+  `9%`；
+- Composite 已占约 `78%`，成为绝对瓶颈；
+- Compute AA 仍慢于约 `0.20ms` 的 AASide，但覆盖语义更通用、复杂路径质量
+  更稳定，适合成为 Quark 的高质量 AA 路径；
+- 不应继续把主要时间投入 Boundary kernel 微调，后续收益应来自正式架构接入、
+  资源复用、批处理，以及减少完整 R8 coverage 写入/读取和独立 Composite。
+
+下一步首先将 compute shader stage 接入现有 GLSL Native 构建脚本：
+
+- 扩展 `tools/gen_glsl_natives.js`，当前脚本只识别 `#vert/#frag` 并生成
+  vertex/fragment AST、GLSL 与 MSL native source；
+- 为 compute shader 定义源码分段、stage 解析、入口命名和生成产物；
+- 扩展 Metal native shader/pipeline 描述，使其可以表达 compute pipeline，
+  而不仅是现有 vertex + fragment render pipeline；
+- 将 Compute AA shader 从独立 `.metal` 实验文件迁移到正式 shader 源码与
+  生成流程后，再开始接入 Quark 渲染命令、资源生命周期与批处理模型。
 
 ## 文件
 
@@ -164,7 +211,8 @@ CPU 只追加这条记录，不展开写入右侧所有 tile。
 扫描当前 yTile 行的 backdrop events
 累加 firstTileX <= 当前 tileX 的 winding
 每条局部边只计算一次与当前 Y sample 的 X 交点
-沿 64 个 X samples 做 winding 前缀和
+将交点 winding 累加到离散 X bucket，并用 64-bit crossing mask 标记非空位置
+通过 ctz() 只遍历真实交点位置，按区间生成 inside mask
 将 inside 结果压成一个 64-bit mask
 ```
 
@@ -175,7 +223,8 @@ threadgroup_barrier(mem_flags::mem_threadgroup);
 ```
 
 这确保第二阶段读取其他 Y sample 行的 inside mask 时，所有 mask 都已经完成。
-第一阶段中每个线程只写自己的 delta 行与 mask，不需要原子操作或额外同步。
+第一阶段中每个线程只写自己的私有 crossing delta 与独占 mask，不需要原子
+操作或额外同步。
 
 ### 2. 合并像素 coverage
 
@@ -479,6 +528,37 @@ Composite:         70.80%
 算术，而是完整 R8 atlas 的写入、Composite 采样和最终颜色写入。Xcode 会把
 两个 compute pass 中先执行的 pass 标为 `Unused Texture`；这是因为它只看到
 后续 pass 再次写同一张 texture，无法识别两者写入的是互不重叠的 tile。
+
+### 稀疏交点分桶 / 区间填充实验
+
+`experiment/compute-aa-sorted-crossings` 保持 CPU 数据、Uniform pass、线程组
+结构和 Composite 不变，只替换 Boundary Coverage 内部生成行 mask 的算法：
+
+- 每条 Y sample 线程仍扫描当前 tile 的活跃边并计算离散 X 交点；
+- 不再立即写入 `windingDelta[x]`；
+- 交点直接累加到每线程私有的 `short crossingDelta[64]` 对应 X bucket；
+- `ulong crossingMask` 标记非空 bucket，同一 X 的多个交点直接累计 winding；
+- 通过 `ctz(crossingMask)` 按 X 升序访问真实存在的 bucket；
+- 根据相邻交点形成的区间一次生成 64-bit inside mask。
+
+这个版本无需清零整个 delta 表、无需固定扫描 64 个 X sample，也无需排序或
+交点数量上限。复杂度为 `O(edgeCount + uniqueCrossingX)`，其中
+`uniqueCrossingX <= 64`。私有数组仍为 128B。
+
+实测交点区间版本收益明显，`Compute AA Boundary Coverage` 时间约砍掉一半。
+插入排序版本的代表性 GPU Capture 占比：
+
+```text
+Uniform Tiles:     12.32%
+Boundary Coverage:  9.44%
+Composite:         78.24%
+```
+
+当前稀疏分桶版本实测 Boundary Coverage 约为 `9.19%`，与插入排序版本基本
+相当，但它没有排序成本和交点列表溢出风险，因此选作正式接入基线。此前代表性
+Boundary Coverage 占比为 `19.41%`。这表明当前测试中，大多数 boundary
+Y-sample 行的有效交点位置远少于固定的 64 个 X sample；按实际非空位置填充
+区间，比每行清零完整 delta 表并执行固定长度前缀扫描更便宜。
 
 该实验确认 Compute GRID AA 已具备加入 Quark 渲染模型的技术基础，但它仍以
 更高 CPU/GPU 成本换取比 AASide 更稳定的高质量 coverage。下一项最重要的
