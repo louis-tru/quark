@@ -555,8 +555,11 @@ Recommended implementation order:
    subpixel borders without waiting for general Compute AA.
 3. Prototype Metal Compute AA with CPU-transformed line edges, CPU tile binning,
    backdrop winding, and 4x4 sample coverage written into a local mask.
-4. Add a transient multi-path coverage atlas, buffer pools, batching, and
-   compute-to-render synchronization.
+4. Integrate the proven batch model: one path-data batch lays all of its tiles
+   into one coverage atlas and generates/encodes CPU/GPU data together. Adapt
+   Quark's concrete renderer data structures, buffer/texture pools, and
+   compute-to-render synchronization without returning to per-path small-object
+   allocation.
 5. Add automatic renderer selection and retain AASide fallback.
 6. Port the proven compute path to Vulkan and optionally GLES 3.1.
 
@@ -895,3 +898,11 @@ representation. After the Compute AA shader enters that generated source path,
 renderer integration should focus on resource reuse, command encoding,
 clipping/blending semantics, batching, and eventually reducing the complete R8
 coverage-atlas plus Composite round trip.
+
+The CPU allocation and batching direction is already settled by the prototype:
+temporary tile/backdrop buckets use a linear allocator, final records are
+flattened into continuous batch-upload arrays, and a production batch should
+lay all of its tiles into one atlas and generate the CPU/GPU data together.
+Formal integration may adjust Quark's concrete data structures and ownership
+boundaries, but should preserve this model rather than reintroducing per-path
+small-array allocation.

@@ -202,23 +202,27 @@ incremental addition, and the inner X-tile loop contains no division or
 per-iteration multiplication.
 
 The Compute GRID AA prototype algorithm is now considered complete enough to
-enter Quark's rendering architecture. It still rebuilds/uploads data frequently
-and remains intentionally isolated, but correctness, data contracts, tile
-classification, coverage generation, and representative performance have been
-validated. Important production work includes caching immutable path data,
-pooled GPU buffers/textures, dirty-path rebuilds, batching multiple paths into
-an atlas, and reducing the full coverage-atlas/composite round trip. The current
-algorithm and data contracts are documented in Chinese in
+enter Quark's rendering architecture. It remains intentionally isolated, but
+correctness, data contracts, tile classification, coverage generation,
+batch-oriented CPU output, and representative performance have been validated.
+The intended production model builds one batch of path data, lays all tiles in
+that batch into one coverage atlas, and generates/encodes the CPU/GPU data
+together. Production integration may require small adjustments to fit Quark's
+existing render-command, resource-ownership, buffer/texture-pool, and lifetime
+structures; it does not require revisiting the core CPU allocation strategy.
+The current algorithm and data contracts are documented in Chinese in
 `test/compute_aa/README.md`.
 
 The CPU construction pass has now been tightened around a thread-local
 `LinearAllocator`: temporary tile/backdrop buckets use arena-backed arrays,
 ordinary Compute AA records skip unnecessary construction/destruction, path
 translation has a multiply-free fast path, and edge/tile traversal avoids
-several repeated calculations. Treat CPU-side prototype optimization as mostly
-complete for now; the next profiling and optimization work should focus on GPU
-coverage/composition, dispatch shape, buffer upload/reuse, and reducing
-CPU-to-GPU synchronization.
+several repeated calculations. The temporary-allocation issue is resolved, and
+the final arrays are already continuous and batch-upload-friendly. Treat
+CPU-side algorithm and allocation optimization as complete for now; formal Qk
+integration should preserve this batch model while adapting the concrete
+renderer data structures. The next profiling and optimization work should
+focus on GPU coverage/composition and reducing the full-atlas round trip.
 
 The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
 tile. Each thread computes one complete Y-sample row, evaluating every relevant

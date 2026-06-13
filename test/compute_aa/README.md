@@ -285,26 +285,34 @@ int y = ceilf(sampleY - 0.5f);
 - CPU backdrop X 前缀和；
 - X tile 内层的除法、逐步乘法和 `ceilf/floorf`。
 
-当前 CPU 实测热点主要是临时桶中的大量小 `Array` 分配、扩容和析构。
-后续可考虑：
+CPU 临时内存分配问题已经解决：
 
-- frame arena / 线性内存池；
-- 两遍计数后一次性分配连续数组；
-- 缓存不变路径的构建结果；
-- 复用 Metal buffer 和 coverage texture；
-- 统计每个 yTile 行的 backdrop event 数，评估 GPU event 扫描成本。
+- 临时 tile/backdrop 桶使用线程局部 `LinearAllocator`；
+- 普通 Compute AA 记录跳过不必要的构造与析构；
+- 临时桶最终压平为连续数组，供 Metal buffer 成批上传；
+- 当前 CPU 构建与 GPU 数据布局都是面向批处理的，不再把大量小 `Array`
+  分配、扩容和析构视为性能热点。
+
+正式接入 Qk 时，预期使用一组批量路径数据，将该批次的所有 tiles 铺入同一个
+coverage atlas，并一次生成/编码 CPU 与 GPU 数据。这里不需要重新设计一套
+逐路径的小对象分配模型；真实 Qk 渲染器中的数据结构、资源所有权和命令批次
+边界可能需要微调，以适配现有 Canvas、Metal buffer/texture 池和生命周期。
+
+因此 CPU 算法与内存组织目前视为已经完成。后续性能重点是正式架构接入后的
+批次组织、资源复用，以及减少完整 coverage atlas 与 Composite 的往返成本。
 
 ### 实验分支总表
 
-目前远端保存了 4 个 Compute AA 实验分支，都是后续选择方案时需要比较的
-候选结构。
+目前保存了 5 个 Compute AA 实验分支。稀疏交点分桶版本已经选为正式接入
+基线，其他分支保留为历史 A/B 对照。
 
 | 分支 | HEAD | Coverage / backdrop 结构 | 实测总 GPU 时间 | 状态 |
 | --- | --- | --- | --- | --- |
 | `experiment/compute-aa-row-mask` | `9bf955c3e` | GPU backdrop events；每 tile 64线程，每线程负责一条 Y sample；私有 `windingDelta[64]`；共享 `insideMask[64]` + 一次 barrier | `0.733-0.773ms` | 64线程 GPU-backdrop 基线 |
 | `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | CPU 二维差分与前缀和生成完整 backdrop；每 tile 16线程，两个 tile 配成 SIMD32；每线程负责一行像素；无共享 mask/barrier | 约 `0.60ms` | 当前最快，但增加 CPU 构建与上传 |
 | `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | 与 CPU-backdrop 分支相同的 16线程/双 tile 行累计结构，但每条 Y sample 在 GPU 扫描 backdrop events | `0.730-0.772ms` | 用于隔离 GPU backdrop 扫描成本 |
-| `experiment/compute-aa-boundary-tiles` | 当前工作分支 | CPU 分类边界/纯色 tile；独立 Compute pass 写满纯色 0/1；64线程 GRID kernel 只 dispatch 边界 tile | `0.32-0.40ms` | 当前重大优化实验 |
+| `experiment/compute-aa-boundary-tiles` | `25279aca6` | CPU 分类边界/纯色 tile；独立 Compute pass 写满纯色 0/1；64线程 GRID kernel 只 dispatch 边界 tile | `0.32-0.40ms` | 边界/纯色分流基线 |
+| `experiment/compute-aa-sorted-crossings` | 当前分支 | 在边界/纯色分流上使用稀疏 X bucket、`crossingMask + ctz()` 与区间 mask | Boundary 约 `9%`，Composite 约 `78%` | 正式接入基线 |
 
 `experiment/compute-aa-row-mask` 原来保存过全共享/全 compute pass 版本，现已
 用更有价值的 64线程/private-delta 基线覆盖。全共享公平对比分支实测
