@@ -238,10 +238,10 @@ There are five saved experiment branches:
 | Branch | Head | Purpose / structure | Measured total |
 | --- | --- | --- | --- |
 | `experiment/compute-aa-row-mask` | `9bf955c3e` | Current 64-thread GPU-backdrop baseline: one thread per Y sample, private `windingDelta[64]`, shared `insideMask[64]`, one barrier, render-pass composite. | `0.733-0.773ms` |
-| `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Fastest result so far: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
+| `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Historical CPU-backdrop comparison: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
 | `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | Same 16-thread/two-tile row-coverage structure as the CPU-backdrop branch, but each Y sample scans compact GPU backdrop events instead of reading a CPU-built complete backdrop. | `0.730-0.772ms` |
 | `experiment/compute-aa-boundary-tiles` | `25279aca6` | CPU classifies boundary/uniform tiles during the existing X-tile scan; a separate compute pass writes uniform 0/1 tiles, and the GRID kernel dispatches only boundary tiles. | stable `0.32-0.40ms`; transient lows `0.23-0.24ms` |
-| `experiment/compute-aa-sorted-crossings` | current branch | Selected integration baseline: boundary/uniform split plus sparse X crossing buckets and interval-mask fill. | Boundary share about `9%`; Composite about `78%` |
+| `experiment/compute-aa-sorted-crossings` | current branch | Fastest measured and selected integration baseline: boundary/uniform split plus sparse X crossing buckets and interval-mask fill. | total about `0.32-0.40ms`; Boundary about `9%` |
 
 The old `experiment/compute-aa-row-mask` all-shared branch head was deliberately
 replaced with the useful 64-thread/private-delta baseline. The rejected
@@ -251,7 +251,7 @@ its result remains documented below.
 Selection status:
 
 - `experiment/compute-aa-sorted-crossings` is the selected baseline for formal
-  renderer integration.
+  renderer integration and the fastest measured Compute AA branch.
 - It combines compact GPU backdrop events, boundary/uniform tile separation,
   one thread per Y-sample row, sparse X crossing buckets, interval mask fill,
   shared inside masks, and one barrier.
