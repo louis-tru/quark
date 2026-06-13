@@ -208,3 +208,34 @@ Prevention rule:
   that do not improve Quark's actual behavior.
 - Keep `bitwise_cast` limited to deliberate equal-sized bit reinterpretation;
   it is not a general object conversion or copying API.
+
+## macOS Profiling: Per-Frame Window Titles Create False CPU Regressions
+
+Symptom:
+
+- Two Compute AA data-building algorithms appeared to have a large CPU
+  difference even though their direct construction work was similar.
+- Instruments showed substantial accumulated weight under
+  `-[NSWindow _dosetTitle:andDefeatWrap:]`.
+- Small changes to boundary marking appeared to cause unexpectedly large
+  whole-process CPU changes.
+
+Root cause:
+
+- The test assigned a formatted statistics string to `NSWindow.title` every
+  frame.
+- One algorithm produced rapidly changing boundary/uniform counts, repeatedly
+  triggering AppKit title-bar layout, drawing, notifications, and Window Server
+  work. Another algorithm produced more stable counts and often reassigned an
+  unchanged title.
+- Instruments' `Weight` is accumulated inclusive sampled time. A large weight
+  with a small `Self Weight` does not mean the title setter itself blocked for
+  that duration; most time belongs to descendant AppKit work.
+
+Prevention rule:
+
+- Never update native window titles, labels, logs, or other diagnostic UI every
+  frame during renderer CPU profiling.
+- Collect counters in memory and emit them once after measurement.
+- Compare identical deterministic workloads for equal durations and inspect the
+  target function directly rather than relying on whole-process percentages.

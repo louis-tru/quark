@@ -255,7 +255,7 @@ int y = ceilf(sampleY - 0.5f);
 | `experiment/compute-aa-row-mask` | `9bf955c3e` | GPU backdrop events；每 tile 64线程，每线程负责一条 Y sample；私有 `windingDelta[64]`；共享 `insideMask[64]` + 一次 barrier | `0.733-0.773ms` | 64线程 GPU-backdrop 基线 |
 | `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | CPU 二维差分与前缀和生成完整 backdrop；每 tile 16线程，两个 tile 配成 SIMD32；每线程负责一行像素；无共享 mask/barrier | 约 `0.60ms` | 当前最快，但增加 CPU 构建与上传 |
 | `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | 与 CPU-backdrop 分支相同的 16线程/双 tile 行累计结构，但每条 Y sample 在 GPU 扫描 backdrop events | `0.730-0.772ms` | 用于隔离 GPU backdrop 扫描成本 |
-| `experiment/compute-aa-boundary-tiles` | 当前工作分支 | CPU 分类边界/纯色 tile；独立 Compute pass 写满纯色 0/1；64线程 GRID kernel 只 dispatch 边界 tile | 待测 | 当前重大优化实验 |
+| `experiment/compute-aa-boundary-tiles` | 当前工作分支 | CPU 分类边界/纯色 tile；独立 Compute pass 写满纯色 0/1；64线程 GRID kernel 只 dispatch 边界 tile | `0.32-0.40ms` | 当前重大优化实验 |
 
 `experiment/compute-aa-row-mask` 原来保存过全共享/全 compute pass 版本，现已
 用更有价值的 64线程/private-delta 基线覆盖。全共享公平对比分支实测
@@ -413,17 +413,77 @@ experiment/compute-aa-boundary-tiles
 
 它从 64线程/private-delta/shared-mask 基线创建，当前实现：
 
-- CPU 使用所有几何边标记 boundary tile，水平边只参与标记，不进入 winding
-  edge 列表；
-- CPU 将 boundary tile 压成紧凑索引列表；
-- CPU 使用 backdrop events 的代表 sample 为无边界 tile 计算整数 winding；
+- boundary 标记合并进原有 CPU X-tile 扫描，不再建立第二套几何裁剪/DDA
+  数据流程；
+- 水平边使用零 winding，只参与 boundary 标记，不生成 coverage edge 或
+  backdrop；
+- CPU 只输出紧凑的 boundary tile 数据，不再输出全量 tile 数组和二次索引列表；
+- CPU 只使用第一个 Y sample 的 backdrop 为无边界 tile 计算整数 winding；
 - 独立 `Compute AA Uniform Tiles` pass 为无边界 tile 写满 0 或 1；
 - `Compute AA Boundary Coverage` pass 只 dispatch boundary tile，内部继续使用
   原 64线程 GRID coverage；
 - Composite 仍读取语义完整的整张 R8 coverage texture。
 
-窗口标题会显示 `boundary` / `uniform` tile 数量。该版本仍需视觉验证和 GPU
-计时，重点观察独立纯色 pass 的固定成本是否低于跳过的大量 GRID coverage。
+窗口标题会显示 `boundary` / `uniform` tile 数量。当前大尺寸测试通常约为：
+
+```text
+edges:324
+boundary:501-506
+uniform:3983-3987
+```
+
+即只有约 `11%` 的 tile 执行昂贵 GRID coverage。禁用 uniform pass 后，可直接
+看到沿路径轮廓连续分布的 boundary tile 带；这验证了昂贵工作已经从“整个
+atlas 面积”转为主要跟随“路径轮廓”。
+
+注意：不要在 CPU 性能测试期间每帧更新原生窗口标题。旋转路径会改变上述统计
+数字，`NSWindow.title` 会触发 AppKit 标题栏布局、绘制和 Window Server 通信，
+其累计成本可能远高于 `buildDrawData()`，并在 Instruments 中显示为
+`-[NSWindow _dosetTitle:andDefeatWrap:]`。不同 boundary 算法的计数稳定性不同，
+因此这个 UI 副作用还会制造假的 A/B 性能差异。正式测量时应禁用标题更新，
+把统计保存在内存中并在测量结束后只输出一次。
+
+两类 boundary 标记数据不完全相同：
+
+- 按离散 GRID sample 变化标记时，只有影响当前采样点的 tile 才算 boundary；
+  浅斜边和 sample 阈值变化会让数量随旋转频繁跳动。
+- `mark_boundary_range` 按连续几何边界经过的 tile 标记，包括水平边和没有改变
+  离散 sample 行的边，因此更保守，数量通常也更稳定。
+
+### 边界 Tile 里程碑测量
+
+原始 64线程/all-tile GPU backdrop 基线：
+
+```text
+Compute AA GPU average: 0.733-0.773ms
+```
+
+boundary/uniform 分流后的稳定测量：
+
+```text
+Compute AA GPU average: 0.32-0.40ms
+```
+
+启动或短暂运行时曾测得 `0.23-0.24ms`，但会回到上述稳定区间，因此不把低值
+作为最终性能结论。即便按稳定结果计算，该优化仍将完整帧 GPU 时间降低约一半。
+
+GPU Capture 的代表性 `4x4 GRID` 占比：
+
+```text
+Uniform Tiles:     9.79%
+Boundary Coverage: 19.41%
+Composite:         70.80%
+```
+
+改为 `1x1 GRID` 后总时间仍接近，说明当前主要瓶颈已经不是 boundary GRID
+算术，而是完整 R8 atlas 的写入、Composite 采样和最终颜色写入。Xcode 会把
+两个 compute pass 中先执行的 pass 标为 `Unused Texture`；这是因为它只看到
+后续 pass 再次写同一张 texture，无法识别两者写入的是互不重叠的 tile。
+
+该实验确认 Compute GRID AA 已具备加入 Quark 渲染模型的技术基础，但它仍以
+更高 CPU/GPU 成本换取比 AASide 更稳定的高质量 coverage。下一项最重要的
+性能实验不是继续微调 GRID，而是让 boundary/uniform coverage 在最终绘制中
+直接生效，尝试删除完整 R8 coverage 写入与独立 Composite。
 
 ## 重要不变量
 

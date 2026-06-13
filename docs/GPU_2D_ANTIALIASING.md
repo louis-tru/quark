@@ -809,3 +809,53 @@ Do not conflate this optimization with:
 
 Those are separate architectural choices and are not required for the first
 boundary-tile experiment.
+
+### Boundary-Tile Experiment Result
+
+The first Metal prototype validates the boundary/uniform split as a milestone,
+not merely a theoretical optimization.
+
+CPU construction now marks boundary tiles during the existing X-tile edge scan.
+It does not run a second clipping/DDA geometry pass. Horizontal edges carry
+zero winding and participate only in boundary marking. A uniform tile resolves
+its fill state from one representative Y-sample backdrop value because every Y
+sample in a correctly classified uniform tile has the same winding.
+
+The representative large test contains approximately:
+
+```text
+324 edges
+501-506 boundary tiles
+3983-3987 uniform tiles
+```
+
+Only about `11%` of tiles therefore run expensive GRID coverage. Disabling the
+uniform pass reveals a continuous tile-width band following the path outline,
+which is a useful visual proof of the new work distribution.
+
+Measured total GPU time changed from the all-tile 64-thread baseline of
+`0.733-0.773ms` to a stable boundary-tile range of approximately
+`0.32-0.40ms`. Transient startup readings reached `0.23-0.24ms`, but should not
+be used as the stable result.
+
+Representative GPU Capture shares for `4x4 GRID` were:
+
+```text
+Uniform Tiles      9.79%
+Boundary Coverage 19.41%
+Composite         70.80%
+```
+
+Changing GRID from `4x4` to `1x1` leaves total time surprisingly close. This
+shows that the current dominant cost is no longer boundary coverage arithmetic;
+it is the full intermediate coverage-texture round trip and final composition.
+Xcode may label the first of the two disjoint-tile compute writers as an unused
+texture write because it cannot infer that the later writer touches a disjoint
+region of the same texture.
+
+This makes Compute GRID AA viable as a Quark rendering option, while also
+showing why it remains more expensive than AASide on both CPU and GPU. The next
+major performance experiment should fuse coverage application with final
+drawing, or otherwise avoid writing and then sampling a complete R8 atlas.
+Future analytic-area coverage should retain the same boundary/uniform
+classification and run continuous-area work only on boundary tiles.

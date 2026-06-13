@@ -88,10 +88,10 @@ namespace qk {
 		"Metal backdrop-row ABI mismatch");
 
 	struct alignas(16) ComputeAATile {
-		uint32_t edgeOffset; // offset into ComputeAADrawData::tileEdges
-		uint32_t edgeCount;
 		uint32_t originX;    // atlas-space tile origin in pixels
 		uint32_t originY;
+		uint32_t edgeOffset; // offset into ComputeAADrawData::tileEdges
+		uint32_t edgeCount;
 	};
 	static_assert(sizeof(ComputeAATile) == sizeof(uint32_t) * 4,
 		"Metal tile ABI mismatch");
@@ -128,8 +128,7 @@ namespace qk {
 		uint32_t tileCountY = 0;
 		Array<ComputeAAEdge> edges;
 		Array<ComputeAATileEdge> tileEdges;
-		Array<ComputeAATile> tiles;
-		Array<uint32_t> boundaryTileIndices;
+		Array<ComputeAATile> boundaryTiles; // compact; no entries for uniform tiles
 		Array<ComputeAAUniformTile> uniformTiles;
 		Array<ComputeAABackdropEvent> backdropEvents;
 		Array<ComputeAABackdropRow> backdropRows;

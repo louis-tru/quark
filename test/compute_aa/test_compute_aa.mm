@@ -130,8 +130,9 @@ static Path make_compute_aa_path(float t) {
 	_alloc.reset();
 	AllocatorScope scope(&_alloc); // 这个测试里所有的临时数据都放在 _alloc 里
 
-	//float time = float(_frame++) / 5000.0f;
-	float time = float(_frame++) / 60.0f;
+	float time = float(_frame++) / 5000.0f;
+	// float time = float(_frame++) / 60.0f;
+	// float time = 0;
 	Path path = make_compute_aa_path(time);
 	ComputeAADrawData data = MetalComputeAAPrototype::buildDrawData(path, Mat(0,{3},0,0), 1.0f);
 	if (!data.edges.length() || data.atlasSize.is_zero_axis())
@@ -173,10 +174,10 @@ static Path make_compute_aa_path(float t) {
 	[cmd presentDrawable:drawable];
 	[cmd commit];
 
-	self.window.title = [NSString stringWithFormat:
-		@"Compute AA prototype - edges:%u boundary:%u uniform:%u atlas:%ux%u",
-		data.edges.length(), data.boundaryTileIndices.length(), data.uniformTiles.length(),
-		uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
+	// self.window.title = [NSString stringWithFormat:
+	// 	@"Compute AA prototype - edges:%u boundary:%u uniform:%u atlas:%ux%u",
+	// 	data.edges.length(), data.boundaryTiles.length(), data.uniformTiles.length(),
+	// 	uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
 }
 
 @end

@@ -233,7 +233,7 @@ There are four saved remote experiment branches:
 | `experiment/compute-aa-row-mask` | `9bf955c3e` | Current 64-thread GPU-backdrop baseline: one thread per Y sample, private `windingDelta[64]`, shared `insideMask[64]`, one barrier, render-pass composite. | `0.733-0.773ms` |
 | `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Fastest result so far: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
 | `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | Same 16-thread/two-tile row-coverage structure as the CPU-backdrop branch, but each Y sample scans compact GPU backdrop events instead of reading a CPU-built complete backdrop. | `0.730-0.772ms` |
-| `experiment/compute-aa-boundary-tiles` | working branch | CPU classifies boundary/uniform tiles; a separate compute pass writes uniform 0/1 tiles, and the 64-thread GRID kernel dispatches only boundary tiles. | pending |
+| `experiment/compute-aa-boundary-tiles` | working branch | CPU classifies boundary/uniform tiles during the existing X-tile scan; a separate compute pass writes uniform 0/1 tiles, and the GRID kernel dispatches only boundary tiles. | stable `0.32-0.40ms`; transient lows `0.23-0.24ms` |
 
 The old `experiment/compute-aa-row-mask` all-shared branch head was deliberately
 replaced with the useful 64-thread/private-delta baseline. The rejected
@@ -311,12 +311,68 @@ outside tiles uninitialized or leak sparse-valid-tile semantics into later
 composite shaders. Detailed rationale is recorded in
 `docs/GPU_2D_ANTIALIASING.md`.
 
-The active `experiment/compute-aa-boundary-tiles` working branch implements
-the first version of that design from the 64-thread baseline. CPU geometry
-marks boundary tiles including horizontal edges; horizontal edges remain
-excluded from winding edges. A separate uniform-tile compute pass writes full
-0/1 coverage, and the original 64-thread GRID kernel dispatches only a compact
-boundary-tile index list. Visual validation and GPU timing are pending.
+The active `experiment/compute-aa-boundary-tiles` working branch validates this
+design from the 64-thread baseline. Boundary marking is now folded into the
+existing CPU X-tile scan instead of using a second geometry/DDA construction
+pass. Horizontal edges use zero winding and participate only in boundary
+marking. Uniform tiles resolve their 0/1 state from one Y-sample backdrop value.
+Boundary tiles are emitted directly as a compact tile array; the prototype no
+longer uploads a full tile array plus a second boundary index list.
+
+This is a Compute AA milestone:
+
+- The representative large test contains about `501-506` boundary tiles and
+  `3983-3987` uniform tiles, so only about `11%` of tiles require GRID coverage.
+- Stable total GPU time is approximately `0.32-0.40ms`, down from the
+  `0.733-0.773ms` all-tile 64-thread baseline. Startup/transient measurements
+  reached `0.23-0.24ms`, but are not treated as stable performance.
+- GRID `1x1` and `4x4` total times are close because GPU Capture attributes
+  roughly `70%-77%` of the frame to the final Composite. At `4x4`, representative
+  shares were Uniform `9.79%`, Boundary Coverage `19.41%`, Composite `70.80%`.
+- Disabling the uniform pass visualizes a continuous tile-width boundary band,
+  confirming that expensive work now follows the path outline rather than the
+  full atlas area.
+- The path is now viable for Quark as a high-quality GPU AA option, but still
+  costs more CPU and GPU time than AASide. The next major performance experiment
+  is to avoid the complete R8 write/read round trip by applying coverage during
+  final drawing.
+
+### Resolved CPU Profiling Trap: Per-Frame Window Titles
+
+The apparent large CPU regression from writing `tile.boundary = true` was not
+caused by the boundary-marker store. The Compute AA test updated the native
+window title every frame with live edge/boundary/uniform counts:
+
+```objc
+self.window.title = [NSString stringWithFormat:...];
+```
+
+The compared boundary algorithms produced count strings with different
+stability. The sample-derived version changed counts frequently while rotating,
+causing AppKit to repeatedly update/layout/draw the title bar and communicate
+with the Window Server. The geometry-derived `mark_boundary_range` version
+usually produced more stable counts, so repeated equal titles were cheaper.
+Instruments attributed this accumulated descendant work to
+`-[NSWindow _dosetTitle:andDefeatWrap:]`, creating a misleading apparent
+relationship between the boundary write and CPU usage.
+
+For Compute AA CPU comparisons:
+
+- Disable native window-title updates completely during profiling.
+- Store counters in memory and print them once after the measurement.
+- Use the same fixed or deterministic path motion, Release configuration, and
+  measurement duration.
+- Compare `buildDrawData()` directly; do not use whole-process percentages as
+  the primary result.
+
+The two boundary algorithms intentionally produce different counts:
+
+- The sample-derived version marks a tile only when an edge affects the current
+  discrete GRID samples. Shallow edges and threshold crossings can make its
+  boundary count change frequently.
+- `mark_boundary_range` marks every tile crossed by the continuous geometric
+  boundary, including horizontal edges and edges that do not change a discrete
+  sample row. It is more conservative and its counts are generally more stable.
 
 Metal shader/metallib compilation, ObjC++ syntax checks, and `git diff --check`
 currently pass. Existing warnings are the unused `QK_COMPUTE_AA_NON_ZERO`

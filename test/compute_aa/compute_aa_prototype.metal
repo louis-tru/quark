@@ -50,10 +50,10 @@ struct ComputeAABackdropRow {
 };
 
 struct ComputeAATile {
-	uint edgeOffset;
-	uint edgeCount;
 	uint originX;
 	uint originY;
+	uint edgeOffset;
+	uint edgeCount;
 };
 
 struct ComputeAAUniformTile {
@@ -121,10 +121,9 @@ kernel void qk_compute_aa_coverage(
 	constant ComputeAAParams &params [[buffer(0)]],
 	const device ComputeAAEdge *edges [[buffer(1)]],
 	const device ComputeAATileEdge *tileEdges [[buffer(2)]],
-	const device ComputeAATile *tiles [[buffer(3)]],
+	const device ComputeAATile *boundaryTiles [[buffer(3)]],
 	const device ComputeAABackdropEvent *backdropEvents [[buffer(4)]],
 	const device ComputeAABackdropRow *backdropRows [[buffer(5)]],
-	const device uint *boundaryTileIndices [[buffer(6)]],
 	texture2d<float, access::write> coverageTex [[texture(0)]],
 	uint boundaryTileIndex [[threadgroup_position_in_grid]],
 	uint threadIndex [[thread_index_in_threadgroup]])
@@ -140,10 +139,10 @@ kernel void qk_compute_aa_coverage(
 		QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_SAMPLE_GRID
 	];
 
-	const device ComputeAATile &tile = tiles[boundaryTileIndices[boundaryTileIndex]];
+	const device ComputeAATile &tile = boundaryTiles[boundaryTileIndex];
 	uint tileX = tile.originX >> 4;
 	uint tileY = tile.originY >> 4;
-	float invGrid = 1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID);
+	constexpr float invGrid = 1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID);
 	float sampleY = float(tile.originY) + (float(threadIndex) + 0.5) * invGrid;
 
 	const device ComputeAABackdropRow &row = backdropRows[tileY];
@@ -191,6 +190,8 @@ kernel void qk_compute_aa_coverage(
 
 	constexpr uint pixelCount = QK_COMPUTE_AA_TILE_SIZE * QK_COMPUTE_AA_TILE_SIZE;
 	constexpr ulong sampleMask = (1ul << QK_COMPUTE_AA_SAMPLE_GRID) - 1ul;
+	constexpr float invSampleCount =
+		1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID * QK_COMPUTE_AA_SAMPLE_GRID);
 	for (uint pixelIndex = threadIndex; pixelIndex < pixelCount; pixelIndex += sampleCount) {
 		uint pixelX = pixelIndex & (QK_COMPUTE_AA_TILE_SIZE - 1);
 		uint pixelY = pixelIndex >> 4;
@@ -203,8 +204,7 @@ kernel void qk_compute_aa_coverage(
 		}
 		uint2 pixel = uint2(tile.originX + pixelX, tile.originY + pixelY);
 		if (pixel.x < params.width && pixel.y < params.height) {
-			float coverage = float(covered) *
-				(1.0 / float(QK_COMPUTE_AA_SAMPLE_GRID * QK_COMPUTE_AA_SAMPLE_GRID));
+			float coverage = float(covered) * invSampleCount;
 			coverageTex.write(float4(coverage, 0.0, 0.0, 1.0), pixel);
 		}
 	}
