@@ -255,13 +255,13 @@ kernel void qk_compute_aa_coverage(
 		// 一个像素对应 GRID 个连续 X sample 与 GRID 条连续 Y sample 行。
 		uint pixelX = pixelIndex & (QK_COMPUTE_AA_TILE_SIZE - 1);
 		uint pixelY = pixelIndex >> 4;
-		uint firstSampleX = pixelX * QK_COMPUTE_AA_SAMPLE_GRID;
-		ulong sampleBits = sampleMask << firstSampleX;
+		uint sampleGridX = pixelX * QK_COMPUTE_AA_SAMPLE_GRID;
+		ulong sampleBits = sampleMask << sampleGridX;
 		uint covered = 0;
-		uint firstSampleY = pixelY * QK_COMPUTE_AA_SAMPLE_GRID;
+		uint sampleGridY = pixelY * QK_COMPUTE_AA_SAMPLE_GRID;
 		for (uint sy = 0; sy < QK_COMPUTE_AA_SAMPLE_GRID; sy++) {
 			// popcount 统计当前像素在这一条 Y sample 行中被覆盖的 X sample 数。
-			covered += popcount(insideMask[firstSampleY + sy] & sampleBits);
+			covered += popcount(insideMask[sampleGridY + sy] & sampleBits);
 		}
 		uint2 pixel = uint2(tile.originX + pixelX, tile.originY + pixelY);
 		if (pixel.x < params.width && pixel.y < params.height) {
