@@ -274,15 +274,14 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, storage_blocks, st
 		let type = mat[5]; // type or block name
 		let name = mat[6] || mat[8]; // simple resource name or block instance name
 		let typeLower = type.substring(0, 1).toLowerCase() + type.substring(1); // for example: PcArgs to pcArgs
+		let blockName = !name || /^_\d+$/.test(name) ? typeLower: name;
 		let block = mat[7]; // block content
 		if (key == 'uniform') { // uniform block or uniform
 			if (block) { // uniform block
 				uniform_blocks.push({
 					type,
 					rawName: name,
-					// Use the first letter of the type name (lowercase) as the default variable name,
-					// because for uniform blocks without defined names, glslc will automatically generate a random name.
-					name: typeLower,
+					name: blockName,
 					binding, std, access, block: parse_block(block),
 				});
 			} else if (type == 'sampler2D' || type == 'image2D') {
@@ -307,7 +306,7 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, storage_blocks, st
 			storage_blocks.push({
 				type,
 				rawName: name,
-				name: name || typeLower,
+				name: blockName,
 				binding, std, access, storage: true, block: parse_block(block),
 			});
 		} else if (key == 'struct') { // struct
