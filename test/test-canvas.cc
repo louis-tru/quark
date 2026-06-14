@@ -250,7 +250,8 @@ class TestCanvas2: public Box {
 
 		auto path = make_compute_aa_path(t);
 		path.transform(Mat({-50,-50},{1.5},0,0));
-		canvas->drawPath(path, paint);
+		// canvas->drawPath(path, paint);
+		canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
 
 		mark_rerender();
 	}

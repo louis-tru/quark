@@ -45,7 +45,9 @@
 
 namespace qk {
 #ifdef __OBJC__
+	typedef id<NSObject> NSObjectID;
 	typedef id<MTLRenderPipelineState> MTLPipeline;
+	typedef id<MTLComputePipelineState> MTLComputePipeline;
 	typedef id<MTLFunction> MTLFunctionID;
 	typedef id<MTLDevice> MTLDeviceID;
 	typedef id<MTLCommandQueue> MTLCommandQueueID;
@@ -58,7 +60,9 @@ namespace qk {
 	typedef id<MTLBuffer> MTLBufferID;
 	typedef id<CAMetalDrawable> MTLDrawableID;
 #else
+	typedef void* NSObjectID;
 	typedef void* MTLPipeline;
+	typedef void* MTLComputePipeline;
 	typedef void* MTLFunctionID;
 	typedef void* MTLDeviceID;
 	typedef void* MTLCommandQueueID;
@@ -107,8 +111,9 @@ namespace qk {
 		Array<MSLShaderAttr> attributes; // vertex attributes format
 		uint32_t bufferIndex; // vertex buffer index
 		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format);
+		MTLComputePipeline getComputePipeline();
 	protected:
-		Dict<uint32_t, MTLPipeline> _pipelines;
+		Dict<uint32_t, NSObjectID> _pipelines;
 		friend class MSLShaders;
 	};
 }

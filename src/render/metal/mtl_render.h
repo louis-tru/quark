@@ -28,6 +28,7 @@ namespace qk {
 		void unloadTexture(TexStat *tex) override;
 		void unloadVertexData(VertexData::ID *id) override;
 		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format);
+		MTLComputePipeline getComputePipeline(MSLPipelineKind kind);
 		MTLSampler get_sampler(const PaintImage* paint);
 		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
 		MSLShaders& shaders() { return _shaders; }
@@ -42,7 +43,7 @@ namespace qk {
 		MTLCommandQueueID _commandQueue;
 		Dict<uint32_t, MTLFunctionID> _functions; // key = (kind << 1) | vertex, value = MTLFunctionID
 		// key = (kind << 16) | (blendMode << 8) | (outputType << 4) | sampleCount, value = MTLPipeline
-		Dict<uint32_t, MTLPipeline> _pipelines;
+		Dict<uint32_t, NSObjectID> _pipelines;
 		Dict<uint32_t, MTLSampler> _texSamplers; // PaintImage => Sampler, indexed by PaintImage bitfields (tile/filter/mipmap modes)
 		friend MetalRenderResource* getSharedRenderMetalResource();
 		friend class MetalRender;

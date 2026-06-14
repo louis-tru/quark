@@ -194,6 +194,56 @@ namespace qk {
 		drawColor(vertex, premul_alpha(color), _flags);
 	}
 
+	void MetalCanvas::drawCGAAColorCmd(const CGAADrawData &data, const Color4f &color) {
+		auto boundaryCount = data.boundaryTiles.length();
+		auto uniformCount = data.uniformTiles.length();
+		if (!boundaryCount && !uniformCount)
+			return;
+
+		auto makeBuffer = [&](const void *bytes, uint32_t length) {
+			return length ?
+				[_device newBufferWithBytes:bytes length:length options:MTLResourceStorageModeShared]:
+				_render->_emptyBuffer;
+		};
+		auto uniformTiles = makeBuffer(data.uniformTiles.val(), data.uniformTiles.size());
+		auto edges = makeBuffer(data.edges.val(), data.edges.size());
+		auto tileEdges = makeBuffer(data.tileEdges.val(), data.tileEdges.size());
+		auto boundaryTiles = makeBuffer(data.boundaryTiles.val(), data.boundaryTiles.size());
+		auto backdropEvents = makeBuffer(data.backdropEvents.val(), data.backdropEvents.size());
+		auto backdropRows = makeBuffer(data.backdropRows.val(), data.backdropRows.size());
+
+		auto &shader = _shaders.cgaa;
+		MSLCgaa::PcArgs pc{
+			.tileCountX=data.tileCountX,
+			.tileCountY=data.tileCountY,
+			.fillRule=kCGAANegative_FillRule,
+			.boundaryTiles=boundaryCount,
+			.originX=uint32_t(data.bounds.begin.x()),
+			.originY=uint32_t(data.bounds.begin.y()),
+			.targetWidth=uint32_t(data.bounds.end.x()),
+			.targetHeight=uint32_t(data.bounds.end.y()),
+			.color=premul_alpha(color),
+			.flags=_flags,
+		};
+
+		endPass();
+		auto enc = [_cmdPack.current computeCommandEncoder];
+		enc.label = @"CGAA Solid Color";
+		[enc setComputePipelineState:shader.getComputePipeline()];
+		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+		[enc setBuffer:uniformTiles offset:0 atIndex:shader.compute.uniformTiles];
+		[enc setBuffer:edges offset:0 atIndex:shader.compute.edges];
+		[enc setBuffer:tileEdges offset:0 atIndex:shader.compute.tileEdges];
+		[enc setBuffer:boundaryTiles offset:0 atIndex:shader.compute.boundaryTiles];
+		[enc setBuffer:backdropEvents offset:0 atIndex:shader.compute.backdropEvents];
+		[enc setBuffer:backdropRows offset:0 atIndex:shader.compute.backdropRows];
+		[enc setTexture:_outColorTex atIndex:shader.compute.targetTex];
+		[enc dispatchThreadgroups:MTLSizeMake(boundaryCount + uniformCount, 1, 1)
+			threadsPerThreadgroup:MTLSizeMake(kCGAATileSize * kCGAASampleGrid, 1, 1)];
+		[enc endEncoding];
+		_cmdPack.recorded = true;
+	}
+
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
 		endPass(); // end current pass if exist
 		auto pass = beginPass();

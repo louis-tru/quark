@@ -61,6 +61,7 @@ namespace qk {
 				ImageDrawKind kind, const Color4f &strokeColor, float stroke) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
 		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
+		void drawCGAAColorCmd(const CGAADrawData &data, const Color4f &color) override;
 		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
 		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,

@@ -30,6 +30,7 @@
 
 #include "./gpu_canvas.h"
 #include "./gpu_canvas_filter.h"
+#include "src/util/object.h"
 
 namespace qk {
 	float get_level_font_size(float fontSize);
@@ -125,8 +126,17 @@ namespace qk {
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			// auto &vertex = getVertex(path, aaRadius, aa);
-			// drawColorCmd(vertex, color);
+			auto &vertex = getVertex(path, aaRadius, aa);
+			drawColorCmd(vertex, color);
+			// LinearAllocator alloc;
+			// AllocatorScope scope(&alloc);
+			// Mat pixelMatrix(Vec2(0), _surfaceScale, 0, Vec2(0));
+			// pixelMatrix *= _state->matrix;
+			// Range clip{{0,0}, _surfaceSize};
+			// auto data = buildCGAADrawData(path, &clip, &pixelMatrix, _allScaleAverage * 0.5f);
+			// if (data.boundaryTiles.length() || data.uniformTiles.length()) {
+			// 	drawCGAAColorCmd(data, color);
+			// }
 		}
 
 		void strokePath(const Path &path, const Paint& paint, float aaRadius) {

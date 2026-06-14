@@ -247,7 +247,9 @@ namespace qk {
 					out.tileEdges.write(edges.val(), edges.length());
 				} else {
 					Qk_ASSERT(!edges.length(), "uniform tile should not contain coverage edges");
-					out.uniformTiles.push({originX, originY, winding, 0});
+					// Direct-target production drawing does not need empty outside tiles.
+					if (winding)
+						out.uniformTiles.push({originX, originY, winding, 0});
 				}
 				originX += kCGAATileSize;
 			}
@@ -270,13 +272,13 @@ namespace qk {
 			Qk_ReturnLocal(out);
 		auto bounds = Path::getBoundsFromPoints(lines.val(), lines.length()).expandToInteger();
 		// clip 是可选的，允许调用方限制 atlas 的有效区域，超出部分会被裁剪掉并且不参与后续 GPU 处理。
-		Qk_ASSERT(!clip && clip->begin.max(0) == clip->begin, "clip should have non-negative origin");
-		Qk_ASSERT(!clip && clip->expandToInteger() == *clip, "clip should have integer bounds");
+		Qk_ASSERT(!clip || clip->begin.max(0) == clip->begin, "clip should have non-negative origin");
+		Qk_ASSERT(!clip || clip->expandToInteger() == *clip, "clip should have integer bounds");
 		out.bounds = bounds.clip(clip ? *clip : Range{0, bounds.end});
-		out.atlasOrigin = out.bounds.begin; // 使用 bounds 的左上角作为 atlas 原点,因为目前直接绘制到屏幕上。
-		out.atlasSize = out.bounds.end; // 使用 bounds 的右下角作为 atlas 尺寸，这里主要是限制tile向右下扩展时多出的边界空间。
-		constexpr float invTileSize = 1.0f / float(kCGAATileSize);
 		auto size = out.bounds.size();
+		if (size.x() <= 0 || size.y() <= 0)
+			Qk_ReturnLocal(out);
+		constexpr float invTileSize = 1.0f / float(kCGAATileSize);
 		out.tileCountX = ceilf(size.x() * invTileSize);
 		out.tileCountY = ceilf(size.y() * invTileSize);
 

@@ -1,16 +1,15 @@
 // CGAA: Compute Grid Anti-Aliasing.
-// 当前正式 shader 源保留 coverage-atlas composite，用于迁移实验实现。
-// 后续 production CGAA 将优先在 compute 中直接应用 paint/blend 写目标纹理。
+// 当前测试路径在 compute 中直接应用 coverage 和实色 SrcOver。
 
 Qk_CONSTANT(
 	uint tileCountX;
 	uint tileCountY;
 	uint fillRule;
 	uint boundaryTiles; // boundaryTiles 长度
-	uint atlasOriginX;
-	uint atlasOriginY;
-	uint atlasWidth;
-	uint atlasHeight;
+	uint originX;
+	uint originY;
+	uint targetWidth;
+	uint targetHeight;
 	vec4 color;
 );
 
@@ -85,7 +84,7 @@ layout(binding=6,set=0,std430) readonly buffer CgaaBackdropEvents {
 layout(binding=7,set=0,std430) readonly buffer CgaaBackdropRows {
 	CgaaBackdropRow values[];
 } backdropRows;
-layout(binding=1,set=1,r8) uniform image2D atlasTex;
+layout(binding=1,set=1,rgba8) uniform image2D targetTex;
 
 shared uint64_t insideMask[CGAA_TILE_SIZE * CGAA_SAMPLE_GRID];
 
@@ -97,6 +96,12 @@ bool cgaa_inside(int winding) {
 	if (pc.fillRule == CGAA_NEGATIVE)
 		return winding < 0;
 	return winding != 0;
+}
+
+void cgaa_write_color(uvec2 pixel, float coverage) {
+	vec4 src = pc.color * coverage;
+	vec4 dst = imageLoad(targetTex, ivec2(pixel));
+	imageStore(targetTex, ivec2(pixel), src + dst * (1.0 - src.a));
 }
 
 float cgaa_edge_cross_x(float sampleY, CgaaEdge edge) {
@@ -116,11 +121,11 @@ void cgaa_write_uniform_tile(uint tileIndex, uint threadIndex) {
 	const uint threadCount = CGAA_TILE_SIZE * CGAA_SAMPLE_GRID;
 	for (uint pixelIndex = threadIndex; pixelIndex < pixelCount; pixelIndex += threadCount) {
 		uvec2 pixel = uvec2(
-			pc.atlasOriginX + tile.originX + (pixelIndex & (CGAA_TILE_SIZE - 1)),
-			pc.atlasOriginY + tile.originY + (pixelIndex >> 4)
+			pc.originX + tile.originX + (pixelIndex & (CGAA_TILE_SIZE - 1)),
+			pc.originY + tile.originY + (pixelIndex >> 4)
 		);
-		if (pixel.x < pc.atlasWidth && pixel.y < pc.atlasHeight)
-			imageStore(atlasTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
+		if (pixel.x < pc.targetWidth && pixel.y < pc.targetHeight)
+			cgaa_write_color(pixel, coverage);
 	}
 }
 
@@ -194,12 +199,12 @@ void cgaa_write_boundary_tile(uint boundaryTileIndex, uint threadIndex) {
 		for (uint sy = 0; sy < CGAA_SAMPLE_GRID; sy++)
 			covered += uint(bitCount(insideMask[sampleGridY + sy] & sampleBits));
 		uvec2 pixel = uvec2(
-			pc.atlasOriginX + tile.originX + pixelX,
-			pc.atlasOriginY + tile.originY + pixelY
+			pc.originX + tile.originX + pixelX,
+			pc.originY + tile.originY + pixelY
 		);
-		if (pixel.x < pc.atlasWidth && pixel.y < pc.atlasHeight) {
+		if (pixel.x < pc.targetWidth && pixel.y < pc.targetHeight) {
 			float coverage = float(covered) * invSampleCount;
-			imageStore(atlasTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
+			cgaa_write_color(pixel, coverage);
 		}
 	}
 }

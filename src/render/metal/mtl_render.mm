@@ -299,7 +299,8 @@ namespace qk {
 																																		width:size.x()
 																																	height:size.y()
 																																mipmapped:mipmap];
-		desc.usage = MTLTextureUsageRenderTarget | (gpuRead ? MTLTextureUsageShaderRead : 0);
+		desc.usage = MTLTextureUsageRenderTarget |
+			(gpuRead ? MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite : 0);
 		desc.storageMode = cpuRead ? MTLStorageModeShared : MTLStorageModePrivate;
 		return [device newTextureWithDescriptor:desc];
 	}
@@ -505,9 +506,9 @@ namespace qk {
 	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format) {
 		ScopeLock lock(_mutex); // protect shader function cache
 		auto key = mtl_pipeline_key(kind, mode, format);
-		MTLPipeline pso = nil;
-		if (_pipelines.get(key, pso))
-			return pso;
+		NSObjectID pip = nil;
+		if (_pipelines.get(key, pip))
+			return (MTLPipeline)pip;
 		auto desc = [MTLRenderPipelineDescriptor new];
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
@@ -534,10 +535,32 @@ namespace qk {
 		// desc.sampleCount = 1; // default is 1, set to >1 if using MSAA
 
 		NSError *err = nil;
-		pso = [_device newRenderPipelineStateWithDescriptor:desc error:&err];
-		Qk_CHECK(pso, "Metal solid pipeline creation failed: %s", err.localizedDescription.UTF8String);
-		_pipelines[key] = pso;
-		return pso;
+		pip = [_device newRenderPipelineStateWithDescriptor:desc error:&err];
+		Qk_CHECK(pip, "Metal solid pipeline creation failed: %s", err.localizedDescription.UTF8String);
+		_pipelines[key] = (NSObjectID)pip;
+		return (MTLPipeline)pip;
+	}
+
+	MTLComputePipeline MetalRenderResource::getComputePipeline(MSLPipelineKind kind) {
+		ScopeLock lock(_mutex);
+		auto key = mtl_pipeline_key(kind, (BlendMode)0, (MTLPixelFormat)0);
+		NSObjectID pip = nil;
+		if (_pipelines.get(key, pip))
+			return (MTLComputePipeline)pip;
+		Qk_CHECK(kind < kPipelineCount, "Invalid compute pipeline kind: %d", kind);
+		auto &src = _shaders.allShaders[kind]->source;
+		Qk_CHECK(src.computeSource, "Shader does not contain a compute stage: %s", src.name);
+		auto code = src.computeSource();
+		NSError *err = nil;
+		auto library = [_device newLibraryWithSource:@(code.c_str()) options:nil error:&err];
+		Qk_CHECK(library, "Metal compute shader compilation failed: %s", err.localizedDescription.UTF8String);
+		auto entry = String::format("%s_comp", src.name);
+		auto fn = [library newFunctionWithName:@(entry.c_str())];
+		Qk_CHECK(fn, "Metal compute shader entry not found: %s", entry.c_str());
+		pip = [_device newComputePipelineStateWithFunction:fn error:&err];
+		Qk_CHECK(pip, "Metal compute pipeline creation failed: %s", err.localizedDescription.UTF8String);
+		_pipelines[key] = (NSObjectID)pip;
+		return (MTLComputePipeline)pip;
 	}
 
 	MTLSampler MetalRenderResource::get_sampler(const PaintImage* paint) {
@@ -569,13 +592,23 @@ namespace qk {
 		uint32_t key =
 			((uint32_t)mode << 10) | // 8 bits for blend mode
 			((uint32_t)format);// 10 bits for output type
-		MTLPipeline pso;
-		if (_pipelines.get(key, pso))
-			return pso;
+		NSObjectID pip;
+		if (_pipelines.get(key, pip))
+			return (MTLPipeline)pip;
 		// get pipeline from render resource by pipeline kind
-		pso = ((MetalRenderResource*)getSharedRenderResource())->
+		pip = ((MetalRenderResource*)getSharedRenderResource())->
 			getPipeline(source.kind, mode, format);
-		return _pipelines[key] = pso;
+		_pipelines[key] = pip;
+		return (MTLPipeline)pip;
+	}
+
+	MTLComputePipeline MSLShader::getComputePipeline() {
+		NSObjectID pip;
+		if (_pipelines.get(0, pip))
+			return (MTLComputePipeline)pip;
+		pip = ((MetalRenderResource*)getSharedRenderResource())->getComputePipeline(source.kind);
+		_pipelines[0] = pip;
+		return (MTLComputePipeline)pip;
 	}
 
 	// ----------------------------------------------------------

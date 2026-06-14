@@ -48,8 +48,8 @@ layout(location=1) in      float aaSideIn; // anti alias side
 layout(location=0) out     float aaSide;
 
 #frag
-layout(location=0) in     float     aaSide;
-layout(location=0) out    vec4      fragColor;
+layout(location=0) in      float aaSide;
+layout(location=0) out     vec4  fragColor;
 
 // GLSL built-in functions:
 // mix(a, b, x)  x:0->1 => a->b

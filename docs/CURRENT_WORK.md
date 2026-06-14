@@ -190,8 +190,8 @@ to the CGAA research path.
 
 ### CGAA Production Integration Baseline
 
-The current local baseline starts moving CGAA from `test/compute_aa/` into the
-production renderer:
+Commit `d794e56ac` records the pre-integration baseline that starts moving CGAA
+from `test/compute_aa/` into the production renderer:
 
 - `src/render/cgaa.*` defines the production CPU/GPU data contract and
   `buildCGAADrawData()`, including flattened edges, compact boundary tiles,
@@ -200,7 +200,7 @@ production renderer:
   into an R8 atlas region. Metal shader generation already retains its compute
   source and generated binding indices, but MetalCanvas does not yet encode or
   dispatch the CGAA compute command.
-- The current worktree removes the old device-MSAA path in preparation for
+- That baseline removes the old device-MSAA path in preparation for
   CGAA experiments.
 - `GPUCanvas::Inl::fillPathColor()` is temporarily disabled, so color path
   fills render nothing until the first Metal CGAA color command is connected.
@@ -212,6 +212,26 @@ solid premultiplied color directly to the current target. This is not yet the
 final paint/blend/clip architecture. `buildCGAADrawData()` must also stop
 emitting outside uniform tiles; production direct-target drawing only needs
 boundary tiles and filled inside tiles.
+
+That first test-oriented integration is now connected:
+
+- `GPUCanvas::Inl::fillPathColor()` transforms paths into target-pixel space,
+  builds CGAA data, and calls the new backend `drawCGAAColorCmd`.
+- `src/render/cgaa.*` is now included in the core source target.
+- Metal creates/caches a compute pipeline from the generated CGAA compute
+  source, uploads the compact draw buffers, ends any active render pass, and
+  dispatches boundary plus filled-uniform tiles directly into the current
+  color target.
+- `cgaa.glsl` applies solid premultiplied color with manual `SrcOver` instead
+  of writing an intermediate R8 coverage atlas.
+- `buildCGAADrawData()` no longer emits outside uniform tiles. Its optional
+  clip assertions and empty clipped-range handling were also fixed for the
+  production call site.
+
+This remains a deliberate test path. Metal CGAA solid color currently ignores
+the renderer's clip mask and always applies `SrcOver` regardless of the selected
+blend mode. GL's `drawCGAAColorCmd` is an explicit no-op, and root-matrix display
+offsets beyond the normal target-pixel mapping have not yet been integrated.
 
 An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
 wired into the macOS test target. It demonstrates CPU-flattened path edges,

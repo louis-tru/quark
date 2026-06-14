@@ -105,25 +105,8 @@ namespace qk {
 	static_assert(sizeof(CGAAUniformTile) == sizeof(uint32_t) * 4,
 		"Metal uniform-tile ABI mismatch");
 
-	struct alignas(16) CGAAParams {
-		uint32_t width;
-		uint32_t height;
-		uint32_t tileCountX;
-		uint32_t tileCountY;
-		uint32_t fillRule;
-		uint32_t sampleGrid;
-		uint32_t outputOriginX;
-		uint32_t outputOriginY;
-		uint32_t outputWidth;
-		uint32_t outputHeight;
-		uint32_t _pad[2];
-		Vec4 color; // premultiplied when used by the composite kernel
-	};
-
 	struct CGAADrawData {
 		Range bounds; // original path bounds before atlas origin subtraction
-		Vec2 atlasOrigin;
-		Vec2 atlasSize;
 		uint32_t tileCountX = 0;
 		uint32_t tileCountY = 0;
 		Array<CGAAEdge> edges;

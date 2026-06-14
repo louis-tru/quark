@@ -207,6 +207,12 @@ namespace qk {
 		_cmdPack->drawColor(vertex, color);
 	}
 
+	void GLCanvas::drawCGAAColorCmd(const CGAADrawData &data, const Color4f &color) {
+		// CGAA is currently connected only on Metal for direct-target testing.
+		(void)data;
+		(void)color;
+	}
+
 	void GLCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
