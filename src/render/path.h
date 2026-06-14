@@ -120,7 +120,7 @@ namespace qk {
 		 * @method getEdgeLines() convert to edge lines
 		 * @return {Array<Vec2>} points { x, y }[]
 		*/
-		Array<Vec2> getEdgeLines(float precision = 1.0) const;
+		Array<Vec2> getEdgeLines(float precision = 1.0, const Mat* matrix = nullptr) const;
 
 		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
@@ -168,6 +168,7 @@ namespace qk {
 	private:
 		const Path* normalized(Path *out, float precision, bool updateHash) const;
 		const Path* boundaryPath(Path *out, float precision) const;
+		const Path* transformPath(Path *out, const Mat& matrix) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		// Props field:

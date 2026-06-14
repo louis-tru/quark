@@ -354,9 +354,10 @@ namespace qk {
 		return (cArray<PathVerb>&)_verbs;
 	}
 
-	Array<Vec2> Path::getEdgeLines(float precision) const {
+	Array<Vec2> Path::getEdgeLines(float precision, const Mat* matrix) const {
 		Path tmp;
 		const Path *self = normalized(&tmp, precision, false);
+		self = matrix ? self->transformPath(&tmp, *matrix) : self; // transform path
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
@@ -591,24 +592,7 @@ namespace qk {
 	void Path::transform(const Mat& matrix) {
 		if (_sealed)
 			return;
-		if (matrix.is_identity_matrix())
-			return;
-		Vec2* pts = *_pts;
-		Vec2* e = pts + _pts.length();
-		if (matrix.is_translation_matrix()) { // only translate, no multiply
-			float tx = matrix.val[2],
-						ty = matrix.val[5];
-			while (pts < e) {
-				pts[0][0] += tx;
-				pts[0][1] += ty;
-				pts++;
-			}
-		} else {
-			while (pts < e) {
-				*pts = matrix * (*pts);
-				pts++;
-			}
-		}
+		transformPath(this, matrix);
 	}
 
 	void Path::scale(Vec2 scale) {
@@ -767,6 +751,30 @@ namespace qk {
 			}
 		}*/
 
+		return out;
+	}
+
+	const Path* Path::transformPath(Path *out, const Mat& matrix) const {
+		if (matrix.is_identity_matrix())
+			return this;
+		if (out != this)
+			*out = *this; // copy first, then transform
+		Vec2* pts = *out->_pts;
+		Vec2* e = pts + out->_pts.length();
+		if (matrix.is_translation_matrix()) { // only translate, no multiply
+			float tx = matrix.val[2],
+						ty = matrix.val[5];
+			while (pts < e) {
+				pts[0][0] += tx;
+				pts[0][1] += ty;
+				pts++;
+			}
+		} else {
+			while (pts < e) {
+				*pts = matrix * (*pts);
+				pts++;
+			}
+		}
 		return out;
 	}
 

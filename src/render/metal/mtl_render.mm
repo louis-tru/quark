@@ -274,12 +274,11 @@ namespace qk {
 		}
 	}
 
-	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
-		// kind: 8 bits, mode: 8 bits, outputType: 8 bits, sampleCount: 4 bits
-		return ((uint32_t)kind << 22) | // 8 bits for pipeline kind
-			((uint32_t)mode << 14) | // 8 bits for blend mode
-			((uint32_t)format << 4) | // 10 bits for output type
-			(uint32_t)(sampleCount & 0b1111) // 4 bits for sample count, max 16 samples
+	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format) {
+		// kind: 8 bits, mode: 8 bits, format: 10 bits
+		return ((uint32_t)kind << 18) | // 8 bits for pipeline kind
+			((uint32_t)mode << 10) | // 8 bits for blend mode
+			((uint32_t)format)// 10 bits for output type
 		;
 	}
 
@@ -503,9 +502,9 @@ namespace qk {
 		return _functions[key] = fn;
 	}
 
-	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
+	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format) {
 		ScopeLock lock(_mutex); // protect shader function cache
-		auto key = mtl_pipeline_key(kind, mode, format, sampleCount);
+		auto key = mtl_pipeline_key(kind, mode, format);
 		MTLPipeline pso = nil;
 		if (_pipelines.get(key, pso))
 			return pso;
@@ -532,7 +531,7 @@ namespace qk {
 			attrIndex++;
 		}
 		desc.vertexDescriptor.layouts[shader->bufferIndex].stride = offset;
-		desc.sampleCount = sampleCount; // msaa
+		// desc.sampleCount = 1; // default is 1, set to >1 if using MSAA
 
 		NSError *err = nil;
 		pso = [_device newRenderPipelineStateWithDescriptor:desc error:&err];
@@ -566,16 +565,16 @@ namespace qk {
 		return get_sampler(&img);
 	}
 
-	MTLPipeline MSLShader::getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
-		uint32_t key = ((uint32_t)mode << 14) | // 8 bits for blend mode
-			((uint32_t)format << 4) | // 10 bits for output type
-			(uint32_t)sampleCount; // 4 bits for sample count, max 16 samples
+	MTLPipeline MSLShader::getPipeline(BlendMode mode, MTLPixelFormat format) {
+		uint32_t key =
+			((uint32_t)mode << 10) | // 8 bits for blend mode
+			((uint32_t)format);// 10 bits for output type
 		MTLPipeline pso;
 		if (_pipelines.get(key, pso))
 			return pso;
 		// get pipeline from render resource by pipeline kind
 		pso = ((MetalRenderResource*)getSharedRenderResource())->
-			getPipeline(source.kind, mode, format, sampleCount);
+			getPipeline(source.kind, mode, format);
 		return _pipelines[key] = pso;
 	}
 
@@ -602,7 +601,7 @@ namespace qk {
 		// pre-create sampler for nearest filter mode, which is commonly used for non-scaling image rendering
 		_nearestSampler = _resource->get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = _resource->get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kLinearNearest_MipmapMode);
-		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm, 1);
+		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm);
 	}
 
 	MetalRender::~MetalRender() {

@@ -3,50 +3,16 @@
 // 后续 production CGAA 将优先在 compute 中直接应用 paint/blend 写目标纹理。
 
 Qk_CONSTANT(
-	uint width;
-	uint height;
 	uint tileCountX;
 	uint tileCountY;
 	uint fillRule;
-	uint sampleGrid;
-	uint outputOriginX;
-	uint outputOriginY;
-	uint outputWidth;
-	uint outputHeight;
-	uvec2 _pad;
+	uint boundaryTiles; // boundaryTiles 长度
+	uint atlasOriginX;
+	uint atlasOriginY;
+	uint atlasWidth;
+	uint atlasHeight;
 	vec4 color;
-	uint passType; // 0: uniform tiles, 1: boundary coverage
 );
-
-#vert
-layout(location=1) out vec2 atlasCoord;
-
-void main() {
-	const vec2 corners[4] = vec2[4](
-		vec2(0.0, 0.0), vec2(1.0, 0.0),
-		vec2(0.0, 1.0), vec2(1.0, 1.0)
-	);
-	vec2 corner = corners[gl_VertexIndex];
-	vec2 pixel = vec2(pc.outputOriginX, pc.outputOriginY) +
-		corner * vec2(pc.width, pc.height);
-	vec2 viewport = vec2(pc.outputWidth, pc.outputHeight);
-
-	gl_Position = vec4(
-		pixel.x * 2.0 / viewport.x - 1.0,
-		1.0 - pixel.y * 2.0 / viewport.y,
-		0.0, 1.0
-	);
-	atlasCoord = corner * vec2(pc.width, pc.height);
-}
-
-#frag
-layout(binding=1,set=1) uniform sampler2D coverageTex;
-layout(location=1) in vec2 atlasCoord;
-
-void main() {
-	uvec2 coord = min(uvec2(atlasCoord), uvec2(pc.width - 1, pc.height - 1));
-	fragColor = pc.color * texelFetch(coverageTex, ivec2(coord), 0).r;
-}
 
 #comp
 #extension GL_EXT_shader_16bit_storage : require
@@ -107,19 +73,19 @@ layout(binding=1,set=0,std430) readonly buffer CgaaUniformTiles {
 layout(binding=2,set=0,std430) readonly buffer CgaaEdges {
 	CgaaEdge values[];
 } edges;
-layout(binding=3,set=0,std430) readonly buffer CgaaTileEdges {
+layout(binding=4,set=0,std430) readonly buffer CgaaTileEdges {
 	CgaaTileEdge values[];
 } tileEdges;
-layout(binding=4,set=0,std430) readonly buffer CgaaBoundaryTiles {
+layout(binding=5,set=0,std430) readonly buffer CgaaBoundaryTiles {
 	CgaaTile values[];
 } boundaryTiles;
-layout(binding=5,set=0,std430) readonly buffer CgaaBackdropEvents {
+layout(binding=6,set=0,std430) readonly buffer CgaaBackdropEvents {
 	CgaaBackdropEvent values[];
 } backdropEvents;
-layout(binding=6,set=0,std430) readonly buffer CgaaBackdropRows {
+layout(binding=7,set=0,std430) readonly buffer CgaaBackdropRows {
 	CgaaBackdropRow values[];
 } backdropRows;
-layout(binding=1,set=1,r8) uniform image2D coverageTex;
+layout(binding=1,set=1,r8) uniform image2D atlasTex;
 
 shared uint64_t insideMask[CGAA_TILE_SIZE * CGAA_SAMPLE_GRID];
 
@@ -150,11 +116,11 @@ void cgaa_write_uniform_tile(uint tileIndex, uint threadIndex) {
 	const uint threadCount = CGAA_TILE_SIZE * CGAA_SAMPLE_GRID;
 	for (uint pixelIndex = threadIndex; pixelIndex < pixelCount; pixelIndex += threadCount) {
 		uvec2 pixel = uvec2(
-			tile.originX + (pixelIndex & (CGAA_TILE_SIZE - 1)),
-			tile.originY + (pixelIndex >> 4)
+			pc.atlasOriginX + tile.originX + (pixelIndex & (CGAA_TILE_SIZE - 1)),
+			pc.atlasOriginY + tile.originY + (pixelIndex >> 4)
 		);
-		if (pixel.x < pc.width && pixel.y < pc.height)
-			imageStore(coverageTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
+		if (pixel.x < pc.atlasWidth && pixel.y < pc.atlasHeight)
+			imageStore(atlasTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
 	}
 }
 
@@ -227,10 +193,13 @@ void cgaa_write_boundary_tile(uint boundaryTileIndex, uint threadIndex) {
 		uint sampleGridY = pixelY * CGAA_SAMPLE_GRID;
 		for (uint sy = 0; sy < CGAA_SAMPLE_GRID; sy++)
 			covered += uint(bitCount(insideMask[sampleGridY + sy] & sampleBits));
-		uvec2 pixel = uvec2(tile.originX + pixelX, tile.originY + pixelY);
-		if (pixel.x < pc.width && pixel.y < pc.height) {
+		uvec2 pixel = uvec2(
+			pc.atlasOriginX + tile.originX + pixelX,
+			pc.atlasOriginY + tile.originY + pixelY
+		);
+		if (pixel.x < pc.atlasWidth && pixel.y < pc.atlasHeight) {
 			float coverage = float(covered) * invSampleCount;
-			imageStore(coverageTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
+			imageStore(atlasTex, ivec2(pixel), vec4(coverage, 0.0, 0.0, 1.0));
 		}
 	}
 }
@@ -238,8 +207,8 @@ void cgaa_write_boundary_tile(uint boundaryTileIndex, uint threadIndex) {
 void main() {
 	uint tileIndex = gl_WorkGroupID.x;
 	uint threadIndex = gl_LocalInvocationIndex;
-	if (pc.passType == 0)
-		cgaa_write_uniform_tile(tileIndex, threadIndex);
-	else
+	if (tileIndex < pc.boundaryTiles)
 		cgaa_write_boundary_tile(tileIndex, threadIndex);
+	else
+		cgaa_write_uniform_tile(tileIndex - pc.boundaryTiles, threadIndex);
 }

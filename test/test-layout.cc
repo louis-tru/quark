@@ -247,7 +247,7 @@ void layout(Window* win) {
 
 Qk_TEST_Func(layout) {
 	App app;
-	auto win = Window::Make({.msaa=1, .backgroundColor={255,255,255}});
+	auto win = Window::Make({.backgroundColor={255,255,255}});
 	//app.Qk_On(Load, [](auto e) {
 	//	Qk_Log("Applicatio::onLoad");
 	//});

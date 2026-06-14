@@ -172,8 +172,7 @@ namespace qk {
 	public:
 		struct Options {
 			ColorType  colorType;  ///< Preferred framebuffer / surface color type.
-			uint16_t   msaaSample; ///< GPU MSAA sample count.
-			uint16_t   fps;        ///< If 0, use vSync; otherwise limit to this FPS.
+			uint32_t   fps;        ///< If 0, use vSync; otherwise limit to this FPS.
 			uint32_t   maxCapacityForPathvCache; ///< Max path vertex cache size, default 128 MB.
 			bool       mipmap;   ///< Whether some color-buffer commands should generate mipmaps.
 		};

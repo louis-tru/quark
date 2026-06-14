@@ -30,7 +30,6 @@
 
 #include <math.h>
 #include "../util/thread.h"
-#include "../util/codec.h"
 #include "./render.h"
 #include "./gl/gl_render.h"
 
@@ -129,8 +128,6 @@ namespace qk {
 
 	Render* Render::Make(Options opts, Delegate *delegate) {
 		Render* r = nullptr;
-
-		opts.msaaSample = msaaSample(opts.msaaSample);
 
 #if Qk_ENABLE_VULKAN
 		if (!r) r = make_vulkan_render();

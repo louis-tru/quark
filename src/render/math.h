@@ -322,6 +322,7 @@ namespace qk {
 	template<typename T> struct MRange { // range
 		T begin,end;
 		inline T size() const { return end - begin; }
+		inline bool operator==(const MRange &b) const { return begin == b.begin && end == b.end; }
 		// expand begin/end to integer values, useful for pixel coverage calculation
 		inline MRange expandToInteger() const;
 		// clip to another range, useful for pixel coverage calculation with a clip rect

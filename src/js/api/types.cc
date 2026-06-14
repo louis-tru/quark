@@ -600,11 +600,7 @@ namespace qk { namespace js {
 
 		if (!colorType->isUndefined()) {
 			Js_Parse_Type(uint32_t, colorType, "Window::Options{.colorType=%s}") false;
-			_out.colorType = ColorType(out);
-		}
-		if (!msaa->isUndefined()) {
-			Js_Parse_Type(uint32_t, msaa, "Window::Options{.msaa=%s}") false;
-			_out.msaa = out;
+			// _out.colorType = ColorType(out); --- IGNORE ---
 		}
 		if (!fps->isUndefined()) {
 			Js_Parse_Type(uint32_t, fps, "Window::Options{.fps=%s}") false;
@@ -623,7 +619,7 @@ namespace qk { namespace js {
 			_out.backgroundColor = out;
 		}
 		if (!navigationColor->isUndefined()) {
-			Js_Parse_Type(Color, backgroundColor, "Window::Options{.navigationColor=%s}") false;
+			Js_Parse_Type(Color, navigationColor, "Window::Options{.navigationColor=%s}") false;
 			_out.navigationColor = out;
 		}
 		return true;

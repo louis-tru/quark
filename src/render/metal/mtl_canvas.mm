@@ -136,7 +136,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::setPipeline(MTLEncoder enc, MSLShader& shader) {
-		return setPipeline(enc, shader.getPipeline(_blendMode, _outColorTex.pixelFormat, _opts.msaaSample));
+		return setPipeline(enc, shader.getPipeline(_blendMode, _outColorTex.pixelFormat));
 	}
 
 	// usePipeline with vertex data ensures vertex data is valid and set for draw call,

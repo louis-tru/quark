@@ -39,9 +39,6 @@ namespace qk {
 	static_assert(kComputeAATileSize * kComputeAASampleGrid <= 64,
 		"Compute AA inside mask only supports up to 64 X samples per tile");
 
-	struct AllocatorA: LinearAllocator {
-	};
-
 	enum ComputeAAFillRule: uint32_t {
 		kComputeAANonZero_FillRule = 0,
 		kComputeAAEvenOdd_FillRule = 1,

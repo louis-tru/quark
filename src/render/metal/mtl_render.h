@@ -27,7 +27,7 @@ namespace qk {
 		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadTexture(TexStat *tex) override;
 		void unloadVertexData(VertexData::ID *id) override;
-		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount);
+		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format);
 		MTLSampler get_sampler(const PaintImage* paint);
 		MTLSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
 		MSLShaders& shaders() { return _shaders; }

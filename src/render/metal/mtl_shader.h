@@ -106,7 +106,7 @@ namespace qk {
 		MSLShaderSource source; // shader source
 		Array<MSLShaderAttr> attributes; // vertex attributes format
 		uint32_t bufferIndex; // vertex buffer index
-		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount);
+		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format);
 	protected:
 		Dict<uint32_t, MTLPipeline> _pipelines;
 		friend class MSLShaders;

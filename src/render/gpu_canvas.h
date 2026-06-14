@@ -35,6 +35,7 @@
 
 #include "./render.h"
 #include "./canvas.h"
+#include "./cgaa.h"
 
 #define Qk_FLAG_CLIP (1u << 0)
 #define Qk_FLAG_AASIDE_LINE (1u << 2)
@@ -205,7 +206,6 @@ namespace qk {
 		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
-		uint8_t  _DeviceMsaa; // device anti alias, msaa
 		GC_State::Clip  *_clipState; // clip state
 		Render::Options _opts;
 		Mutex _mutex; // submit swap mutex

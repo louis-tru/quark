@@ -1,11 +1,9 @@
 
-#define _CONSTANT_IMAGE(block) Qk_CONSTANT(\
-	vec4  texCoords; /*offset,scale*/\
-	vec4  color; /* color */\
-	block \
-)
-
-_CONSTANT_IMAGE(Qk_CONSTANT_Fields);
+Qk_CONSTANT(
+	vec4  texCoords; /*offset,scale*/
+	vec4  color; /* color */
+	Qk_CONSTANT_Fields
+);
 
 #vert
 layout(location=1) out vec2 coords; // texture coordinates uv for fragment shader

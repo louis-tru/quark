@@ -89,7 +89,7 @@ namespace qk {
 
 	static EGLConfig egl_config(EGLDisplay display, Options opts) {
 		EGLConfig config = nullptr;
-		EGLint MSAA = 0; // opts.msaaSample;
+		EGLint MSAA = 0;
 
 		// choose configuration
 		EGLint attribs[] = {

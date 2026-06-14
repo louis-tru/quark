@@ -188,6 +188,31 @@ The selected algorithm is now named **CGAA (Compute Grid Anti-Aliasing)**.
 Historical references to Compute AA or Compute GRID AA in this document refer
 to the CGAA research path.
 
+### CGAA Production Integration Baseline
+
+The current local baseline starts moving CGAA from `test/compute_aa/` into the
+production renderer:
+
+- `src/render/cgaa.*` defines the production CPU/GPU data contract and
+  `buildCGAADrawData()`, including flattened edges, compact boundary tiles,
+  uniform tiles, tile-edge slices, and backdrop rows/events.
+- `src/render/shader/cgaa.glsl` is currently compute-only and writes coverage
+  into an R8 atlas region. Metal shader generation already retains its compute
+  source and generated binding indices, but MetalCanvas does not yet encode or
+  dispatch the CGAA compute command.
+- The current worktree removes the old device-MSAA path in preparation for
+  CGAA experiments.
+- `GPUCanvas::Inl::fillPathColor()` is temporarily disabled, so color path
+  fills render nothing until the first Metal CGAA color command is connected.
+
+The next integration step is deliberately narrow and test-oriented: add a
+`GPUCanvas` backend command such as `drawCGAAColorCmd`, implement it first for
+Metal, invoke it from `fillPathColor()`, and have the CGAA compute shader apply
+solid premultiplied color directly to the current target. This is not yet the
+final paint/blend/clip architecture. `buildCGAADrawData()` must also stop
+emitting outside uniform tiles; production direct-target drawing only needs
+boundary tiles and filled inside tiles.
+
 An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
 wired into the macOS test target. It demonstrates CPU-flattened path edges,
 16x16 tile binning, fixed-grid subpixel winding coverage, a coverage texture, and solid

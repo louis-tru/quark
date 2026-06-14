@@ -32,7 +32,6 @@
 #include "./gpu_canvas_filter.h"
 
 namespace qk {
-	uint32_t msaaSample(uint32_t n);
 	float get_level_font_size(float fontSize);
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 	uint32_t upPow2(uint32_t size);
@@ -72,7 +71,7 @@ namespace qk {
 		}
 
 		const VertexData &getVertex(const Path &path, float aaRadius, bool aa) {
-			return aa && !_DeviceMsaa ?
+			return aa ?
 				_cache->getAASideTriangle(path, aaRadius): _cache->getPathTriangles(path);
 		}
 
@@ -126,12 +125,12 @@ namespace qk {
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			auto &vertex = getVertex(path, aaRadius, aa);
-			drawColorCmd(vertex, color);
+			// auto &vertex = getVertex(path, aaRadius, aa);
+			// drawColorCmd(vertex, color);
 		}
 
 		void strokePath(const Path &path, const Paint& paint, float aaRadius) {
-			if (!paint.antiAlias || _DeviceMsaa) {
+			if (!paint.antiAlias) {
 				auto &stroke = _cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0);
 				auto &vertex = _cache->getPathTriangles(stroke);
 				fill(vertex, paint, paint.stroke);
@@ -189,13 +188,10 @@ namespace qk {
 		, _aaRadius(0.5), _aaRadiusRect(0.5)
 		, _rootMatrix()
 		, _blendMode(kInvalid_BlendMode)
-		, _DeviceMsaa(0)
 		, _clipState(nullptr)
 		, _opts(opts)
 		, _flags(0)
 	{
-		_opts.msaaSample = msaaSample(_opts.msaaSample);
-		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
 		capacity = U32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/);
@@ -388,7 +384,7 @@ namespace qk {
 		clip->range = range;
 		// adjust range to actual allocated texture size
 		clip->range.end = clip->range.begin + clip->mask->size();
-		if (antiAlias && !_DeviceMsaa) {
+		if (antiAlias) {
 			drawClipCmd(_cache->getAASideTriangle(path,_aaRadius), lastClip, clip, rawOp);
 		} else {
 			drawClipCmd(_cache->getPathTriangles(path), lastClip, clip, rawOp);
@@ -549,11 +545,6 @@ namespace qk {
 	}
 
 	void GPUCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) {
-		if (_DeviceMsaa) {
-			auto msaa = ceilf(sqrtf(_DeviceMsaa));
-			surfaceSize *= msaa;
-			surfaceScale *= msaa;
-		}
 		Qk_ASSERT_GT(surfaceSize.x(), 0, "Invalid surface size width");
 		Qk_ASSERT_GT(surfaceSize.y(), 0, "Invalid surface size height");
 		auto chSize = surfaceSize != _surfaceSize;
