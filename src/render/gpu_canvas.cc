@@ -104,9 +104,9 @@ namespace qk {
 			if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
 				auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;
 				auto strokeWidth = paint.style == Paint::kFill_Style ? 0.0f: paint.strokeWidth;
-				drawSDFImageMaskCmd(vertex, &p, fillColor, paint.stroke.color, strokeWidth * scale);
+				drawImageCmd(vertex, &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale);
 			} else {
-				drawImageMaskCmd(vertex, &p, paint.fill.color);
+				drawImageCmd(vertex, &p, paint.fill.color, kMask_DrawKind);
 			}
 
 			return scale_1;
@@ -119,7 +119,7 @@ namespace qk {
 			} else if (style.gradient) {
 				drawGradientCmd(vertex, style.gradient, style.color);
 			} else if (paint.mask) {
-				drawImageMaskCmd(vertex, paint.mask, style.color);
+				drawImageCmd(vertex, paint.mask, style.color, kMask_DrawKind);
 			} else {
 				drawColorCmd(vertex, style.color);
 			}

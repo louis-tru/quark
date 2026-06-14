@@ -191,19 +191,15 @@ namespace qk {
 		_cmdPack->clearColor(color, flags);
 	}
 
-	void GLCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
+	void GLCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+			ImageDrawKind kind, const Color4f &strokeColor, float stroke) {
 		checkMatrix();
-		_cmdPack->drawImage(vertex, paint, color);
+		_cmdPack->drawImage(vertex, paint, color, kind, strokeColor, stroke);
 	}
 
 	void GLCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawGradient(vertex, paint, color);
-	}
-
-	void GLCanvas::drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		checkMatrix();
-		_cmdPack->drawImageMask(vertex, paint, color);
 	}
 
 	void GLCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
@@ -214,12 +210,6 @@ namespace qk {
 	void GLCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
-	}
-
-	void GLCanvas::drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				const Color4f &strokeColor, float stroke) {
-		checkMatrix();
-		_cmdPack->drawSDFImageMask(vertex, paint, color, strokeColor, stroke);
 	}
 
 	void GLCanvas::blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) {

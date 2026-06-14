@@ -81,8 +81,8 @@ namespace qk {
 		endPass(); // end current pass
 
 		auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
-			Qk_usePipeline(_shaders.clip, vertex); // use shader and set vertex buffer for vertex data
-			MSLClip::PcArgs pc{ Color4f(1,1,1,1), offset, flags };
+			Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
+			MSLColor::PcArgs pc{ Color4f(1,1,1,1), offset, flags };
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
@@ -155,7 +155,7 @@ namespace qk {
 	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags) {
 		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ color, flags };
+		MSLColor::PcArgs pc{ color, Vec4{0}, flags };
 		// set vertex bytes
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		// set fragment bytes
@@ -227,11 +227,12 @@ namespace qk {
 		}
 	}
 
-	void MetalCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
+	void MetalCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+			ImageDrawKind kind, const Color4f &strokeColor, float stroke) {
 		auto &shader = _shaders.image;
 		// set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
 		Qk_useTextureSlot0(paint, shader.fragment.image); // slot 0 default match dst slot to 1
-		if (isYuv) { // yuv420p or yuv420sp
+		if (kind == kImage_DrawKind && isYuv) { // yuv420p or yuv420sp
 			auto src = paint->image;
 			auto &yuv = _shaders.imageYuv;
 			Qk_ASSERT_EQ(shader.fragment.image, yuv.fragment.image,
@@ -249,19 +250,25 @@ namespace qk {
 			MSLImageYuv::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-					format,
-
-				};
+				format,
+			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		} else {
 			enc = usePipeline(shader, vertex, enc);
 			if (!enc) return;
+			auto type = paint->_isCanvas ? kRGBA_8888_ColorType: paint->image->type();
 			// set color and other args for shader push constants
 			MSLImage::PcArgs pc{
 				*((Vec4*)paint->coord.begin.val),
 				premul_alpha(color),
-				_flags
+				premul_alpha(stroke <= 0 ? color: strokeColor),
+				stroke,
+				kind == kMask_DrawKind ?
+					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
+				_flags |
+					(kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
+					(kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0)
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -269,59 +276,21 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
 
-	void MetalCanvas::drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		auto &shader = _shaders.imageMask;
-		Qk_useTextureSlot0(paint, shader.fragment.image);
-		enc = usePipeline(shader, vertex, enc);
-		if (!enc) return;
-		auto type = paint->_isCanvas ? kRGBA_8888_ColorType: paint->image->type();
-		MSLImageMask::PcArgs pc{
-			*((Vec4*)paint->coord.begin.val),
-			premul_alpha(color),
-			type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3,
-			_flags
-		};
-		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
-	}
-
-	void MetalCanvas::drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-			const Color4f &strokeColor, float stroke) {
-		auto &shader = _shaders.imageSdfMask;
-		Qk_useTextureSlot0(paint, shader.fragment.image);
-		enc = usePipeline(shader, vertex, enc);
-		if (!enc) return;
-		MSLImageSdfMask::PcArgs pc{
-			*((Vec4*)paint->coord.begin.val),
-			premul_alpha(color),
-			premul_alpha(strokeColor),
-			stroke,
-			_flags
-		};
-		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
-	}
-
 	void MetalCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
-		static_assert(sizeof(MSLColorRadial::PcArgs) == sizeof(MSLColorLinear::PcArgs),
-				"MSLColorRadial::PcArgs and MSLColorLinear::PcArgs must have identical size");
-		static_assert(sizeof(MSLColorRadial) == sizeof(MSLColorLinear),
-				"MSLColorRadial and MSLColorLinear must have identical size");
 		int count = Qk_Min(64, paint->count);
-		auto &shader = paint->type == PaintGradient::kRadial_Type ?
-			(MSLColorLinear&)_shaders.colorRadial : _shaders.colorLinear;
+		auto &shader = _shaders.colorGradient;
 		Qk_usePipeline(shader, vertex);
 		Array<Color4f> colors(count);
 		for (int i = 0; i < count; i++) {
 			colors[i] = premul_alpha(paint->colors[i]);
 		}
-		MSLColorRadial::PcArgs pc{
+		MSLColorGradient::PcArgs pc{
 			*((Vec4*)paint->origin.val),
 			premul_alpha(color),
 			count,
-			_flags | (count == 2 ? Qk_FLAG_COUNT2: 0)
+			_flags |
+				(count == 2 ? Qk_FLAG_COUNT2: 0) |
+				(paint->type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0)
 		};
 		// align color and position data to 16 bytes for std140 packing rules
 		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
@@ -329,7 +298,7 @@ namespace qk {
 
 		// allocate a buffer for gradient colors and positions, and copy data to the buffer
 		auto block = _cmdPack.buffer->alloc(
-			colorSize + pointSize, sizeof(MSLColorRadial::Colors) + sizeof(MSLColorRadial::Positions)
+			colorSize + pointSize, sizeof(MSLColorGradient::Colors) + sizeof(MSLColorGradient::Positions)
 		);
 		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
 		auto buff = (char*)block->val.contents + block->begin;

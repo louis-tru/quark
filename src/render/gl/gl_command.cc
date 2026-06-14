@@ -146,12 +146,6 @@ namespace qk {
 						case kImage_CmdType:
 							((ImageCmd*)cmd)->~ImageCmd();
 							break;
-						case kImageMask_CmdType:
-							((ImageMaskCmd*)cmd)->~ImageMaskCmd();
-							break;
-						case kSDFImageMask_CmdType:
-							((SDFImageMaskCmd*)cmd)->~SDFImageMaskCmd();
-							break;
 						case kReadImage_CmdType:
 							((ReadImageCmd*)cmd)->~ReadImageCmd();
 							break;
@@ -257,18 +251,6 @@ namespace qk {
 							auto c = (ImageCmd*)cmd;
 							drawImageCall(c);
 							c->~ImageCmd();
-							break;
-						}
-						case kImageMask_CmdType: {
-							auto c = (ImageMaskCmd*)cmd;
-							drawImageMaskCall(c);
-							c->~ImageMaskCmd();
-							break;
-						}
-						case kSDFImageMask_CmdType: {
-							auto c = (SDFImageMaskCmd*)cmd;
-							drawSDFImageMaskCall(c);
-							c->~SDFImageMaskCmd();
 							break;
 						}
 						case kTriangles_CmdType: {
@@ -457,7 +439,8 @@ namespace qk {
 				auto &paint = cmd->paint;
 				auto src = paint.image;
 
-				if (!paint._isCanvas && kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
+				if (cmd->kind == GPUCanvas::kImage_DrawKind &&
+						!paint._isCanvas && kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = &_render->_shaders.imageYuv;
 					useShaderProgram(yuv, cmd->vertex);
 					if (!_render->use_texture(src, 1, &paint))
@@ -475,37 +458,18 @@ namespace qk {
 				} else {
 					auto s = &_render->_shaders.image;
 					useShaderProgram(s, cmd->vertex);
+					auto type = paint._isCanvas ? kRGBA_8888_ColorType: paint.image->type();
+					glUniform1i(s->pc_alphaIndex, cmd->kind == GPUCanvas::kMask_DrawKind ?
+						(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0);
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
+					glUniform4fv(s->pc_strokeColor, 1,
+						cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
+					glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-					glUniform1ui(s->pc_flags, cmd->flags);
+					glUniform1ui(s->pc_flags, cmd->flags |
+						(cmd->kind == GPUCanvas::kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
+						(cmd->kind == GPUCanvas::kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0));
 				}
-				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
-			}
-		}
-
-		void drawImageMaskCall(ImageMaskCmd *cmd) {
-			if (useTextureSlot0(cmd->paint)) {
-				auto type = cmd->paint._isCanvas ? kRGBA_8888_ColorType: cmd->paint.image->type();
-				auto s = &_render->_shaders.imageMask;
-				useShaderProgram(s, cmd->vertex);
-				glUniform1i(s->pc_alphaIndex, type == kAlpha_8_ColorType ? 0 :
-						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
-				glUniform4fv(s->pc_color, 1, cmd->color.val);
-				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, cmd->flags);
-				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
-			}
-		}
-
-		void drawSDFImageMaskCall(SDFImageMaskCmd *cmd) {
-			if (useTextureSlot0(cmd->paint)) {
-				auto s = &_render->_shaders.imageSdfMask;
-				useShaderProgram(s, cmd->vertex);
-				glUniform4fv(s->pc_color, 1, cmd->color.val);
-				glUniform4fv(s->pc_strokeColor, 1, cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
-				glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
-				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, cmd->flags);
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
 		}
@@ -527,14 +491,15 @@ namespace qk {
 		}
 
 		void drawGradientCall(GradientCmd *cmd) {
-			GLSLColorRadial *s = cmd->paint.type == PaintGradient::kRadial_Type ?
-				&_render->_shaders.colorRadial: (GLSLColorRadial*)&_render->_shaders.colorLinear;
+			auto s = &_render->_shaders.colorGradient;
 			int count = Qk_Min(64, cmd->paint.count); // max 64 stops
 
 			#define Qk_FLAG_COUNT2 (1u << 3)
 
 			useShaderProgram(s, cmd->vertex);
-			glUniform1ui(s->pc_flags, cmd->flags | (count == 2 ? Qk_FLAG_COUNT2: 0));
+			glUniform1ui(s->pc_flags, cmd->flags |
+				(count == 2 ? Qk_FLAG_COUNT2: 0) |
+				(cmd->paint.type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0));
 			glUniform4fv(s->pc_color, 1, cmd->color.val);
 			glUniform4fv(s->pc_range, 1, cmd->paint.origin.val);
 			glUniform1i(s->pc_count, count);
@@ -556,7 +521,7 @@ namespace qk {
 			setColorBuffer(clip->mask.get());
 
 			auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
-				auto s = &_render->_shaders.clip;
+				auto s = &_render->_shaders.color;
 				useShaderProgram(s, vertex);
 				glUniform4fv(s->pc_color, 1, whiteColor);
 				glUniform4f(s->pc_surfaceOffset, offset[0], offset[1], offset[2], offset[3]);
@@ -634,6 +599,7 @@ namespace qk {
 			auto s = &_render->_shaders.color;
 			useShaderProgram(s, vertex);
 			glUniform4fv(s->pc_color, 1, color.val);
+			glUniform4f(s->pc_surfaceOffset, 0, 0, 0, 0);
 			glUniform1ui(s->pc_flags, flags);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
@@ -932,10 +898,6 @@ namespace qk {
 		paint.image->release();
 	}
 
-	GLC_CmdPack::ImageMaskCmd::~ImageMaskCmd() {
-		paint.image->release();
-	}
-
 	GLC_CmdPack::TrianglesCmd::~TrianglesCmd() {
 		paint.image->release();
 		if (copyData) {
@@ -1103,37 +1065,18 @@ namespace qk {
 		cmd->blur = blur;
 	}
 
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f& color) {
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f& color,
+			GPUCanvas::ImageDrawKind kind, const Color4f &strokeColor, float stroke) {
 		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
 		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
-		paint->image->retain(); // retain source image ref
-	}
-
-	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		_this->flushCanvas(paint);
-		auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
-		cmd->type = kImageMask_CmdType;
-		cmd->vertex = vertex;
-		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
-		paint->image->retain(); // retain source image ref
-	}
-
-	void GLC_CmdPack::drawSDFImageMask(const VertexData &vertex, const PaintImage *paint,
-		const Color4f &color, const Color4f &strokeColor, float stroke) 
-	{
-		auto cmd = new(_this->allocCmd(sizeof(SDFImageMaskCmd))) SDFImageMaskCmd;
-		cmd->type = kSDFImageMask_CmdType;
-		cmd->vertex = vertex;
-		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
 		cmd->strokeColor = premul_alpha(strokeColor);
 		cmd->strokeWidth = stroke;
-		paint->image->retain();
+		cmd->kind = kind;
+		cmd->paint = *paint;
+		paint->image->retain(); // retain source image ref
 	}
 
 	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) {

@@ -2,24 +2,18 @@
 
 #define matrix (rMat.value * vMat.value)
 
-#define Qk_RootMatrixBlock \
-layout(binding=1, set=0, std140) uniform RootMatrixBlock { \
-	mat4 value; \
-} rMat;
-
-#define Qk_ViewMatrixBlock \
-layout(binding=2, set=0, std140) uniform ViewMatrixBlock { \
-	mat4 value;\
-} vMat;
-
 #define Qk_CONSTANT(block) layout(push_constant) uniform PcArgs {\
 	block \
 	uint flags; \
 } pc
 
 #vert
-Qk_RootMatrixBlock
-Qk_ViewMatrixBlock
+layout(binding=1, set=0, std140) uniform RootMatrixBlock {
+	mat4 value;
+} rMat;
+layout(binding=2, set=0, std140) uniform ViewMatrixBlock {
+	mat4 value;
+} vMat;
 layout(location=0) in      vec2  vertexIn;
 layout(location=1) in      float aaSideIn; // anti alias side
 layout(location=0) out     float aaSide;

@@ -1,4 +1,8 @@
-# Compute AA 原型说明
+# CGAA 原型说明
+
+**CGAA** 是本算法的正式简称，全称为 **Compute Grid Anti-Aliasing**。
+后续文档、架构和代码命名应优先使用 CGAA；历史实验记录中的 Compute AA /
+Compute GRID AA 均指当前 CGAA 路线。
 
 本目录是 Quark 的 tile-based Compute AA 研究原型，目前用于验证：
 
@@ -44,17 +48,103 @@ GPU Boundary 行：O(edgeCount + uniqueCrossingX)，uniqueCrossingX <= 64
 - Compute AA 仍慢于约 `0.20ms` 的 AASide，但覆盖语义更通用、复杂路径质量
   更稳定，适合成为 Quark 的高质量 AA 路径；
 - 不应继续把主要时间投入 Boundary kernel 微调，后续收益应来自正式架构接入、
-  资源复用、批处理，以及减少完整 R8 coverage 写入/读取和独立 Composite。
+  资源复用、批处理，以及让 CGAA coverage 直接应用到目标纹理，删除完整 R8
+  coverage 写入/读取和独立 Composite。
 
-下一步首先将 compute shader stage 接入现有 GLSL Native 构建脚本：
+CGAA shader 已开始进入正式 GLSL Native 生成流程：
 
-- 扩展 `tools/gen_glsl_natives.js`，当前脚本只识别 `#vert/#frag` 并生成
-  vertex/fragment AST、GLSL 与 MSL native source；
-- 为 compute shader 定义源码分段、stage 解析、入口命名和生成产物；
-- 扩展 Metal native shader/pipeline 描述，使其可以表达 compute pipeline，
-  而不仅是现有 vertex + fragment render pipeline；
-- 将 Compute AA shader 从独立 `.metal` 实验文件迁移到正式 shader 源码与
-  生成流程后，再开始接入 Quark 渲染命令、资源生命周期与批处理模型。
+- `src/render/shader/cgaa.glsl` 按 `#vert/#frag/#comp` 顺序保存 Composite
+  render stage 与 CGAA compute stage；
+- `tools/gen_glsl_natives.js` 已支持末尾单个 `#comp` stage；GL native
+  生成主动跳过 compute，Metal native 生成 MSL compute source、storage
+  数据结构和资源绑定槽位；
+- 当前 `#comp` 使用 `passType` 合并 uniform tile 与 boundary tile 两个实验
+  kernel，保持一个 shader 文件只有一个 compute 入口；
+- `MSLShaderSource` 已能保存 compute source，但正式 compute pipeline 创建、
+  Quark 渲染命令、资源生命周期和批处理接入仍是后续工作。
+- 生成器支持只有 `#comp` 的纯计算 shader：不会强制生成 vertex/fragment
+  阶段，GL native 会跳过该 shader，Metal native 只保存 compute source 与
+  绑定结构；
+- 当前 CGAA compute 生成目标为最低可工作的 MSL 2.3。macOS 10.15 必须回退
+  AASide，正式接入还需运行时检查 GPU 的 64 位整数能力；详细规则见
+  `docs/CGAA_COMPATIBILITY.md`。
+
+为减少 direct-target CGAA 需要复用的 paint 分支，正式 shader 已先在 AASide
+路径完成两项合并并通过人工画面验证：
+
+- 线性/径向渐变合并为 `color_gradient.glsl`，使用统一 pipeline；
+- clip mask 与普通纯色合并为 `color.glsl`，使用 surface offset 和 inverted
+  coverage 参数表达 clip 差异，不再保留独立 `clip.glsl`。
+
+普通 image、image mask 与 SDF mask 已合并为一个 shader 和后端绘制命令，
+通过 uniform flag 选择行为；YUV 因纹理输入和转换行为不同而保持独立。下一步
+将这些共享 paint 逻辑提供给 direct-target CGAA。
+
+## 正式接入方向：直接写目标纹理
+
+当前实验为了隔离和验证 coverage 算法，先写完整 R8 coverage atlas，再通过
+Composite render pass 采样 coverage 并写入最终颜色纹理。GPU Capture 已显示
+Composite 占约 `78%`，因此正式 CGAA 接入不应默认保留这次中间往返。
+
+首选架构是让 CGAA compute kernel 在算出像素 coverage 后直接应用 paint 与
+blend，并写入当前目标颜色纹理：
+
+```text
+CGAA coverage + paint/color + clip + blend -> 当前目标纹理
+```
+
+这在技术上成立，因为写 coverage atlas 与写目标纹理本质上都是纹理写入；直接
+写目标可以删除 R8 atlas 的完整写入、后续采样和独立 Composite pass。但正式
+实现必须处理以下语义：
+
+- 不再需要为了保证 coverage atlas 完整而输出 winding 为 outside 的空 tile；
+  CPU/GPU 批次只保留 boundary tile 与真正需要填充的 inside tile；
+- 路径直接使用目标纹理坐标，不再动态分配 atlas 区域、编排 tile atlas
+  位置或执行 atlas 到目标位置的坐标转换；
+- Compute pipeline 没有 render pipeline 的固定功能 blend。`SrcOver` 和其他
+  BlendMode 需要读取目标颜色并执行与 Qk render shader 一致的手动 blend；
+- 同一个 dispatch 内必须保证一个目标像素只由一个线程写入，避免读改写竞争；
+- 重叠 draw/批次必须保持 Qk 绘制顺序，不能并发写同一目标区域；
+- atlas 可以把不同路径放在互不重叠的区域并行生成，但直接写目标后，不同路径
+  可能竞争同一目标像素；正式批处理需要按 draw 顺序 dispatch、只合并确定不
+  重叠的 draw，或为目标 tile 建立有序 draw 列表；
+- clip、纯色、渐变、图片等 paint 逻辑需要抽成 AASide fragment 与 CGAA
+  compute 都能复用的公共 shader 函数；
+- Metal render encoder 与 compute encoder 切换后，后续 render pass 必须以
+  load 方式继续使用目标纹理。
+
+因此 AASide 与 CGAA 不应成为两套完全独立的颜色输出系统。它们应共享 paint、
+clip 和 blend 语义，只由不同方式提供 coverage：
+
+```text
+AASide -> fragment shader 计算 coverage，使用 render pipeline/hardware blend
+CGAA   -> compute shader 计算 coverage，直接应用 paint/manual blend 写目标
+```
+
+对于暂时无法在 compute 中复用的复杂 paint，可以保留 coverage atlas 作为
+兼容回退，但它不应是正式 CGAA 的默认路径。
+
+Direct-target CGAA 的目标 tile 分类应变为：
+
+```text
+outside tile  -> 不生成、不 dispatch
+inside tile   -> 快速填充 paint/blend
+boundary tile -> 计算 GRID coverage 后应用 paint/blend
+```
+
+这对细线、轮廓路径以及 bounds 很大但实际覆盖面积稀疏的路径尤其重要：atlas
+方案必须写满 bounds 内大量无效 0 coverage tile，而 direct-target 方案可以
+完全删除这些工作。Inside tile 仍需写目标颜色，但可继续使用当前廉价 Uniform
+compute 路径；后续可按目标 tile 的连续区域做批次组织，但不必重新引入
+coverage atlas。
+
+建议优先实现的 direct-target 快速路径：
+
+```text
+不透明 Src / 确定无需读取目标 -> 直接写目标
+常见 SrcOver                  -> 读取目标后手动混合
+复杂 BlendMode / 暂未支持 paint -> coverage atlas 兼容回退
+```
 
 ## 文件
 

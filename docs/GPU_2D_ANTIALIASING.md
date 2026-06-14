@@ -865,6 +865,9 @@ classification and run continuous-area work only on boundary tiles.
 
 ### Compute GRID AA Prototype Completion
 
+This path is now named **CGAA (Compute Grid Anti-Aliasing)**. Historical
+references to Compute AA and Compute GRID AA describe the same CGAA direction.
+
 The follow-up sparse-crossing experiment completes the current fixed-GRID
 algorithmic direction. Each boundary-tile Y-sample thread now:
 
@@ -906,3 +909,58 @@ lay all of its tiles into one atlas and generate the CPU/GPU data together.
 Formal integration may adjust Quark's concrete data structures and ownership
 boundaries, but should preserve this model rather than reintroducing per-path
 small-array allocation.
+
+### CGAA Direct-Target Output
+
+The production CGAA path should prefer writing the current color target
+directly instead of always materializing a complete R8 coverage atlas followed
+by a separate Composite render pass. The prototype's Composite stage accounts
+for about `78%` of representative GPU captures, so removing this round trip is
+the largest remaining architectural opportunity.
+
+Direct target output is valid, but it changes responsibilities:
+
+- outside uniform tiles disappear completely instead of writing zero into a
+  complete coverage atlas; only boundary and filled-inside tiles are emitted;
+- target-space tiles remove dynamic atlas-region allocation, tile packing, and
+  atlas-to-target coordinate mapping;
+- compute must apply coverage, paint/color, clip, and blend before writing;
+- compute has no fixed-function render blending, so destination-dependent blend
+  modes require a target read plus logic equivalent to Qk's BlendMode semantics;
+- one dispatch must assign at most one writer to each target pixel;
+- overlapping draws must remain ordered rather than writing the same pixels
+  concurrently;
+- atlas-space path regions never overlap, but direct target-space paths can
+  overlap; batch them through ordered dispatches, proven-non-overlap groups, or
+  ordered per-target-tile draw lists;
+- target textures must support the required compute read/write usage, and
+  encoder transitions must preserve existing target contents.
+
+AASide and CGAA should therefore share reusable shader helpers for paint, clip,
+and blending while using different coverage producers:
+
+```text
+AASide fragment coverage -> render pipeline output
+CGAA compute coverage     -> direct target output
+```
+
+An intermediate coverage atlas may remain as a compatibility fallback for
+paint paths that are not yet available to CGAA compute, but it should not be
+the default production route.
+
+The resulting target-space tile contract is:
+
+```text
+outside tile  -> omit
+inside tile   -> cheap direct paint/blend fill
+boundary tile -> calculate CGAA coverage, then direct paint/blend
+```
+
+This is substantially better for lines and sparse paths whose bounding boxes
+contain many empty tiles. The atlas prototype must materialize zero coverage
+throughout those bounds to preserve a complete texture; direct CGAA can remove
+that work and the atlas allocator/packing stage entirely.
+
+The first direct-output fast paths should be opaque `Src` writes that require
+no destination read, followed by common `SrcOver` read-modify-write. Complex
+BlendModes and unsupported paints can initially retain the atlas fallback.

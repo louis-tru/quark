@@ -42,6 +42,9 @@
 #define Qk_FLAGS_DARK_COLOR (1 << 3)
 #define Qk_FLAG_COUNT2 (1u << 3)
 #define Qk_FLAG_AASIDE_Inverted (1u << 3)
+#define Qk_FLAG_RADIAL_GRADIENT (1u << 4)
+#define Qk_FLAG_IMAGE_MASK (1u << 3)
+#define Qk_FLAG_IMAGE_SDF_MASK (1u << 4)
 
 namespace qk {
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
@@ -161,19 +164,22 @@ namespace qk {
 		Vec2 surfaceSize() { return _surfaceSize; }
 		const Render::Options& opts() const { return _opts; }
 		void setBlendMode(BlendMode mode);
+		enum ImageDrawKind {
+			kImage_DrawKind,
+			kMask_DrawKind,
+			kSDFMask_DrawKind,
+		};
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
 		virtual void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
-		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
+		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+				ImageDrawKind kind = kImage_DrawKind, const Color4f &strokeColor = {}, float stroke = 0) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
-		virtual void drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) = 0;
 		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
-		virtual void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				const Color4f &strokeColor, float stroke) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) = 0;

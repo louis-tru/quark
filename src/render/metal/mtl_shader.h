@@ -90,6 +90,7 @@ namespace qk {
 		MSLPipelineKind kind;
 		String (*vertexSource)();
 		String (*fragmentSource)();
+		String (*computeSource)();
 	};
 
 	struct MSLShaderAttr {

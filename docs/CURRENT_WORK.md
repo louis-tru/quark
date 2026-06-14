@@ -85,7 +85,11 @@ Active AASide experiment branch:
 - Baseline commit: `3f4400674` (`wip(render): experiment with signed aa side`).
 - The branch is no longer just a throwaway experiment; the current intent is to
   merge it into `master` as the new default AASide baseline.
-- `clip.glsl` was split out so clip mask drawing no longer overloads `color.glsl` with clip-only parameters such as `surfaceOffset`.
+- `clip.glsl` was later merged back into `color.glsl` after direct-target CGAA
+  planning showed that solid-color and clip-mask output should share one paint
+  path. `color.glsl` now accepts `surfaceOffset` and inverted AASide coverage;
+  ordinary color draws pass a zero offset, while clip draws pass the clip-target
+  offset. GL and Metal both use the single generated Color pipeline.
 - `color.glsl` and other fragment shaders now call shared `aaSideCoverage()` from `_util.glsl`.
 - `aa_side_weight` was removed from the experiment; the goal is to get coverage from signed `aaSide`, not from CPU-side alpha weighting.
 - `Pathv` has been removed from the Canvas-facing drawing API on this branch. `RectPath` / `RectOutlinePath` now store paths only, while `PathvCache` separately caches normalized paths and generated `VertexData` for fill, AASide, and clip draws.
@@ -180,6 +184,10 @@ For small render backend changes:
 
 ## Compute AA Prototype State
 
+The selected algorithm is now named **CGAA (Compute Grid Anti-Aliasing)**.
+Historical references to Compute AA or Compute GRID AA in this document refer
+to the CGAA research path.
+
 An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
 wired into the macOS test target. It demonstrates CPU-flattened path edges,
 16x16 tile binning, fixed-grid subpixel winding coverage, a coverage texture, and solid
@@ -223,6 +231,58 @@ CPU-side algorithm and allocation optimization as complete for now; formal Qk
 integration should preserve this batch model while adapting the concrete
 renderer data structures. The next profiling and optimization work should
 focus on GPU coverage/composition and reducing the full-atlas round trip.
+
+The preferred production CGAA architecture is now to apply coverage and paint
+directly into the current color target instead of always writing a complete R8
+coverage atlas and sampling it in a separate Composite pass. This directly
+targets the measured approximately `78%` Composite share and enables a sparser
+tile model. Outside uniform tiles no longer need to exist merely to write zero
+coverage into a complete atlas; production batches should emit only boundary
+tiles and filled inside tiles. Target-space tiles also remove dynamic atlas
+region allocation, tile-position packing, and atlas-to-target coordinate
+mapping. This is especially important for lines and paths with large bounds but
+sparse covered area. Direct target writes must preserve Quark draw ordering and
+ensure one writer per pixel within a dispatch. Because compute pipelines do not
+receive fixed-function render blending, non-`Src` modes require destination
+reads plus shared/manual blend logic. Refactor paint, clip, and blend shader
+helpers so AASide fragment paths and CGAA compute paths share output semantics
+while supplying coverage through different algorithms. Unlike atlas generation,
+direct target output may cause different paths to compete for the same target
+pixel; preserve draw order with ordered dispatches, non-overlap batching, or
+ordered per-target-tile draw lists. Start with opaque `Src` and common
+`SrcOver` direct-output fast paths. Keep the intermediate coverage atlas only as
+a fallback for paint/blend paths not yet supported by direct CGAA output.
+
+The first formal shader-tooling step is complete. `src/render/shader/cgaa.glsl`
+contains `#vert`, `#frag`, and a final `#comp` stage. The GLSL native generator
+skips compute for GL, while Metal native generation emits the compute MSL
+source, std430-facing data structures, and compute resource binding slots.
+`MSLShaderSource` can now retain a compute source function. Actual Metal
+compute-pipeline creation and renderer command integration remain pending.
+CGAA platform requirements and the required macOS 10.15 AASide fallback are
+recorded in `docs/CGAA_COMPATIBILITY.md`.
+
+Shader consolidation for direct-target CGAA has started and is validated on
+the existing AASide path:
+
+- `color_linear.glsl` and `color_radial.glsl` were merged into
+  `color_gradient.glsl`. A draw-uniform flag selects radial behavior. Linear
+  weight remains vertex-computed; radial distance remains fragment-computed.
+- `clip.glsl` was removed and its target-offset/inverted-coverage behavior was
+  merged into `color.glsl`; clip masks and ordinary solid color now share one
+  pipeline.
+- The native shader generator now recognizes pure `#comp` files. Such files do
+  not generate vertex/fragment ASTs or GL wrappers; Metal records null
+  vertex/fragment sources and only the compute source/bindings.
+- Generated desktop reflection output was renamed from the misleading `es450`
+  name to `gl450`, and generated Metal intermediate files now use the `.metal`
+  suffix.
+
+Ordinary image, alpha mask, and SDF mask now share `image.glsl` and one backend
+draw command selected by uniform flags. YUV remains separate because it has
+different texture inputs and conversion behavior. The next consolidation step
+is to extract reusable color/gradient/image paint helpers for direct-target
+CGAA.
 
 The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
 tile. Each thread computes one complete Y-sample row, evaluating every relevant

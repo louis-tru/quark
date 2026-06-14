@@ -123,11 +123,23 @@ static inline ulong aa_sample_range_mask(uint begin, uint end) {
 	return throughEnd & ~beforeBegin;
 }
 
+// Read-modify-write the pixel owned by the current thread. The CPU tile
+// classification guarantees that concurrent dispatch threads do not target the
+// same pixel.
+static inline void aa_add_coverage(
+	texture2d<float, access::read_write> coverageTex,
+	uint2 pixel,
+	float coverage)
+{
+	float previous = coverageTex.read(pixel).r;
+	coverageTex.write(float4(previous + coverage, 0.0, 0.0, 1.0), pixel);
+}
+
 // Uniform tile 不需要执行边交点测试，一个 threadgroup 直接写满一个 tile。
 kernel void qk_compute_aa_uniform_tiles(
 	constant ComputeAAParams &params [[buffer(0)]],
 	const device ComputeAAUniformTile *uniformTiles [[buffer(1)]],
-	texture2d<float, access::write> coverageTex [[texture(0)]],
+	texture2d<float, access::read_write> coverageTex [[texture(0)]],
 	uint tileIndex [[threadgroup_position_in_grid]],
 	uint threadIndex [[thread_index_in_threadgroup]])
 {
@@ -144,7 +156,7 @@ kernel void qk_compute_aa_uniform_tiles(
 			tile.originY + (pixelIndex >> 4)
 		);
 		if (pixel.x < params.width && pixel.y < params.height) {
-			coverageTex.write(float4(coverage, 0.0, 0.0, 1.0), pixel);
+			aa_add_coverage(coverageTex, pixel, coverage);
 		}
 	}
 }
@@ -157,7 +169,7 @@ kernel void qk_compute_aa_coverage(
 	const device ComputeAATile *boundaryTiles [[buffer(3)]],
 	const device ComputeAABackdropEvent *backdropEvents [[buffer(4)]],
 	const device ComputeAABackdropRow *backdropRows [[buffer(5)]],
-	texture2d<float, access::write> coverageTex [[texture(0)]],
+	texture2d<float, access::read_write> coverageTex [[texture(0)]],
 	uint boundaryTileIndex [[threadgroup_position_in_grid]],
 	uint threadIndex [[thread_index_in_threadgroup]])
 {
@@ -266,7 +278,7 @@ kernel void qk_compute_aa_coverage(
 		uint2 pixel = uint2(tile.originX + pixelX, tile.originY + pixelY);
 		if (pixel.x < params.width && pixel.y < params.height) {
 			float coverage = float(covered) * invSampleCount;
-			coverageTex.write(float4(coverage, 0.0, 0.0, 1.0), pixel);
+			aa_add_coverage(coverageTex, pixel, coverage);
 		}
 	}
 }
