@@ -40,10 +40,11 @@
 using namespace qk;
 
 void test_gui_new(Box *box) {
+	box->set_background_color({0,0,255,255});
 	auto r = box->append_new<Morph>();
 	r->set_width({ 0, BoxSizeKind::Match });
 	r->set_height({ 0, BoxSizeKind::Match });
-	// r->set_rotate_z(1);
+	r->set_rotate_z(1);
 	auto act = new KeyframeAction(r->window());
 	act->addFrame(0, LINEAR)->set_rotate_z(0)->set_translate({ 0, 100 });
 	act->addFrame(1e6, LINEAR)->set_rotate_z(360);
@@ -51,7 +52,7 @@ void test_gui_new(Box *box) {
 	act->play();
 	r->set_action(act);
 
-	{
+	if (1) {
 		// Image
 		auto img = r->append_new<Image>();
 		img->set_src(fs_resources("jsapi/res/cc.tga"));
@@ -69,7 +70,7 @@ void test_gui_new(Box *box) {
 		img->set_border_right_width(15);
 		img->set_border_bottom_width(15);
 		img->set_border_color({Color(255, 0, 255)});
-		img->set_border_top_color({Color(255, 0, 0)});
+		// img->set_border_top_color({Color(255, 0, 0)});
 		// img->border_top_color(Color(0, 255, 255));
 		// img->border_bottom_color(Color(0, 0, 255));
 		// img->border_left_color(Color(255, 0, 0));
@@ -77,7 +78,7 @@ void test_gui_new(Box *box) {
 		img->set_align(Align::LeftBottom);
 	}
 
-	{
+	if (1) {
 		// div sprite
 		auto div = r->append_new<Box>();
 		div->set_color({255, 255, 255, 128});
@@ -100,7 +101,7 @@ void test_gui_new(Box *box) {
 		sp1->set_height({256});
 	}
 
-	{
+	if (1) {
 		auto sp0 = r->append_new<Image>();
 		// sp0->set_src(fs_resources("jsapi/res/0.bmp"));
 		// sp0->set_src(fs_resources("jsapi/res/0.jpeg"));
@@ -125,7 +126,8 @@ void test_gui_new(Box *box) {
 		// div0->set_margin_left(10);
 		div0->set_width({ 296, BoxSizeKind::Minus });
 		div0->set_height({256});
-		div0->set_margin_top(5);
+		div0->set_margin_top(10);
+		// div0->set_margin_left(-10);
 		div0->set_align(Align::Start);
 		div0->set_background_color({0,255,0,255});
 

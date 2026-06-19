@@ -34,6 +34,7 @@
 #include "./allocator.h"
 #include <atomic>
 #include <stdlib.h>
+#include <type_traits>
 
 namespace qk {
 	template<typename T = char>
@@ -84,7 +85,6 @@ namespace qk {
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void *p);
 		static void  operator delete(void *p);
-		typedef int __HaveObject__;
 	};
 
 	/**
@@ -103,9 +103,6 @@ namespace qk {
 		virtual void release(); // --ref
 		virtual bool isReference() const;
 		inline  int  refCount() const { return _refCount.load(); }
-		typedef int __HaveReference__;
-	private:
-		typedef int __HaveObject__;
 	protected:
 		std::atomic_int _refCount;
 	};
@@ -116,20 +113,19 @@ namespace qk {
 	class Protocol {
 	public:
 		virtual Object* asObject() = 0;
-		typedef void* __HaveProtocol__;
 	};
 
 	/**
-	 * @struct Wobj
+	 * @struct WObject
 	 * @brief Wrapper object for value types.
 	 *
 	 * A simple Object subclass that holds a value of type T.
 	 *
 	 * @tparam T Value type.
 	 */
-	template <typename T> struct Wobj: Object {
-		inline Wobj(const T &val): value(val) {}
-		inline Wobj(T &&val): value(std::move(val)) {}
+	template <typename T> struct WObject: Object {
+		inline WObject(const T &val): value(val) {}
+		inline WObject(T &&val): value(std::move(val)) {}
 		// operator T&() { return value; }
 		T value;
 	};
@@ -190,131 +186,123 @@ namespace qk {
 		uint32_t _safeFlagValue = 0xff73ffab;
 	};
 
-	Qk_EXPORT void Retain(Object* obj); // retain object
-	Qk_EXPORT void Release(Object* obj); // release object
-
 	/**
-	 * @struct object_traits_basic
-	 * @brief Basic traits for handling different object types.
-	 * This struct provides methods to retain and release objects
-	 * based on their type characteristics (Object, Reference, Protocol, or non-object).
-	*/
-	template <typename T, int kind> struct object_traits_basic { // Object
-		static inline void Retain(T* obj) { if (obj) obj->retain(); }
-		static inline void Release(T* obj) { if (obj) obj->release(); }
-	};
-	template <typename T> struct object_traits_basic<T, 0> { // Other
-		static inline void Retain(T* obj) {}
-		static inline void Release(T* obj) { delete obj; }
-	};
-	template <typename T> struct object_traits_basic<T, 3> { //protocol
-		static inline void Retain(T* obj) { if (obj) obj->asObject()->retain(); }
-		static inline void Release(T* obj) { if (obj) obj->asObject()->release(); }
-	};
-
-	/**
-	 * @struct object_traits
+	 * @struct ObjectTraits
 	 * @brief Traits for handling different object types.
 	 * This struct provides methods to retain and release objects
 	 * based on their type characteristics (Object, Reference, Protocol, or non-object).
 	*/
-	template<typename T> struct object_traits {
-		typedef char __non[0];
-		typedef char __obj[1];
-		typedef char __ref[2];
-		typedef char __pro[3];
-		template<typename C> static __obj& test(typename C::__HaveObject__);
-		template<typename C> static __ref& test(typename C::__HaveReference__);
-		template<typename C> static __pro& test(typename C::__HaveProtocol__);
-		template<typename>   static __non& test(...);
-		enum Kind { kNon, kObj, kRef, kProtocol };
-		template<enum Kind k> struct __is {
-			static constexpr Kind kind = (k);
-			static constexpr bool non = (k == 0);
-			static constexpr bool obj = (k > 0);
-			static constexpr bool ref = (k == 2);
-			static constexpr bool protocol = (k == 3);
-		};
-		typedef __is<Kind(sizeof(test<T>(0)) / sizeof(char))> is;
-		inline static void Retain(T* obj) { 
-			object_traits_basic<T, is::kind>::Retain(obj);
+	template<typename T, typename = void>
+	struct ObjectTraitsBase {
+		static constexpr bool isComplete = false;
+		static constexpr bool isObj = false;
+		static constexpr bool isRef = false;
+		static constexpr bool isProtocol = false;
+		static constexpr bool isNonObj = true;
+		static constexpr bool isTriviallyCopyable = false;
+		static constexpr bool isTriviallyDestructible = false;
+		static constexpr bool isTriviallyDefaultConstructible = false;
+		static constexpr bool isOrdinary = false;
+		static void Retain(T*) = delete;
+		static void Release(T*) = delete;
+		template<typename U>
+		using isBase = std::false_type;
+	};
+
+	template<typename T>
+	struct ObjectTraitsBase<T, decltype(void(sizeof(T)))> {
+		enum Kind { kNonObj, kObj, kProtocol };
+		template<typename U>
+		using isBase = std::is_base_of<U, T>;
+		static constexpr bool isComplete = true;
+		static constexpr bool isObj = isBase<Object>::value;
+		static constexpr bool isRef = isBase<Reference>::value;
+		static constexpr bool isProtocol = isBase<Protocol>::value;
+		static constexpr bool nonObj = !(isObj || isRef || isProtocol);
+		static constexpr Kind kind = isObj ? kObj : (isProtocol ? kProtocol : kNonObj);
+		static constexpr bool isTriviallyDefaultConstructible = std::is_trivially_default_constructible<T>::value;
+		static constexpr bool isTriviallyDestructible = std::is_trivially_destructible<T>::value;
+		static constexpr bool isTriviallyCopyable = std::is_trivially_copyable<T>::value;
+		static constexpr bool isOrdinary = isTriviallyDefaultConstructible && isTriviallyDestructible && isTriviallyCopyable;
+		inline static void Retain(T* obj) {
+			retain(obj, std::integral_constant<Kind, kind>());
 		}
 		inline static void Release(T* obj) {
-			object_traits_basic<T, is::kind>::Release(obj);
+			release(obj, std::integral_constant<Kind, kind>());
+		}
+	private:
+		static inline void retain(T*, std::integral_constant<Kind, kNonObj>) {}
+		static inline void release(T* obj, std::integral_constant<Kind, kNonObj>) {
+			delete obj;
+		}
+		static inline void retain(T* obj, std::integral_constant<Kind, kObj>) {
+			if (obj) obj->retain();
+		}
+		static inline void release(T* obj, std::integral_constant<Kind, kObj>) {
+			if (obj) obj->release();
+		}
+		static inline void retain(T* obj, std::integral_constant<Kind, kProtocol>) {
+			if (obj) obj->asObject()->retain();
+		}
+		static inline void release(T* obj, std::integral_constant<Kind, kProtocol>) {
+			if (obj) obj->asObject()->release();
 		}
 	};
 
-	template <>
-	inline void object_traits<void>::Release(void* obj) {
-		::free(obj);
-	}
+	template <typename T>
+	struct ObjectTraits: ObjectTraitsBase<T> {};
 
 	/**
-	 * @struct object_traits_from
+	 * @struct ObjectTraitsFrom
 	 * @brief Traits for handling different object types with custom retain/release functions.
 	 * This struct allows specifying custom retain and release functions for a given type T.
 	*/
 	template<
 		typename T,
-		void (*Rel)(T*) = object_traits<T>::Release,
-		void (*Ret)(T*) = object_traits<T>::Retain,
-		typename Is = typename object_traits<T>::is
+		void (*Rel)(T*) = ObjectTraits<T>::Release,
+		void (*Ret)(T*) = ObjectTraits<T>::Retain
 	>
-	struct object_traits_from: object_traits<T> {
-		typedef Is is;
+	struct ObjectTraitsFrom: ObjectTraits<T> {
 		inline static void Retain(T* obj) { Ret(obj); }
 		inline static void Release(T* obj) { Rel(obj); }
 	};
 
 	/**
-	 * @struct IsOrdinaryType
-	 * @brief Helper to determine if a type is an ordinary type (non-pointer).
-	*/
-	template <typename T> struct IsOrdinaryType {
-		static constexpr bool value = false;
-	};
-
-	template <typename T> struct IsOrdinaryType<T*> {
-		static constexpr bool value = true;
-	};
-
+	 * @method Retain() retain object
+	 */
+	Qk_EXPORT void Retain(Object* obj); // retain object
 	/**
-	 * @struct IsPointer
-	 * @brief Helper to determine if a type is a pointer and manage its retention.
-	*/
-	template <typename T> struct IsPointer {
-		static constexpr bool value = false;
-		inline static void Retain(T& obj) {}
-		inline static void Release(T& obj) {}
-	};
-
-	/**
-	 * @struct IsPointer specialization for pointer types.
-	*/
-	template <typename T> struct IsPointer<T*> {
-		static constexpr bool value = true;
-		inline static void Retain(T*& obj) { object_traits<T>::Retain(obj); }
-		inline static void Release(T*& obj) { object_traits<T>::Release(obj); obj = nullptr; }
-	};
+	 * @method Release() release object
+	 */
+	Qk_EXPORT void Release(Object* obj); // release object
 
 	/**
 	 * @method Retainp() retain plus
 	*/
 	template<typename T>
-	inline void Retainp(T& obj) { IsPointer<T>::Retain(obj); }
+	inline void Retainp(T*& obj) { ObjectTraits<T>::Retain(obj); }
+
+	template<typename T>
+	inline void Retainp(T& obj) {}
 
 	/**
 	 * @method Releasep() release plus
 	*/
 	template<typename T>
-	inline void Releasep(T& obj) { IsPointer<T>::Release(obj); }
+	inline void Releasep(T*& obj) {
+		ObjectTraits<T>::Release(obj);
+		obj = nullptr;
+	}
+
+	template<typename T>
+	inline void Releasep(T& obj) {}
 
 	/**
 	 * @method Retainp() retain plus for atomic pointer
 	 */
 	template<typename T>
 	inline void Retainp(std::atomic<T*>& obj) {
-		object_traits<T>::retain(obj.load()); // retain current value
+		ObjectTraits<T>::Retain(obj.load()); // retain current value
 	}
 
 	/**
@@ -322,24 +310,8 @@ namespace qk {
 	 */
 	template<typename T>
 	inline void Releasep(std::atomic<T*>& obj) {
-		object_traits<T>::Release(obj.exchange(nullptr)); // release and set to nullptr
+		ObjectTraits<T>::Release(obj.exchange(nullptr)); // release and set to nullptr
 	}
 
-	#define Qk_IsOrdinaryTypes(Fn) \
-		Fn(char) \
-		Fn(uint8_t) \
-		Fn(int16_t) \
-		Fn(uint16_t) \
-		Fn(int32_t) \
-		Fn(uint32_t) \
-		Fn(int64_t) \
-		Fn(uint64_t) \
-		Fn(float) \
-		Fn(double)
-
-	#define Qk_DefIsOrdinaryType(T) template<> struct IsOrdinaryType<T> { static constexpr bool value = true; };
-	Qk_DefIsOrdinaryType(bool)
-	Qk_IsOrdinaryTypes(Qk_DefIsOrdinaryType)
-	#undef Qk_DefIsOrdinaryType
 }
 #endif

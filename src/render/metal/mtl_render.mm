@@ -7,6 +7,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_render.h"
+#include "test/compute_aa/mtl_compute_aa_prototype.h"
+#include "src/render/render.h"
 #import "./mtl_canvas.h"
 #import "./mtl_shaders.h"
 #import "../pixel.h"
@@ -19,7 +21,7 @@ namespace qk {
 		return (__bridge MTLTextureID)stat->ptr();
 	}
 
-	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else) {
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else) {
 		return src ? (__bridge MTLTextureID)src->texture(0)->ptr() : _else;
 	}
 
@@ -274,12 +276,11 @@ namespace qk {
 		}
 	}
 
-	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
-		// kind: 8 bits, mode: 8 bits, outputType: 8 bits, sampleCount: 4 bits
-		return ((uint32_t)kind << 22) | // 8 bits for pipeline kind
-			((uint32_t)mode << 14) | // 8 bits for blend mode
-			((uint32_t)format << 4) | // 10 bits for output type
-			(uint32_t)(sampleCount & 0b1111) // 4 bits for sample count, max 16 samples
+	uint32_t mtl_pipeline_key(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format) {
+		// kind: 8 bits, mode: 8 bits, format: 10 bits
+		return ((uint32_t)kind << 18) | // 8 bits for pipeline kind
+			((uint32_t)mode << 10) | // 8 bits for blend mode
+			((uint32_t)format)// 10 bits for output type
 		;
 	}
 
@@ -295,25 +296,26 @@ namespace qk {
 		return bitfields & paint->bitfields;
 	}
 
-	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool gpuRead, bool cpuRead, bool mipmap) {
+	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, uint8_t flags) {
 		auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
 																																		width:size.x()
 																																	height:size.y()
-																																mipmapped:mipmap];
-		desc.usage = MTLTextureUsageRenderTarget | (gpuRead ? MTLTextureUsageShaderRead : 0);
-		desc.storageMode = cpuRead ? MTLStorageModeShared : MTLStorageModePrivate;
+																																mipmapped:flags & kMipmap_TextureFlags];
+		desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead |
+			(flags & kComputeWrite_TextureFlags ? MTLTextureUsageShaderWrite : 0);
+		desc.storageMode = /*cpuRead ? MTLStorageModeShared :*/ MTLStorageModePrivate;
 		return [device newTextureWithDescriptor:desc];
 	}
 
-	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &storeStat, bool mipmap) {
+	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &storeStat, uint8_t flags) {
 		auto fmt = mtl_pixel_format(type);
 		auto tex = mtl_get_texture(texStat);
 		if (fmt == MTLPixelFormatInvalid)
 			return nullptr;
 		if (!tex || Vec2(tex.width, tex.height) != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
-				(mipmap && tex.mipmapLevelCount <= 1)
+				(flags & kMipmap_TextureFlags && tex.mipmapLevelCount <= 1)
 		) {
-			tex = mtl_new_texture(device, size, fmt, true, false, mipmap);
+			tex = mtl_new_texture(device, size, fmt, flags);
 			if (!tex)
 				return nullptr;
 			texStat = &storeStat; // update texStat to storeStat
@@ -332,23 +334,18 @@ namespace qk {
 	}
 
 	template<>
-	MemBlockAllocator<MTLBufferID>::MemBlock
+	MemBlockAllocator<MTLBufferID>::MemBlock*
 	MemBlockAllocator<MTLBufferID>::createBlock(uint32_t capacity) {
 		// get MTLDevice from shared render resource to create MTLBuffer for memory block
 		auto device = getSharedRenderMetalResource()->device();
-		MemBlock block {
-			// buffer will be created later when data is available
-			.val = [device newBufferWithLength:capacity options:MTLResourceStorageModeShared],
-			.begin = 0,
-			.end = 0,
-			.capacity = capacity,
-		};
-		Qk_ASSERT(block.val, "Failed to create MTLBuffer with capacity: %u", capacity);
+		MemBlock* block = new MemBlock([device newBufferWithLength:capacity options:MTLResourceStorageModeShared], capacity);
+		Qk_ASSERT(block->val, "Failed to create MTLBuffer with capacity: %u", capacity);
 		return block;
 	}
 	template<> 
-	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock &block) {
-		block.val = nil;
+	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block) {
+		block->val = nil;
+		delete block;
 	}
 
 	MetalRenderResource::MetalRenderResource()
@@ -503,12 +500,12 @@ namespace qk {
 		return _functions[key] = fn;
 	}
 
-	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
+	MTLPipeline MetalRenderResource::getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format) {
 		ScopeLock lock(_mutex); // protect shader function cache
-		auto key = mtl_pipeline_key(kind, mode, format, sampleCount);
-		MTLPipeline pso = nil;
-		if (_pipelines.get(key, pso))
-			return pso;
+		auto key = mtl_pipeline_key(kind, mode, format);
+		NSObjectID pip = nil;
+		if (_pipelines.get(key, pip))
+			return (MTLPipeline)pip;
 		auto desc = [MTLRenderPipelineDescriptor new];
 		desc.vertexFunction = getShaderFunction(kind, true);
 		desc.fragmentFunction = getShaderFunction(kind, false);
@@ -532,13 +529,35 @@ namespace qk {
 			attrIndex++;
 		}
 		desc.vertexDescriptor.layouts[shader->bufferIndex].stride = offset;
-		desc.sampleCount = sampleCount; // msaa
+		// desc.sampleCount = 1; // default is 1, set to >1 if using MSAA
 
 		NSError *err = nil;
-		pso = [_device newRenderPipelineStateWithDescriptor:desc error:&err];
-		Qk_CHECK(pso, "Metal solid pipeline creation failed: %s", err.localizedDescription.UTF8String);
-		_pipelines[key] = pso;
-		return pso;
+		pip = [_device newRenderPipelineStateWithDescriptor:desc error:&err];
+		Qk_CHECK(pip, "Metal solid pipeline creation failed: %s", err.localizedDescription.UTF8String);
+		_pipelines[key] = (NSObjectID)pip;
+		return (MTLPipeline)pip;
+	}
+
+	MTLComputePipeline MetalRenderResource::getComputePipeline(MSLPipelineKind kind) {
+		ScopeLock lock(_mutex);
+		auto key = mtl_pipeline_key(kind, (BlendMode)0, (MTLPixelFormat)0);
+		NSObjectID pip = nil;
+		if (_pipelines.get(key, pip))
+			return (MTLComputePipeline)pip;
+		Qk_CHECK(kind < kPipelineCount, "Invalid compute pipeline kind: %d", kind);
+		auto &src = _shaders.allShaders[kind]->source;
+		Qk_CHECK(src.computeSource, "Shader does not contain a compute stage: %s", src.name);
+		auto code = src.computeSource();
+		NSError *err = nil;
+		auto library = [_device newLibraryWithSource:@(code.c_str()) options:nil error:&err];
+		Qk_CHECK(library, "Metal compute shader compilation failed: %s", err.localizedDescription.UTF8String);
+		auto entry = String::format("%s_comp", src.name);
+		auto fn = [library newFunctionWithName:@(entry.c_str())];
+		Qk_CHECK(fn, "Metal compute shader entry not found: %s", entry.c_str());
+		pip = [_device newComputePipelineStateWithFunction:fn error:&err];
+		Qk_CHECK(pip, "Metal compute pipeline creation failed: %s", err.localizedDescription.UTF8String);
+		_pipelines[key] = (NSObjectID)pip;
+		return (MTLComputePipeline)pip;
 	}
 
 	MTLSampler MetalRenderResource::get_sampler(const PaintImage* paint) {
@@ -566,17 +585,27 @@ namespace qk {
 		return get_sampler(&img);
 	}
 
-	MTLPipeline MSLShader::getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount) {
-		uint32_t key = ((uint32_t)mode << 14) | // 8 bits for blend mode
-			((uint32_t)format << 4) | // 10 bits for output type
-			(uint32_t)sampleCount; // 4 bits for sample count, max 16 samples
-		MTLPipeline pso;
-		if (_pipelines.get(key, pso))
-			return pso;
+	MTLPipeline MSLShader::getPipeline(BlendMode mode, MTLPixelFormat format) {
+		uint32_t key =
+			((uint32_t)mode << 10) | // 8 bits for blend mode
+			((uint32_t)format);// 10 bits for output type
+		NSObjectID pip;
+		if (_pipelines.get(key, pip))
+			return (MTLPipeline)pip;
 		// get pipeline from render resource by pipeline kind
-		pso = ((MetalRenderResource*)getSharedRenderResource())->
-			getPipeline(source.kind, mode, format, sampleCount);
-		return _pipelines[key] = pso;
+		pip = ((MetalRenderResource*)getSharedRenderResource())->
+			getPipeline(source.kind, mode, format);
+		_pipelines[key] = pip;
+		return (MTLPipeline)pip;
+	}
+
+	MTLComputePipeline MSLShader::getComputePipeline() {
+		NSObjectID pip;
+		if (_pipelines.get(0, pip))
+			return (MTLComputePipeline)pip;
+		pip = ((MetalRenderResource*)getSharedRenderResource())->getComputePipeline(source.kind);
+		_pipelines[0] = pip;
+		return (MTLComputePipeline)pip;
 	}
 
 	// ----------------------------------------------------------
@@ -602,7 +631,7 @@ namespace qk {
 		// pre-create sampler for nearest filter mode, which is commonly used for non-scaling image rendering
 		_nearestSampler = _resource->get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = _resource->get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kLinearNearest_MipmapMode);
-		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm, 1);
+		_vportCpPipeline = _resource->_shaders.vportCp.getPipeline(kSrc_BlendMode, MTLPixelFormatBGRA8Unorm);
 	}
 
 	MetalRender::~MetalRender() {
@@ -637,8 +666,8 @@ namespace qk {
 		return new MetalCanvas(this, opts);
 	}
 
-	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, bool mipmap) {
-		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), true, false, mipmap);
+	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
+		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), flags);
 		return TexStat(CFBridgingRetain(tex));
 	}
 

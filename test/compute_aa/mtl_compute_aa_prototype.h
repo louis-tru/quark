@@ -15,14 +15,12 @@
 //     Path -> flattened line edges -> device/atlas coordinates
 //          -> 16x16 local edge bins + per-tile-row backdrop spans
 //   GPU:
-//     one 16x16 threadgroup per tile
-//          -> cooperatively resolve backdrop spans into threadgroup memory
-//     one compute thread per output pixel
-//          -> evaluate subpixel winding coverage
+//     one tileSampleCount-thread threadgroup per 16x16 tile
+//          -> one thread per local Y sample row builds a 64-bit inside mask
+//          -> the same threads cooperatively merge and write all tile pixels
 //          -> write one-channel coverage atlas
 //   Graphics:
-//     draw path bounds and sample coverage atlas, or run a second compute
-//     prototype kernel to composite a solid color.
+//     clear and composite the coverage atlas through one render pass.
 
 #ifndef __quark_test_mtl_compute_aa_prototype__
 #define __quark_test_mtl_compute_aa_prototype__
@@ -38,9 +36,8 @@ namespace qk {
 
 	static constexpr uint32_t kComputeAATileSize = 16;
 	static constexpr uint32_t kComputeAASampleGrid = 4;
-
-	struct AllocatorA: LinearAllocator {
-	};
+	static_assert(kComputeAATileSize * kComputeAASampleGrid <= 64,
+		"Compute AA inside mask only supports up to 64 X samples per tile");
 
 	enum ComputeAAFillRule: uint32_t {
 		kComputeAANonZero_FillRule = 0,
@@ -52,11 +49,12 @@ namespace qk {
 	struct alignas(16) ComputeAAEdge {
 		Vec2 p0;          // atlas-space start point, y-down
 		Vec2 p1;          // atlas-space end point, y-down
-		float minY;       // cached y range for quick sample rejection
-		float maxY;
+		float dxdy;       // cached dx/dy for GPU X intersection
 		int32_t winding;  // +1 for downward edge, -1 for upward edge
-		uint32_t _pad;
+		uint32_t _pad[2];
 	};
+	static_assert(sizeof(ComputeAAEdge) == sizeof(float) * 8,
+		"Metal edge ABI mismatch");
 
 	struct ComputeAATileEdge {
 		uint32_t edgeIndex;
@@ -87,13 +85,22 @@ namespace qk {
 		"Metal backdrop-row ABI mismatch");
 
 	struct alignas(16) ComputeAATile {
-		uint32_t edgeOffset; // offset into ComputeAADrawData::tileEdges
-		uint32_t edgeCount;
 		uint32_t originX;    // atlas-space tile origin in pixels
 		uint32_t originY;
+		uint32_t edgeOffset; // offset into ComputeAADrawData::tileEdges
+		uint32_t edgeCount;
 	};
 	static_assert(sizeof(ComputeAATile) == sizeof(uint32_t) * 4,
 		"Metal tile ABI mismatch");
+
+	struct alignas(16) ComputeAAUniformTile {
+		uint32_t originX;
+		uint32_t originY;
+		int32_t winding;
+		uint32_t _pad;
+	};
+	static_assert(sizeof(ComputeAAUniformTile) == sizeof(uint32_t) * 4,
+		"Metal uniform-tile ABI mismatch");
 
 	struct alignas(16) ComputeAAParams {
 		uint32_t width;
@@ -104,6 +111,9 @@ namespace qk {
 		uint32_t sampleGrid;
 		uint32_t outputOriginX;
 		uint32_t outputOriginY;
+		uint32_t outputWidth;
+		uint32_t outputHeight;
+		uint32_t _pad[2];
 		Vec4 color; // premultiplied when used by the composite kernel
 	};
 
@@ -115,17 +125,16 @@ namespace qk {
 		uint32_t tileCountY = 0;
 		Array<ComputeAAEdge> edges;
 		Array<ComputeAATileEdge> tileEdges;
-		Array<ComputeAATile> tiles;
+		Array<ComputeAATile> boundaryTiles; // compact; no entries for uniform tiles
+		Array<ComputeAAUniformTile> uniformTiles;
 		Array<ComputeAABackdropEvent> backdropEvents;
 		Array<ComputeAABackdropRow> backdropRows;
 	};
 
-	// 配置以使用普通的平凡类型，这在容器中可以优化为不调用构造函数和析构函数。
-	template<> struct IsOrdinaryType<ComputeAAEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAATileEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAATile> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAABackdropEvent> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAABackdropRow> { static constexpr bool value = true; };
+	template<> struct ObjectTraits<ComputeAAEdge>: ObjectTraitsBase<ComputeAAEdge> {
+		static constexpr bool isOrdinary = true;
+	};
+
 	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
 	template<> struct AllocatorConfig<ComputeAAEdge> { static constexpr uint32_t kMinCapacity = 4; };
 	template<> struct AllocatorConfig<ComputeAATileEdge> { static constexpr uint32_t kMinCapacity = 4; };
@@ -144,17 +153,18 @@ namespace qk {
 		// for qk_compute_aa_coverage in compute_aa_prototype.metal.
 		static bool encodeCoverage(id<MTLDevice> device,
 			id<MTLCommandBuffer> commandBuffer,
+			id<MTLComputePipelineState> uniformPipeline,
 			id<MTLComputePipelineState> coveragePipeline,
 			id<MTLTexture> coverageTexture,
 			const ComputeAADrawData &drawData,
 			ComputeAAFillRule fillRule = kComputeAANonZero_FillRule);
 
-		// Optional second pass for inspecting the result without adding a render
-		// pipeline. The caller owns qk_compute_aa_composite_solid.
+		// Draws the coverage atlas through a premultiplied-alpha render pipeline.
 		static bool encodeSolidComposite(id<MTLCommandBuffer> commandBuffer,
-			id<MTLComputePipelineState> compositePipeline,
+			id<MTLRenderPipelineState> compositePipeline,
 			id<MTLTexture> coverageTexture,
 			id<MTLTexture> colorTexture,
+			Vec4 clearColor,
 			Vec4 premulColor,
 			Vec2 outputOrigin,
 			const ComputeAADrawData &drawData,

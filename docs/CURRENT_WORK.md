@@ -85,7 +85,11 @@ Active AASide experiment branch:
 - Baseline commit: `3f4400674` (`wip(render): experiment with signed aa side`).
 - The branch is no longer just a throwaway experiment; the current intent is to
   merge it into `master` as the new default AASide baseline.
-- `clip.glsl` was split out so clip mask drawing no longer overloads `color.glsl` with clip-only parameters such as `surfaceOffset`.
+- `clip.glsl` was later merged back into `color.glsl` after direct-target CGAA
+  planning showed that solid-color and clip-mask output should share one paint
+  path. `color.glsl` now accepts `surfaceOffset` and inverted AASide coverage;
+  ordinary color draws pass a zero offset, while clip draws pass the clip-target
+  offset. GL and Metal both use the single generated Color pipeline.
 - `color.glsl` and other fragment shaders now call shared `aaSideCoverage()` from `_util.glsl`.
 - `aa_side_weight` was removed from the experiment; the goal is to get coverage from signed `aaSide`, not from CPU-side alpha weighting.
 - `Pathv` has been removed from the Canvas-facing drawing API on this branch. `RectPath` / `RectOutlinePath` now store paths only, while `PathvCache` separately caches normalized paths and generated `VertexData` for fill, AASide, and clip draws.
@@ -180,6 +184,92 @@ For small render backend changes:
 
 ## Compute AA Prototype State
 
+The selected algorithm is now named **CGAA (Compute Grid Anti-Aliasing)**.
+Historical references to Compute AA or Compute GRID AA in this document refer
+to the CGAA research path.
+
+### CGAA Current Findings
+
+- CGAA is now visually passing the current canvas stress tests at a surface level:
+  color fills, image fills, gradients, rotated/scaled paths, masks, and mixed
+  overlap scenes appear broadly correct in the active test-canvas coverage.
+- The remaining UI border seam problem is important and should be tracked as a
+  separate primitive/compositing issue, not as a generic CGAA coverage failure.
+  Rect/rrect borders can be made of multiple logical contours or four side paths;
+  drawing those as independent AA paths with ordinary SrcOver can expose the
+  framebuffer background at joins, especially on high-contrast backgrounds.
+- The intended long-term fix is renderer-side primitive handling: treat border
+  coverage as one logical outer-minus-inner shape, then decide side/corner color
+  inside that covered region. Do not rely on upper UI compensation or blind
+  framebuffer coverage addition; different-color borders need explicit color
+  ownership at joins.
+- Current CGAA CPU cost is high because edge bucketing into tiles is CPU-side.
+  This should not be considered the final production shape. A follow-up track
+  should investigate moving edge-to-tile binning/backdrop preparation to GPU
+  compute so CPU work is closer to path flattening and upload only.
+- The current 4x4 subpixel grid is also visibly jagged in some scenes. Treat it
+  as a correctness/prototyping setting, not final quality. A production CGAA
+  direction must solve both quality and cost: either a better coverage
+  estimator, a higher/effective sample rate without exploding atlas cost, or a
+  different GPU path-rendering approach.
+- Near-term research priority after this context switch: study higher-quality
+  GPU path renderers and GPU-side binning strategies before spending more time
+  on the UI border logical-primitive coverage issue. The border seam remains
+  important, but it should come after deciding whether the CGAA core can meet
+  quality and CPU-cost requirements.
+
+### CGAA Production Integration Baseline
+
+Commit `d794e56ac` records the pre-integration baseline that starts moving CGAA
+from `test/compute_aa/` into the production renderer:
+
+- `src/render/cgaa.*` defines the production CPU/GPU data contract and
+  `buildCGAADrawData()`, including flattened edges, compact boundary tiles,
+  uniform tiles, tile-edge slices, and backdrop rows/events.
+- `src/render/shader/cgaa.glsl` is currently compute-only and writes coverage
+  into an R8 atlas region. Metal shader generation already retains its compute
+  source and generated binding indices, but MetalCanvas does not yet encode or
+  dispatch the CGAA compute command.
+- That baseline removes the old device-MSAA path in preparation for
+  CGAA experiments.
+- `GPUCanvas::Inl::fillPathColor()` is temporarily disabled, so color path
+  fills render nothing until the first Metal CGAA color command is connected.
+
+The next integration step is deliberately narrow and test-oriented: add a
+`GPUCanvas` backend command such as `drawCGAAColorCmd`, implement it first for
+Metal, invoke it from `fillPathColor()`, and have the CGAA compute shader apply
+solid premultiplied color directly to the current target. This is not yet the
+final paint/blend/clip architecture. `buildCGAADrawData()` must also stop
+emitting outside uniform tiles; production direct-target drawing only needs
+boundary tiles and filled inside tiles.
+
+That first test-oriented integration is now connected:
+
+- `GPUCanvas::Inl::fillPathColor()` transforms paths into target-pixel space,
+  builds CGAA data, and calls the new backend `drawCGAAColorCmd`.
+- `src/render/cgaa.*` is now included in the core source target.
+- Metal creates/caches a compute pipeline from the generated CGAA compute
+  source, uploads the compact draw buffers, ends any active render pass, and
+  dispatches boundary plus filled-uniform tiles directly into the current
+  color target.
+- `cgaa.glsl` applies solid premultiplied color with manual `SrcOver` instead
+  of writing an intermediate R8 coverage atlas.
+- `buildCGAADrawData()` no longer emits outside uniform tiles. Its optional
+  clip assertions and empty clipped-range handling were also fixed for the
+  production call site.
+
+This remains a deliberate test path. Metal CGAA solid color currently ignores
+the renderer's clip mask and always applies `SrcOver` regardless of the selected
+blend mode. GL's `drawCGAAColorCmd` is an explicit no-op, and root-matrix display
+offsets beyond the normal target-pixel mapping have not yet been integrated.
+
+Follow-up integration added Metal `drawCGAAGradientCmd()` and
+`drawCGAAImageCmd()` for path fills. Gradient/image CGAA draws build their atlas
+immediately instead of joining the solid-color batch, reconstruct canvas-space
+paint coordinates from target-pixel CGAA quads with a pixel-to-canvas matrix,
+and reuse the existing gradient stops / image mask semantics. YUV images still
+fall back to the non-CGAA image path.
+
 An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
 wired into the macOS test target. It demonstrates CPU-flattened path edges,
 16x16 tile binning, fixed-grid subpixel winding coverage, a coverage texture, and solid
@@ -201,10 +291,15 @@ fixed power-of-two sample/tile divisions use shifts, tile-boundary Y uses
 incremental addition, and the inner X-tile loop contains no division or
 per-iteration multiplication.
 
-The current prototype remains intentionally CPU-heavy and rebuilds/uploads data
-frequently. Important future work includes caching immutable path data, pooled
-GPU buffers/textures, dirty-path rebuilds, batching multiple paths into an
-atlas, and eventually moving more binning/backdrop work onto the GPU.
+The Compute GRID AA prototype algorithm is now considered complete enough to
+enter Quark's rendering architecture. It remains intentionally isolated, but
+correctness, data contracts, tile classification, coverage generation,
+batch-oriented CPU output, and representative performance have been validated.
+The intended production model builds one batch of path data, lays all tiles in
+that batch into one coverage atlas, and generates/encodes the CPU/GPU data
+together. Production integration may require small adjustments to fit Quark's
+existing render-command, resource-ownership, buffer/texture-pool, and lifetime
+structures; it does not require revisiting the core CPU allocation strategy.
 The current algorithm and data contracts are documented in Chinese in
 `test/compute_aa/README.md`.
 
@@ -212,15 +307,252 @@ The CPU construction pass has now been tightened around a thread-local
 `LinearAllocator`: temporary tile/backdrop buckets use arena-backed arrays,
 ordinary Compute AA records skip unnecessary construction/destruction, path
 translation has a multiply-free fast path, and edge/tile traversal avoids
-several repeated calculations. Treat CPU-side prototype optimization as mostly
-complete for now; the next profiling and optimization work should focus on GPU
-coverage/composition, dispatch shape, buffer upload/reuse, and reducing
-CPU-to-GPU synchronization.
+several repeated calculations. The temporary-allocation issue is resolved, and
+the final arrays are already continuous and batch-upload-friendly. Treat
+CPU-side algorithm and allocation optimization as complete for now; formal Qk
+integration should preserve this batch model while adapting the concrete
+renderer data structures. The next profiling and optimization work should
+focus on GPU coverage/composition and reducing the full-atlas round trip.
 
-The ObjC++ prototype passed a focused syntax check. Direct command-line Metal
-shader compilation was unavailable in the assistant sandbox because `xcrun`
-could not locate the separately installed Metal Toolchain; validate the visual
-result through the existing Xcode test target.
+The preferred production CGAA architecture is now to apply coverage and paint
+directly into the current color target instead of always writing a complete R8
+coverage atlas and sampling it in a separate Composite pass. This directly
+targets the measured approximately `78%` Composite share and enables a sparser
+tile model. Outside uniform tiles no longer need to exist merely to write zero
+coverage into a complete atlas; production batches should emit only boundary
+tiles and filled inside tiles. Target-space tiles also remove dynamic atlas
+region allocation, tile-position packing, and atlas-to-target coordinate
+mapping. This is especially important for lines and paths with large bounds but
+sparse covered area. Direct target writes must preserve Quark draw ordering and
+ensure one writer per pixel within a dispatch. Because compute pipelines do not
+receive fixed-function render blending, non-`Src` modes require destination
+reads plus shared/manual blend logic. Refactor paint, clip, and blend shader
+helpers so AASide fragment paths and CGAA compute paths share output semantics
+while supplying coverage through different algorithms. Unlike atlas generation,
+direct target output may cause different paths to compete for the same target
+pixel; preserve draw order with ordered dispatches, non-overlap batching, or
+ordered per-target-tile draw lists. Start with opaque `Src` and common
+`SrcOver` direct-output fast paths. Keep the intermediate coverage atlas only as
+a fallback for paint/blend paths not yet supported by direct CGAA output.
+
+The first formal shader-tooling step is complete. `src/render/shader/cgaa.glsl`
+contains `#vert`, `#frag`, and a final `#comp` stage. The GLSL native generator
+skips compute for GL, while Metal native generation emits the compute MSL
+source, std430-facing data structures, and compute resource binding slots.
+`MSLShaderSource` can now retain a compute source function. Actual Metal
+compute-pipeline creation and renderer command integration remain pending.
+CGAA platform requirements and the required macOS 10.15 AASide fallback are
+recorded in `docs/CGAA_COMPATIBILITY.md`.
+
+Shader consolidation for direct-target CGAA has started and is validated on
+the existing AASide path:
+
+- `color_linear.glsl` and `color_radial.glsl` were merged into
+  `color_gradient.glsl`. A draw-uniform flag selects radial behavior. Linear
+  weight remains vertex-computed; radial distance remains fragment-computed.
+- `clip.glsl` was removed and its target-offset/inverted-coverage behavior was
+  merged into `color.glsl`; clip masks and ordinary solid color now share one
+  pipeline.
+- The native shader generator now recognizes pure `#comp` files. Such files do
+  not generate vertex/fragment ASTs or GL wrappers; Metal records null
+  vertex/fragment sources and only the compute source/bindings.
+- Generated desktop reflection output was renamed from the misleading `es450`
+  name to `gl450`, and generated Metal intermediate files now use the `.metal`
+  suffix.
+
+Ordinary image, alpha mask, and SDF mask now share `image.glsl` and one backend
+draw command selected by uniform flags. YUV remains separate because it has
+different texture inputs and conversion behavior. The next consolidation step
+is to extract reusable color/gradient/image paint helpers for direct-target
+CGAA.
+
+The Metal coverage kernel now uses one `16 * sampleGrid`-thread group per 16x16
+tile. Each thread computes one complete Y-sample row, evaluating every relevant
+edge only once and producing a 64-bit inside mask. After one threadgroup
+barrier, the same threads cooperatively merge and write all tile pixels. This
+removes per-pixel repeated edge traversal without requiring atomics or
+subgroup-shuffle support, and the mapping supports sample grids 1, 2, and 4.
+
+### Compute AA Experiment Branches
+
+There are five saved experiment branches:
+
+| Branch | Head | Purpose / structure | Measured total |
+| --- | --- | --- | --- |
+| `experiment/compute-aa-row-mask` | `9bf955c3e` | Current 64-thread GPU-backdrop baseline: one thread per Y sample, private `windingDelta[64]`, shared `insideMask[64]`, one barrier, render-pass composite. | `0.733-0.773ms` |
+| `experiment/compute-aa-cpu-backdrop` | `8e8e2682a` | Historical CPU-backdrop comparison: CPU builds complete per-tile/sample backdrop using 2D difference/prefix sums; GPU uses 16 threads per tile, paired as two tiles per SIMD32, one thread per pixel row, private delta, no shared mask/barrier. | about `0.60ms` |
+| `experiment/compute-aa-gpu-backdrop-private-delta` | `db5b53d29` | Same 16-thread/two-tile row-coverage structure as the CPU-backdrop branch, but each Y sample scans compact GPU backdrop events instead of reading a CPU-built complete backdrop. | `0.730-0.772ms` |
+| `experiment/compute-aa-boundary-tiles` | `25279aca6` | CPU classifies boundary/uniform tiles during the existing X-tile scan; a separate compute pass writes uniform 0/1 tiles, and the GRID kernel dispatches only boundary tiles. | stable `0.32-0.40ms`; transient lows `0.23-0.24ms` |
+| `experiment/compute-aa-sorted-crossings` | current branch | Fastest measured and selected integration baseline: boundary/uniform split plus sparse X crossing buckets and interval-mask fill. | total about `0.32-0.40ms`; Boundary about `9%` |
+
+The old `experiment/compute-aa-row-mask` all-shared branch head was deliberately
+replaced with the useful 64-thread/private-delta baseline. The rejected
+all-shared comparison branch was deleted after measuring `1.194-1.274ms`;
+its result remains documented below.
+
+Selection status:
+
+- `experiment/compute-aa-sorted-crossings` is the selected baseline for formal
+  renderer integration and the fastest measured Compute AA branch.
+- It combines compact GPU backdrop events, boundary/uniform tile separation,
+  one thread per Y-sample row, sparse X crossing buckets, interval mask fill,
+  shared inside masks, and one barrier.
+- AASide remains the faster path for suitable simple geometry; Compute AA is
+  intended as the more general and stable high-quality path.
+- Further Boundary kernel micro-optimization is low priority because Composite
+  now dominates the measured GPU cost.
+
+Do not compare old total-frame numbers directly unless clear/composite use the
+same render-pass structure. Xcode GPU Capture labels the two remaining stages
+as `Compute AA Coverage` and `Compute AA Composite`.
+
+Observed Compute AA performance direction:
+
+- The original three-compute-pass version measured around `1.4-1.6ms`.
+- CPU backdrop + private per-thread delta + one render clear/composite pass
+  measured around `0.60ms`.
+- The equivalent AASide scene measured around `0.20ms`.
+- Removing edge-crossing work did not remove most Coverage cost; shared delta
+  initialization, X prefix winding, inside-mask production/consumption, full
+  atlas writes, and composition are all material.
+- Repeatedly rescanning edges to avoid delta storage regressed badly. Do not
+  revisit that structure without a new complexity argument.
+
+The fair shared-row-mask measurement is now complete:
+
+- Total GPU time: `1.194-1.274ms`.
+- Coverage: `72.25%`, approximately `0.86-0.92ms`.
+- Composite: `27.75%`, approximately `0.33-0.35ms`.
+- Shared-row-mask Coverage alone is slower than the CPU-backdrop/private-delta
+  branch's approximately `0.60ms` complete frame. This rejected the combined
+  shared-row-mask structure, but did not yet identify which component caused
+  the cost.
+
+The GPU-backdrop/private-delta single-variable experiment measured:
+
+- Total GPU time: `0.733-0.773ms`.
+- Coverage: `65.61%`, approximately `0.48-0.51ms`.
+- Composite: `34.39%`, approximately `0.25-0.27ms`.
+- Replacing only shared delta reduced Coverage by approximately `44%-45%` and
+  total frame time by approximately `39%`.
+
+This establishes shared `windingDelta[64][64]` as the major old Coverage
+bottleneck. GPU backdrop events are not free, but may be worth keeping to avoid
+CPU backdrop construction/upload. Replacing shared `insideMask` and the barrier
+with private masks exchanged through simdgroup shuffles regressed total GPU
+time from `0.733-0.773ms` to `0.858-0.882ms`, despite retaining all 64 lanes in
+the write stage. Keep the shared mask/barrier baseline. The larger architectural
+priority remains an edge-tile-only Compute AA path that avoids full-atlas
+coverage and composition.
+
+The next quality-oriented Compute AA direction is analytic signed-area
+coverage. It should replace fixed `N*N` inside samples with continuous
+edge/cell area plus cover accumulation, while retaining flattened directed
+edges, tile binning, scanline fill rules, and an incoming row-cover concept.
+This is not SDF rendering. Keep the current GRID branches as comparison
+baselines; avoid deep GRID micro-optimization before testing an analytic-area
+reference. Detailed notes are in `docs/GPU_2D_ANTIALIASING.md`.
+
+A major shared breakthrough for GRID and analytic-area coverage is explicit
+boundary-tile classification. A tile with no effective boundary crossing is
+topologically uniform: all outside or all inside. Keep one complete R8 coverage
+texture and one regular Coverage compute pass; uniform tiles cheaply write all
+0 or all 1, while only boundary tiles run expensive coverage. Do not leave
+outside tiles uninitialized or leak sparse-valid-tile semantics into later
+composite shaders. Detailed rationale is recorded in
+`docs/GPU_2D_ANTIALIASING.md`.
+
+The active `experiment/compute-aa-boundary-tiles` working branch validates this
+design from the 64-thread baseline. Boundary marking is now folded into the
+existing CPU X-tile scan instead of using a second geometry/DDA construction
+pass. Horizontal edges use zero winding and participate only in boundary
+marking. Uniform tiles resolve their 0/1 state from one Y-sample backdrop value.
+Boundary tiles are emitted directly as a compact tile array; the prototype no
+longer uploads a full tile array plus a second boundary index list.
+
+This is a Compute AA milestone:
+
+- The representative large test contains about `501-506` boundary tiles and
+  `3983-3987` uniform tiles, so only about `11%` of tiles require GRID coverage.
+- Stable total GPU time is approximately `0.32-0.40ms`, down from the
+  `0.733-0.773ms` all-tile 64-thread baseline. Startup/transient measurements
+  reached `0.23-0.24ms`, but are not treated as stable performance.
+- GRID `1x1` and `4x4` total times are close because GPU Capture attributes
+  roughly `70%-77%` of the frame to the final Composite. At `4x4`, representative
+  shares were Uniform `9.79%`, Boundary Coverage `19.41%`, Composite `70.80%`.
+- Disabling the uniform pass visualizes a continuous tile-width boundary band,
+  confirming that expensive work now follows the path outline rather than the
+  full atlas area.
+- The path is now viable for Quark as a high-quality GPU AA option, but still
+  costs more CPU and GPU time than AASide. The next major performance experiment
+  is to avoid the complete R8 write/read round trip by applying coverage during
+  final drawing.
+
+The `experiment/compute-aa-sorted-crossings` branch is a focused Boundary
+Coverage comparison built from the boundary-tile branch. Its current sparse
+bucket variant directly accumulates winding into a private
+`short crossingDelta[64]` indexed by discrete X sample. A 64-bit crossing mask
+tracks initialized buckets; repeatedly extracting its lowest set bit visits
+only real crossing positions in ascending X order and fills the intervals
+between them. It requires no full-table clear, fixed 64-position prefix scan,
+sorting, crossing-count limit, or fallback. CPU data, dispatch shape, Uniform
+Tiles, and Composite remain unchanged, so Boundary Coverage time is the primary
+comparison.
+
+The crossing-interval experiments reduced Boundary Coverage time by
+approximately half. The insertion-sorted event-list version measured `9.44%`
+Boundary Coverage; the safer sparse-bucket version measured about `9.19%`.
+Both are effectively in the same range, compared with the previous
+representative Boundary Coverage share of `19.41%`. This confirms that typical
+boundary Y-sample rows contain few effective crossing positions: processing
+actual crossing positions and filling intervals is cheaper than clearing and
+prefix-scanning all 64 X-sample buckets. The sparse-bucket version is selected
+because it removes sorting and crossing-list overflow without losing measured
+performance. Composite is now even more clearly the dominant remaining GPU
+cost.
+
+### Resolved CPU Profiling Trap: Per-Frame Window Titles
+
+The apparent large CPU regression from writing `tile.boundary = true` was not
+caused by the boundary-marker store. The Compute AA test updated the native
+window title every frame with live edge/boundary/uniform counts:
+
+```objc
+self.window.title = [NSString stringWithFormat:...];
+```
+
+The compared boundary algorithms produced count strings with different
+stability. The sample-derived version changed counts frequently while rotating,
+causing AppKit to repeatedly update/layout/draw the title bar and communicate
+with the Window Server. The geometry-derived `mark_boundary_range` version
+usually produced more stable counts, so repeated equal titles were cheaper.
+Instruments attributed this accumulated descendant work to
+`-[NSWindow _dosetTitle:andDefeatWrap:]`, creating a misleading apparent
+relationship between the boundary write and CPU usage.
+
+For Compute AA CPU comparisons:
+
+- Disable native window-title updates completely during profiling.
+- Store counters in memory and print them once after the measurement.
+- Use the same fixed or deterministic path motion, Release configuration, and
+  measurement duration.
+- Compare `buildDrawData()` directly; do not use whole-process percentages as
+  the primary result.
+
+The two boundary algorithms intentionally produce different counts:
+
+- The sample-derived version marks a tile only when an edge affects the current
+  discrete GRID samples. Shallow edges and threshold crossings can make its
+  boundary count change frequently.
+- `mark_boundary_range` marks every tile crossed by the continuous geometric
+  boundary, including horizontal edges and edges that do not change a discrete
+  sample row. It is more conservative and its counts are generally more stable.
+
+Earlier prototype revisions passed Metal shader/metallib compilation and
+ObjC++ syntax checks. The final sparse-crossing documentation/cleanup pass was
+intentionally not compiled per the current testing workflow; only lightweight
+source review and `git diff --check` were performed. The user has manually
+reviewed the current code and will report any integration/compiler issue.
 
 ## Debugger Helpers
 

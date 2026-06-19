@@ -66,19 +66,19 @@ namespace qk {
 		GLenum glType; // for example: GL_FLOAT
 		GLsizei sizeOf; // for example: sizeof(float)*32
 		GLboolean normalized;
-		GLuint* location;
+		GLint* location;
 	};
 
 	struct GLShaderUniform {
 		const char *name;
 		GLenum glType;
-		GLuint* location;
-		GLuint* texSlot; // if sampler2D then set texture slot index
+		GLint* location;
+		GLint* texSlot; // if sampler2D then set texture slot index
 	};
 
 	struct GLShaderUniformBlock {
 		const char *name;
-		GLuint* binding;
+		GLint* binding;
 	};
 
 	struct GLSLShader {

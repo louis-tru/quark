@@ -14,14 +14,18 @@
 namespace qk {
 	MTLPixelFormat mtl_pixel_format(ColorType type);
 	MTLTextureID mtl_get_texture(cTexStat *stat);
-	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else = nil);
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 	void clear_PathvCache(PathvCache *cache, int flags);
 	void clearExec_PathvCache(PathvCache *cache);
 	uint32_t mtl_get_sampler_key(const PaintImage* paint);
 
-	void setrMatrixFromEnc(MTLEncoder enc, const Mat4 &mat) {
-		auto matrix = mat.transpose();
-		[enc setVertexBytes:matrix.val length: sizeof(Mat4) atIndex:1];
+	void setrMatrixFromEnc(MTLEncoder enc, const Mat4 mat[2], Vec2 surfaceScale) {
+		MSLColor::RootMatrixBlock rMat {
+			.value = mat[0].transpose(), // transpose for shader
+			.noScale = mat[1].transpose(), // transpose for shader
+			.surfaceScale = surfaceScale
+		};
+		[enc setVertexBytes:&rMat length: sizeof(rMat) atIndex:1];
 	}
 
 	void setvMatrixFromEnc(MTLEncoder enc, const Mat &mat) {
@@ -49,6 +53,7 @@ namespace qk {
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
+		_cgaaBuilder = new CGAABuilder(this); // create CGAA builder for anti-aliasing paths
 	}
 
 	MetalCanvas::~MetalCanvas() {
@@ -112,7 +117,7 @@ namespace qk {
 		_cmdPack.enc = [_cmdPack.current renderCommandEncoderWithDescriptor:_cmdPack.pass];
 		Qk_ASSERT(_cmdPack.enc, "Failed to create render command encoder for new pass");
 		// set root matrix for new encoder
-		setrMatrixFromEnc(_cmdPack.enc, _rootMatrix);
+		setrMatrixFromEnc(_cmdPack.enc, &_rootMatrix, _surfaceScale);
 		// set view matrix for new encoder
 		setvMatrixFromEnc(_cmdPack.enc, _state->matrix);
 		// set clip texture for new encoder if clip state exists
@@ -136,7 +141,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::setPipeline(MTLEncoder enc, MSLShader& shader) {
-		return setPipeline(enc, shader.getPipeline(_blendMode, _outColorTex.pixelFormat, _opts.msaaSample));
+		return setPipeline(enc, shader.getPipeline(_blendMode, _outColorTex.pixelFormat));
 	}
 
 	// usePipeline with vertex data ensures vertex data is valid and set for draw call,
@@ -156,30 +161,39 @@ namespace qk {
 	}
 
 	bool MetalCanvas::swapBuffer() {
+		if (_cgaaBuilder)
+			_cgaaBuilder->commit(); // commit CGAA data for current frame before swap
 		endPass(); // end current pass to ensure all commands are encoded before swap
 		_mutex.lock();
 		bool canSwap = _cmdPackFront.current == nil;
 		// only swap if there are recorded commands and front cmd pack is empty
 		if (canSwap && _cmdPack.isRecorded()) {
 			std::swap(_cmdPackFront, _cmdPack); // swap cmd buffer and pass descriptor to front
-			clear_PathvCache(_cache, 0); // tag: clear mark
-			Qk_ASSERT_EQ(_cmdPack.current, nil, "MetalCanvas: cmd buffer should be nil after swap");
-			_cmdPack.current = [_commandQueue commandBuffer]; // create new cmd buffer for next frame
-			_cmdPack.buffer->clear(); // clear vertex/index buffers allocator for next frame
 		}
+		clear_PathvCache(_cache, 0); // tag: clear mark
+		// reset cmd pack for next frame
+		_cmdPack = {
+			.buffer = std::move(_cmdPack.buffer), // move buffer allocator to new cmd pack
+			.current = [_commandQueue commandBuffer], // create new command buffer for next frame
+		};
+		_cmdPack.buffer->reset(); // reset buffer allocator for new frame
 		_mutex.unlock();
 		return canSwap;
 	}
 
-	Array<MTLCommandBuffer> MetalCanvas::flushBuffer() {
+	Array<MTLCommandBufferID> MetalCanvas::flushBuffer() {
 		_mutex.lock();
+		Qk_ASSERT(!_cmdPackFront.beginPass, "Cannot flush buffer while a pass is still active, end the pass first");
 		auto cmds = std::move(_cmdPackFront.cmds); // get command buffers for flush
 		if (_cmdPackFront.recorded) {
 			// add command buffer to cmds for flush if it has recorded commands
 			cmds.push(_cmdPackFront.current);
 		}
-		// reset front cmd pack
-		_cmdPackFront = {.buffer=_cmdPackFront.buffer};
+		_cmdPackFront.recorded = false;
+		[_cmdPackFront.current addCompletedHandler:^(MTLCommandBufferID buffer) {
+			// clear front command pack after flush is completed
+			_cmdPackFront.current = nil;
+		}];
 		_mutex.unlock();
 		clearExec_PathvCache(_cache); // clear @clear marked cache after flush
 		Qk_ReturnLocal(cmds); // return command buffers for flush
@@ -203,7 +217,7 @@ namespace qk {
 		_cmdPack.cmds.concat(cmds);
 	}
 
-	void MetalCanvas::vportCopy(MTLCommandBuffer cmd, MTLDrawableID dst) {
+	void MetalCanvas::vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst) {
 		auto tex = dst.texture;
 		auto &cp = _shaders.vportCp;
 		auto pass = [MTLRenderPassDescriptor new];
@@ -212,7 +226,7 @@ namespace qk {
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = 0;
 		auto enc = [cmd renderCommandEncoderWithDescriptor:pass];
-		setrMatrixFromEnc(enc, Mat4());
+		setrMatrixFromEnc(enc, &_rootMatrix, _surfaceScale);
 		setvMatrixFromEnc(enc, Mat());
 		[enc setViewport: {0, 0, (float)tex.width, (float)tex.height, 0, 1}];
 		[enc setRenderPipelineState:_render->_vportCpPipeline];

@@ -102,11 +102,13 @@ const informationsForTypes = {
 	ivec2: [2,'GL_INT','int32_t','MTLVertexFormatInt2'],
 	ivec3: [3,'GL_INT','int32_t','MTLVertexFormatInt3'],
 	ivec4: [4,'GL_INT','int32_t','MTLVertexFormatInt4'],
+	int16_t: [1,'GL_SHORT','int16_t','MTLVertexFormatShort'],
 
 	uint:  [1,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt'],
 	uvec2: [2,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt2'],
 	uvec3: [3,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt3'],
 	uvec4: [4,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt4'],
+	uint16_t: [1,'GL_UNSIGNED_SHORT','uint16_t','MTLVertexFormatUShort'],
 
 	mat2:  [4,'GL_FLOAT','float','MTLVertexFormatFloat4'], // 2*2 = 4
 	mat3:  [9,'GL_FLOAT','float','MTLVertexFormatInvalid'],
@@ -124,6 +126,16 @@ const typesForMSL_Vec = {
 	ivec2: 'IVec2',
 	ivec3: 'IVec3Padding',
 	ivec4: 'IVec4',
+	mat4: 'Mat4',
+};
+const typesForGLSL_Vec = {
+	vec2: 'Vec2',
+	vec3: 'Vec3',
+	vec4: 'Vec4',
+	ivec2: 'IVec2',
+	ivec3: 'IVec3',
+	ivec4: 'IVec4',
+	mat4: 'Mat4',
 };
 
 const normalizedForTypes = {
@@ -211,7 +223,7 @@ function find_attributes(code, attributes) {
 			// for example: in vec4 lightColorIn; //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
 			let normalized = mat[10]; //!< {GL_UNSIGNED_BYTE} or //!< {GL_BYTE} or ...
 			attributes.push(
-				parse_type_info(type, name, arr, location, normalized)
+				parse_type_info(type, name, arr, location||'0', normalized)
 			);
 		}
 
@@ -220,17 +232,16 @@ function find_attributes(code, attributes) {
 }
 
 const find_regexp_uniform = new RegExp(
-	'^\\s*(layout\\s*\\(\\s*binding\\s*=\\s*(\\d+)\\s*(,\\s*std(\\d+)\\s*)?\\)\\s+)?'+
-	'(uniform|struct)\\s+((lowp|mediump|highp)\\s+)?'+
-	'([a-zA-z0-9\\_\\$]+)'+ // type or struct name or sampler2D
-	'('+
-	'\\s+([a-zA-Z0-9\\_\\$]+)\\s*;|\\s*\\{'+ // name; or { for struct or uniform block
-	'([^\\}]+)\\}' +
-	')'
+	'^\\s*(?:layout\\s*\\(([^\\)]*)\\)\\s+)?'+
+	'(?:(readonly|writeonly|coherent|restrict|volatile)\\s+)*'+
+	'(uniform|buffer|struct)\\s+'+
+	'(?:(readonly|writeonly|coherent|restrict|volatile)\\s+)*'+
+	'([a-zA-Z0-9\\_\\$]+)'+ // type or block name
+	'(?:\\s+([a-zA-Z0-9\\_\\$]+)\\s*;|\\s*\\{([^\\}]+)\\}\\s*([a-zA-Z0-9\\_\\$]+)?\\s*;?)'
 	,'mg'
 );
 
-function find_uniforms_blocks(code, uniforms, uniform_blocks, structs) {
+function find_uniforms_blocks(code, uniforms, uniform_blocks, storage_blocks, structs) {
 	find_regexp_uniform.lastIndex = 0; // reset index for global regexp
 	let mat = find_regexp_uniform.exec(code);
 
@@ -243,43 +254,54 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, structs) {
 		// 		mediump vec4 color;
 		// };
 		const block = [];
-		const reg = /^\s*((mediump|lowp|highp)\s+)?([a-zA-Z0-9\_\$]+)\s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d+)\s*\])?;\s*$/mg;
+		const reg = /^\s*((mediump|lowp|highp)\s+)?([a-zA-Z0-9\_\$]+)\s+([a-zA-Z0-9\_]+)\s*(\[\s*(\d*)\s*\])?;\s*$/mg;
 		let mat = reg.exec(blockStr);
 
 		while (mat) {
 			const type = mat[3];
 			const name = mat[4];
 			const arr = mat[6]; // vec4 colors[256]; arr = 256
-			block.push(
-				parse_type_info(type, name, arr, '', '')
-			);
+			const runtimeArray = mat[5] && !arr;
+			const info = {
+				...parse_type_info(type, name, runtimeArray ? 1: arr, '', ''),
+				runtimeArray,
+			};
+			if (runtimeArray)
+				info.arr = 1;
+			block.push(info);
 			mat = reg.exec(blockStr);
 		}
 		return block;
 	}
 
 	while (mat) {
-		let binding = mat[2] ? (Number(mat[2])||0) : 0;
-		let std = mat[4];
-		let key = mat[5]; // uniform or struct
-		// let precision = mat[6]; // lowp or mediump or highp
-		let type = mat[8]; // name for uniform, struct type name for struct
-		let name = mat[10]; // name for uniform, empty for struct
-		let block = mat[11]; // block content for uniform block, empty for uniform or struct
+		const layout = mat[1] || '';
+		const bindingMatch = layout.match(/\bbinding\s*=\s*(\d+)/);
+		const stdMatch = layout.match(/\bstd(\d+)/);
+		let binding = bindingMatch ? Number(bindingMatch[1]) || 0: 0;
+		let std = stdMatch ? stdMatch[1]: '';
+		let key = mat[3]; // uniform, buffer or struct
+		let access = mat[4] || mat[2] || '';
+		let type = mat[5]; // type or block name
+		let name = mat[6] || mat[8]; // simple resource name or block instance name
+		let typeLower = type.substring(0, 1).toLowerCase() + type.substring(1); // for example: PcArgs to pcArgs
+		let blockName = !name || /^_\d+$/.test(name) ? typeLower: name;
+		let block = mat[7]; // block content
 		if (key == 'uniform') { // uniform block or uniform
 			if (block) { // uniform block
 				uniform_blocks.push({
 					type,
-					name: type.substring(0, 1).toLowerCase() + type.substring(1), // for example: RootMatrixBlock -> rootMatrixBlock
-					binding, std, block: parse_block(block),
+					rawName: name,
+					name: blockName,
+					binding, std, access, block: parse_block(block),
 				});
-			} else if (type == 'sampler2D') {
+			} else if (type == 'sampler2D' || type == 'image2D') {
 				uniforms.push({
 					type,
 					name,
-					glType: 'GL_SAMPLER_2D',
+					glType: type == 'sampler2D' ? 'GL_SAMPLER_2D': 'GL_IMAGE_2D',
 					nameSlot: name + 'Slot', // for example: textureSlot
-					binding,
+					binding, access,
 				});
 			} else {
 				// for example: uniform vec4 color; or uniform mat4 transform;
@@ -287,16 +309,22 @@ function find_uniforms_blocks(code, uniforms, uniform_blocks, structs) {
 				uniforms.push({
 					type,
 					name,
-					binding,
-					std,
+					binding, std, access,
 					...parse_type_info(type, name, '', '', ''),
 				});
 			}
+		} else if (key == 'buffer' && block) {
+			storage_blocks.push({
+				type,
+				rawName: name,
+				name: blockName,
+				binding, std, access, storage: true, block: parse_block(block),
+			});
 		} else if (key == 'struct') { // struct
 			if (block) {
 				structs.push({
 					type,
-					name: type,
+					name: typeLower,
 					block: parse_block(block)
 				});
 			}
@@ -340,41 +368,63 @@ function resolve_source_both(beforeCode, filename) {
 	let dirname = path.dirname(pathname);
 	let codestr = readcode(pathname);
 
-	let [first, fragstr] = codestr.split(/^#frag/gm); // split vert and frag
+	// A document may optionally append one compute stage. Keep this order fixed:
+	// shared utility, #vert, #frag, #comp.
+	let [renderstr, compstr] = codestr.split(/^#comp/gm);
+	let [first, fragstr] = renderstr.split(/^#frag/gm); // split vert and frag
 	let [util, vertstr] = first.split(/^#vert/gm); // split util and vert
-
+	let hasRender = vertstr != undefined || fragstr != undefined;
+	let hasComp = compstr != undefined;
 
 	vertstr = beforeCode + util + (vertstr || ''); // util + vert
 	fragstr = beforeCode + util + (fragstr || ''); // util + frag
+	compstr = beforeCode + util + (compstr || ''); // util + comp
 
-	all_import_sources[pathname] = result; // cache source, for example: {filename, vert, frag}
+	all_import_sources[pathname] = result; // cache source, for example: {filename, vert, frag, comp}
 
 	result['vert'] = resolve_source_part(dirname, vertstr);
 	result['frag'] = resolve_source_part(dirname, fragstr);
+	// Even files without #comp may provide shared code before #vert that an
+	// importing compute shader needs. hasComp only controls top-level output.
+	result['comp'] = resolve_source_part(dirname, compstr);
+	result['hasRender'] = hasRender;
+	result['hasComp'] = hasComp;
 
 	return result;
 }
 
-function marge_source(vert, source, output, import_set) {
+function marge_source(stage, source, output, import_set) {
 	for (let part of source) {
 		if (typeof part == 'string') {
 			output.push(part);
 		} else if (!import_set.has(part.filename)) { // if not import, marge source, else ignore
 			import_set.add(part.filename);
-			marge_source(vert, vert ? part.vert: part.frag, output, import_set);
+			marge_source(stage, part[stage], output, import_set);
 		}
 	}
 }
 
+function define_stage_macro(source_arr, stage) {
+	const define = `#define Qk_${stage.toUpperCase()} 1\n`;
+	let source = source_arr[0] || '';
+	// GLSL requires #version to remain the first directive.
+	const version = source.match(/^#version[^\n]*(?:\n|$)/);
+	source_arr[0] = version ?
+		version[0] + define + source.substring(version[0].length):
+		define + source;
+}
+
 async function resolve_ast(name, stage, source_both) {
 	const source_arr = [];
-	marge_source(stage=='vert', source_both[stage], source_arr, new Set());
+	marge_source(stage, source_both[stage], source_arr, new Set());
 
+	define_stage_macro(source_arr, stage);
 	let source = source_arr.join('');
 	let attributes = [];
 	let if_flags = [];
 	let uniforms = [];
 	let uniform_blocks = [];
+	let storage_blocks = [];
 	let structs = [];
 
 	let if_reg = / Qk_SHADER_IF_FLAGS_([a-z0-9\_]+)/igm,if_m;
@@ -385,47 +435,40 @@ async function resolve_ast(name, stage, source_both) {
 
 	const glsl_out = `${__dirname}/../src/render/shader/out/glsl/${name}.${stage}.glsl`;
 	const spv_out = `${__dirname}/../src/render/shader/out/spv/${name}.${stage}.spv`;
-	const es450_out = `${__dirname}/../src/render/shader/out/es450/${name}.${stage}.es450.glsl`;
+	const spv_es300_out = `${__dirname}/../src/render/shader/out/spv/${name}.${stage}.es300.spv`;
+	const gl450_out = `${__dirname}/../src/render/shader/out/gl450/${name}.${stage}.gl450.glsl`;
 	const es300_out = `${__dirname}/../src/render/shader/out/es300/${name}.${stage}.es300.glsl`;
-	const msl_out = `${__dirname}/../src/render/shader/out/msl/${name}.${stage}.msl`;
+	const msl_out = `${__dirname}/../src/render/shader/out/msl/${name}.${stage}.metal`;
 
 	fs.writeFileSync(glsl_out, source, 'utf8');
 
-	await exec2(`${glslc} -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
-	await exec2(`${spirv_cross} ${spv_out} --es --version 300 > ${es300_out}`);
-	await exec2(`${spirv_cross} ${spv_out} --es --version 450 > ${es450_out}`);
+	await exec2(`${glslc} -DQk_SHADER_FLAGS_ENABLE_CGAA=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
+	if (stage != 'comp') {
+		await exec2(`${glslc} -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
+		await exec2(`${spirv_cross} ${spv_es300_out} --es --version 300 > ${es300_out}`);
+	}
+	await exec2(`${spirv_cross} ${spv_out} --version 450 > ${gl450_out}`);
 	const metal_entry = `${name}_${stage}`;
-	await exec2(`${spirv_cross} ${spv_out} --msl --msl-decoration-binding `+
+	await exec2(`${spirv_cross} ${spv_out} --msl ${stage == 'comp' ? '--msl-version 23000 ': ''}--msl-decoration-binding `+
 		`--rename-entry-point main ${metal_entry} ${stage} --stage ${stage} > ${msl_out}`);
 
-	const source_es300 = fs.readFileSync(es300_out).toString('utf8');
-	const source_es450 = fs.readFileSync(es450_out).toString('utf8');
+	const source_es300 = stage == 'comp' ? '': fs.readFileSync(es300_out).toString('utf8');
+	const source_gl450 = fs.readFileSync(gl450_out).toString('utf8');
 	const source_msl = fs.readFileSync(msl_out).toString('utf8');
 
 	find_attributes(source, attributes);
-	find_uniforms_blocks(source_es450, uniforms, uniform_blocks, structs);
+	find_uniforms_blocks(source_gl450, uniforms, uniform_blocks, storage_blocks, structs);
 
-	for (let struct of structs) {
-		for (let b of struct.block) {
+	for (let owner of structs.concat(uniform_blocks, storage_blocks)) {
+		for (let b of owner.block) {
 			if (!b.glType) {
 				const type_struct = structs.find(s=>s.type == b.type);
 				if (type_struct) {
 					b.glType = 'struct ' + b.type;
 					b.ccType = type_struct.type;
 					b.struct = type_struct;
-				}
-			}
-		}
-	}
-
-	for (let block of uniform_blocks) {
-		for (let b of block.block) {
-			if (!b.glType) {
-				const type_struct = structs.find(s=>s.type == b.type);
-				if (type_struct) {
-					b.glType = 'struct ' + b.type;
-					b.ccType = type_struct.type; // for example: PcArgs
-					b.struct = type_struct;
+					if (owner.storage)
+						type_struct.storage = true;
 				}
 			}
 		}
@@ -447,13 +490,15 @@ async function resolve_ast(name, stage, source_both) {
 		stage,
 		source,
 		source_es300,
+		source_gl450,
 		source_msl,
 		metal_entry,
-		attributes,
-		uniforms,
-		uniform_blocks,
 		structs,
 		if_flags,
+		attributes: attributes.sort((a,b)=>a.location-b.location),
+		uniforms: uniforms.sort((a,b)=>a.binding-b.binding),
+		uniform_blocks: uniform_blocks.sort((a,b)=>a.binding-b.binding),
+		storage_blocks: storage_blocks.sort((a,b)=>a.binding-b.binding),
 	};
 	return ast;
 }
@@ -462,29 +507,40 @@ async function resolve_doc(name_, input) {
 	const source_both = resolve_source_both('#import "_util.glsl"\n', input);
 	const name = name_.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
 	const className = `${name[0].toUpperCase()}${name.substring(1)}`;
-	const vert_ast = await resolve_ast(name, 'vert', source_both);
-	const frag_ast = await resolve_ast(name, 'frag', source_both);
+	const vert_ast = source_both.hasRender ? await resolve_ast(name, 'vert', source_both): null;
+	const frag_ast = source_both.hasRender ? await resolve_ast(name, 'frag', source_both): null;
+	const comp_ast = source_both.hasComp ? await resolve_ast(name, 'comp', source_both): null;
+	const render_asts = vert_ast && frag_ast ? [vert_ast, frag_ast]: [];
+	const asts = render_asts.concat(comp_ast ? [comp_ast]: []);
 
 	let set = {};
-
-	let uniform_blocks = vert_ast.uniform_blocks.concat(frag_ast.uniform_blocks)
-		.filter(e=>(set[e.type+'_block'] ? 0: (set[e.type+'_block']=1,1)));
-
-	let structs = vert_ast.structs.concat(frag_ast.structs)
+	let structs = render_asts.flatMap(e=>e.structs)
 		.filter(e=>(set[e.type+'_struct'] ? 0: (set[e.type+'_struct']=1,1)));
 
-	let uniforms = vert_ast.uniforms.concat(frag_ast.uniforms)
-		.filter(e=>(set[e.name] ? 0: (set[e.name]=1,1)));
+	let uniform_blocks = render_asts.flatMap(e=>e.uniform_blocks)
+		.filter(e=>(set[e.type+'_block'] ? 0: (set[e.type+'_block']=1,1))).sort((a,b)=>a.binding-b.binding);
 
-	// sort uniform blocks by binding index
-	uniform_blocks.sort((a,b)=>a.binding-b.binding);
-	uniforms.sort((a,b)=>a.binding-b.binding);
+	let storage_blocks = render_asts.flatMap(e=>e.storage_blocks)
+		.filter(e=>(set[e.type+'_storage'] ? 0: (set[e.type+'_storage']=1,1)));
+
+	let uniforms = render_asts.flatMap(e=>e.uniforms)
+		.filter(e=>(set[e.name] ? 0: (set[e.name]=1,1))).sort((a,b)=>a.binding-b.binding);
 
 	let uniforms_commom = uniforms.filter(e=>!e.struct); // for: uniform vec4 color; or uniform Sampler2D texture;
 	let uniforms_struct = uniforms.filter(e=>e.struct); // for: uniform PcArgs pc; (PcArgs is struct type)
 	let uniforms_sampler2D = uniforms.filter(e=>e.glType == 'GL_SAMPLER_2D');
 
-	let if_flags = vert_ast.if_flags.concat(frag_ast.if_flags)
+	set = {};
+	let metal_structs = asts.flatMap(e=>e.structs)
+		.filter(e=>(set[e.type+'_struct'] ? 0: (set[e.type+'_struct']=1,1)));
+
+	let metal_uniform_blocks = asts.flatMap(e=>e.uniform_blocks)
+		.filter(e=>(set[e.type+'_block'] ? 0: (set[e.type+'_block']=1,1)));
+
+	let metal_storage_blocks = asts.flatMap(e=>e.storage_blocks)
+		.filter(e=>(set[e.type+'_storage'] ? 0: (set[e.type+'_storage']=1,1)));
+
+	let if_flags = asts.flatMap(e=>e.if_flags)
 		.reduce((a,i)=>((a.indexOf(i)==-1?a.push(i):void 0),a), []);
 
 	return { // return doc
@@ -493,13 +549,18 @@ async function resolve_doc(name_, input) {
 		source_both,
 		vert_ast, //
 		frag_ast, //
-		attributes: vert_ast.attributes, // doc vert attributes
-		uniform_blocks, // doc all uniform blocks
-		structs, // doc all structs
-		uniforms, // doc all uniforms
+		comp_ast, //
+		attributes: vert_ast ? vert_ast.attributes: [], // doc vert attributes
+		structs, // only reader defined structs
+		uniform_blocks, // only reader defined uniform blocks
+		storage_blocks,
+		uniforms, // only reader defined uniforms
 		uniforms_commom, // doc all common uniforms, means not struct uniforms
 		uniforms_struct, // doc all struct uniforms
 		uniforms_sampler2D, // doc all sampler2D uniforms
+		metal_structs, // all structs
+		metal_uniform_blocks, // all uniform blocks
+		metal_storage_blocks, // all storage blocks
 		if_flags, // doc all if flags
 		glal_native_get_call: '',
 	};
@@ -507,6 +568,8 @@ async function resolve_doc(name_, input) {
 
 // generate glsl native code to cpp and hpp
 function gen_glsl_native_code(glslDocs, output_h, output_cc) {
+	// filter docs, only keep docs that have vert and frag ast, and no storage blocks
+	glslDocs = glslDocs.filter(doc=>doc.vert_ast && doc.frag_ast/*&& doc.storage_blocks.length == 0*/);
 	var hpp = fs.openSync(output_h, 'w');
 	var cpp = fs.openSync(output_cc, 'w');
 	var now = Date.now();
@@ -551,16 +614,20 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 		// write hpp
 		write(hpp, `	struct GLSL${doc.className}: GLSLShader {`,
 			doc.structs.concat(doc.uniform_blocks).map(s=>[
-				`		struct ${s.type} {`,
+				`		struct ${s.storage ? '': 'alignas(16) '}${s.type} {`,
 					s.block.map(b=>
-						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}`),
+						(typesForGLSL_Vec[b.type] ?
+						`			${typesForGLSL_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''};` :
+						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''};`) +
+						` // ${b.type}${b.runtimeArray?'[]':b.arr?`[${b.arr}]`:''} ${b.name}${b.runtimeArray?' (runtime array, placeholder length 1)':''}`
+					),
 				`		};`
 			]),
-			doc.attributes.length ? `		GLuint ${doc.attributes.map(e=>e.name).join(',')}; // attributes location`: '',
-			uniforms_commom.length ? `		GLuint ${uniforms_commom.map(e=>e.name).join(',')}; // uniforms location`: '',
-			uniforms_struct.length ? uniforms_struct.map(e=>`		GLuint ${e.struct.block.map(it=>`${e.name}_${it.name}`).join(',')}; // struct uniform block location`) : '',
-			uniforms_sampler2D.length ? `		GLuint ${uniforms_sampler2D.map(e=>e.nameSlot).join(',')}; // sampler2D texture slot`: '',
-			doc.uniform_blocks.length ? `		GLuint ${doc.uniform_blocks.map(e=>e.name).join(',')}; // uniform block binding index`: '',
+			doc.attributes.length ? `		GLint ${doc.attributes.map(e=>e.name).join(',')}; // attributes location`: '',
+			uniforms_commom.length ? `		GLint ${uniforms_commom.map(e=>e.name).join(',')}; // uniforms location`: '',
+			uniforms_struct.length ? uniforms_struct.map(e=>`		GLint ${e.struct.block.map(it=>`${e.name}_${it.name}`).join(',')}; // struct uniform block location`) : '',
+			uniforms_sampler2D.length ? `		GLint ${uniforms_sampler2D.map(e=>e.nameSlot).join(',')}; // sampler2D texture slot`: '',
+			doc.uniform_blocks.length ? `		GLint ${doc.uniform_blocks.map(e=>e.name).join(',')}; // uniform block binding index`: '',
 			`		virtual void build(const char* name, const char *macros);`,
 		`	};`);
 
@@ -645,12 +712,26 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 		);
 	}
 
-	for (let doc of glslDocs) {
-		write_cpp(doc.vert_ast, cpp);
-		write_cpp(doc.frag_ast, cpp);
+	function defineSlotIndexs(types, name, indent) {
+		return types.length ? [
+			`${indent}struct {`,
+			`${indent}	uint32_t ${types.map(e=>`${e.name}/*${e.type}*/`).join(',\n'+indent+'	')};`,
+			`${indent}} ${name}; // ${name} slot index`,
+		]: '';
+	}
 
-		const vertex = doc.vert_ast.uniforms.concat(doc.vert_ast.uniform_blocks);
-		const fragment = doc.frag_ast.uniforms.concat(doc.frag_ast.uniform_blocks);
+	for (let doc of glslDocs) {
+		if (doc.vert_ast)
+			write_cpp(doc.vert_ast, cpp);
+		if (doc.frag_ast)
+			write_cpp(doc.frag_ast, cpp);
+		if (doc.comp_ast)
+			write_cpp(doc.comp_ast, cpp);
+
+		const blocks = doc.metal_structs.concat(doc.metal_uniform_blocks, doc.metal_storage_blocks);
+		const vertex = doc.vert_ast ? doc.vert_ast.uniforms.concat(doc.vert_ast.uniform_blocks, doc.vert_ast.storage_blocks): [];
+		const fragment = doc.frag_ast ? doc.frag_ast.uniforms.concat(doc.frag_ast.uniform_blocks, doc.frag_ast.storage_blocks): [];
+		const compute = doc.comp_ast ? doc.comp_ast.uniforms.concat(doc.comp_ast.uniform_blocks, doc.comp_ast.storage_blocks): [];
 
 		let vertexBufferIndex = 0; // vertex buffer index
 		for (let v of vertex) {
@@ -659,25 +740,27 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 
 		// write hpp
 		write(hpp, `	struct MSL${doc.className}: MSLShader {`,
-			doc.structs.concat(doc.uniform_blocks).map(s=>[
-				`		struct alignas(16) ${s.type} {`,
+			blocks.map(s=>[
+				`		struct ${s.storage ? '': 'alignas(16) '}${s.type} {`,
 					s.block.map(b=>
-						typesForMSL_Vec[b.type] ?
-						`			${typesForMSL_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}` :
-						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''}; // ${b.type}${b.arr?`[${b.arr}]`:''} ${b.name}`),
+						(typesForMSL_Vec[b.type] ?
+						`			${typesForMSL_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''};` :
+						`			${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''};`) +
+						` // ${b.type}${b.runtimeArray?'[]':b.arr?`[${b.arr}]`:''} ${b.name}${b.runtimeArray?' (runtime array, placeholder length 1)':''}`
+					),
 				`		};`
 			]),
-			vertex.length ?
-			`		struct { uint32_t ${vertex.map(e=>`${e.name}${e.type=='sampler2D'?'/*sampler*/':''}`).join(',')}; } vertex; // vertex slot index` : '',
-			fragment.length ?
-			`		struct { uint32_t ${fragment.map(e=>`${e.name}${e.type=='sampler2D'?'/*sampler*/':''}`).join(',')}; } fragment; // fragment slot index` : '',
+			defineSlotIndexs(vertex, 'vertex', '		'),
+			defineSlotIndexs(fragment, 'fragment', '		'),
+			defineSlotIndexs(compute, 'compute', '		'),
 			`		void build();`,
 			`	};`
 		);
 
 		// write build() function cpp
 		write(cpp, `void MSL${doc.className}::build() {`,
-			`	source = {"${doc.name}",k${doc.className}_Pipeline,${doc.vert_ast.msl_native_get_call},${doc.frag_ast.msl_native_get_call}};`,
+			`	source = {"${doc.name}",k${doc.className}_Pipeline,${doc.vert_ast ? doc.vert_ast.msl_native_get_call: 'nullptr'},`+
+				`${doc.frag_ast ? doc.frag_ast.msl_native_get_call: 'nullptr'},${doc.comp_ast ? doc.comp_ast.msl_native_get_call: 'nullptr'}};`,
 			`	attributes = {`,
 					doc.attributes.map(e=>{
 						return `		{${vertexBufferIndex},${e.size},${e.mslType},${e.sizeOf}},`
@@ -686,6 +769,7 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 			`	bufferIndex = ${vertexBufferIndex};`,
 				vertex.length ? `	vertex = { ${vertex.map(e=>`${e.binding}`).join(',')} };` : '',
 				fragment.length ? `	fragment = { ${fragment.map(e=>`${e.binding}`).join(',')} };` : '',
+				compute.length ? `	compute = { ${compute.map(e=>`${e.binding}`).join(',')} };` : '',
 			'}',
 		);
 	} // for (let doc of glslDocs) {
@@ -725,7 +809,7 @@ async function main(output_gl_h,output_gl_cc) {
 
 	console.log(process.cwd(), output_gl_h, output_gl_cc, output_mtl_h, output_mtl_mm, output_vk_h, output_vk_cc);
 
-	for (let dir of ['glsl', 'es300', 'es450', 'spv', 'msl']) {
+	for (let dir of ['glsl', 'es300', 'gl450', 'spv', 'msl']) {
 		fs.mkdirSync(`${__dirname}/../src/render/shader/out/${dir}`, { recursive: true }); // make out dir if not exist
 	}
 

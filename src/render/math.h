@@ -322,6 +322,7 @@ namespace qk {
 	template<typename T> struct MRange { // range
 		T begin,end;
 		inline T size() const { return end - begin; }
+		inline bool operator==(const MRange &b) const { return begin == b.begin && end == b.end; }
 		// expand begin/end to integer values, useful for pixel coverage calculation
 		inline MRange expandToInteger() const;
 		// clip to another range, useful for pixel coverage calculation with a clip rect
@@ -421,9 +422,15 @@ namespace qk {
 		Mat& operator*=(const Mat& b);
 		Vec2 operator*(const Vec2& b) const;
 		Vec2 mul_vec2_no_translate(const Vec2& b) const;
+		void mul_vec2_batch(Vec2* batch, int count) const;
+		void mul_vec2_no_translate_batch(Vec2* batch, int count) const;
 		void mul(const Mat& b, Mat& output) const;
-		bool is_identity_matrix() const; // no translate, no scale, no rotate, no skew
-		bool is_translation_matrix() const; // no scale, no rotate, no skew
+		bool is_identity() const; // no translate, no scale, no rotate, no skew
+		bool is_translate_only() const; // no scale, no rotate, no skew
+		bool is_scale_only() const; // no translate, no rotate, no skew
+		bool has_translation() const; // has translate, may have scale/rotate/skew
+		bool has_scaling() const; // has scale, may have translate/rotate/skew
+		bool has_skew() const; // has skew, may have translate/rotate/scale
 		Mat inverse() const; // return inverse matrix
 		String toString() const;
 	};
@@ -498,9 +505,13 @@ namespace qk {
 	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
 	Qk_EXPORT float math_sqrt(float x);
 
-	template<> struct IsOrdinaryType<Vec2> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<Vec3> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<Vec4> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<Color> { static constexpr bool value = true; };
+	#define Qk_Vec_Types(Fn) Fn(Vec2) Fn(Vec3) Fn(Vec4) Fn(Color) Fn(Color4f) \
+		Fn(Rect) Fn(Range) Fn(Region) Fn(LimitRange) Fn(IVec2) Fn(IVec3) Fn(IVec4) Fn(IRect)
+	#define Qk_Ordinary_Type(Vec) \
+	template<> struct ObjectTraits<Vec>: ObjectTraitsBase<Vec> { \
+		static constexpr bool isOrdinary = true; };
+	Qk_Vec_Types(Qk_Ordinary_Type)
+	#undef Qk_Ordinary_Type
+	#undef Qk_Vec_Types
 }
 #endif

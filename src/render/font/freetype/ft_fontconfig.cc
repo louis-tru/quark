@@ -108,8 +108,8 @@ template<typename T, void (*D)(T*)> void FcTDestroy(T* t) {
 }
 
 template <typename T, T* (*C)(), void (*D)(T*)> class QkAutoFc
-	: public Sp<T, object_traits_from<T, FcTDestroy<T, D>>> {
-	using inherited = Sp<T, object_traits_from<T, FcTDestroy<T, D>>>;
+	: public Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>>> {
+	using inherited = Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>>>;
 public:
 	QkAutoFc(): inherited(C()) {
 		T* obj = this->operator T*();

@@ -45,27 +45,31 @@
 
 namespace qk {
 #ifdef __OBJC__
+	typedef id<NSObject> NSObjectID;
 	typedef id<MTLRenderPipelineState> MTLPipeline;
+	typedef id<MTLComputePipelineState> MTLComputePipeline;
 	typedef id<MTLFunction> MTLFunctionID;
 	typedef id<MTLDevice> MTLDeviceID;
 	typedef id<MTLCommandQueue> MTLCommandQueueID;
 	typedef id<MTLSamplerState> MTLSampler;
 	typedef id<MTLRenderCommandEncoder> MTLEncoder;
 	typedef id<MTLTexture> MTLTextureID;
-	typedef id<MTLCommandBuffer> MTLCommandBuffer;
+	typedef id<MTLCommandBuffer> MTLCommandBufferID;
 	typedef MTLRenderPassDescriptor* MTLPassDesc;
 	typedef id<CAMetalDrawable> MTLDrawable;
 	typedef id<MTLBuffer> MTLBufferID;
 	typedef id<CAMetalDrawable> MTLDrawableID;
 #else
+	typedef void* NSObjectID;
 	typedef void* MTLPipeline;
+	typedef void* MTLComputePipeline;
 	typedef void* MTLFunctionID;
 	typedef void* MTLDeviceID;
 	typedef void* MTLCommandQueueID;
 	typedef void* MTLSampler;
 	typedef void* MTLEncoder;
 	typedef void* MTLTextureID;
-	typedef void* MTLCommandBuffer;
+	typedef void* MTLCommandBufferID;
 	typedef void* MTLPassDesc;
 	typedef void* MTLDrawable;
 	typedef void* MTLBufferID;
@@ -90,6 +94,7 @@ namespace qk {
 		MSLPipelineKind kind;
 		String (*vertexSource)();
 		String (*fragmentSource)();
+		String (*computeSource)();
 	};
 
 	struct MSLShaderAttr {
@@ -105,9 +110,10 @@ namespace qk {
 		MSLShaderSource source; // shader source
 		Array<MSLShaderAttr> attributes; // vertex attributes format
 		uint32_t bufferIndex; // vertex buffer index
-		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format, uint32_t sampleCount);
+		MTLPipeline getPipeline(BlendMode mode, MTLPixelFormat format);
+		MTLComputePipeline getComputePipeline();
 	protected:
-		Dict<uint32_t, MTLPipeline> _pipelines;
+		Dict<uint32_t, NSObjectID> _pipelines;
 		friend class MSLShaders;
 	};
 }

@@ -126,14 +126,15 @@ namespace qk {
 		auto dest = _render->surfaceSize();
 		auto chvPort = _surfaceSize != dest;
 		GLint filter = chvPort ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_NEAREST;
+		auto &shader = _render->_shaders.vportCp;
 		_render->set_viewport(dest);
 		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, dstFBO);
-		glActiveTexture(Qk_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0 + shader.imageSlot);
 		glBindTexture(GL_TEXTURE_2D, _outTex);
-		Qk_BindSampler(0, 0);
-		glUseProgram(_render->_shaders.vportCp.shader);
-		glBindVertexArray(_render->_shaders.vportCp.vao);
+		glBindSampler(shader.imageSlot, 0);
+		glUseProgram(shader.shader);
+		glBindVertexArray(shader.vao);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo); // recover fbo
@@ -191,9 +192,9 @@ namespace qk {
 		_cmdPack->clearColor(color, flags);
 	}
 
-	void GLCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
+	void GLCanvas::drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) {
 		checkMatrix();
-		_cmdPack->drawImage(vertex, paint, color);
+		_cmdPack->drawImage(vertex, info);
 	}
 
 	void GLCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
@@ -201,25 +202,34 @@ namespace qk {
 		_cmdPack->drawGradient(vertex, paint, color);
 	}
 
-	void GLCanvas::drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		checkMatrix();
-		_cmdPack->drawImageMask(vertex, paint, color);
-	}
-
 	void GLCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawColor(vertex, color);
 	}
 
+	void GLCanvas::makeCGAAAtlasCmd(const CGAADrawData &data) {
+		// CGAA is currently connected only on Metal for direct-target testing.
+		(void)data;
+	}
+
+	void GLCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
+		(void)data;
+	}
+
+	void GLCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
+		(void)data;
+		(void)paint;
+		(void)color;
+	}
+
+	void GLCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
+		(void)data;
+		(void)info;
+	}
+
 	void GLCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
-	}
-
-	void GLCanvas::drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				const Color4f &strokeColor, float stroke) {
-		checkMatrix();
-		_cmdPack->drawSDFImageMask(vertex, paint, color, strokeColor, stroke);
 	}
 
 	void GLCanvas::blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) {

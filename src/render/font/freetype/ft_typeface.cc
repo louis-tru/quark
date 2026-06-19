@@ -74,12 +74,12 @@ typedef QkTypeface_FreeType::Scanner Scanner;
 typedef QkTypeface_FreeType::FaceRec FaceRec;
 
 template <>
-void object_traits<std::remove_pointer_t<FT_Face>>::Release(FT_Face obj) {
+void ObjectTraits<std::remove_pointer_t<FT_Face>>::Release(FT_Face obj) {
 	FT_Done_Face(obj);
 }
 
 template <>
-void object_traits<std::remove_pointer_t<FT_Size>>::Release(FT_Size obj) {
+void ObjectTraits<std::remove_pointer_t<FT_Size>>::Release(FT_Size obj) {
 	FT_Done_Size(obj);
 }
 

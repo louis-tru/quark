@@ -42,10 +42,6 @@ type WEvent = Event<Window>;
  * @interface Options
 */
 export interface Options {
-	/** init window color type */
-	olorType?: Uint;
-	/** init window gpu render msaa count */
-	msaa?: Uint; 
 	/** init window params */
 	frame?: types.Rect;
 	/** init window title */

@@ -36,10 +36,6 @@
 #include "../render.h"
 #include "./gl_canvas.h"
 
-// Slot 0 is occupied by aaclip, so start from 1.
-#define Qk_TEXTURE0 (GL_TEXTURE0+1)
-#define Qk_BindSampler(slot, sampler) glBindSampler(slot+1, sampler)
-
 namespace qk {
 
 	// Not thread safe, called in the rendering thread
@@ -58,10 +54,10 @@ namespace qk {
 		// set gl state
 		void set_blend_mode(BlendMode mode);
 		void set_viewport(Vec2 size);
-		bool use_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
-		void set_texture_param(GLuint tex, int slot, const PaintImage* paint);
+		bool use_texture(ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint); // temp tex
+		void set_texture_param(GLuint tex, int dstSlot, const PaintImage* paint);
 		GLuint get_tex_sampler(const PaintImage* paint);
-		TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 	protected:
 		explicit GLRender(Options opts);
 		// define props

@@ -470,7 +470,7 @@ namespace qk { namespace js {
 		}
 		template<class Self = Object>
 		static inline Mix<Self>* mix(JSValue *value) {
-			static_assert(object_traits<Self>::is::obj, "Must be object");
+			static_assert(ObjectTraits<Self>::isObj, "Must be object");
 			return static_cast<Mix<Self>*>(unpack(value));
 		}
 		template<class Self>
@@ -479,7 +479,7 @@ namespace qk { namespace js {
 		}
 		template<class Self>
 		static inline Mix<Self>* mix(Self *object, uint64_t id) {
-			static_assert(object_traits<Self>::is::obj, "Must be object");
+			static_assert(ObjectTraits<Self>::isObj, "Must be object");
 			return static_cast<js::Mix<Self>*>(pack(object, id));
 		}
 
@@ -488,7 +488,7 @@ namespace qk { namespace js {
 		static Mix<Self>* New(FunctionArgs args, Self *self) {
 			static_assert(sizeof(M) == sizeof(MixObject),
 										"Derived mix class pairs cannot declare data members");
-			static_assert(object_traits<Self>::is::obj, "Must be object");
+			static_assert(ObjectTraits<Self>::isObj, "Must be object");
 			auto mix = (new(reinterpret_cast<MixObject*>(self) - 1) M())->newInit(args);
 			return static_cast<Mix<Self>*>(static_cast<MixObject*>(mix));
 		}
@@ -617,7 +617,7 @@ namespace qk { namespace js {
 
 		template<class Self = Object>
 		inline Mix<Self>* asMix(Self *obj) {
-			static_assert(object_traits<Self>::is::obj, "Must be object");
+			static_assert(ObjectTraits<Self>::obj, "Must be object");
 			return static_cast<Mix<Self>*>(asmix(obj));
 		}
 

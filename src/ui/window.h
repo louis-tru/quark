@@ -74,8 +74,7 @@ namespace qk {
 
 		struct Options {
 			ColorType colorType; // init window color type
-			uint16_t  msaa; // init window gpu render msaa count
-			uint16_t  fps; // init window render fsp limit
+			uint32_t  fps; // init window render fsp limit
 			Rect      frame; // init window params
 			String    title; // init window title
 			Color     backgroundColor={255,255,255}; // init window background color

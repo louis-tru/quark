@@ -11,24 +11,20 @@
 #ifndef __quark_render_metal_mtlcanvas__
 #define __quark_render_metal_mtlcanvas__
 
+#include "../mem_allocator.h"
 #include "../gpu_canvas.h"
 #include "./mtl_shaders.h"
 
 namespace qk {
 	class MetalRender;
 
-	// Specialized Objective-C objects for Metal rendering.
-	template<> struct IsPointer<MTLCommandBuffer> {
-		static constexpr bool value = false;
-	};
-
 	struct MTL_CmdPack {
 		inline bool isRecorded() const {
 			return recorded || cmds.length();
 		}
 		Sp<MemBlockAllocator<MTLBufferID>> buffer = nullptr; // vertex/index buffers allocator
-		Array<MTLCommandBuffer> cmds; // command buffers
-		MTLCommandBuffer current = nullptr; // current command buffer for render pass
+		Array<MTLCommandBufferID> cmds; // command buffers
+		MTLCommandBufferID current = nullptr; // current command buffer for render pass
 		MTLPassDesc pass = nullptr; // current render pass descriptor for enc
 		MTLEncoder enc = nullptr; // current encoder for render
 		MTLPipeline pipeline = nullptr; // current pipeline state for render
@@ -41,11 +37,11 @@ namespace qk {
 		MetalCanvas(MetalRender *render, Render::Options opts);
 		~MetalCanvas() override;
 		bool swapBuffer() override;
-		Array<MTLCommandBuffer> flushBuffer(); // flush front buffer and return mtl command buffers
+		Array<MTLCommandBufferID> flushBuffer(); // flush front buffer and return mtl command buffers
 		void flushSubcanvas(MetalCanvas *sub); // flush subcanvas to current canvas
 		// inline MTLTextureID outTex() { return _outTex; }
 		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
-		void vportCopy(MTLCommandBuffer cmd, MTLDrawableID dst);
+		void vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst);
 	private:
 		inline Color4f premul_alpha(const Color4f &color) const {
 			return color.premul_alpha();
@@ -70,20 +66,21 @@ namespace qk {
 			return setPipeline(enc, shader), enc;
 		}
 		MTLEncoder usePipeline(MSLShader& shader, const VertexData &vertex, MTLEncoder enc);
-		MTLEncoder useTextureSlot0(const PaintImage *paint, int dstSlot, bool* isYuv = nullptr);
+		MTLEncoder useTexture0(const PaintImage *paint, int dstSlot, bool* isYuv = nullptr);
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
 		void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) override;
 		void restoreClipCmd(GC_State::Clip* clip) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
-		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
+		void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
-		void drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
 		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
+		void makeCGAAAtlasCmd(cCGAADrawData &data) override;
+		void drawCGAAColorCmd(cCGAADrawData &data) override;
+		void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) override;
+		void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) override;
 		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
-		void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				const Color4f &strokeColor, float stroke) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
 		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) override;
@@ -93,8 +90,10 @@ namespace qk {
 		void outputImageEndCmd(ImageSource* exit) override;
 		void clearColor(const Color4f &color, const Range *range);
 		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution);
-		void drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags);
+		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags);
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
+		const MemBlockAllocator<MTLBufferID>::MemBlock&
+			buildGradientBuffer(const PaintGradient *paint, const Color4f &color);
 	private:
 	// fields:
 		MetalRender *_render; // render backend
@@ -111,7 +110,6 @@ namespace qk {
 		MTLTextureID _outColorTex; //
 		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
 		Dict<uint32_t, MTLSampler> _texSamplers;
-		MTLBufferID _gradientBuf; // temp buffer for gradient pos and color data
 	};
 
 } // namespace qk

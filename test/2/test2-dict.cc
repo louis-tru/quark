@@ -41,7 +41,7 @@ void test_template() {
 	C c;
 	D d;
 	
-	int i = object_traits<D>::is::kind;
+	int i = ObjectTraits<D>::kind;
 	Qk_Log(i);
 	
 	Qk_Log(_Str::toString(&a));

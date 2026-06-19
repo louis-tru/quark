@@ -348,7 +348,7 @@ namespace qk {
 	GLuint gl_new_texid() {
 		GLuint id;
 		glGenTextures(1, &id);
-		glActiveTexture(Qk_TEXTURE0);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -358,9 +358,9 @@ namespace qk {
 	}
 
 	void gl_tex_image2D_null(GLuint tex, int w, int h, ColorType type, GLint slot, bool mipmap) {
-		glActiveTexture(Qk_TEXTURE0 + slot);
+		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
-		Qk_BindSampler(slot, 0);
+		glBindSampler(slot, 0);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
 		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
 		GLint iformat = gl_get_texture_internalformat(type);
@@ -391,7 +391,7 @@ namespace qk {
 			id = gl_new_texid();
 			tex->set_id(id);
 		}
-		glActiveTexture(Qk_TEXTURE0);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, id);
 
 #if defined(GL_EXT_texture_filter_anisotropic)
@@ -564,26 +564,26 @@ namespace qk {
 		}
 	}
 
-	bool GLRender::use_texture(ImageSource *src, int slot, const PaintImage *paint) {
-		auto index = paint->srcIndex + slot;
-		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, slot);
+	bool GLRender::use_texture(ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint) {
+		auto index = paint->srcIndex + srcSlot;
+		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
 		auto tex = src->texture(index);
 		if (!tex->id()) {
 			// mark texture for this render, and try to create texture immediately
 			src->markAsTexture(this);
 			if (!tex->id()) {
-				Qk_DLog("GL texture is not ready for source: %p, srcIndex: %d, slot: %d", src, paint->srcIndex, slot);
+				Qk_DLog("GL texture is not ready for source: %p, srcIndex: %d, slot: %d", src, paint->srcIndex, srcSlot);
 				return false; // texture is not ready, caller should try again later
 			}
 		}
-		set_texture_param(tex->id(), slot, paint);
+		set_texture_param(tex->id(), dstSlot, paint);
 		return true;
 	}
 
-	void GLRender::set_texture_param(GLuint tex, int slot, const PaintImage* paint) {
-		glActiveTexture(Qk_TEXTURE0 + slot);
+	void GLRender::set_texture_param(GLuint tex, int dstSlot, const PaintImage* paint) {
+		glActiveTexture(GL_TEXTURE0 + dstSlot);
 		glBindTexture(GL_TEXTURE_2D, tex);
-		Qk_BindSampler(slot, get_tex_sampler(paint));
+		glBindSampler(dstSlot, get_tex_sampler(paint));
 	}
 
 	GLuint GLRender::get_tex_sampler(const PaintImage* paint) {
@@ -612,10 +612,10 @@ namespace qk {
 		return new GLCanvas(this, opts);
 	}
 
-	TexStat GLRender::createTextureStat(Vec2 size, ColorType type, bool mipmap) {
+	TexStat GLRender::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
 		if (isReleased())
 			return TexStat(); // Render is release, do not create new texture
-		return gl_new_texture_stat_with(size[0], size[1], type, mipmap);
+		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags);
 	}
 
 	bool GLRender::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {

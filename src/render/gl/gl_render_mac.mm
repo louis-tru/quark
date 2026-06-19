@@ -267,7 +267,6 @@ namespace qk {
 				glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
 		}
 
-		uint32_t MSAA = opts.msaaSample;
 		uint32_t i = 0;
 		NSOpenGLPixelFormatAttribute attrs[32] = {0};
 

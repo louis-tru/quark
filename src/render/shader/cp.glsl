@@ -13,7 +13,7 @@ void main() {
 }
 
 #frag
-#define Qk_FLAG_CLAMP_TO_ZERO (1u << 3)
+#define Qk_FLAG_CLAMP_TO_ZERO (1u << 16)
 layout(binding=1,set=1) uniform sampler2D image; // input image
 
 void main() {

@@ -197,26 +197,26 @@ export declare class Path {
 
 	/**
 	 * Convert curves into line segments and return all edge points.
-	 * @param epsilon Approximation tolerance (smaller = higher precision, default = 1.0).
+	 * @param precision Approximation tolerance (smaller = higher precision, default = 1.0).
 	 * @returns An array of Vec2 representing the edges.
 	 */
-	getEdgeLines(epsilon?: number): Vec2[];
+	getEdgeLines(precision?: number): Vec2[];
 
 	/**
 	 * Triangulate the filled region of the path.
-	 * @param epsilon Approximation tolerance (default = 1.0).
+	 * @param precision Approximation tolerance (default = 1.0).
 	 * @param z Optional Z value for the vertices (default = 0).
 	 * @returns An array of Vec3 vertices (each triple = one triangle).
 	 */
-	getTriangles(epsilon?: number, z?: number): Vec3[];
+	getTriangles(precision?: number, z?: number): Vec3[];
 
 	/**
 	 * Generate anti-aliased side triangles and body triangles.
 	 * @param width Stroke width.
-	 * @param epsilon Approximation tolerance (default = 1.0).
+	 * @param precision Approximation tolerance (default = 1.0).
 	 * @returns Array of Vec3 triangles for anti-aliased side and body rendering.
 	 */
-	getAASideTriangle(width: number, epsilon?: number): Vec3[];
+	getAASideTriangle(width: number, precision?: number): Vec3[];
 
 	/**
 	 * Convert the path into a dashed path.
@@ -239,11 +239,12 @@ export declare class Path {
 	strokePath(width: number, cap?: Cap, join?: Join, miterLimit?: number): Path;
 
 	/**
-	 * Normalize the path (convert curves to linear segments).
-	 * @param epsilon Approximation tolerance (default = 1.0).
-	 * @returns The normalized path (this).
+	 * Flatten path, convert bezier to line segments.
+	 * @param precision this is the scale of the number of segments,
+	 *                  the larger the value, the more segments (default is 1.0)
+	 * @returns The flattened path (this).
 	 */
-	normalizedPath(epsilon?: number): this;
+	normalizedPath(precision?: number): this;
 
 	/**
 	 * Apply a transformation matrix to the path.

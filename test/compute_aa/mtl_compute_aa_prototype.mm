@@ -23,8 +23,6 @@ namespace qk {
 				end = out.bounds.end;
 		for (uint32_t i = 1; i < lines.length(); i += 2) {
 			auto p0 = lines[i-1], p1 = lines[i];
-			if (p0.y() == p1.y()) // x扫描线算法，水平边不计入边列表
-				continue;
 			// 需要裁剪边界外的线段，先进行一次粗略的 CPU 裁剪，减少后续 GPU 处理的边数,
 			// 无法处理左边界为负的情况，因为x扫描线算法需要统计tile左边的backdrop值。
 			if (NeedClip) {
@@ -40,18 +38,18 @@ namespace qk {
 			}
 			p0 -= begin;
 			p1 -= begin;
-			auto minY = p0.y(), maxY = p1.y();
-			int32_t winding = 1;
-			if (minY > maxY) { // 设定p0为左边，往上为逆时针方向，屏幕座标y往上更小。
-				std::swap(minY, maxY);
-				winding = -1;
-			}
-			out.edges.push({p0,p1,minY,maxY,winding,0});
+			// 屏幕坐标 y-down：向下为正 winding，向上为负 winding。
+			// 水平边使用 winding=0，只参与 boundary tile 标记。
+			int32_t winding = p1.y() > p0.y() ? 1 : p1.y() < p0.y() ? -1 : 0;
+			float invDy = winding ? 1.0f / (p1.y() - p0.y()) : 0.0f;
+			float dxdy = (p1.x() - p0.x()) * invDy;
+			out.edges.push({p0,p1,dxdy,winding,{0,0}});
 		}
 	}
 
 	struct TileScratch {
 		Array<ComputeAATileEdge> edges;
+		bool boundary = false;
 	};
 	struct BackdropRowScratch {
 		Array<ComputeAABackdropEvent> events;
@@ -77,10 +75,10 @@ namespace qk {
 		scratch.reset(out.tileCountX * out.tileCountY);
 		BackdropRowScratchs backdropScratch;
 		backdropScratch.reset(out.tileCountY);
-		out.tiles.reset(out.tileCountX * out.tileCountY);
 
 		const int sampleGrid = kComputeAASampleGrid;
 		const int tileSampleCount = kComputeAATileSize * sampleGrid;
+		const int totalSampleCountY = out.tileCountY * tileSampleCount;
 		const float invTileSize = 1.0f / float(kComputeAATileSize);
 		static_assert(
 			(kComputeAATileSize & (kComputeAATileSize - 1)) == 0 &&
@@ -99,22 +97,32 @@ namespace qk {
 			int sampleBegin, int sampleEnd, int32_t winding)
 		{
 			Qk_ASSERT(tx < out.tileCountX, "tile x index out of bounds");
-			Qk_ASSERT(sampleBegin != sampleEnd, "should not add empty sample range");
 			if (sampleBegin > sampleEnd) {
 				std::swap(sampleBegin, sampleEnd); // 确保 sampleBegin < sampleEnd
+			}
+			if (sampleEnd <= 0) {
+				return; // 整个 sample 区间在 tile 上方，无需处理
+			}
+			if (sampleBegin >= totalSampleCountY) {
+				return; // 整个 sample 区间在 tile 下方，无需处理
 			}
 			// [sampleBegin, sampleEnd) 是边在当前 X tile 步骤中新跨过的全局
 			// Y sample 区间。它可能跨越多个 yTile，因此先按 yTile 拆分。
 			int tileY0 = sampleBegin >> tileSampleShift; // sampleBegin / tileSampleCount
+			int tileRowOffset = tileY0 * out.tileCountX; // 当前 tile 行的起始偏移
+			if (sampleBegin == sampleEnd) {
+				if (tx >= 0)
+					scratch[tileRowOffset + tx].boundary = true; // 这个 tile 内有一个 sample 位于边界上。
+				return;
+			}
 			int tileY1 = (sampleEnd - 1) >> tileSampleShift;
 			int firstTileX = std::max(0, tx + 1); // 这个 sample 区间从这个 tile 的下一列开始完全位于边的右侧
-			int tileRowOffset = tileY0 * out.tileCountX; // 当前 tile 行的起始偏移
 
 			for (int ty = tileY0; ty <= tileY1; ty++, tileRowOffset += out.tileCountX) {
 				int tileSampleBegin = ty << tileSampleShift; // 当前 tile 的 Y sample 网格起点
 				int localBegin = std::max(sampleBegin - tileSampleBegin, 0); // 限制在 tile 内的局部 sample 区间
 				int localEnd = std::min(sampleEnd - tileSampleBegin, tileSampleCount);
-				if (tx >= 0 && tx < out.tileCountX) {
+				if (tx >= 0) {
 					// 当前 tile 内，只有这个 local sample 区间仍需要 GPU
 					// 使用原始边做精确 X 交点测试；tile 内其他 sample 不测试此边。
 					ComputeAATileEdge tileEdge = {
@@ -123,6 +131,7 @@ namespace qk {
 						uint16_t(localEnd),
 					};
 					scratch[tileRowOffset + tx].edges.push(tileEdge);
+					scratch[tileRowOffset + tx].boundary = true; // 标记为 boundary tile，GPU 需要测试边界交点
 				}
 				if (firstTileX < out.tileCountX) {
 					// 这个 sample 区间从下一列开始已经完全位于边的右侧。
@@ -143,9 +152,7 @@ namespace qk {
 		{
 			if (tx < out.tileCountX) {
 				int sampleEnd = sample_grid_y(rightY * sampleGrid);
-				if (sampleBegin != sampleEnd) {
-					add_sample_range(edgeIndex, tx, sampleBegin, sampleEnd, winding);
-				}
+				add_sample_range(edgeIndex, tx, sampleBegin, sampleEnd, winding);
 			}
 		};
 
@@ -183,10 +190,8 @@ namespace qk {
 					// 每次推进一个完整 X tile。若离散 Y sample 没有变化，
 					// 说明当前列没有跨过任何扫描线，不生成任何 CPU/GPU 数据。
 					int sampleGridY = sample_grid_y(nextSampleY);
-					if (lastSampleGridY != sampleGridY) {
-						add_sample_range(edgeIndex, tx, lastSampleGridY, sampleGridY, edge.winding);
-						lastSampleGridY = sampleGridY;
-					}
+					add_sample_range(edgeIndex, tx, lastSampleGridY, sampleGridY, edge.winding);
+					lastSampleGridY = sampleGridY;
 					// 推进 y sample grid 步
 					nextSampleY += tileSampleYStep;
 					tx++; // 推进一个 X tile
@@ -199,19 +204,35 @@ namespace qk {
 		}
 
 		out.backdropRows.reset(out.tileCountY);
+		out.boundaryTiles.clear();
+		out.uniformTiles.clear();
 		// 临时分桶数据压平为连续数组，供 Metal buffer 直接上传。
 		uint32_t tileRowOffset = 0;
 		for (uint32_t ty = 0, originY = 0; ty < out.tileCountY; ty++) {
+			Array<int32_t> tileWinding(out.tileCountX);
+			memset(tileWinding.val(), 0, tileWinding.size());
+			for (auto &event : backdropScratch[ty].events) {
+				// Uniform tile 内所有 Y sample 的 winding 相同，只需统计第一个。
+				if (event.sampleBegin == 0)
+					tileWinding[event.firstTileX] += event.winding;
+			}
+			int32_t winding = 0;
 			for (uint32_t tx = 0, originX = 0; tx < out.tileCountX; tx++) {
-				auto &tile = out.tiles[tileRowOffset + tx];
-				auto &src = scratch[tileRowOffset + tx].edges;
-				out.tiles[tileRowOffset + tx] = {
-					.edgeOffset=out.tileEdges.length(),
-					.edgeCount=src.length(),
-					.originX=originX,
-					.originY=originY
-				};
-				out.tileEdges.write(src.val(), src.length());
+				uint32_t tileIndex = tileRowOffset + tx;
+				auto &edges = scratch[tileIndex].edges;
+				winding += tileWinding[tx];
+				if (scratch[tileIndex].boundary) {
+					out.boundaryTiles.push({
+						.originX=originX,
+						.originY=originY,
+						.edgeOffset=out.tileEdges.length(),
+						.edgeCount=edges.length()
+					});
+					out.tileEdges.write(edges.val(), edges.length());
+				} else {
+					Qk_ASSERT(!edges.length(), "uniform tile should not contain coverage edges");
+					out.uniformTiles.push({originX, originY, winding, 0});
+				}
 				originX += kComputeAATileSize;
 			}
 			auto &events = backdropScratch[ty].events;
@@ -236,14 +257,16 @@ namespace qk {
 		if (!lines.length())
 			return out;
 
-		// 计算边界并进行整数扩展，确保边界上的像素也被覆盖.
-		auto bounds = transformPath.getBounds().expandToInteger();
+		// 使用实际参与 coverage 的扁平化边计算边界。Path::getBounds()
+		// 会把 Bézier 控制点也计入范围，可能产生固定的大块空白 atlas。
+		auto bounds = Path::getBoundsFromPoints(lines.val(), lines.length()).expandToInteger();
 		// 目前先限制为非负坐标，如果有裁剪参数使用参数进行更灵活的边界控制。
 		out.bounds = bounds.clip({0, bounds.end});
 		out.atlasOrigin = Vec2(); // 目前直接在原点处生成 atlas，后续可根据实际边界进行更紧凑的布局
 		out.atlasSize = out.bounds.size(); // 目前直接使用 bounds 大小作为 atlas 大小
-		out.tileCountX = ceilf(out.atlasSize.x()/kComputeAATileSize);
-		out.tileCountY = ceilf(out.atlasSize.y()/kComputeAATileSize);
+		constexpr float invTileSize = 1.0f / float(kComputeAATileSize);
+		out.tileCountX = ceilf(out.atlasSize.x() * invTileSize);
+		out.tileCountY = ceilf(out.atlasSize.y() * invTileSize);
 
 		if (bounds.begin.y() < out.bounds.begin.y() || bounds.end.y() > out.bounds.end.y()
 			|| bounds.end.x() > out.bounds.end.x()
@@ -258,22 +281,27 @@ namespace qk {
 
 	bool MetalComputeAAPrototype::encodeCoverage(id<MTLDevice> device,
 		id<MTLCommandBuffer> commandBuffer,
+		id<MTLComputePipelineState> uniformPipeline,
 		id<MTLComputePipelineState> coveragePipeline,
 		id<MTLTexture> coverageTexture,
 		const ComputeAADrawData &drawData,
 		ComputeAAFillRule fillRule)
 	{
-		if (!device || !commandBuffer || !coveragePipeline || !coverageTexture ||
-			!drawData.edges.length() || !drawData.tiles.length())
+		if (!device || !commandBuffer || !uniformPipeline || !coveragePipeline || !coverageTexture ||
+			!drawData.edges.length() ||
+			(!drawData.boundaryTiles.length() && !drawData.uniformTiles.length()))
 			return false;
 
 		auto edgeBytes = drawData.edges.length() * sizeof(ComputeAAEdge);
 		auto indexBytes = drawData.tileEdges.length() * sizeof(ComputeAATileEdge);
-		auto tileBytes = drawData.tiles.length() * sizeof(ComputeAATile);
+		auto boundaryTileBytes =
+			drawData.boundaryTiles.length() * sizeof(ComputeAATile);
 		auto backdropEventBytes =
 			drawData.backdropEvents.length() * sizeof(ComputeAABackdropEvent);
 		auto backdropRowBytes =
 			drawData.backdropRows.length() * sizeof(ComputeAABackdropRow);
+		auto uniformTileBytes =
+			drawData.uniformTiles.length() * sizeof(ComputeAAUniformTile);
 		id<MTLBuffer> edges = [device newBufferWithBytes:drawData.edges.val()
 				length:edgeBytes options:MTLResourceStorageModeShared];
 		id<MTLBuffer> indices = indexBytes ?
@@ -281,8 +309,11 @@ namespace qk {
 				length:indexBytes options:MTLResourceStorageModeShared]:
 			[device newBufferWithLength:sizeof(ComputeAATileEdge)
 				options:MTLResourceStorageModeShared];
-		id<MTLBuffer> tiles = [device newBufferWithBytes:drawData.tiles.val()
-				length:tileBytes options:MTLResourceStorageModeShared];
+		id<MTLBuffer> boundaryTiles = boundaryTileBytes ?
+			[device newBufferWithBytes:drawData.boundaryTiles.val()
+				length:boundaryTileBytes options:MTLResourceStorageModeShared]:
+			[device newBufferWithLength:sizeof(ComputeAATile)
+				options:MTLResourceStorageModeShared];
 		id<MTLBuffer> backdropEvents = backdropEventBytes ?
 			[device newBufferWithBytes:drawData.backdropEvents.val()
 				length:backdropEventBytes options:MTLResourceStorageModeShared]:
@@ -290,6 +321,11 @@ namespace qk {
 				options:MTLResourceStorageModeShared];
 		id<MTLBuffer> backdropRows = [device newBufferWithBytes:drawData.backdropRows.val()
 				length:backdropRowBytes options:MTLResourceStorageModeShared];
+		id<MTLBuffer> uniformTiles = uniformTileBytes ?
+			[device newBufferWithBytes:drawData.uniformTiles.val()
+				length:uniformTileBytes options:MTLResourceStorageModeShared]:
+			[device newBufferWithLength:sizeof(ComputeAAUniformTile)
+				options:MTLResourceStorageModeShared];
 
 		ComputeAAParams params = {};
 		params.width = uint32_t(drawData.atlasSize.x());
@@ -299,27 +335,41 @@ namespace qk {
 		params.fillRule = fillRule;
 		params.sampleGrid = kComputeAASampleGrid;
 
-		auto enc = [commandBuffer computeCommandEncoder];
-		[enc setComputePipelineState:coveragePipeline];
-		[enc setBytes:&params length:sizeof(params) atIndex:0];
-		[enc setBuffer:edges offset:0 atIndex:1];
-		[enc setBuffer:indices offset:0 atIndex:2];
-		[enc setBuffer:tiles offset:0 atIndex:3];
-		[enc setBuffer:backdropEvents offset:0 atIndex:4];
-		[enc setBuffer:backdropRows offset:0 atIndex:5];
-		[enc setTexture:coverageTexture atIndex:0];
-
-		MTLSize tg = MTLSizeMake(kComputeAATileSize, kComputeAATileSize, 1);
-		MTLSize groups = MTLSizeMake(params.tileCountX, params.tileCountY, 1);
-		[enc dispatchThreadgroups:groups threadsPerThreadgroup:tg];
-		[enc endEncoding];
+		MTLSize tg = MTLSizeMake(kComputeAATileSize * kComputeAASampleGrid, 1, 1);
+		if (drawData.uniformTiles.length()) {
+			auto enc = [commandBuffer computeCommandEncoder];
+			enc.label = @"Compute AA Uniform Tiles";
+			[enc setComputePipelineState:uniformPipeline];
+			[enc setBytes:&params length:sizeof(params) atIndex:0];
+			[enc setBuffer:uniformTiles offset:0 atIndex:1];
+			[enc setTexture:coverageTexture atIndex:0];
+			[enc dispatchThreadgroups:MTLSizeMake(drawData.uniformTiles.length(), 1, 1)
+				threadsPerThreadgroup:tg];
+			[enc endEncoding];
+		}
+		if (drawData.boundaryTiles.length()) {
+			auto enc = [commandBuffer computeCommandEncoder];
+			enc.label = @"Compute AA Boundary Coverage";
+			[enc setComputePipelineState:coveragePipeline];
+			[enc setBytes:&params length:sizeof(params) atIndex:0];
+			[enc setBuffer:edges offset:0 atIndex:1];
+			[enc setBuffer:indices offset:0 atIndex:2];
+			[enc setBuffer:boundaryTiles offset:0 atIndex:3];
+			[enc setBuffer:backdropEvents offset:0 atIndex:4];
+			[enc setBuffer:backdropRows offset:0 atIndex:5];
+			[enc setTexture:coverageTexture atIndex:0];
+			[enc dispatchThreadgroups:MTLSizeMake(drawData.boundaryTiles.length(), 1, 1)
+				threadsPerThreadgroup:tg];
+			[enc endEncoding];
+		}
 		return true;
 	}
 
 	bool MetalComputeAAPrototype::encodeSolidComposite(id<MTLCommandBuffer> commandBuffer,
-		id<MTLComputePipelineState> compositePipeline,
+		id<MTLRenderPipelineState> compositePipeline,
 		id<MTLTexture> coverageTexture,
 		id<MTLTexture> colorTexture,
+		Vec4 clearColor,
 		Vec4 premulColor,
 		Vec2 outputOrigin,
 		const ComputeAADrawData &drawData,
@@ -337,16 +387,23 @@ namespace qk {
 		params.sampleGrid = kComputeAASampleGrid;
 		params.outputOriginX = uint32_t(outputOrigin.x());
 		params.outputOriginY = uint32_t(outputOrigin.y());
+		params.outputWidth = uint32_t(colorTexture.width);
+		params.outputHeight = uint32_t(colorTexture.height);
 		params.color = premulColor;
 
-		auto enc = [commandBuffer computeCommandEncoder];
-		[enc setComputePipelineState:compositePipeline];
-		[enc setBytes:&params length:sizeof(params) atIndex:0];
-		[enc setTexture:coverageTexture atIndex:0];
-		[enc setTexture:colorTexture atIndex:1];
-		MTLSize tg = MTLSizeMake(kComputeAATileSize, kComputeAATileSize, 1);
-		MTLSize grid = MTLSizeMake(params.width, params.height, 1);
-		[enc dispatchThreads:grid threadsPerThreadgroup:tg];
+		MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+		pass.colorAttachments[0].texture = colorTexture;
+		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+		pass.colorAttachments[0].clearColor = MTLClearColorMake(
+			clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		auto enc = [commandBuffer renderCommandEncoderWithDescriptor:pass];
+		enc.label = @"Compute AA Composite";
+		[enc setRenderPipelineState:compositePipeline];
+		[enc setVertexBytes:&params length:sizeof(params) atIndex:0];
+		[enc setFragmentBytes:&params length:sizeof(params) atIndex:0];
+		[enc setFragmentTexture:coverageTexture atIndex:0];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 		[enc endEncoding];
 		return true;
 	}

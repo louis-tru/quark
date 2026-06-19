@@ -57,12 +57,12 @@ namespace qk {
 
 	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
 
-	typedef Sp<EGLDisplayType, object_traits_from<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
+	typedef Sp<EGLDisplayType, ObjectTraitsFrom<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
 
 #ifndef Qk_ANDROID
 	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
 
-	typedef Sp<Display, object_traits_from<Display, closeXDisplay>> XDisplayAuto;
+	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay>> XDisplayAuto;
 
 	Display* openXDisplay() {
 		static XDisplayAuto xdpy([]() {
@@ -89,7 +89,7 @@ namespace qk {
 
 	static EGLConfig egl_config(EGLDisplay display, Options opts) {
 		EGLConfig config = nullptr;
-		EGLint MSAA = 0; // opts.msaaSample;
+		EGLint MSAA = 0;
 
 		// choose configuration
 		EGLint attribs[] = {

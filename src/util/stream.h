@@ -51,7 +51,7 @@ namespace qk {
 		//virtual uint32_t read_stream(int64_t size, int64_t offset, Callback<Response> cb);
 	};
 
-	typedef Wobj<Stream::Response> StreamResponse;
+	typedef WObject<Stream::Response> StreamResponse;
 
 	class StreamSync {
 	public:

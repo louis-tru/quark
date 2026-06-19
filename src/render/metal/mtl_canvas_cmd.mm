@@ -7,6 +7,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_canvas.h"
+#include "src/render/render.h"
 #import "./mtl_render.h"
 #import "../source.h"
 #import "../pixel.h"
@@ -14,17 +15,24 @@
 // use pipeline and set vertex buffer for vertex data, if invalid vertex data, return and skip draw call
 #define Qk_usePipeline(shader, ...) auto enc = usePipeline(shader,##__VA_ARGS__); if (!enc) return
 // set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
-#define Qk_useTextureSlot0(paint, dstSlot, ...) bool isYuv = false; \
-	auto enc = useTextureSlot0(paint, dstSlot, &isYuv); if (!enc) return __VA_ARGS__
+#define Qk_useTexture0(paint, dstSlot, ...) bool isYuv = false; \
+	auto enc = useTexture0(paint, dstSlot, &isYuv); if (!enc) return __VA_ARGS__
 
 namespace qk {
 	MTLPixelFormat mtl_pixel_format(ColorType type);
-	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool gpuRead, bool cpuRead, bool mipmap);
-	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &newStat, bool mipmap);
+	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, uint8_t flags);
+	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &newStat, uint8_t flags);
 	MTLTextureID mtl_get_texture(cTexStat *stat);
-	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else = nil);
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, cTexStat *tex);
 	void setvMatrixFromEnc(MTLEncoder enc, const Mat &mat);
+
+	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length) {
+		auto &block = cmd.buffer->alloc(length);
+		Qk_ASSERT(block.end >= block.begin + length, "Not enough space in buffer block for CGAA data");
+		memcpy((char*)block.val.contents + block.begin, bytes, length);
+		return block;
+	};
 
 	// --------------------------------------------------------------------
 
@@ -44,7 +52,7 @@ namespace qk {
 	void MetalCanvas::setSurfaceCmd(bool changeSize) {
 		if (changeSize) {
 			_outTex = mtl_new_texture(
-				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), true, false, false);
+				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), 0);
 		}
 		_outColorTex = _outTex; // set to main texture by default
 
@@ -54,7 +62,9 @@ namespace qk {
 		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
 		pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
 
-		// Root/view matrices are uploaded when the encoder is lazily created by getEncoder().
+		// clear buffer allocators for new frame
+		_cmdPack.buffer->clear();
+		_cmdPackFront.buffer->clear();
 	}
 
 	void MetalCanvas::setMatrixCmd() {
@@ -80,14 +90,6 @@ namespace qk {
 
 		endPass(); // end current pass
 
-		auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
-			Qk_usePipeline(_shaders.clip, vertex); // use shader and set vertex buffer for vertex data
-			MSLClip::PcArgs pc{ Color4f(1,1,1,1), offset, flags };
-			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-			[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
-		};
-
 		auto drawClipMask = [&](bool black, bool clip) {
 			auto scale = Vec2(1) / _surfaceScale;
 			Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
@@ -97,7 +99,7 @@ namespace qk {
 			// This produces a smooth subtractive mask edge.
 			int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 			flags |= Qk_CLIP(clip); // set clip flag if have clip
-			drawClipVertex(vertex, surface, flags);
+			drawColor(vertex, Color4f(1,1,1,1), surface, flags);
 		};
 		if (rawOp == Canvas::kIntersect_ClipOp || !last) {
 			// clear clipTex with black color
@@ -152,14 +154,14 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 	}
 
-	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags) {
+	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
 		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ color, flags };
-		// set vertex bytes
+		MSLColor::PcArgs pc{ 0,0, color, offset, flags };
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		// set fragment bytes
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
 		// draw a full-screen triangle for clear
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
@@ -191,7 +193,173 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
-		drawColor(vertex, premul_alpha(color), _flags);
+		drawColor(vertex, premul_alpha(color), Vec4(0), _flags);
+	}
+
+	void MetalCanvas::makeCGAAAtlasCmd(cCGAADrawData &data) {
+		auto tileCount = data.tiles.length();
+		if (!tileCount)
+			return;
+		endPass(); // end current pass
+
+		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+
+		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
+		auto tileEdges = makeBuffer(_cmdPack, data.tileEdges.val(), data.tileEdges.size());
+		auto tiles = makeBuffer(_cmdPack, data.tiles.val(), data.tiles.size());
+
+		auto &shader = _shaders.cgaa;
+		MSLCgaa::PcArgs pc{
+			.atlasTileCountX=uint32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.atlasTileCountY=uint32_t(data.atlas->height() >> kCGAATileSizeShift),
+			.flags=_flags,
+		};
+		auto enc = [_cmdPack.current computeCommandEncoder];
+		enc.label = @"CGAA atlas Coverage";
+		[enc setComputePipelineState:shader.getComputePipeline()];
+		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+		[enc setBuffer:edges.val offset:edges.begin atIndex:shader.compute.edges];
+		[enc setBuffer:tileEdges.val offset:tileEdges.begin atIndex:shader.compute.tileEdges];
+		[enc setBuffer:tiles.val offset:tiles.begin atIndex:shader.compute.tiles];
+		[enc setTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.compute.atlasTex];
+
+		[enc dispatchThreadgroups:MTLSizeMake(tileCount, 1, 1)
+			threadsPerThreadgroup:MTLSizeMake(kCGAATileSize * kCGAASampleGrid, 1, 1)];
+		[enc endEncoding];
+		_cmdPack.recorded = true;
+	}
+
+	void MetalCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
+		auto tileCount = data.compositeTiles.length();
+		if (!tileCount)
+			return;
+		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+
+		auto &shader = _shaders.color;
+		auto enc = usePipeline(shader);
+		enc.label = @"CGAA Color";
+
+		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+
+		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
+		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
+		MSLColor::PcArgs pc{
+			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.flags=_flags | Qk_FLAG_CGAA,
+		};
+		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
+		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+						vertexStart:0
+						vertexCount:4
+					instanceCount:tileCount];
+	}
+
+	const MemBlockAllocator<MTLBufferID>::MemBlock&
+	MetalCanvas::buildGradientBuffer(const PaintGradient *paint, const Color4f &color) {
+		int count = Qk_Min(64, paint->count);
+		Array<Color4f> colors(count);
+		for (int i = 0; i < count; i++) {
+			colors[i] = premul_alpha(paint->colors[i]);
+		}
+		// align color and position data to 16 bytes for std140 packing rules
+		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
+		auto pointSize = alignUp(sizeof(float) * count, 16); // align to 16 bytes
+
+		// allocate a buffer for gradient colors and positions, and copy data to the buffer
+		auto &block = _cmdPack.buffer->alloc(
+			colorSize + pointSize, sizeof(MSLColorGradient::Colors) + sizeof(MSLColorGradient::Positions)
+		);
+		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
+		auto buff = (char*)block.val.contents + block.begin;
+		memcpy(reinterpret_cast<Color4f*>(buff), colors.val(), colorSize);
+		memcpy(reinterpret_cast<float*>((uint8_t*)buff + colorSize), paint->positions, pointSize);
+		return block;
+	}
+
+	void MetalCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
+		auto tileCount = data.compositeTiles.length();
+		if (!tileCount)
+			return;
+		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+
+		int count = Qk_Min(64, paint->count);
+		auto &shader = _shaders.colorGradient;
+		auto enc = usePipeline(shader);
+		enc.label = @"CGAA Gradient";
+
+		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+
+		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
+		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
+		MSLColorGradient::PcArgs pc{
+			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.range=*((Vec4*)paint->origin.val),
+			.color=premul_alpha(color),
+			.count=count,
+			.flags = _flags | Qk_FLAG_CGAA |
+				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
+				(paint->type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0),
+		};
+		auto colorSize = alignUp(sizeof(Color4f) * count, 16);
+		auto &block = buildGradientBuffer(paint, color);
+
+		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
+		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
+		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
+		[enc setFragmentBuffer:block.val offset:block.begin + colorSize atIndex:shader.fragment.positions];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+						vertexStart:0
+						vertexCount:4
+					instanceCount:tileCount];
+	}
+
+	void MetalCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
+		auto tileCount = data.compositeTiles.length();
+		if (!tileCount)
+			return;
+		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+
+		auto &shader = _shaders.image;
+		Qk_useTexture0(info.paint, shader.fragment.image);
+		setPipeline(enc, shader);
+		enc.label = @"CGAA Image";
+
+		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+
+		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
+		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
+		auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
+		MSLImage::PcArgs pc{
+			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.texCoords=*((Vec4*)info.paint->coord.begin.val),
+			.color=premul_alpha(info.color),
+			.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
+			.strokeWidth=info.stroke,
+			.alphaIndex=info.kind == kMask_DrawKind ?
+				(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
+			.flags = _flags | Qk_FLAG_CGAA |
+				(info.kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
+				(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
+		};
+		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
+		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+						vertexStart:0
+						vertexCount:4
+					instanceCount:tileCount];
 	}
 
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
@@ -201,7 +369,7 @@ namespace qk {
 		pass.colorAttachments[0].clearColor = MTLClearColorMake(color.r(), color.g(), color.b(), color.a());
 	}
 
-	MTLEncoder MetalCanvas::useTextureSlot0(const PaintImage *paint, int dstSlot, bool* isYuv) {
+	MTLEncoder MetalCanvas::useTexture0(const PaintImage *paint, int dstSlot, bool* isYuv) {
 		if (paint->_isCanvas) { // flush canvas to current canvas
 			auto srcC = static_cast<MetalCanvas*>(paint->canvas);
 			if (srcC != this && srcC->isGpu()) { // now only supported gpu
@@ -227,119 +395,80 @@ namespace qk {
 		}
 	}
 
-	void MetalCanvas::drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
+	void MetalCanvas::drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) {
 		auto &shader = _shaders.image;
 		// set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
-		Qk_useTextureSlot0(paint, shader.fragment.image); // slot 0 default match dst slot to 1
-		if (isYuv) { // yuv420p or yuv420sp
-			auto src = paint->image;
+		Qk_useTexture0(info.paint, shader.fragment.image); // slot 0 default match dst slot to 1
+		if (info.kind == kImage_DrawKind && isYuv) { // yuv420p or yuv420sp
 			auto &yuv = _shaders.imageYuv;
-			Qk_ASSERT_EQ(shader.fragment.image, yuv.fragment.image,
-				"YUV shader should use the same texture slot for image as non-YUV shader");
 			enc = usePipeline(yuv, vertex, enc);
 			if (!enc) return;
-			if (!use_texture(enc, src, 1, yuv.fragment.image_uv, paint))
-				return; // u or uv
+			auto src = info.paint->image;
+			Qk_ASSERT_EQ(true, use_texture(enc, src, 0, yuv.fragment.image, info.paint)); // y
+			Qk_ASSERT_EQ(true, use_texture(enc, src, 1, yuv.fragment.image_uv, info.paint)); // u or uv
 			int format = 0; // default to yuv420sp
 			if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
-				if (!use_texture(enc, src, 2, yuv.fragment.image_v, paint))
-					return; // v
+				Qk_ASSERT_EQ(true, use_texture(enc, src, 2, yuv.fragment.image_v, info.paint)); // v
 				format = 1; // yuv420p
 			}
 			MSLImageYuv::PcArgs pc{
-				*((Vec4*)paint->coord.begin.val),
-				premul_alpha(color),
-					format,
-
-				};
+				.texCoords=*((Vec4*)info.paint->coord.begin.val),
+				.color=premul_alpha(info.color),
+				.format=format,
+				.flags=_flags
+			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		} else {
 			enc = usePipeline(shader, vertex, enc);
 			if (!enc) return;
+			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
+			// set atlas texture for fragment shader,
+			// because resources cannot be empty, although not used in non-cgaa draw, 
+			// so set a texture for non-cgaa draw to avoid error.
+			// Qk_ASSERT_EQ(true, use_texture(enc, src, 0, shader.fragment.atlasTex, info.paint));
 			// set color and other args for shader push constants
 			MSLImage::PcArgs pc{
-				*((Vec4*)paint->coord.begin.val),
-				premul_alpha(color),
-				_flags
+				.texCoords=*((Vec4*)info.paint->coord.begin.val),
+				.color=premul_alpha(info.color),
+				.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
+				.strokeWidth=info.stroke,
+				.alphaIndex=info.kind == kMask_DrawKind ?
+					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
+				.flags = _flags |
+					(info.kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
+					(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+			[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.vertex.paths];
+			[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.vertex.tiles];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		}
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
 
-	void MetalCanvas::drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		auto &shader = _shaders.imageMask;
-		Qk_useTextureSlot0(paint, shader.fragment.image);
-		enc = usePipeline(shader, vertex, enc);
-		if (!enc) return;
-		auto type = paint->_isCanvas ? kRGBA_8888_ColorType: paint->image->type();
-		MSLImageMask::PcArgs pc{
-			*((Vec4*)paint->coord.begin.val),
-			premul_alpha(color),
-			type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3,
-			_flags
-		};
-		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
-	}
-
-	void MetalCanvas::drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-			const Color4f &strokeColor, float stroke) {
-		auto &shader = _shaders.imageSdfMask;
-		Qk_useTextureSlot0(paint, shader.fragment.image);
-		enc = usePipeline(shader, vertex, enc);
-		if (!enc) return;
-		MSLImageSdfMask::PcArgs pc{
-			*((Vec4*)paint->coord.begin.val),
-			premul_alpha(color),
-			premul_alpha(strokeColor),
-			stroke,
-			_flags
-		};
-		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
-	}
-
 	void MetalCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
-		static_assert(sizeof(MSLColorRadial::PcArgs) == sizeof(MSLColorLinear::PcArgs),
-				"MSLColorRadial::PcArgs and MSLColorLinear::PcArgs must have identical size");
-		static_assert(sizeof(MSLColorRadial) == sizeof(MSLColorLinear),
-				"MSLColorRadial and MSLColorLinear must have identical size");
 		int count = Qk_Min(64, paint->count);
-		auto &shader = paint->type == PaintGradient::kRadial_Type ?
-			(MSLColorLinear&)_shaders.colorRadial : _shaders.colorLinear;
+		auto &shader = _shaders.colorGradient;
 		Qk_usePipeline(shader, vertex);
-		Array<Color4f> colors(count);
-		for (int i = 0; i < count; i++) {
-			colors[i] = premul_alpha(paint->colors[i]);
-		}
-		MSLColorRadial::PcArgs pc{
-			*((Vec4*)paint->origin.val),
-			premul_alpha(color),
-			count,
-			_flags | (count == 2 ? Qk_FLAG_COUNT2: 0)
+		MSLColorGradient::PcArgs pc{
+			{0},
+			0,
+			.range=*((Vec4*)paint->origin.val),
+			.color=premul_alpha(color),
+			.count=count,
+			.flags=_flags |
+				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
+				(paint->type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0)
 		};
-		// align color and position data to 16 bytes for std140 packing rules
-		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
-		auto pointSize = alignUp(sizeof(float) * count, 16); // align to 16 bytes
-
-		// allocate a buffer for gradient colors and positions, and copy data to the buffer
-		auto block = _cmdPack.buffer->alloc(
-			colorSize + pointSize, sizeof(MSLColorRadial::Colors) + sizeof(MSLColorRadial::Positions)
-		);
-		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
-		auto buff = (char*)block->val.contents + block->begin;
-		memcpy(reinterpret_cast<Color4f*>(buff), colors.val(), colorSize);
-		memcpy(reinterpret_cast<float*>((uint8_t*)buff + colorSize), paint->positions, pointSize);
-
+		auto colorSize = alignUp(sizeof(Color4f) * count, 16);
+		auto &block = buildGradientBuffer(paint, color);
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc setFragmentBuffer:block->val offset:block->begin atIndex:shader.fragment.colors];
-		[enc setFragmentBuffer:block->val offset:block->begin + colorSize atIndex:shader.fragment.positions];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
+		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
+		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
+		[enc setFragmentBuffer:block.val offset:block.begin + colorSize atIndex:shader.fragment.positions];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
 
@@ -384,7 +513,7 @@ namespace qk {
 			return;
 		Qk_ASSERT_EQ(triangles.indexCount % 3, 0, "Triangle index count should be a multiple of 3");
 		auto &shader = _shaders.triangles;
-		Qk_useTextureSlot0(paint, shader.fragment.image);
+		Qk_useTexture0(paint, shader.fragment.image);
 		setPipeline(enc, shader);
 
 		auto vbuf = [_device newBufferWithBytes:triangles.verts
@@ -530,7 +659,8 @@ namespace qk {
 		Qk_ASSERT(srcTex, "readImageCmd source texture is null");
 
 		TexStat storeStat;
-		auto texStat = mtl_rebuild_texture(_device, dstSize, dst->type(), dst->texture(0), storeStat, dst->mipmap());
+		uint8_t flags = dst->mipmap() ? kMipmap_TextureFlags: 0;
+		auto texStat = mtl_rebuild_texture(_device, dstSize, dst->type(), dst->texture(0), storeStat, flags);
 		if (!texStat)
 			return;
 		auto tex = mtl_get_texture(texStat);
@@ -592,7 +722,8 @@ namespace qk {
 		endPass(); // end pass, change outTex for next pass
 		auto s = _surfaceSize; // surface size
 		TexStat storeStat;
-		auto tex = mtl_rebuild_texture(_device, s, _opts.colorType, dst->texture(0), storeStat, dst->mipmap());
+		uint8_t flags = dst->mipmap() ? kMipmap_TextureFlags: 0;
+		auto tex = mtl_rebuild_texture(_device, s, _opts.colorType, dst->texture(0), storeStat, flags);
 		if (!tex) {
 			// texture rebuild failed after current pass was ended.
 			// upper layer currently does not track this failure state,

@@ -39,14 +39,14 @@
 
 namespace qk {
 	template<>
-	struct object_traits<OpaqueJSString> {
-		struct is { static constexpr bool ref = true; };
+	struct ObjectTraits<OpaqueJSString> {
+		static constexpr bool isRef = true;
 		inline static void Retain(JSStringRef obj) { if (obj) JSStringRetain(obj); }
 		inline static void Release(JSStringRef obj) { if (obj) JSStringRelease(obj); }
 	};
 	template<>
-	struct object_traits<OpaqueJSPropertyNameArray> {
-		struct is { static constexpr bool ref = true; };
+	struct ObjectTraits<OpaqueJSPropertyNameArray> {
+		static constexpr bool isRef = true;
 		inline static void Retain(JSPropertyNameArrayRef obj) { if (obj) JSPropertyNameArrayRetain(obj); }
 		inline static void Release(JSPropertyNameArrayRef obj) { if (obj) JSPropertyNameArrayRelease(obj); }
 	};

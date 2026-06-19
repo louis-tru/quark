@@ -57,13 +57,14 @@ namespace qk {
 		void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip,
 				GC_State::Clip *clip, ClipOp rawOp) override;
 		void clearColorCmd(const Color4f &color, GC_ClearFlags flags) override;
-		void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
+		void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
-		void drawImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color) override;
 		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
+		void makeCGAAAtlasCmd(const CGAADrawData &data) override;
+		void drawCGAAColorCmd(cCGAADrawData &data) override;
+		void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) override;
+		void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) override;
 		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
-		void drawSDFImageMaskCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				const Color4f &strokeColor, float stroke) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
 		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) override;

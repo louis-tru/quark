@@ -47,12 +47,14 @@ static Path make_compute_aa_path(float t) {
 	CAMetalLayer *_layer;
 	id<MTLDevice> _device;
 	id<MTLCommandQueue> _queue;
-	id<MTLComputePipelineState> _clearPipeline;
+	id<MTLComputePipelineState> _uniformPipeline;
 	id<MTLComputePipelineState> _coveragePipeline;
-	id<MTLComputePipelineState> _compositePipeline;
+	id<MTLRenderPipelineState> _compositePipeline;
 	LinearAllocator _alloc;
 	NSTimer *_timer;
 	uint64_t _frame;
+	double _gpuTimeTotal;
+	uint32_t _gpuTimeSamples;
 }
 
 - (CALayer*)makeBackingLayer {
@@ -83,10 +85,21 @@ static Path make_compute_aa_path(float t) {
 		NSLog(@"Compute AA Metal shader error: %@", err);
 		return self;
 	}
-	_clearPipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_clear"] error:&err];
+	_uniformPipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_uniform_tiles"] error:&err];
 	_coveragePipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_coverage"] error:&err];
-	_compositePipeline = [_device newComputePipelineStateWithFunction:[lib newFunctionWithName:@"qk_compute_aa_composite_solid"] error:&err];
-	if (!_clearPipeline || !_coveragePipeline || !_compositePipeline) {
+	MTLRenderPipelineDescriptor *compositeDesc = [MTLRenderPipelineDescriptor new];
+	compositeDesc.label = @"Compute AA Composite Pipeline";
+	compositeDesc.vertexFunction = [lib newFunctionWithName:@"qk_compute_aa_composite_vertex"];
+	compositeDesc.fragmentFunction = [lib newFunctionWithName:@"qk_compute_aa_composite_fragment"];
+	auto colorAttachment = compositeDesc.colorAttachments[0];
+	colorAttachment.pixelFormat = _layer.pixelFormat;
+	colorAttachment.blendingEnabled = YES;
+	colorAttachment.sourceRGBBlendFactor = MTLBlendFactorOne;
+	colorAttachment.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+	colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
+	colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+	_compositePipeline = [_device newRenderPipelineStateWithDescriptor:compositeDesc error:&err];
+	if (!_uniformPipeline || !_coveragePipeline || !_compositePipeline) {
 		NSLog(@"Compute AA pipeline error: %@", err);
 	}
 
@@ -107,7 +120,7 @@ static Path make_compute_aa_path(float t) {
 }
 
 - (void)drawFrame {
-	if (!_device || !_queue || !_clearPipeline || !_coveragePipeline || !_compositePipeline)
+	if (!_device || !_queue || !_uniformPipeline || !_coveragePipeline || !_compositePipeline)
 		return;
 
 	id<CAMetalDrawable> drawable = [_layer nextDrawable];
@@ -117,8 +130,9 @@ static Path make_compute_aa_path(float t) {
 	_alloc.reset();
 	AllocatorScope scope(&_alloc); // 这个测试里所有的临时数据都放在 _alloc 里
 
-	//float time = float(_frame++) / 5000.0f;
-	float time = float(_frame++) / 60.0f;
+	float time = float(_frame++) / 5000.0f;
+	// float time = float(_frame++) / 60.0f;
+	// float time = 0;
 	Path path = make_compute_aa_path(time);
 	ComputeAADrawData data = MetalComputeAAPrototype::buildDrawData(path, Mat(0,{3},0,0), 1.0f);
 	if (!data.edges.length() || data.atlasSize.is_zero_axis())
@@ -133,30 +147,37 @@ static Path make_compute_aa_path(float t) {
 	id<MTLTexture> coverage = [_device newTextureWithDescriptor:coverageDesc];
 
 	id<MTLCommandBuffer> cmd = [_queue commandBuffer];
-	ComputeAAParams clear = {};
-	clear.color = Vec4(0.5f, 0.09f, 0.10f, 1.0f);
-	auto clearEnc = [cmd computeCommandEncoder];
-	[clearEnc setComputePipelineState:_clearPipeline];
-	[clearEnc setBytes:&clear length:sizeof(clear) atIndex:0];
-	[clearEnc setTexture:drawable.texture atIndex:0];
-	[clearEnc dispatchThreads:MTLSizeMake(drawable.texture.width, drawable.texture.height, 1)
-		threadsPerThreadgroup:MTLSizeMake(16, 16, 1)];
-	[clearEnc endEncoding];
-
-	MetalComputeAAPrototype::encodeCoverage(_device, cmd, _coveragePipeline, coverage, data, kComputeAAEvenOdd_FillRule);
+	cmd.label = @"Compute AA Frame";
+	MetalComputeAAPrototype::encodeCoverage(_device, cmd, _uniformPipeline,
+		_coveragePipeline, coverage, data, kComputeAAEvenOdd_FillRule);
 	Vec2 origin(
 		(float(drawable.texture.width) - data.atlasSize.x()) * 0.5f,
 		(float(drawable.texture.height) - data.atlasSize.y()) * 0.5f
 	);
 	MetalComputeAAPrototype::encodeSolidComposite(cmd, _compositePipeline, coverage,
-		drawable.texture, Vec4(0.2f, 0.8f, 0.50f, 1.0f), origin, data);
+		drawable.texture, Vec4(0.5f, 0.09f, 0.10f, 1.0f),
+		Vec4(0.2f, 0.8f, 0.50f, 1.0f), origin, data);
 
+	[cmd addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
+		double gpuMs = (buffer.GPUEndTime - buffer.GPUStartTime) * 1000.0;
+		if (gpuMs > 0.0) {
+			_gpuTimeTotal += gpuMs;
+			_gpuTimeSamples++;
+			if (_gpuTimeSamples == 120) {
+				NSLog(@"Compute AA GPU average: %.3f ms over %u frames",
+					_gpuTimeTotal / double(_gpuTimeSamples), _gpuTimeSamples);
+				_gpuTimeTotal = 0.0;
+				_gpuTimeSamples = 0;
+			}
+		}
+	}];
 	[cmd presentDrawable:drawable];
 	[cmd commit];
 
-	self.window.title = [NSString stringWithFormat:
-		@"Compute AA prototype - edges:%u tiles:%u atlas:%ux%u",
-		data.edges.length(), data.tiles.length(), uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
+	// self.window.title = [NSString stringWithFormat:
+	// 	@"Compute AA prototype - edges:%u boundary:%u uniform:%u atlas:%ux%u",
+	// 	data.edges.length(), data.boundaryTiles.length(), data.uniformTiles.length(),
+	// 	uint32_t(data.atlasSize.x()), uint32_t(data.atlasSize.y())];
 }
 
 @end

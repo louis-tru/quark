@@ -32,10 +32,22 @@
 #include <string.h>
 #include <math.h>
 
-#define Qk_ARM_NEON Qk_ARCH_ARM64
-#if Qk_ARM_NEON
-#define Qk_ARM_NEON_Maybe 0
+#define Qk_NEON_Maybe 0
+#define Qk_SSE_Maybe 0
+
+#if Qk_ARCH_ARM64 || defined(__ARM_NEON)
+#define Qk_NEON 1
 #include <arm_neon.h>
+#else
+#define Qk_NEON 0
+#undef Qk_NEON_Maybe
+#endif
+#if Qk_ARCH_X86 && (defined(__SSE__) || defined(_M_IX86_FP) || defined(__x86_64__) || defined(_M_X64))
+#define Qk_SSE 1
+#include <xmmintrin.h>
+#else
+#define Qk_SSE 0
+#undef Qk_SSE_Maybe
 #endif
 
 namespace qk {
@@ -121,10 +133,10 @@ namespace qk {
 	}
 
 	bool  Vec2::operator==(const Vec<float,2>& b) const {
-		return *reinterpret_cast<const double*>(val) == *reinterpret_cast<const double*>(b.val);
+		return val[0] == b.val[0] && val[1] == b.val[1];
 	}
 	bool  Vec2::operator!=(const Vec<float,2>& b) const {
-		return *reinterpret_cast<const double*>(val) != *reinterpret_cast<const double*>(b.val);
+		return val[0] != b.val[0] || val[1] != b.val[1];
 	}
 
 	float Vec2::dot(const Vec<float,2> b) const {
@@ -300,10 +312,10 @@ namespace qk {
 	}
 
 	bool  Vec3::operator==(const Vec<float,3>& b) const {
-		return *reinterpret_cast<const double*>(val) == *reinterpret_cast<const double*>(b.val) && val[2] == b.val[2];
+		return val[0] == b.val[0] && val[1] == b.val[1] && val[2] == b.val[2];
 	}
 	bool  Vec3::operator!=(const Vec<float,3>& b) const {
-		return *reinterpret_cast<const double*>(val) != *reinterpret_cast<const double*>(b.val) || val[2] != b.val[2];
+		return val[0] != b.val[0] || val[1] != b.val[1] || val[2] != b.val[2];
 	}
 
 	float Vec3::length() const {
@@ -342,7 +354,7 @@ namespace qk {
 	}
 
 	Color4f Color4f::mul_rgb_only(const Color4f& color) const {
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b{color.r(), color.g(), color.b(), 1.0f};
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
@@ -352,7 +364,7 @@ namespace qk {
 	}
 
 	Color4f Color4f::mul(const Color4f& color) const {
-#if Qk_ARM_NEON
+#if Qk_NEON
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b = vld1q_f32(color.val);
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
@@ -370,7 +382,7 @@ namespace qk {
 		float alpha = a();
 		if (alpha == 1.0f)
 			return *this;
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b{alpha,alpha,alpha,1.0f};
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
@@ -383,7 +395,7 @@ namespace qk {
 		if (a() == 0.0f)
 			return Color4f(0.0f, 0.0f, 0.0f, 0.0f);
 		float invA = 1.0f / a();
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b{invA,invA,invA,1.0f};
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
@@ -398,7 +410,7 @@ namespace qk {
 	}
 
 	Color Color4f::to_color() const {
-#if Qk_ARM_NEON
+#if Qk_NEON
 		// 加载 RGBA 四个 float
 		float32x4_t rgba = vld1q_f32(val);
 
@@ -428,7 +440,7 @@ namespace qk {
 
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const {
-#if Qk_ARM_NEON
+#if Qk_NEON
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b = vld1q_f32(v.val);
 		typedef Vec<float,4> Vec4;
@@ -514,7 +526,7 @@ namespace qk {
 	}
 
 	Color4f Color::mul_rgb_only(const Color4f& color) const {
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
 				indexed_color_to_colorf[val[0]], // * color.r(),
@@ -535,7 +547,7 @@ namespace qk {
 	}
 
 	Color4f Color::mul_color4f(const Color4f& color) const {
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t a{
 			indexed_color_to_colorf[val[0]],
 			indexed_color_to_colorf[val[1]],
@@ -558,7 +570,7 @@ namespace qk {
 			return to_color4f();
 		}
 		float alpha = indexed_color_to_colorf[val[3]];
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
 				indexed_color_to_colorf[val[0]], // * color.r(),
@@ -683,7 +695,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{val[0]  , val[1]  , val[3]  , val[4]},
 			//            *         *        *         *
@@ -711,7 +723,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{  val[0], val[3],  val[1],  val[4]},
 			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
@@ -737,7 +749,7 @@ namespace qk {
 		*/
 		float cz = cosf(z);
 		float sz = sinf(z);
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t _a = {val[0],val[1],val[3],val[4]};
 		float32x4_t p0 = vmulq_f32(_a, float32x4_t{cz,sz,cz,sz}); // *
 		float32x4_t p1 = vmulq_f32(_a,float32x4_t{sz,cz,sz,cz}); // *
@@ -871,7 +883,7 @@ namespace qk {
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
 		const float* a = val;
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{a[0],a[1],a[3],a[4]},
 			float32x4_t{b.val[0],b.val[1],b.val[0],b.val[1]}
@@ -900,7 +912,7 @@ namespace qk {
 		*/
 		const float* a = val;
 		const float* b = vec_b.val;
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{a[0],a[1],a[3],a[4]},
 			float32x4_t{b[0],b[1],b[0],b[1]}
@@ -918,6 +930,85 @@ namespace qk {
 #endif
 	}
 
+	void Mat::mul_vec2_batch(Vec2* batch, int count) const {
+		if (!batch || count <= 0)
+			return;
+		const float* a = val;
+		int i = 0;
+#if Qk_NEON_Maybe
+		float32x4_t m0 = vdupq_n_f32(a[0]);
+		float32x4_t m1 = vdupq_n_f32(a[1]);
+		float32x4_t m2 = vdupq_n_f32(a[2]);
+		float32x4_t m3 = vdupq_n_f32(a[3]);
+		float32x4_t m4 = vdupq_n_f32(a[4]);
+		float32x4_t m5 = vdupq_n_f32(a[5]);
+		for (; i + 3 < count; i += 4) {
+			float32x4x2_t xy = vld2q_f32(batch[i].val);
+			float32x4_t x = vaddq_f32(vmlaq_f32(vmulq_f32(xy.val[0], m0), xy.val[1], m1), m2);
+			float32x4_t y = vaddq_f32(vmlaq_f32(vmulq_f32(xy.val[0], m3), xy.val[1], m4), m5);
+			float32x4x2_t out;
+			out.val[0] = x;
+			out.val[1] = y;
+			vst2q_f32(batch[i].val, out);
+		}
+#elif Qk_SSE_Maybe
+		__m128 mx = _mm_set_ps(a[3], a[0], a[3], a[0]);
+		__m128 my = _mm_set_ps(a[4], a[1], a[4], a[1]);
+		__m128 mt = _mm_set_ps(a[5], a[2], a[5], a[2]);
+		for (; i + 1 < count; i += 2) {
+			__m128 xy = _mm_loadu_ps(batch[i].val);
+			__m128 x = _mm_shuffle_ps(xy, xy, _MM_SHUFFLE(2, 2, 0, 0));
+			__m128 y = _mm_shuffle_ps(xy, xy, _MM_SHUFFLE(3, 3, 1, 1));
+			__m128 out = _mm_add_ps(_mm_add_ps(_mm_mul_ps(x, mx), _mm_mul_ps(y, my)), mt);
+			_mm_storeu_ps(batch[i].val, out);
+		}
+#endif
+		for (; i < count; i++) {
+			float x = batch[i].val[0];
+			float y = batch[i].val[1];
+			batch[i].val[0] = a[0] * x + a[1] * y + a[2];
+			batch[i].val[1] = a[3] * x + a[4] * y + a[5];
+		}
+	}
+
+	void Mat::mul_vec2_no_translate_batch(Vec2* batch, int count) const {
+		if (!batch || count <= 0)
+			return;
+		const float* a = val;
+		int i = 0;
+	#if Qk_NEON_Maybe
+		float32x4_t m0 = vdupq_n_f32(a[0]);
+		float32x4_t m1 = vdupq_n_f32(a[1]);
+		float32x4_t m3 = vdupq_n_f32(a[3]);
+		float32x4_t m4 = vdupq_n_f32(a[4]);
+		for (; i + 3 < count; i += 4) {
+			float32x4x2_t xy = vld2q_f32(batch[i].val);
+			float32x4_t x = vmlaq_f32(vmulq_f32(xy.val[0], m0), xy.val[1], m1);
+			float32x4_t y = vmlaq_f32(vmulq_f32(xy.val[0], m3), xy.val[1], m4);
+			float32x4x2_t out;
+			out.val[0] = x;
+			out.val[1] = y;
+			vst2q_f32(batch[i].val, out);
+		}
+	#elif Qk_SSE_Maybe
+		__m128 mx = _mm_set_ps(a[3], a[0], a[3], a[0]);
+		__m128 my = _mm_set_ps(a[4], a[1], a[4], a[1]);
+		for (; i + 1 < count; i += 2) {
+			__m128 xy = _mm_loadu_ps(batch[i].val);
+			__m128 x = _mm_shuffle_ps(xy, xy, _MM_SHUFFLE(2, 2, 0, 0));
+			__m128 y = _mm_shuffle_ps(xy, xy, _MM_SHUFFLE(3, 3, 1, 1));
+			__m128 out = _mm_add_ps(_mm_mul_ps(x, mx), _mm_mul_ps(y, my));
+			_mm_storeu_ps(batch[i].val, out);
+		}
+	#endif
+		for (; i < count; i++) {
+			float x = batch[i].val[0];
+			float y = batch[i].val[1];
+			batch[i].val[0] = a[0] * x + a[1] * y;
+			batch[i].val[1] = a[3] * x + a[4] * y;
+		}
+	}
+
 	/**
 	* @method mul # 矩阵乘法
 	* @param b {const Mat&}
@@ -932,7 +1023,7 @@ namespace qk {
 		// 矩阵乘法展开：
 		const float* a = val;
 		const float* bb = b.val;
-#if Qk_ARM_NEON_Maybe
+#if Qk_NEON_Maybe
 		float32x4_t p0 = vmulq_f32(
 			float32x4_t{a[0],a[1],a[0],a[1]},
 			float32x4_t{bb[0],bb[3],bb[1],bb[4]}
@@ -982,14 +1073,32 @@ namespace qk {
 
 	static const Mat UnitMatrix;
 
-	bool Mat::is_identity_matrix() const {
+	bool Mat::is_identity() const {
 		return operator==(UnitMatrix);
 	}
 
-	bool Mat::is_translation_matrix() const {
+	bool Mat::is_translate_only() const {
 		constexpr float a[4] = {1,0,0,1};
 		float b[4] = {val[0], val[1], val[3], val[4]};
 		return memcmp(a, b, sizeof(a)) == 0;
+	}
+
+	bool Mat::is_scale_only() const {
+		constexpr float a[4] = {0,0,0,0};
+		float b[4] = {val[1], val[2], val[3], val[5]};
+		return memcmp(a, b, sizeof(a)) == 0;
+	}
+
+	bool Mat::has_translation() const {
+		return val[2] != 0 || val[5] != 0;
+	}
+
+	bool Mat::has_scaling() const {
+		return val[0] != 1 || val[4] != 1;
+	}
+
+	bool Mat::has_skew() const {
+		return val[1] != 0 || val[3] != 0;
 	}
 
 	Mat Mat::inverse() const {
@@ -1450,7 +1559,7 @@ namespace qk {
 		const float* A = val;
 		const float* v = b.val;
 
-#if Qk_ARM_NEON
+#if Qk_NEON
 		float32x4_t V  = vld1q_f32(v);    // [vx, vy, vz, vw]
 
 		float32x4_t A0 = vld1q_f32(A + 0);   // row0
@@ -1509,7 +1618,7 @@ namespace qk {
 		const float* A   = val;
 		const float* b   = B.val;
 
-#if Qk_ARM_NEON
+#if Qk_NEON
 		// 预先把 B 的四行加载为 SIMD 向量
 		float32x4_t B0 = vld1q_f32(b + 0);    // b0, b1, b2, b3
 		float32x4_t B1 = vld1q_f32(b + 4);    // b4, b5, b6, b7

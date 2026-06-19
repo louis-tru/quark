@@ -45,7 +45,7 @@ namespace qk {
 	typedef std::remove_pointer_t<CMFormatDescriptionRef> CMFormatDescription;
 	typedef Sp<
 		CMFormatDescription,
-		object_traits_from<CMFormatDescription, deleteCMFormatDescription, retainCMFormatDescription>
+		ObjectTraitsFrom<CMFormatDescription, deleteCMFormatDescription, retainCMFormatDescription>
 	> CMFormatDescriptionAuto;
 
 	class AppleVideoCodec: public MediaCodec {

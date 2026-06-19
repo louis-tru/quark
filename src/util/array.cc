@@ -122,7 +122,11 @@ namespace qk {
 
 #define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple(T) \
 	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,1,Qk_DEF_ARRAY_APPEND_CODE)
-Qk_IsOrdinaryTypes(Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple)
+
+Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple(char)
+Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple(uint16_t)
+Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_Simple(uint32_t)
+
 
 	template<> void Array<char, Object>::_Reverse(Ptr *ptr, size_t size, uint32_t len) {
 		if (len > 1) {

@@ -1,11 +1,20 @@
+Qk_CONSTANT(
+	vec4  texCoords; /*offset,scale*/
+	vec4  color; /* color */
+	int   format; /* 0: YUV420SP, 1: YUV420P*/
+);
 
-#define Qk_CONSTANT_Fields \
-	int format; /* 0: YUV420SP, 1: YUV420P*/
-
-#import "_image.glsl"
+#vert
+layout(location=1) out vec2 coords; // texture coordinates uv for fragment shader
+void main() {
+	aaSide = aaSideIn;
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw; // coord uv
+}
 
 #frag
-// layout(binding=1,set=1) uniform sampler2D image;   // y of yuv
+layout(location=1) in vec2 coords;
+layout(binding=1,set=1) uniform sampler2D image;   // y of yuv
 layout(binding=2,set=1) uniform sampler2D image_uv; // 420p u or 420sp uv
 layout(binding=3,set=1) uniform sampler2D image_v; // 420p v
 
@@ -20,5 +29,5 @@ void main() {
 										y + 1.779  * (u - 0.5), 1.0) * pc.color;
 
 	Qk_aaSideCoverage();
-	Qk_CLIP(); // apply clip mask if needed
+	Qk_CLIP();
 }

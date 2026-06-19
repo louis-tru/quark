@@ -32,6 +32,7 @@
 #include "./gl_command.h"
 #include "./gl_render.h"
 #include "./gl_canvas.h"
+#include "src/util/macros.h"
 
 #define Qk_CGCmd_Option_Capacity 256
 #define Qk_CGCmd_VertexBlock_Capacity 6555
@@ -39,6 +40,7 @@
 #define Qk_CGCmd_CmdBlock_Capacity 65536
 
 namespace qk {
+	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 	void  gl_texture_barrier();
 	void gl_set_blend_mode(BlendMode mode);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
@@ -146,12 +148,6 @@ namespace qk {
 						case kImage_CmdType:
 							((ImageCmd*)cmd)->~ImageCmd();
 							break;
-						case kImageMask_CmdType:
-							((ImageMaskCmd*)cmd)->~ImageMaskCmd();
-							break;
-						case kSDFImageMask_CmdType:
-							((SDFImageMaskCmd*)cmd)->~SDFImageMaskCmd();
-							break;
 						case kReadImage_CmdType:
 							((ReadImageCmd*)cmd)->~ReadImageCmd();
 							break;
@@ -244,7 +240,7 @@ namespace qk {
 						}
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
-							drawColor(c->vertex, c->color, c->flags);
+							drawColor(c->vertex, c->color, {0}, c->flags);
 							c->~ColorCmd();
 							break;
 						}
@@ -257,18 +253,6 @@ namespace qk {
 							auto c = (ImageCmd*)cmd;
 							drawImageCall(c);
 							c->~ImageCmd();
-							break;
-						}
-						case kImageMask_CmdType: {
-							auto c = (ImageMaskCmd*)cmd;
-							drawImageMaskCall(c);
-							c->~ImageMaskCmd();
-							break;
-						}
-						case kSDFImageMask_CmdType: {
-							auto c = (SDFImageMaskCmd*)cmd;
-							drawSDFImageMaskCall(c);
-							c->~SDFImageMaskCmd();
 							break;
 						}
 						case kTriangles_CmdType: {
@@ -435,36 +419,35 @@ namespace qk {
 			}
 		}
 
-		bool useTextureSlot0(const PaintImage &paint) {
+		bool useTexture0(const PaintImage &paint, int dstSlot) {
 			if (paint._isCanvas) { // flush canvas to current canvas
 				auto srcC = static_cast<GLCanvas*>(paint.canvas);
 				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
 					if (srcC->_render == _render) {
 						if (srcC->_outTex) {
-							_render->set_texture_param(srcC->_outTex, 0, &paint);
+							_render->set_texture_param(srcC->_outTex, dstSlot, &paint);
 							return true;
 						}
 					}
 				}
 				return false;
 			} else {
-				return _render->use_texture(paint.image, 0, &paint);
+				return _render->use_texture(paint.image, 0, dstSlot, &paint);
 			}
 		}
 
 		void drawImageCall(ImageCmd *cmd) {
-			if (useTextureSlot0(cmd->paint)) { // rgb or y
+			if (useTexture0(cmd->paint, _render->_shaders.image.imageSlot)) { // rgb or y
 				auto &paint = cmd->paint;
 				auto src = paint.image;
-
-				if (!paint._isCanvas && kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
+				if (cmd->kind == kImage_DrawKind &&
+						!paint._isCanvas && kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = &_render->_shaders.imageYuv;
 					useShaderProgram(yuv, cmd->vertex);
-					if (!_render->use_texture(src, 1, &paint))
-						return; // u or uv
-
+					Qk_ASSERT_EQ(true, _render->use_texture(src, 0, yuv->imageSlot, &paint));
+					Qk_ASSERT_EQ(true, _render->use_texture(src, 1, yuv->image_uvSlot, &paint)); // u or uv
 					if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
-						if (!_render->use_texture(src, 2, &paint)) return; // v
+						Qk_ASSERT_EQ(true, _render->use_texture(src, 2, yuv->image_vSlot, &paint));
 						glUniform1i(yuv->pc_format, 1); // yuv420p
 					} else {
 						glUniform1i(yuv->pc_format, 0); // yuv420sp
@@ -475,46 +458,26 @@ namespace qk {
 				} else {
 					auto s = &_render->_shaders.image;
 					useShaderProgram(s, cmd->vertex);
+					auto type = paint._isCanvas ? kRGBA_8888_ColorType: paint.image->type();
+					glUniform1i(s->pc_alphaIndex, cmd->kind == kMask_DrawKind ?
+						(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0);
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
+					glUniform4fv(s->pc_strokeColor, 1,
+						cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
+					glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-					glUniform1ui(s->pc_flags, cmd->flags);
+					glUniform1ui(s->pc_flags, cmd->flags |
+						(cmd->kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
+						(cmd->kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0));
 				}
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
 		}
 
-		void drawImageMaskCall(ImageMaskCmd *cmd) {
-			if (useTextureSlot0(cmd->paint)) {
-				auto type = cmd->paint._isCanvas ? kRGBA_8888_ColorType: cmd->paint.image->type();
-				auto s = &_render->_shaders.imageMask;
-				useShaderProgram(s, cmd->vertex);
-				glUniform1i(s->pc_alphaIndex, type == kAlpha_8_ColorType ? 0 :
-						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
-				glUniform4fv(s->pc_color, 1, cmd->color.val);
-				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, cmd->flags);
-				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
-			}
-		}
-
-		void drawSDFImageMaskCall(SDFImageMaskCmd *cmd) {
-			if (useTextureSlot0(cmd->paint)) {
-				auto s = &_render->_shaders.imageSdfMask;
-				useShaderProgram(s, cmd->vertex);
-				glUniform4fv(s->pc_color, 1, cmd->color.val);
-				glUniform4fv(s->pc_strokeColor, 1, cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
-				glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
-				glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-				glUniform1ui(s->pc_flags, cmd->flags);
-				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
-			}
-		}
-
 		void drawTrianglesCall(TrianglesCmd *cmd) {
-			#define Qk_FLAGS_DARK_COLOR (1 << 3)
-			if (useTextureSlot0(cmd->paint)) {
+			auto s = &_render->_shaders.triangles;
+			if (useTexture0(cmd->paint, s->imageSlot)) {
 				// auto isPre = cmd->paint.image->premultipliedAlpha();
-				auto s = &_render->_shaders.triangles;
 				Qk_ASSERT_EQ(cmd->triangles.indexCount % 3, 0, "drawTrianglesCall, indexCount must be a multiple of 3");
 				s->use(cmd->triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), cmd->triangles.verts);
 				glUniform1ui(s->pc_flags, cmd->flags | (cmd->triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0));
@@ -527,14 +490,12 @@ namespace qk {
 		}
 
 		void drawGradientCall(GradientCmd *cmd) {
-			GLSLColorRadial *s = cmd->paint.type == PaintGradient::kRadial_Type ?
-				&_render->_shaders.colorRadial: (GLSLColorRadial*)&_render->_shaders.colorLinear;
+			auto s = &_render->_shaders.colorGradient;
 			int count = Qk_Min(64, cmd->paint.count); // max 64 stops
-
-			#define Qk_FLAG_COUNT2 (1u << 3)
-
 			useShaderProgram(s, cmd->vertex);
-			glUniform1ui(s->pc_flags, cmd->flags | (count == 2 ? Qk_FLAG_COUNT2: 0));
+			glUniform1ui(s->pc_flags, cmd->flags |
+				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
+				(cmd->paint.type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0));
 			glUniform4fv(s->pc_color, 1, cmd->color.val);
 			glUniform4fv(s->pc_range, 1, cmd->paint.origin.val);
 			glUniform1i(s->pc_count, count);
@@ -555,17 +516,7 @@ namespace qk {
 			// output to clip mask texture
 			setColorBuffer(clip->mask.get());
 
-			auto drawClipVertex = [&](const VertexData &vertex, Vec4 offset, uint32_t flags) {
-				auto s = &_render->_shaders.clip;
-				useShaderProgram(s, vertex);
-				glUniform4fv(s->pc_color, 1, whiteColor);
-				glUniform4f(s->pc_surfaceOffset, offset[0], offset[1], offset[2], offset[3]);
-				glUniform1ui(s->pc_flags, flags);
-				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-			};
-
 			auto drawClipMask = [&](bool black, bool clip) {
-				#define Qk_FLAG_AASIDE_Inverted (1u << 3)
 				auto scale = Vec2(1) / cmd->surfaceScale;
 				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
@@ -574,7 +525,7 @@ namespace qk {
 				// This produces a smooth subtractive mask edge.
 				int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
-				drawClipVertex(cmd->vertex, surface, flags);
+				drawColor(cmd->vertex, Color4f{1,1,1,1}, surface, flags);
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
 				// clear clipTex with black color
@@ -601,8 +552,9 @@ namespace qk {
 			glBindSampler(0, 0);
 			if (clip) {
 				GLSLColor::ClipStatBlock clipStat = {
-					clip->range.begin.x(), clip->range.begin.y(),
-					clip->range.end.x(), clip->range.end.y(), clip->op,
+					Vec4(clip->range.begin.x(), clip->range.begin.y(),
+							clip->range.end.x(), clip->range.end.y()),
+					clip->op,
 				};
 				glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboClip);
 				glBufferData(GL_UNIFORM_BUFFER, sizeof(clipStat), &clipStat, GL_DYNAMIC_DRAW);
@@ -619,8 +571,8 @@ namespace qk {
 			auto &cp = _render->_shaders.cp;
 			auto scale = resolution / src->size();
 			auto offset = (srcOffset - dst.begin) / src->size();
-			glActiveTexture(Qk_TEXTURE0);
-			Qk_BindSampler(0, 0);
+			glActiveTexture(GL_TEXTURE0 + cp.imageSlot);
+			glBindSampler(cp.imageSlot, 0);
 			glBindTexture(GL_TEXTURE_2D, src->texture(0)->id());
 			cp.use(sizeof(float) * 12, vertex);
 			glUniform2fv(cp.pc_iResolution, 1, resolution.val);
@@ -630,10 +582,11 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 
-		void drawColor(const VertexData &vertex, const Color4f &color, uint32_t flags) {
+		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
 			auto s = &_render->_shaders.color;
 			useShaderProgram(s, vertex);
 			glUniform4fv(s->pc_color, 1, color.val);
+			glUniform4fv(s->pc_surfaceOffset, 1, offset.val);
 			glUniform1ui(s->pc_flags, flags);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
@@ -688,15 +641,16 @@ namespace qk {
 			Vec2 iR = cmd->tmpA->size(); // input resolution
 			int oRw = iR.x(), oRh = iR.y();
 
+			auto &cp = _render->_shaders.cp;
 			// switch blend mode to src
 			_render->set_blend_mode(kSrc_BlendMode);
 			setRootMatrixCall(cmd->rootMatrix); // restore root matrix
-			glActiveTexture(Qk_TEXTURE0);
+			glActiveTexture(GL_TEXTURE0 + cp.imageSlot);
 			glBindTexture(GL_TEXTURE_2D, texA);
-			Qk_BindSampler(0, 0);
-			auto &cp = _render->_shaders.cp;
+			glBindSampler(cp.imageSlot, 0);
 			// Choosing the right blur shader
 			auto blur = &_render->_shaders.blur;
+			Qk_ASSERT(blur->imageSlot == cp.imageSlot, "blur shader image slot must equal to cp shader image slot");
 
 			if (imageLod) { // copy image, gen mipmap texture
 				if (oRw >> imageLod == 0 || oRh >> imageLod == 0)
@@ -775,12 +729,13 @@ namespace qk {
 				tex = gl_new_texid();
 				storeStat.set_id(tex);
 			}
+			auto &cp = _render->_shaders.cp;
 			auto iformat = gl_get_texture_internalformat(dst->type());
 			auto format = gl_get_texture_format(dst->type());
 			auto type = gl_get_texture_data_type(dst->type());
-			glActiveTexture(Qk_TEXTURE0);
+			glActiveTexture(GL_TEXTURE0 + cp.imageSlot);
 			glBindTexture(GL_TEXTURE_2D, tex); // bind texture to allocate storage
-			Qk_BindSampler(0, 0);
+			glBindSampler(cp.imageSlot, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
 			glBindTexture(GL_TEXTURE_2D, srcTex); // read image source
@@ -796,7 +751,6 @@ namespace qk {
 			float vertex[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
 			auto begin = cmd->srcRect.begin / cmd->surfaceSize;
 			auto scale = cmd->srcRect.size / cmd->surfaceSize;
-			auto &cp = _render->_shaders.cp;
 			cp.use(sizeof(float) * 12, vertex);
 			glUniform2f(cp.pc_iResolution, cmd->surfaceSize.x(), cmd->surfaceSize.y());
 			glUniform2fv(cp.pc_oResolution, 1, dstSize.val);
@@ -832,9 +786,9 @@ namespace qk {
 			auto iformat = gl_get_texture_internalformat(dst->type());
 			auto format = gl_get_texture_format(dst->type());
 			auto type = gl_get_texture_data_type(dst->type());
-			glActiveTexture(Qk_TEXTURE0);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, id);
-			Qk_BindSampler(0, 0);
+			glBindSampler(1, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, s[0], s[1], 0, format, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
@@ -846,9 +800,9 @@ namespace qk {
 				next ? next->texture(0)->id(): _canvas->_outTex, 0);
 			Qk_ASSERT(exit, "outputImageEndCall exit image is null");
 			if (exit->mipmap()) {
-				glActiveTexture(Qk_TEXTURE0);
+				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, exit->texture(0)->id());
-				Qk_BindSampler(0, 0);
+				glBindSampler(1, 0);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -874,9 +828,9 @@ namespace qk {
 			glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo); // bind top fbo
 
 			if (srcC->_opts.mipmap) { // gen mipmap texture
-				glActiveTexture(Qk_TEXTURE0);
+				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, srcC->_outTex);
-				Qk_BindSampler(0, 0);
+				glBindSampler(1, 0);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -929,10 +883,6 @@ namespace qk {
 	// ---------------------------------------------------------------------------------------
 
 	GLC_CmdPack::ImageCmd::~ImageCmd() {
-		paint.image->release();
-	}
-
-	GLC_CmdPack::ImageMaskCmd::~ImageMaskCmd() {
 		paint.image->release();
 	}
 
@@ -1103,37 +1053,17 @@ namespace qk {
 		cmd->blur = blur;
 	}
 
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f& color) {
-		_this->flushCanvas(paint);
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const GC_ImageDrawInfo &info) {
+		_this->flushCanvas(info.paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
-		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
-		paint->image->retain(); // retain source image ref
-	}
-
-	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color) {
-		_this->flushCanvas(paint);
-		auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
-		cmd->type = kImageMask_CmdType;
-		cmd->vertex = vertex;
-		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
-		paint->image->retain(); // retain source image ref
-	}
-
-	void GLC_CmdPack::drawSDFImageMask(const VertexData &vertex, const PaintImage *paint,
-		const Color4f &color, const Color4f &strokeColor, float stroke) 
-	{
-		auto cmd = new(_this->allocCmd(sizeof(SDFImageMaskCmd))) SDFImageMaskCmd;
-		cmd->type = kSDFImageMask_CmdType;
-		cmd->vertex = vertex;
-		cmd->color = premul_alpha(color);
-		cmd->paint = *paint;
-		cmd->strokeColor = premul_alpha(strokeColor);
-		cmd->strokeWidth = stroke;
-		paint->image->retain();
+		cmd->color = premul_alpha(info.color);
+		cmd->strokeColor = premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor);
+		cmd->strokeWidth = info.stroke;
+		cmd->kind = info.kind;
+		cmd->paint = *info.paint;
+		info.paint->image->retain(); // retain source image ref
 	}
 
 	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) {

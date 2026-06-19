@@ -36,3 +36,12 @@ When theory and observed engineering reality appear to conflict:
 
 Never use standards-only reasoning to limit the project's engineering options
 without explaining the concrete consequence it prevents.
+
+## 2. AI Assistants Do Not Compile By Default
+
+AI assistants must not run C++ builds, full project builds, or other
+time-consuming compilation commands unless the user explicitly requests them.
+
+Prefer source inspection, targeted searches, syntax checks, diff checks, and
+required code generators. The user will run compilation and provide any
+resulting errors for follow-up fixes.
