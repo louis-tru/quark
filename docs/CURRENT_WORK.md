@@ -188,6 +188,36 @@ The selected algorithm is now named **CGAA (Compute Grid Anti-Aliasing)**.
 Historical references to Compute AA or Compute GRID AA in this document refer
 to the CGAA research path.
 
+### CGAA Current Findings
+
+- CGAA is now visually passing the current canvas stress tests at a surface level:
+  color fills, image fills, gradients, rotated/scaled paths, masks, and mixed
+  overlap scenes appear broadly correct in the active test-canvas coverage.
+- The remaining UI border seam problem is important and should be tracked as a
+  separate primitive/compositing issue, not as a generic CGAA coverage failure.
+  Rect/rrect borders can be made of multiple logical contours or four side paths;
+  drawing those as independent AA paths with ordinary SrcOver can expose the
+  framebuffer background at joins, especially on high-contrast backgrounds.
+- The intended long-term fix is renderer-side primitive handling: treat border
+  coverage as one logical outer-minus-inner shape, then decide side/corner color
+  inside that covered region. Do not rely on upper UI compensation or blind
+  framebuffer coverage addition; different-color borders need explicit color
+  ownership at joins.
+- Current CGAA CPU cost is high because edge bucketing into tiles is CPU-side.
+  This should not be considered the final production shape. A follow-up track
+  should investigate moving edge-to-tile binning/backdrop preparation to GPU
+  compute so CPU work is closer to path flattening and upload only.
+- The current 4x4 subpixel grid is also visibly jagged in some scenes. Treat it
+  as a correctness/prototyping setting, not final quality. A production CGAA
+  direction must solve both quality and cost: either a better coverage
+  estimator, a higher/effective sample rate without exploding atlas cost, or a
+  different GPU path-rendering approach.
+- Near-term research priority after this context switch: study higher-quality
+  GPU path renderers and GPU-side binning strategies before spending more time
+  on the UI border logical-primitive coverage issue. The border seam remains
+  important, but it should come after deciding whether the CGAA core can meet
+  quality and CPU-cost requirements.
+
 ### CGAA Production Integration Baseline
 
 Commit `d794e56ac` records the pre-integration baseline that starts moving CGAA

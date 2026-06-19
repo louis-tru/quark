@@ -14,7 +14,7 @@
 
 using namespace qk;
 
-#define Qk_TEST_CANVAS(Fn) Fn(2)
+#define Qk_TEST_CANVAS(Fn) Fn(0)
 
 void test_gui_new(Box *r);
 
@@ -40,7 +40,7 @@ class TestCanvas0: public Box {
 		canvas->save();
 
 		if (1) { // clip
-			// canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		if (1) { // gradient
@@ -130,6 +130,7 @@ class TestCanvas0: public Box {
 		}
 
 		if (1) { // outline
+			// paint.antiAlias = false;
 			paint.style = Paint::kStrokeAndFill_Style;
 			paint.stroke.color = Color4f(0,0,0,0.3);
 			paint.strokeWidth = 8;

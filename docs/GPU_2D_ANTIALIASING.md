@@ -1,966 +1,615 @@
-# GPU 2D Antialiasing Research
+# GPU 2D 抗锯齿研究记录
 
-This document tracks future work on high-quality GPU antialiasing for Quark's 2D renderer.
+本文记录 Quark/Qk 2D GPU 渲染器的抗锯齿研究、当前问题、外部项目学习结论，以及后续可能的架构路线。
 
-## Why This Matters
+这不是最终方案说明，而是持续更新的技术笔记。目标是把 AA 质量和性能推到 GUI 渲染器能承受的上限，同时避免为了局部问题把管线复杂度推爆。
 
-Quark is a GUI framework, not a 3D game renderer. The quality bar for 2D edges is different:
+## 为什么这件事重要
 
-- Text, icons, borders, rounded rects, and vector shapes are viewed at rest for long periods.
-- Users notice small edge instability, uneven alpha ramps, corner artifacts, and shimmer.
-- GUI surfaces often contain large flat colors next to crisp curves, so imperfect coverage is very visible.
-- High-quality visual immersion depends on calm, precise 2D edges as much as on performance.
+Quark 是 GUI 框架，不是 3D 游戏渲染器。GUI 的 2D 边缘质量要求更苛刻：
 
-After the Metal and Vulkan backends become stable, antialiasing quality should become a dedicated rendering track.
+- 文字、图标、边框、圆角矩形和矢量形状会长期静止显示。
+- 用户很容易看到边缘抖动、alpha 过强、角点不均匀、细线忽粗忽细。
+- 大面积纯色和清晰曲线相邻时，coverage 的一点点错误都会很明显。
+- 沉浸感不仅来自性能，也来自安静、稳定、精确的二维边缘。
 
-## Current Approach
+因此 AA 不能只是“有一圈模糊边”。它需要接近真实像素覆盖，且在平移、缩放、旋转、裁剪和不同后端之间稳定。
 
-The current GPU path uses an `aaSide` style method for many vector edges:
+## 当前 Qk 状态
 
-- Geometry is drawn normally for the solid interior.
-- An extra soft band is generated around the path edge.
-- The soft band behaves somewhat like a simple SDF-like expansion.
-- Fragment alpha is reduced across this AA edge band to hide jagged edges.
-- It does not precisely compute the true coverage/opacity of every affected pixel.
-- The data is currently still a `Vec3` triplet: `{x, y, aaSide}`. The current
-  research direction is to improve the meaning of `aaSide`, not to add more
-  vertex attributes.
+当前 GPU 路径主要依赖 AASide 风格的边缘条带：
 
-Relevant areas:
+- 实体区域正常绘制。
+- 边缘外生成一圈 soft band。
+- fragment 根据插值的 `aaSide` 计算 alpha。
+- 它更像一种 SDF/距离条带近似，不是真正逐像素几何覆盖。
+- 当前顶点数据仍是 `{x, y, aaSide}` 这种 `Vec3` 形式。
 
-- `src/render/gpu_canvas.*`: shared path draw/fill/stroke behavior and `_phy2Pixel` scale handling.
-- `src/render/pathv_cache.*`: cached path triangles and AA side stroke geometry.
-- `src/render/shader/_util.glsl`: shared AA clip and fragment helpers.
-- `src/render/shader/color*.glsl`, `image*.glsl`, `triangles.glsl`: fragment paths that consume AA-related fields.
-- `src/render/gl/gl_command.*`: current GL behavior reference.
-- `src/render/metal/mtl_canvas.*`: Metal path still being aligned.
+相关代码区域：
 
-## Current Problem
+- `src/render/gpu_canvas.*`：共享的 path fill/stroke 绘制逻辑，包含 `_phy2Pixel` 和缩放处理。
+- `src/render/pathv_cache.*`：路径三角形、边缘条带和 stroke geometry 缓存。
+- `src/render/shader/_util.glsl`：AA、clip、fragment 辅助函数。
+- `src/render/shader/color*.glsl`、`image*.glsl`、`triangles.glsl`：消费 AA 字段的 fragment 路径。
+- `src/render/gl/gl_command.*`：当前 GL 行为参考。
+- `src/render/metal/mtl_canvas.*`：正在对齐中的 Metal 后端。
+- `src/render/cgaa.cc`、`src/render/shader/_cgaa.glsl`：CGAA / compute AA 原型方向。
 
-The current fuzzy band is useful but not exact enough:
+目前经验判断：
 
-- The true coverage/opacity of each affected pixel is not calculated carefully.
-- Edge alpha can be too strong or too weak depending on transform scale.
-- Curves and sharp corners can show uneven ramps.
-- The method is heuristic, so matching GL / Metal / future Vulkan exactly is hard.
-- Subpixel translation can cause visible variation because coverage is not derived from exact pixel overlap.
+- AASide 对普通 UI 边缘仍然有价值，尤其是细 stroke/hairline。
+- CGAA 对复杂 fill 有潜力，但现在还不能直接替代所有路径。
+- 极小 stroke，尤其是物理 1px 左右的线，CGAA 视觉上容易显粗；AASide 中心线向外扩散的距离场处理反而更可控。
+- 对 stroke 来说，经过 stroke tess 后一般不会出现 fill 那种极限角度、几乎重合边、复杂 winding 问题，所以 stroke 可以优先保留 AASide 特化路径。
+- 对 fill 来说，单纯几何 AA 很难解决所有 coverage 和多轮廓问题，compute/tile 方向更值得继续。
 
-In short: the renderer draws a soft edge, but it does not yet compute high-fidelity pixel coverage.
+## 当前问题清单
 
-## Current Direction
+### AASide 的问题
 
-The next AA track should stay GPU-first. Do not make CPU coverage rasterization
-or software AA the primary route; many renderers already solve quality that way,
-but Quark's current direction is to keep path filling in the GPU pipeline.
+- 它不是精确 coverage，只是软边启发式。
+- alpha 容易随缩放、变换和子像素位置变化。
+- 角点、join、cap、圆角处可能出现不均匀 ramp。
+- 极细线的视觉宽度很难同时满足物理准确和主观好看。
+- 对强斜切、非均匀缩放、透视式变形，按局部边距离处理可能会变差。
 
-Important constraints from the current renderer:
+### CGAA 的问题
 
-- Curves are flattened before they reach the GPU, so the AA problem can be
-  treated primarily as directed straight-edge coverage.
-- A coverage mask is only a storage or compositing mechanism. It still needs an
-  accurate coverage calculation.
-- If the final path body is drawn only with the original fill triangles, pixels
-  whose centers lie just outside those triangles will not run the fragment
-  shader. Any mask-based path renderer would need to draw conservative expanded
-  bounds, not just reuse the body triangles.
-- The old `aaSide` behavior is still too close to a heuristic alpha ramp. The
-  next version should make `aaSide` a signed edge coordinate so the shader can
-  distinguish inside, edge, and outside without adding new vertex fields.
+CGAA 目标是更准确地计算 tile 内边覆盖，但目前观察到的问题包括：
 
-This points toward a GPU signed-side edge-AA system rather than a software mask
-rasterizer.
+- 性能开销很大，binning、tile 处理和 mask 输出成本都明显。
+- 直接用于小 stroke 时视觉不够好，尤其物理 1px 附近显粗。
+- 多路径、多轮廓分别 AA 后再合成，会出现背景漏光或拼接缝隙。
+- 单个路径内部的 coverage 可以算得更准确，但多个相邻图元如果独立 resolve，仍会在边界产生错误。
 
-Current naming and data contract:
+边界裁剪相关经验：
 
-- `aaSide < 0`: inside the shape.
-- `aaSide = 0`: the true geometric edge.
-- `aaSide > 0`: outside the shape.
-- The existing triplet `{x, y, aaSide}` should remain the primary vertex format
-  while prototyping. Avoid expanding the vertex layout unless the simple model
-  fails for a concrete case.
-- Fragment shaders should derive the local 1-pixel transition width using
-  `fwidth(aaSide)` and convert the signed side coordinate to coverage with a
-  calibrated smooth/clamp function.
+- 逻辑裁剪 range 需要先转换到边坐标/屏幕像素坐标再参与边处理。
+- 对右/下边界，边正好落在 `end` 上时不能用 `>= end` 丢弃；应使用 `> end` 这种严格在外侧的判断。
+- 被裁掉的边可能让某些 tile 不再有 crossing edge，从而被当成纯色 tile，表现为颜色向右或向下延伸。
+- 这类问题本质上不是“水平边/垂直边能不能忽略”，而是 tile 是否仍然拥有足够的边信息来决定 coverage 和 backdrop。
 
-## Design Goals
+### 逻辑图元 coverage 问题
 
-Future antialiasing work should aim for:
+这是目前最关键的质量问题之一。
 
-- Stable subpixel coverage under translation, scaling, and rotation.
-- Consistent results across GL, Metal, and Vulkan.
-- High-quality curves, joins, caps, rounded rects, and clipping edges.
-- Predictable premultiplied-alpha behavior.
-- Good performance for common GUI scenes.
-- A path that can coexist with text rendering, image masks, blur, and render-to-texture.
+多个几何轮廓各自做 AA，再按普通 alpha blend 合成，会在共享边界漏出背景。典型例子是 border 被拆成多块、同色或异色区域相接、圆角边框和填充区域分开绘制。
 
-## Candidate Directions
+同色图元比较容易处理：
 
-These options should be studied before implementation.
+- 可以在 CPU 合并成一个逻辑图元。
+- 或者在同一 mask / coverage pass 中统一 resolve。
 
-### Analytic Coverage
+不同颜色或不同填充更难：
 
-Compute coverage in the shader from edge equations or signed distance data.
+- 不能简单合并为一个颜色。
+- 共享边界处不能让两个图元各自半透明后露出背景。
+- 正确做法更接近“同一个像素/采样点只属于某个前景图元，或者由有序图元共同 resolve”，而不是每个路径独立 AA 后再 blend。
 
-Potential benefits:
+这说明最终架构应从“每个 path 独立 coverage atlas”走向“按目标 tile 收集图元命令，然后在 tile 内按顺序统一 coverage/color resolve”。
 
-- More accurate per-pixel edge alpha.
-- Better behavior under subpixel transforms.
-- Can make AA width explicitly tied to device pixels.
+## 设计目标
 
-Risks:
+后续 AA 工作应满足：
 
-- Harder for complex paths, self-intersections, and clips.
-- Requires careful handling of joins, curves, and fill rules.
+- 子像素平移、缩放、旋转下稳定。
+- GL、Metal、未来 Vulkan 尽量一致。
+- 曲线、join、cap、圆角矩形、clip 边缘质量高。
+- premultiplied alpha 行为可预测。
+- 常见 GUI 场景性能足够好。
+- 能与文字、图片 mask、blur、render-to-texture、clip stack 共存。
+- 不以 CPU 软件光栅作为主路线，保持 GPU-first。
 
-### Improved Geometry AA
+## 候选技术路线
 
-Keep the current extra-band approach but compute a better alpha ramp.
+### 改进 AASide
 
-Possible improvements:
+保留当前边缘条带，但让 `aaSide` 语义更明确：
 
-- Generate edge distance or normalized coverage parameters in vertices.
-- Calibrate the ramp using `_allScaleAverage` / `_allScaleMin` / `_phy2Pixel`.
-- Treat per-pixel coverage explicitly rather than assuming a generic soft band.
-- Improve corner and join handling.
+- `aaSide < 0`：shape 内部。
+- `aaSide = 0`：真实几何边。
+- `aaSide > 0`：shape 外部。
 
-Benefits:
+fragment 使用 `fwidth(aaSide)`、`dfdx`、`dfdy` 推导当前设备像素下的 AA 宽度，而不是只相信 CPU 生成的条带宽度。
 
-- Smaller change from current renderer.
-- Easier to align with the existing path cache.
+优点：
 
-Risks:
+- 改动小，适合保留现有 path cache。
+- stroke/hairline 可以继续走这条路。
+- 对简单边界、按钮、普通 UI shape 够快。
 
-- Still heuristic unless coverage is derived from geometry/pixel overlap.
-- May struggle with extreme transforms or very small shapes.
+风险：
 
-### Signed AASide Edge AA
+- 仍然是启发式，不是真正面积覆盖。
+- join/corner/极小图形需要额外策略。
+- 多图元共享边界的漏光问题不能靠单个 AASide 解决。
 
-This is the most promising replacement for the current heuristic `aaSide` path.
+### 解析 coverage
 
-The CPU would generate conservative edge coverage geometry, but not final
-per-pixel coverage. The important point is that the existing interpolated
-`aaSide` value should become a signed edge-side coordinate:
+在 shader 中根据边方程、signed distance 或边积分计算像素覆盖。
 
-- The edge itself has `aaSide = 0`.
-- Inner expanded vertices carry negative `aaSide`.
-- Outer expanded vertices carry positive `aaSide`.
-- For straight edges, interpolation of this value across the band is enough for
-  the shader to locate the true edge at `aaSide = 0`.
+优点：
 
-The fragment shader then computes coverage from the directed edge:
+- 子像素行为更稳定。
+- AA 宽度可以明确绑定到设备像素。
+- 对 fill 的理论质量更好。
 
-- Use shader derivatives such as `fwidth(aaSide)`, `dfdx`, and `dfdy` to derive
-  the current device-pixel AA width instead of relying only on CPU-computed
-  edge-band width.
-- Convert the signed side coordinate to alpha coverage with a calibrated ramp.
-- Keep premultiplied-alpha behavior explicit and consistent across GL, Metal,
-  and Vulkan.
+风险：
 
-The intended draw order becomes:
+- 复杂路径、自交、fill rule、clip stack 和多轮廓处理难。
+- 需要完整 tile/bin/backdrop 机制，否则无法解决全局 winding。
 
-1. Draw the directional AA edge band first.
-2. Draw the solid body afterward.
-3. Use depth so the body covers the inner half of the AA band.
+### MSAA 或 hybrid AA
 
-This is different from the old `aaSide` model. The sign of `aaSide` matters
-because the edge pass needs to know which side is inside and which side is
-outside, even though that sign can still be carried by the existing third vertex
-component.
+MSAA 对三角形边缘天然有效，可以作为对比或特定 surface 的 fallback。
 
-Benefits:
+但它不应成为主路线：
 
-- Keeps the expensive per-pixel coverage decision on the GPU.
-- Avoids CPU rasterization of every affected edge pixel.
-- Allows AA width to respond naturally to transforms through shader
-  derivatives.
-- Reuses the existing `{x, y, aaSide}` vertex format while making the coverage
-  calculation more geometric and deterministic.
+- offscreen surface 和 render-to-texture 成本高。
+- 不解决 shader mask、image filter、复杂 clip 的所有问题。
+- 后端 resolve 行为难以完全一致。
 
-Risks:
+### Coverage mask / tile mask
 
-- Joins and corners need a precise overlap policy.
-- Very small shapes may have little or no stable body area, so they need a
-  special fallback or unified edge/body treatment.
-- Fill-rule and winding behavior must stay consistent with the body triangles.
-- Difference clips, inverted clips, and nested clips need explicit validation.
-- The body depth-over-edge strategy must not break batching or render-target
-  switching.
+把路径 coverage 先写入 mask，再 composite。
 
-### MSAA Or Hybrid AA
-
-Use MSAA where available, possibly combined with shader AA for specific primitives.
-
-Benefits:
-
-- Hardware-supported coverage for triangle edges.
-- Can improve general path edges with less shader complexity.
+优点：
 
-Risks:
-
-- Costly for offscreen surfaces and render-to-texture.
-- Does not solve all shader mask/image/filter edges.
-- Backend support and resolve behavior must be kept consistent.
+- 可复用复杂路径 mask。
+- 适合 clip 和 path fill 统一。
 
-This is not a primary direction for Quark right now. It can remain a fallback
-or comparison point, but the AA quality track should not depend on MSAA.
-
-### Distance Field / Coverage Masks
-
-Rasterize vector coverage or signed distance into an intermediate mask, then composite.
-
-Benefits:
-
-- Can provide high-quality reusable masks for complex paths.
-- May unify clipping and path AA.
-
-Risks:
-
-- Extra passes and memory.
-- Needs careful caching/invalidation.
-- Small features can be lost without high-resolution masks or exact coverage.
-
-## Skia Source Study
-
-The sibling `../skia` checkout has been used to study both the older Ganesh-era
-CCPR implementation and the newer Graphite/Vello compute path renderer. These
-are different generations of Skia path rendering and should not be mixed
-together when evaluating an approach for Quark.
-
-The main architectural lesson is that Skia does not use one universal AA
-algorithm. `GrPathRendererChain` selects among specialized renderers based on
-shape type, complexity, transform, GPU capabilities, and requested AA mode:
-
-- Simple convex fills use `GrAAConvexPathRenderer`. Straight edges carry signed
-  device-space distance, while quadratic curves use an implicit curve equation
-  and shader derivatives to convert that equation into coverage.
-- Hairlines use `GrAAHairLinePathRenderer`. Lines are expanded into conservative
-  geometry with explicit per-vertex coverage. Segments shorter than one pixel
-  reduce their inner coverage by segment length so they remain stable during
-  subpixel translation.
-- Small concave fills can use `GrTriangulatingPathRenderer`. It resolves the
-  entire path topology first, extracts inner and outer boundaries, collapses
-  overlapping AA regions, and emits a single triangulated mesh with a one-pixel
-  coverage ramp.
-- More complicated paths can use CCPR. CCPR decomposes paths into triangles and
-  convex curve primitives, renders signed winding coverage into a floating-point
-  atlas with additive blending, then samples the resolved coverage mask.
-- Tessellation paths use hardware MSAA or mixed samples rather than analytic AA.
-- Paths too complicated for the GPU renderers can fall back to a software
-  rasterized A8 coverage mask.
-- Rects, rounded rects, ovals, and similar common shapes have dedicated render
-  operations instead of always going through the general path renderer.
-
-Important implementation details:
-
-- Skia's common coverage ramp is tied to device pixels. The convex tessellator
-  uses a `0.5` device-pixel AA radius, and conservative coverage geometry usually
-  spans about one device pixel.
-- Skia does use signed distance and `dFdx` / `dFdy`, but only where the geometry
-  guarantees make the interpolated or implicit value meaningful. It restricts
-  the signed-distance convex renderer to simple convex paths with known winding.
-- Complex-path AA solves fill topology before generating coverage. It does not
-  independently blend an AA strip for every original contour edge.
-- Corner treatment is explicit. Convex geometry emits corner wedges and the CCPR
-  path has separate corner attenuation logic. A single averaged join normal is
-  not treated as sufficient for every angle.
-- Very small and degenerate geometry has explicit policy. Skia drops some nearly
-  zero-area convex paths, converts degenerate curves to lines, scales coverage
-  for subpixel hairlines, and falls back when a specialized algorithm is outside
-  its safe domain.
-
-Direct implications for Quark:
-
-- Keep signed `aaSide` as a useful straight-edge coverage coordinate, but do not
-  expect `fwidth(aaSide)` alone to solve corners, overlaps, self-intersections,
-  or subpixel-thin geometry.
-- The current use of `boundaryPath()` is directionally correct because it removes
-  internal overlap edges before AA generation. The next robustness step should
-  similarly make the final AA mesh topology-aware, rather than allowing
-  independently generated edge strips to overlap and blend.
-- Replace unbounded averaged-normal miter expansion with explicit join geometry
-  and a miter-limit/bevel fallback. This matches Skia's treatment and directly
-  addresses acute-angle spikes in `stroke.cc`.
-- Add a dedicated subpixel hairline path. When the effective stroke width is
-  below one device pixel, coverage should be scaled by width/length rather than
-  relying on a normal fill AASide band.
-- Add specialized rect and rounded-rect AA paths before investing in a universal
-  complex-path solution. These cover a large portion of GUI rendering and allow
-  more accurate, cheaper coverage.
-- For arbitrary complex paths, the realistic high-quality choices are a
-  topology-resolved coverage mesh or a coverage-count/mask atlas. Skia's source
-  does not support the idea that independent edge bands alone are sufficient.
-
-### CCPR Conclusion
-
-CCPR renders signed winding coverage into a coverage-count atlas, then samples
-the atlas during the final paint draw. Its triangle processor expands each
-logical triangle into hull, edge-correction, and corner-correction geometry.
-The correction geometry and additive winding resolve overlap and approximate
-pixel coverage.
-
-Important conclusions from studying CCPR:
-
-- The atlas is not an already-AA image that receives another AA pass. AA is
-  computed while generating the atlas coverage.
-- Separate paths are allocated separate atlas regions. CCPR does not union every
-  draw in a frame into one giant boolean operation.
-- CCPR avoids CPU path boolean operations, but requires substantial custom GPU
-  geometry generation, correction triangles, blending rules, atlas management,
-  and final sampling integration.
-- Corner correction is difficult to understand and maintain. It relies on
-  carefully designed interpolated correction surfaces rather than a simple
-  edge-normal expansion.
-- CCPR was removed from newer Skia architecture. It is useful research material,
-  but it is not a planned implementation direction for Quark.
-
-Quark should not implement CCPR. Its complexity is too high relative to the
-remaining limitations and newer compute-based alternatives.
-
-### Graphite And Vello Compute AA
-
-Newer Graphite can prefer a Vello-based Compute Path Atlas for suitable complex
-paths, while retaining tessellation plus stencil/MSAA and CPU raster atlases as
-fallbacks. Skia still selects specialized analytic renderers for simple shapes;
-there is no single universal AA path.
-
-The Vello-style compute pipeline does not generate final fill triangles. It
-encodes path edges and computes a coverage mask through multiple GPU compute
-passes:
+风险：
+
+- 额外 pass 和内存成本。
+- 如果 coverage 计算仍然粗糙，mask 只是存储错误结果。
+- per-path mask 不能自然解决多图元共享边界漏光。
+
+### Compute AA / CGAA
+
+把路径边分配到 tile，在 compute shader 中计算 tile 内 coverage。
+
+这是当前最值得研究的 fill 方向，但要注意：
+
+- 它不是单个 shader 可以解决的问题，而是完整的路径编译、binning、backdrop、tile resolve 管线。
+- 如果仍然每个 path 独立生成 mask，再普通 alpha blend，边界漏光仍会存在。
+- 性能关键在于减少 CPU/GPU 同步、减少全局原子、减少临时 buffer、控制每 tile 工作量。
+
+## Skia 研究结论
+
+Skia 的经验说明，成熟 2D 渲染器通常不是单一 AA 算法，而是一组特化 renderer：
+
+- 简单形状走快速 analytic renderer。
+- stroke/hairline 有专门路径。
+- 复杂 path、clip、mask 走其他路径。
+- 大量质量问题通过“选择正确 renderer”解决，而不是一个算法包打天下。
+
+CCPR（Coverage Counting Path Renderer）值得学习思想，但不适合作为 Qk 近期直接实现目标：
+
+- 架构复杂，依赖 Skia 自身的 atlas、batch、资源管理。
+- 对 Qk 当前 GL/Metal 对齐阶段来说成本太高。
+- 它强调 coverage counting 和 mask atlas，这与 Qk 的 CGAA 方向有相似处，但不能照搬。
+
+Graphite / Vello 方向说明现代 GPU 2D 正在往 compute-driven pipeline 发展：
+
+- CPU 记录 compact scene。
+- GPU 做 path 处理、binning、coarse/fine raster。
+- tile 内统一 resolve coverage 和 color。
+
+这与 Qk 后续要解决的多图元 AA、clip stack、性能问题方向一致。
+
+## Pathfinder 研究记录
+
+本地项目位置：
+
+- `/Users/louis/Project/graphics/pathfinder`
+
+重点文件：
+
+- `renderer/src/builder.rs`
+- `renderer/src/gpu/d3d11/renderer.rs`
+- `renderer/src/tiler.rs`
+- `renderer/src/gpu_data.rs`
+- `shaders/d3d11/dice.cs.glsl`
+- `shaders/d3d11/bin.cs.glsl`
+- `shaders/d3d11/bound.cs.glsl`
+- `shaders/d3d11/propagate.cs.glsl`
+- `shaders/d3d11/fill.cs.glsl`
+- `shaders/d3d11/tile.cs.glsl`
+- `shaders/d3d11/sort.cs.glsl`
+- `shaders/d3d11/fill_area.inc.glsl`
+- `shaders/d3d11/tile_fragment.inc.glsl`
+
+### 总体架构
+
+Pathfinder 3 是一个 GPU-based vector rasterizer，支持 GL/WebGL/Metal。D3D11 路径使用 compute shader，D3D9 风格路径则更多依赖传统硬件 rasterization。
+
+D3D11 compute 管线大致为：
 
 ```text
-Path verbs / points / transforms
-  -> path reduction and segmentation
-  -> bin segments into tiles
-  -> allocate per-tile segment lists
-  -> coarse raster / backdrop winding
-  -> fine raster per pixel
-  -> write coverage atlas
-  -> draw bounds quad and sample coverage
+CPU Scene / DisplayList / Paint
+  -> CPU 编码 path segment、tile bounds、batch metadata
+  -> GPU dice 曲线/线段，生成 microline
+  -> GPU bin microline，写入 per-tile fill linked list 和 backdrop delta
+  -> GPU propagate 按列累积 backdrop，处理 clip、solid/alpha tile、tile list
+  -> GPU fill alpha tile，把面积 coverage 写入 mask atlas
+  -> GPU sort 每个 framebuffer tile 的 draw list
+  -> GPU tile 按顺序 composite 最终颜色
 ```
 
-The fine raster stage calculates winding and AA together. Depending on strategy,
-it can use analytic area coverage or software-style fixed samples inside the
-compute shader. Compute `MSAA8/16` means evaluating several sample positions and
-writing one final coverage value; it does not require an 8x/16x framebuffer.
+### CPU 做什么
 
-Compute AA resolves fill topology per pixel rather than producing boolean-result
-geometry:
+Pathfinder D3D11 并不是“CPU 展平路径，其它全在 GPU”这么简单。更准确地说：
+
+- CPU 记录 scene/display list/paint。
+- CPU 计算 path bounds、tile bounds 和 batch metadata。
+- CPU 上传 contour points、segment index、segment flags。
+- 曲线仍以 quadratic/cubic flag 保留下来。
+- 真正的 dice/flatten 在 GPU `dice.cs.glsl` 中执行。
+
+这点很重要：它的 CPU 不是完全做 coverage，也不是完全做 flatten，而是做 scene 编码和调度准备。
+
+### GPU dice
+
+`dice.cs.glsl` 每个 invocation 处理一个原始 segment：
+
+- line 按 `MICROLINE_LENGTH = 16` 近似拆分。
+- quadratic/cubic 根据 tolerance 估算需要拆成多少 microline。
+- 输出 packed microline，供后续 bin 使用。
+
+这让 GPU 端拥有足够细的直线边，但 CPU 不需要预先把曲线完全展开。
+
+### GPU bin
+
+`bin.cs.glsl` 基本是 CPU tiler 的 GPU 版：
+
+- 每条 microline 被分配到穿过的 16x16 tile。
+- tile 内写 fill segment linked list。
+- 对跨 tile 边界的线更新 backdrop delta。
+- 使用类似 Amanatides/Woo 的格子遍历方式。
+
+这一步是 Pathfinder 的核心之一：它不是直接画三角形边，而是先把边变成 tile-local 工作。
+
+### GPU propagate
+
+`propagate.cs.glsl` 按 path tile column 工作：
+
+- 从上到下累积 backdrop。
+- 处理 clip。
+- 区分 solid tile 和 alpha tile。
+- 为需要细算 coverage 的 tile 分配 alpha tile。
+- 建立 framebuffer tile 对应的绘制链表。
+
+也就是说，Pathfinder 不只计算 coverage，还在 GPU 上组织“哪些目标 tile 需要画哪些 path”。
+
+### GPU fill
+
+`fill.cs.glsl` 每个 alpha tile 一个 workgroup：
+
+- tile 大小是 16x16。
+- local size 是 16x4。
+- RGBA 通道存四个垂直像素。
+- 使用 `fill_area.inc.glsl` 中的 `computeCoverage` 和 area LUT。
+- coverage 来自 line area contribution + backdrop。
+
+这不是简单 supersampling，而是边面积积分。
+
+### GPU tile composite
+
+`tile.cs.glsl` 每个 framebuffer tile 一个 workgroup：
+
+- 读取排序后的 tile list。
+- 读取 mask/backdrop。
+- 计算 paint/color。
+- 按 draw order 合成最终颜色。
+
+这一点对 Qk 很关键：Pathfinder 的最终单位不是“某个 path 的 mask”，而是“目标 framebuffer tile 中的一串绘制项”。这比当前 per-path atlas 更接近解决多图元 AA 的方向。
+
+### CPU tiler 路径
+
+`renderer/src/tiler.rs` 中的 CPU tiler 实现了论文 Random-Access Rendering of General Vector Graphics 的类似思路，并结合 Amanatides/Woo tile traversal：
+
+- `process_line_segment` 先把线段 clip 到 view。
+- 再遍历穿过的 tile。
+- 向 tile 写入局部 fill segment。
+- 穿过 top/bottom boundary 时写辅助 segment。
+- 对 right boundary enter/leave 调整 backdrop。
+
+这部分对理解 CGAA 的 tile/backdrop 很有参考价值。
+
+### Pathfinder 对 Qk 的启发
+
+Pathfinder 不是单纯 AA 算法，而是完整 tile scene renderer。
+
+值得 Qk 学的东西：
+
+- path fill 应该从 per-path 独立处理，升级到 batch/tile 级别组织。
+- CPU 可以负责 scene 编码、bounds、batch metadata，不必 CPU raster coverage。
+- 曲线可以在 GPU dice 成 microline，减少 CPU flatten 压力。
+- coverage mask 和 color composite 应分离，但最终要在目标 tile 内有序 resolve。
+- tile list / path tile / framebuffer tile 三层结构，可以解决很多当前 CGAA 的调度混乱。
+
+不宜直接照搬的东西：
+
+- Pathfinder D3D11 的 buffer/linked-list/atomic 方案复杂，直接搬到 Qk 会很重。
+- Qk 还要兼容 GL/Metal/Vulkan，不应先把全部架构绑到某个 compute 版本。
+- 当前最现实的是先吸收 tile/backdrop/ordered tile list 的结构思想。
+
+## Vello 研究记录
+
+本地项目位置：
+
+- `/Users/louis/Project/graphics/vello`
+
+重点文件：
+
+- `README.md`
+- `doc/ARCHITECTURE.md`
+- `vello/src/render.rs`
+- `vello/src/shaders.rs`
+- `vello_encoding/src/encoding.rs`
+- `vello_encoding/src/path.rs`
+- `vello_encoding/src/estimate.rs`
+- `vello_shaders/shader/shared/config.wgsl`
+- `vello_shaders/shader/flatten.wgsl`
+- `vello_shaders/shader/binning.wgsl`
+- `vello_shaders/shader/coarse.wgsl`
+- `vello_shaders/shader/path_tiling.wgsl`
+- `vello_shaders/shader/fine.wgsl`
+- `vello_shaders/shader/shared/ptcl.wgsl`
+
+### 总体架构
+
+Vello 是 GPU compute-centric 的 2D renderer，使用 wgpu。它把传统上很串行的工作，比如 path 扫描、clip、排序、tile 命令构建，尽量转成 prefix-sum / monoid / scan 形式在 GPU 上并行执行。
+
+Vello 的层次：
+
+- `Scene`：应用侧构建的场景。
+- `Encoding`：线性编码流，记录 path、draw、style、transform、resource。
+- `Recording`：渲染前准备出的命令和资源。
+- `WgpuEngine`：执行 shader pipeline。
+
+它不是 CPU 生成一堆三角形再交给 GPU，而是 CPU 记录紧凑 scene，GPU 编译成 tile 工作。
+
+### Encoding
+
+`vello_encoding` 把场景拆成线性流：
+
+- path tags/data
+- draw tags/data
+- transforms
+- styles
+- images/resources
+
+`Style` 同时编码 fill/stroke。路径可以是 `LineSoup`、`SegmentCount`、`PathSegment`、`PathTag` 等形式。
+
+这说明 Vello 的 CPU 主要是“编码意图”，不是直接生成最终 coverage geometry。
+
+### 渲染管线
+
+`vello/src/render.rs` 中的主流程大致是：
 
 ```text
-non-zero fill: winding != 0
-even-odd fill: winding & 1
-positive fill: winding > 0
+CPU Encoding / Resolver
+  -> pathtag_reduce
+  -> pathtag_reduce2
+  -> pathtag_scan1
+  -> pathtag_scan
+  -> bbox_clear
+  -> flatten
+  -> draw_reduce
+  -> draw_leaf
+  -> clip_reduce
+  -> clip_leaf
+  -> binning
+  -> tile_alloc
+  -> path_count_setup
+  -> path_count
+  -> backdrop
+  -> coarse
+  -> path_tiling_setup
+  -> path_tiling
+  -> fine_area 或 fine_msaa8 / fine_msaa16
 ```
 
-This naturally handles tiny shapes, narrow channels, self-intersections, holes,
-and transformed geometry without requiring a stable inset body.
-
-### Compute Shader Model
-
-A compute shader is not part of the vertex/triangle/fragment raster pipeline:
-
-```text
-graphics:
-vertices -> vertex shader -> triangles -> rasterizer -> fragment shader
-
-compute:
-dispatch thread grid -> read buffers/textures -> arbitrary calculation
-                     -> write buffers/textures
-```
-
-For a `1024x1024` target with `16x16` threads per group:
-
-```text
-groupCount = 64x64 groups
-each group = 16x16 logical threads
-usually one logical thread handles one output pixel
-```
-
-One workgroup can process one `16x16` tile. Threads in the group can share a
-small fast threadgroup buffer containing the tile's relevant edges.
-
-Each tile needs more than a list of edges that cross it. Fully covered interior
-tiles may contain no crossing edge, so rasterization also needs a backdrop or
-initial winding value.
-
-### Quark Compute AA Feasibility
+这比 Pathfinder 更进一步：不仅 dice/bin/fill 在 GPU，连 variable-length path stream 的 prefix scan、draw/clip reduction、tile command list 构建也都在 GPU。
 
-Quark's current GL path cannot directly run compute shaders:
-
-- macOS GL uses OpenGL 3.2 / GLSL 330.
-- iOS, Android, and Linux GL use GLES 3.0 / GLSL ES 300.
-- Compute requires OpenGL 4.3 or GLES 3.1.
-- Apple GL cannot be upgraded to a viable compute path.
-- Metal supports compute, but Quark does not yet have compute pipeline,
-  storage-buffer, dispatch, or compute-to-render synchronization abstractions.
-
-The first practical Quark prototype should therefore target Metal, while GL
-continues using AASide. Vulkan and GLES 3.1 can follow after the algorithm is
-validated.
-
-Quark already flattens curves and can continue generating stroke outlines on
-the CPU. A first compute implementation does not need Vello's full curve/stroke
-pipeline:
-
-```text
-CPU:
-  normalized fill path / CPU-generated stroke path
-  -> transform line edges into device/atlas space
-  -> assign edges to 16x16 tiles
-  -> calculate tile backdrop winding
-  -> upload edge and tile buffers
-
-GPU:
-  one workgroup per tile
-  -> calculate winding and 4x4 sampled coverage per pixel
-  -> write R8/R16 coverage atlas
-
-graphics:
-  draw path bounds quad and sample coverage atlas
-```
-
-CPU binning is acceptable for the first prototype. It is approximately
-proportional to edge count plus the number of tiles crossed by edges and avoids
-the much larger engineering cost of GPU prefix scans and dynamic allocation.
-GPU binning can be added only if profiling proves CPU binning is a bottleneck.
-
-### Stencil And MSAA
-
-Stencil/MSAA avoids CPU boolean-result geometry by allowing triangles to overlap
-and accumulating winding in multisampled stencil. It is robust and mature, but
-it is not free:
-
-- sample coverage and stencil operations scale with sample count;
-- multisample attachments increase tile/storage pressure;
-- resolve adds work;
-- low sample counts still provide discrete coverage levels.
-
-Full-surface 8x MSAA is especially unattractive for high-resolution GUI
-surfaces. An 8K RGBA8 8x color attachment alone is roughly 1 GiB before
-depth/stencil, resolve targets, buffering, and temporary surfaces. Tile-based
-GPUs and transient/memoryless attachments reduce external memory traffic, but
-do not remove raster/sample cost.
-
-Graphite treats stencil/MSAA as an important general fallback, not necessarily
-the preferred path for every complex shape. Quark should not make full-surface
-MSAA its primary AA strategy.
-
-## libtess2 Cost In Current AASide
-
-`libtess2` is not merely a triangle cutter. Every `tessTesselate()` call runs a
-full planar-arrangement sweep:
-
-```text
-build half-edge mesh
-  -> sweep edges and detect intersections
-  -> split/splice topology
-  -> accumulate winding and classify inside regions
-  -> divide into monotone regions
-  -> triangulate or output boundary contours
-```
-
-The monotone triangulation stage is relatively cheap. Intersection discovery,
-topology repair, winding classification, and mesh allocation are the expensive
-parts. Pathological intersection counts can be quadratic, and this libtess2
-implementation uses a linked-list active-edge dictionary, which can also make
-unfriendly inputs expensive.
-
-Current AASide calls libtess2 twice:
-
-1. `boundaryPath()` resolves the original path into final visible contours.
-2. `body.getTriangles()` processes and triangulates the inset body.
-
-The second call is often heavier than necessary for ordinary simple bodies, but
-it also repairs inset contours that collapse or self-intersect. libtess2 has no
-public option to skip its sweep/boolean stage and perform only triangulation.
-
-Possible future optimization:
-
-- cache `boundaryPath()` independently of AA width;
-- triangle-fan convex bodies;
-- use ear clipping/Earcut for verified simple inset bodies;
-- retain libtess2 as fallback for holes, self-intersections, collapse, and
-  uncertain topology.
-
-## AASide Current Assessment
-
-AASide is the current completed fast AA baseline. It remains useful as a fast
-GLES 3.0-compatible path for normal-sized, mostly static geometry. It is not a
-universal exact-AA solution.
-
-Current strengths:
-
-- works on all existing Quark GPU backends;
-- uses the existing `{x, y, aaSide}` vertex format;
-- cached geometry is cheap to draw;
-- merged `boundaryPath()` removes internal overlap edges before AA generation;
-- combined inset body and AA band avoid the previous body/edge draw-order issue;
-- sharp corners below 90 degrees are now cut into two source points, and both
-  new corners run through the normal miter/AASide generation path.
-- allowed old UI-level painter compensation to be removed. UI rects, borders,
-  outlines, sprites, and adjacent views can now draw at their real coordinates
-  instead of shrinking or nudging geometry to hide overlap seams.
-- no longer relies on render z-depth or stencil/depth attachments for normal
-  AASide compositing.
-
-Current fundamental limitations:
-
-- **Tiny shapes and narrow channels:** opposing AA bands overlap and a single
-  interpolated `aaSide` cannot represent the combined coverage from multiple
-  nearby edges. The inset body can collapse or self-intersect.
-- **Subpixel-thin borders/hairlines:** normal fill AASide often becomes too dark
-  or unstable because independent edge coverage is blended instead of resolved
-  as one shape.
-- **General transforms:** local-space equal-width expansion does not remain
-  equal-width after strong non-uniform scale, shear, or perspective.
-  `fwidth(aaSide)` can improve the ramp but cannot repair incorrect expanded
-  geometry or join positions.
-- **CPU cost:** boundary resolution, inset generation, second tessellation, and
-  expanded triangle upload are expensive for dynamic complex paths.
-
-Do not attempt to solve tiny-shape safety by calculating an exact maximum inset
-distance for every edge. Correctly detecting mid-edge proximity, offset
-collisions, and topology changes approaches medial-axis/straight-skeleton
-complexity, can become `O(n^2)`, and still does not solve overlapping coverage
-composition.
-
-AASide should be completed as a bounded fast path, then development should move
-to Compute AA. As of the `aa-side-refactor` merge point, the bounded fast path
-is considered complete enough for normal rendering; remaining issues should be
-tracked as future renderer-selection or Compute AA work rather than more
-parameter tuning.
-
-## Recommended Quark Strategy
-
-Use multiple renderers instead of forcing every primitive through one AA method:
-
-```text
-rect / rounded rect / common GUI border
-  -> dedicated analytic shader, including subpixel-width borders
-
-normal-sized general path on all backends
-  -> AASide fast path
-
-complex/tiny/transformed path on compute-capable backends
-  -> Compute Coverage Atlas
-
-legacy GL fallback
-  -> AASide, libtess2, or limited CPU coverage fallback where correctness wins
-```
-
-Recommended implementation order:
-
-1. Land the current AASide baseline and keep it as the GL/GLES fallback.
-2. Add specialized analytic rect/rrect/border rendering to solve common GUI
-   subpixel borders without waiting for general Compute AA.
-3. Prototype Metal Compute AA with CPU-transformed line edges, CPU tile binning,
-   backdrop winding, and 4x4 sample coverage written into a local mask.
-4. Integrate the proven batch model: one path-data batch lays all of its tiles
-   into one coverage atlas and generates/encodes CPU/GPU data together. Adapt
-   Quark's concrete renderer data structures, buffer/texture pools, and
-   compute-to-render synchronization without returning to per-path small-object
-   allocation.
-5. Add automatic renderer selection and retain AASide fallback.
-6. Port the proven compute path to Vulkan and optionally GLES 3.1.
-
-CCPR is explicitly not planned.
-
-## Evaluation Plan
-
-Do not rely only on visual impressions. Build repeatable test scenes:
-
-- 1 px and sub-1 px lines at many fractional positions.
-- Rects and rounded rects at fractional coordinates.
-- Circles and cubic curves at small, medium, and large sizes.
-- Acute joins, bevel joins, round joins, and line caps.
-- Nested clips and AA clip recovery.
-- Render-to-texture, readback, and final-present paths.
-- High-DPI and non-uniform scale cases.
-
-Useful checks:
-
-- Compare GL, Metal, and later Vulkan screenshots.
-- Inspect alpha ramps numerically near representative edges.
-- Check stability while translating by small fractions of a pixel.
-- Test on light and dark backgrounds because PMA errors show differently.
-
-## Implementation Notes
-
-- Keep shared AA policy in `GPUCanvas` or path/cache code when possible.
-- Backend shaders should receive explicit coverage/AA parameters rather than inferring magic constants.
-- Avoid backend-specific fixes that make GL, Metal, and Vulkan diverge.
-- Be careful with `_surfaceScale`, `_scale`, `_allScaleAverage`, `_allScaleMin`, and `_phy2Pixel`; these decide how logical units map to physical pixels.
-- If changing fragment alpha, verify premultiplied-alpha blending and image/mask paths together.
-- Clip AA and path AA should be considered together; mismatched edge behavior is very visible in GUI scenes.
-
-## Open Questions
-
-- What should be the exact definition of AA width in Quark coordinates?
-- Should per-pixel edge alpha be analytic per primitive, or approximated by a calibrated ramp?
-- Can `PathvCache` store enough edge metadata to improve coverage without rebuilding the pipeline?
-- Should rounded rects and simple rects get specialized analytic shaders?
-- How should AA interact with blur filters and render-to-texture mipmap generation?
-- What is the minimum acceptable cross-backend screenshot tolerance?
-
-## Stage Closeout
-
-The AASide branch is being closed as the current AA baseline. The important
-stage outcomes are:
-
-- AAFuzz naming and old painter-side shrink/overlap compensation are gone.
-- AASide geometry is now based on visible `boundaryPath()` contours rather than
-  raw overlapping source contours.
-- The `normalSide` sign is calibrated once from the first closed contour and
-  reused for later contours; do not recompute containment depth per contour.
-- Fill AA uses combined inset-body plus edge-band geometry, so the path no
-  longer depends on a separate depth body-over-edge pass.
-- Depth/stencil render state was removed from the normal GL/Metal AASide path.
-- `_util.glsl::aaSideCoverage()` uses shader derivatives to adapt the coverage
-  ramp to device pixels.
-- Ordinary GUI results are now good enough that further AASide tuning is low
-  priority.
-
-Known unresolved limits:
-
-- Thin 1 px lines at small angles can prefer a wider AA radius, while tiny UI
-  elements prefer a tighter one. This is a renderer-selection problem, not just
-  a magic constant problem.
-- Very small shapes, narrow channels, acute joins, and overlapping AA bands can
-  exceed what a single interpolated `aaSide` can represent.
-- Large SDF text strokes become blunt because the distance field expansion
-  rounds corners.
-- Apple/CoreText glyph-mask generation still needs investigation for large-text
-  edge quality and RGBA/A8 upload behavior.
-
-The next serious AA pass should be treated as a major Compute AA project, not a
-small tweak to `aaSide`.
-
-## Compute AA Prototype Follow-up
-
-The Metal prototype in `test/compute_aa/` has validated the basic coverage
-rasterization model:
-
-```text
-flattened edges
-  -> local 16x16 tile edge lists
-  -> tile-left backdrop winding
-  -> 4x4 per-pixel sample evaluation
-  -> coverage atlas
-```
-
-Backdrop is the winding already accumulated to the left of a tile. It allows a
-tile shader to scan only locally intersecting edges without losing global fill
-state. For multisample coverage, backdrop must match the Y sampling positions:
-the current 4x4 prototype stores 16 pixel rows times 4 Y subsamples per tile.
-A single winding per tile or one value per pixel-row is insufficient and can
-produce horizontal artifacts where subsample windings differ.
-
-CPU backdrop construction currently records each edge's contribution as a
-delta at the first tile to its right, then performs an X prefix sum for each
-tile-row/Y-subsample. This removes the original correctness-first behavior of
-copying every edge into every tile to its right. The next optimization target
-is reducing rebuild/allocation/upload cost rather than changing the core
-winding algorithm.
-
-## Analytic Area Compute Coverage Direction
-
-The fixed-grid prototype is a useful baseline, but its quality and cost both
-scale with the number of discrete samples:
-
-```text
-sampleGrid = N
-per-pixel sample work ~= N * N
-coverage levels = N * N + 1
-```
-
-A `4x4` grid produces only 17 coverage values. A `16x16` grid reaches full
-8-bit coverage resolution, but requires 256 samples per pixel and is not a
-practical general solution.
-
-The next high-quality Compute AA direction should investigate **analytic signed
-area coverage**. It is not SDF rendering:
-
-- SDF searches for the nearest edge distance.
-- Fixed-grid coverage tests many discrete points for inside/outside.
-- Analytic area coverage clips each directed edge against crossed pixels/cells
-  and accumulates continuous signed area plus cover deltas.
-
-Conceptual flow:
-
-```text
-flattened directed edges
-  -> bin edges into tiles / pixel rows
-  -> clip an edge across crossed X cells
-  -> accumulate per-cell signed area and cover delta
-  -> scan X using incoming row cover/backdrop
-  -> resolve fill rule and write continuous coverage
-```
-
-Potential advantages:
-
-- One edge/cell area contribution can replace many discrete subpixel tests.
-- Floating-point coverage naturally uses the full final `R8` range.
-- Expensive work can be proportional to boundary crossings rather than full
-  atlas pixels multiplied by `sampleGrid * sampleGrid`.
-- Fully outside regions can be skipped and fully inside spans can be filled
-  from scanline cover state.
-
-Useful parts of the current prototype remain: flattened directed line edges,
-tile/tile-row binning, scanline fill-rule semantics, and an incoming left-side
-cover/backdrop concept. The current integer winding per discrete Y sample,
-`insideMask`, fixed sample grid, and sample delta representation must change.
-Analytic rows need continuous incoming cover state, and a sloped edge can
-contribute signed trapezoid area to several X cells in one pixel row.
-
-The main implementation risks are efficient accumulation when multiple edges
-touch the same cell, avoiding atomics/threadgroup memory as a new bottleneck,
-and preserving fill-rule/self-intersection/shared-vertex semantics across tile
-boundaries.
-
-Recommended first prototype:
-
-1. Build a CPU reference for directed line segments crossing one pixel row.
-2. Compare continuous cell coverage numerically against high-resolution
-   supersampling for simple polygons, holes, self-intersections, and fill rules.
-3. Move only tile-local analytic cell accumulation to Metal.
-4. Compare quality and GPU cost against the current `4x4` GRID branches.
-5. Investigate edge-only tile dispatch and interior-span filling after the
-   analytic data contract is proven.
-
-Treat analytic area Compute AA as the primary future quality breakthrough
-candidate. Keep the GRID implementation as its correctness/performance
-comparison baseline rather than continuing deep GRID micro-optimization.
-
-## Boundary-Tile Coverage Breakthrough
-
-The major shared optimization opportunity for both fixed-GRID and future
-analytic-area coverage is to distinguish **boundary tiles** from **uniform
-tiles** before expensive coverage evaluation.
-
-Topological invariant:
-
-```text
-if no effective path boundary crosses a connected tile:
-    the whole tile is outside, or
-    the whole tile is inside
-```
-
-A tile with no boundary crossing cannot contain both inside and outside
-regions. Any transition between them would itself require a boundary crossing.
-Therefore there is no third "partially filled but boundary-free" tile class.
-
-For the current GRID rasterizer, CPU construction already has the information
-needed to classify whether a tile requires local edge/sample correction and,
-with backdrop/fill-rule state, whether a uniform tile is all outside or all
-inside. The exact classification contract must match the active coverage
-algorithm: an edge that has no effect on any GRID sample does not require GRID
-coverage work, while an analytic-area implementation must classify actual
-continuous boundary crossings.
-
-The coverage texture contract is equally important:
-
-```text
-outside uniform tile -> every R8 texel must be 0
-inside uniform tile  -> every R8 texel must be 1
-boundary tile        -> every R8 texel receives calculated coverage
-```
-
-The R8 coverage texture must remain complete and independently sampleable by
-all later composition shaders. Do not leave skipped tiles uninitialized, and
-do not require downstream shaders to know a separate valid-tile map. That
-would complicate every future paint/composite path and weaken the meaning of
-the coverage texture.
-
-Recommended first execution model:
-
-```text
-one regular Coverage compute pass over all tiles
-
-uniform tile:
-    run a very cheap fast path that writes 0 or 1 to all tile pixels
-
-boundary tile:
-    run expensive fixed-GRID or analytic-area coverage
-```
-
-This preserves:
-
-- one complete R8 texture;
-- one simple downstream composition contract;
-- regular compute dispatch organization;
-- no extra coverage clear pass;
-- no requirement to merge interior/exterior tile spans;
-- no dependency on ordinary render shaders for correctness.
-
-It also changes the dominant work from "expensive coverage for every tile in
-the atlas bounds" to "expensive coverage only for tiles touched by the
-effective boundary". Uniform tiles still write their texels, but skip edge
-iteration, intersection work, sample-grid scans, or analytic cell-area work.
-
-This is potentially the largest remaining performance improvement for the
-current GRID route because the test path contains many uniform tiles. It is
-also foundational for analytic-area coverage: the continuous-area algorithm
-should only run on boundary tiles, while the same uniform-tile fast path writes
-complete 0/1 coverage elsewhere.
-
-Do not conflate this optimization with:
-
-- geometric boolean reconstruction of a body mesh;
-- skipping outside tile writes and relying on uninitialized R8 data;
-- composing only a sparse subset of tiles;
-- merging uniform tiles into spans inside the compute pass.
-
-Those are separate architectural choices and are not required for the first
-boundary-tile experiment.
-
-### Boundary-Tile Experiment Result
-
-The first Metal prototype validates the boundary/uniform split as a milestone,
-not merely a theoretical optimization.
-
-CPU construction now marks boundary tiles during the existing X-tile edge scan.
-It does not run a second clipping/DDA geometry pass. Horizontal edges carry
-zero winding and participate only in boundary marking. A uniform tile resolves
-its fill state from one representative Y-sample backdrop value because every Y
-sample in a correctly classified uniform tile has the same winding.
-
-The representative large test contains approximately:
-
-```text
-324 edges
-501-506 boundary tiles
-3983-3987 uniform tiles
-```
-
-Only about `11%` of tiles therefore run expensive GRID coverage. Disabling the
-uniform pass reveals a continuous tile-width band following the path outline,
-which is a useful visual proof of the new work distribution.
-
-Measured total GPU time changed from the all-tile 64-thread baseline of
-`0.733-0.773ms` to a stable boundary-tile range of approximately
-`0.32-0.40ms`. Transient startup readings reached `0.23-0.24ms`, but should not
-be used as the stable result.
-
-Representative GPU Capture shares for `4x4 GRID` were:
-
-```text
-Uniform Tiles      9.79%
-Boundary Coverage 19.41%
-Composite         70.80%
-```
-
-Changing GRID from `4x4` to `1x1` leaves total time surprisingly close. This
-shows that the current dominant cost is no longer boundary coverage arithmetic;
-it is the full intermediate coverage-texture round trip and final composition.
-Xcode may label the first of the two disjoint-tile compute writers as an unused
-texture write because it cannot infer that the later writer touches a disjoint
-region of the same texture.
-
-This makes Compute GRID AA viable as a Quark rendering option, while also
-showing why it remains more expensive than AASide on both CPU and GPU. The next
-major performance experiment should fuse coverage application with final
-drawing, or otherwise avoid writing and then sampling a complete R8 atlas.
-Future analytic-area coverage should retain the same boundary/uniform
-classification and run continuous-area work only on boundary tiles.
-
-### Compute GRID AA Prototype Completion
-
-This path is now named **CGAA (Compute Grid Anti-Aliasing)**. Historical
-references to Compute AA and Compute GRID AA describe the same CGAA direction.
-
-The follow-up sparse-crossing experiment completes the current fixed-GRID
-algorithmic direction. Each boundary-tile Y-sample thread now:
-
-1. resolves its incoming winding from compact backdrop events;
-2. evaluates each active local edge once;
-3. accumulates winding changes directly into one of 64 discrete X buckets;
-4. tracks non-empty buckets with one 64-bit crossing mask;
-5. extracts only real crossing positions in ascending order with `ctz`;
-6. fills complete inside intervals directly into a 64-bit row mask.
-
-This removes full delta-table clearing, fixed 64-position prefix scanning,
-sorting, repeated edge scans, and crossing-list overflow. Boundary-row
-complexity is now `O(edgeCount + uniqueCrossingX)`, where
-`uniqueCrossingX <= 64`.
-
-Representative Boundary Coverage share fell from `19.41%` to about `9%`;
-Composite then accounted for about `78%`. The Compute GRID AA prototype is
-therefore considered algorithmically complete enough for formal Quark renderer
-integration. It remains slower than AASide, so the intended roles are:
-
-```text
-AASide     -> fastest path for suitable simple geometry
-Compute AA -> general, stable high-quality path for complex geometry
-```
-
-The first integration task is to extend `tools/gen_glsl_natives.js` and the
-generated native shader model to support compute stages and Metal compute
-pipelines. The current generator assumes every document contains `#vert` and
-`#frag`, builds paired render-pipeline metadata, and has no compute-stage
-representation. After the Compute AA shader enters that generated source path,
-renderer integration should focus on resource reuse, command encoding,
-clipping/blending semantics, batching, and eventually reducing the complete R8
-coverage-atlas plus Composite round trip.
-
-The CPU allocation and batching direction is already settled by the prototype:
-temporary tile/backdrop buckets use a linear allocator, final records are
-flattened into continuous batch-upload arrays, and a production batch should
-lay all of its tiles into one atlas and generate the CPU/GPU data together.
-Formal integration may adjust Quark's concrete data structures and ownership
-boundaries, but should preserve this model rather than reintroducing per-path
-small-array allocation.
-
-### CGAA Direct-Target Output
-
-The production CGAA path should prefer writing the current color target
-directly instead of always materializing a complete R8 coverage atlas followed
-by a separate Composite render pass. The prototype's Composite stage accounts
-for about `78%` of representative GPU captures, so removing this round trip is
-the largest remaining architectural opportunity.
-
-Direct target output is valid, but it changes responsibilities:
-
-- outside uniform tiles disappear completely instead of writing zero into a
-  complete coverage atlas; only boundary and filled-inside tiles are emitted;
-- target-space tiles remove dynamic atlas-region allocation, tile packing, and
-  atlas-to-target coordinate mapping;
-- compute must apply coverage, paint/color, clip, and blend before writing;
-- compute has no fixed-function render blending, so destination-dependent blend
-  modes require a target read plus logic equivalent to Qk's BlendMode semantics;
-- one dispatch must assign at most one writer to each target pixel;
-- overlapping draws must remain ordered rather than writing the same pixels
-  concurrently;
-- atlas-space path regions never overlap, but direct target-space paths can
-  overlap; batch them through ordered dispatches, proven-non-overlap groups, or
-  ordered per-target-tile draw lists;
-- target textures must support the required compute read/write usage, and
-  encoder transitions must preserve existing target contents.
-
-AASide and CGAA should therefore share reusable shader helpers for paint, clip,
-and blending while using different coverage producers:
-
-```text
-AASide fragment coverage -> render pipeline output
-CGAA compute coverage     -> direct target output
-```
-
-An intermediate coverage atlas may remain as a compatibility fallback for
-paint paths that are not yet available to CGAA compute, but it should not be
-the default production route.
-
-The resulting target-space tile contract is:
-
-```text
-outside tile  -> omit
-inside tile   -> cheap direct paint/blend fill
-boundary tile -> calculate CGAA coverage, then direct paint/blend
-```
-
-This is substantially better for lines and sparse paths whose bounding boxes
-contain many empty tiles. The atlas prototype must materialize zero coverage
-throughout those bounds to preserve a complete texture; direct CGAA can remove
-that work and the atlas allocator/packing stage entirely.
-
-The first direct-output fast paths should be opaque `Src` writes that require
-no destination read, followed by common `SrcOver` read-modify-write. Complex
-BlendModes and unsupported paints can initially retain the atlas fallback.
+### flatten
+
+`flatten.wgsl` 在 GPU 上把 path segment 转为 line soup：
+
+- 对 cubic/quadratic 进行 GPU flatten。
+- 使用 Euler spiral / cubic 相关逻辑估算分段。
+- 同时更新 path bbox。
+
+这与 Pathfinder 的 GPU dice 类似，但 Vello 和后续 prefix pipeline 结合得更深。
+
+### binning
+
+`binning.wgsl` 把 draw object 分配到 bin：
+
+- tile size 是 16x16。
+- bin 是 16x16 个 tile 的更大块。
+- 使用 workgroup bitmap 和 bump allocator。
+
+这个设计目标是减少全局散写和提高并行组织效率。
+
+### coarse
+
+`coarse.wgsl` 是 Vello 架构核心：
+
+- 根据 bin 中的 draw object 构建 per-tile command list，简称 PTCL。
+- 处理 clip stack、blend stack、solid/color/image/gradient 等命令。
+- 为 fine stage 准备 tile-local 命令流。
+
+这一步与 Qk 当前问题高度相关。多图元边界漏光的问题，本质上需要 tile 内统一命令流和统一 resolve，而不是 path 独立 AA。
+
+### path_tiling
+
+`path_tiling.wgsl` 把 path segment 写成 tile-relative segment buffer：
+
+- 处理鲁棒 epsilon。
+- 为 fine raster 提供 tile 内线段。
+- 与 backdrop / path count 等数据配合。
+
+### fine
+
+`fine.wgsl` 是最终 tile 内 raster/composite：
+
+- 支持 `AaConfig::Area`。
+- 支持 `Msaa8` / `Msaa16`。
+- workgroup size 典型为 4x16。
+- 每个 thread 处理 4 个横向像素。
+- 读取 PTCL 命令流，按顺序执行 fill、solid、color、gradient、image、clip、blend 等。
+
+Vello 的 area AA 是在 fine stage 内对 line segment 做面积积分；MSAA 模式则用 shared memory / SWAR winding 处理采样。
+
+这说明 Vello 的 AA 不是孤立模块，而是和 tile command execution 绑定在一起。
+
+### Vello 对 Qk 的启发
+
+Vello 的核心启发：
+
+- 最终正确方向是 per-tile command list + fine raster/composite。
+- GPU prefix-sum/monoid 可以把复杂 scene 编译搬到 GPU，但实现成本很高。
+- 独立 path mask 不是终局；tile 内有序 resolve 才能解决多图元边界。
+- area AA 和 MSAA 可以作为同一 fine stage 的不同配置。
+- 需要 robust buffer allocation / readback / fallback，因为 GPU 端动态分配可能失败。
+
+对 Qk 来说，Vello 是长期目标参考，不是近期直接重写模板。
+
+## Pathfinder 与 Vello 对比
+
+| 维度 | Pathfinder | Vello |
+| --- | --- | --- |
+| CPU 角色 | 构建 scene/display list、bounds、batch metadata、segment buffer | 记录 compact scene encoding，打包资源 |
+| 曲线处理 | D3D11 中 GPU dice/flatten 成 microline | GPU flatten 成 line soup |
+| 工作组织 | path tile、alpha tile、framebuffer tile list | bin、tile allocation、PTCL、fine stage |
+| coverage | alpha tile 中面积积分 + backdrop | fine stage 中 area AA 或 MSAA |
+| composite | tile shader 按 tile list 有序合成 | fine shader 执行 PTCL 并合成 |
+| clip/blend | 有 clip 和 tile list 处理，但整体较 Pathfinder 自身风格 | clip/blend stack 深度融合进 PTCL |
+| 架构复杂度 | 已经很复杂，但比 Vello 更像固定 pipeline | 更像 GPU scene compiler，prefix scan 很重 |
+| 对 Qk 近期价值 | 高，适合学习 tile/backdrop/list 结构 | 高，但更偏长期架构参考 |
+
+一句话总结：
+
+- Pathfinder 教 Qk 如何从“路径”走向“tile scene renderer”。
+- Vello 教 Qk 如何进一步把 scene 编译、clip、blend、AA 都收进 GPU tile pipeline。
+
+## 对 Qk 的修改方向
+
+### 近期策略
+
+保持保守，不要立刻重写整个 renderer。
+
+推荐：
+
+- stroke/hairline 继续走 AASide 或专门细线 renderer。
+- 小于约 1.8 物理像素的 stroke，可优先使用中心线向外扩散的 AASide 距离场。
+- CGAA 先限定在 fill path，不急着覆盖 stroke。
+- CGAA 继续修正边界、clip、tile backdrop 和性能问题。
+- 把 direct-target output 作为实验，但必须避免无序 overlapping compute write。
+- 文档和测试先记录清楚哪些 shape 走哪条 AA 路径。
+
+不推荐：
+
+- 不要期望 CGAA 一次解决 stroke、fill、border、clip、image mask 的所有问题。
+- 不要为了局部漏光把 UI 层强行合并所有图元。
+- 不要把 per-path mask 当作最终架构。
+
+### 中期策略
+
+建立 Qk 自己的 tile-scene AA 结构。
+
+方向：
+
+- CPU 仍负责路径记录、bounds、paint、clip 的初步编码。
+- GPU 或 CPU 把 path 分配到目标 tile。
+- 每个 framebuffer tile 拥有有序 draw list / command list。
+- coverage 和 color 分离存储，但最终在 tile 内统一 resolve。
+- fill path 使用 area coverage + backdrop。
+- stroke/hairline 作为专门命令进入 tile list，或继续走现有快速路径。
+
+这一步更接近 Pathfinder，而不是直接跳到 Vello。
+
+### 长期策略
+
+如果 Qk 的 compute 后端成熟，尤其是 Metal/Vulkan 稳定后，可以考虑 Vello 式架构：
+
+- CPU 记录 compact scene stream。
+- GPU 做 prefix scan、path flatten、draw/clip reduction。
+- GPU 构建 PTCL。
+- fine stage 统一执行 tile 内命令。
+- area AA/MSAA/hairline/stroke/clip/blend/image 都以 tile 命令形式接入。
+
+这是质量和性能的上限方向，但实现成本也最高。
+
+## 推荐路线图
+
+### 第一阶段：稳定当前 AA 路径
+
+- 保留 AASide 作为 stroke/hairline 主路径。
+- 修正 CGAA 的边界裁剪、tile 覆盖、backdrop 传播问题。
+- 明确 CGAA 只先服务 fill。
+- 建立一组固定截图测试：圆角矩形、1px stroke、border、clip、不同颜色相邻区域、旋转缩放。
+
+### 第二阶段：CGAA fill 可用化
+
+- 优化 binning 成本。
+- 降低 tile buffer / mask buffer 写入成本。
+- 区分 solid tile 和 alpha tile。
+- 避免对完全空白或完全实心 tile 做昂贵 coverage。
+- 评估直接写目标 surface 与 mask atlas 的性能差异。
+
+### 第三阶段：tile draw list
+
+- 引入 framebuffer tile 级 draw list。
+- 同一目标 tile 内按 draw order resolve 多个 path。
+- 先支持 solid color / simple fill。
+- 再支持 gradient、image、clip、blend。
+
+这是解决多图元 AA 漏光的关键阶段。
+
+### 第四阶段：更完整的 GPU scene pipeline
+
+- 研究 GPU flatten/dice 是否值得引入。
+- 研究 prefix scan / monoid 是否能减少 CPU 预处理和 draw call。
+- 逐步接近 Vello 式 coarse/fine 架构。
+
+## 测试与评估计划
+
+必须持续用图片和性能一起评估：
+
+- 物理 1px、2px、3px stroke。
+- 小半径圆角矩形。
+- 大圆、细圆环、斜线、近水平/近垂直边。
+- 多个同色图元拼接。
+- 多个异色图元共享边。
+- border + fill 分离绘制。
+- clip path，尤其是不规则 clip。
+- 非整数平移。
+- 2x/3x surface scale。
+- 非均匀缩放、旋转、斜切。
+- offscreen surface / render-to-texture。
+
+评估指标：
+
+- 是否漏背景。
+- 是否显粗或显细。
+- 子像素移动是否抖动。
+- GL/Metal 是否一致。
+- GPU 时间、buffer 写入量、tile 数、path 数增长时的曲线。
+
+## 当前结论
+
+1. AASide 不是失败路线，它仍适合 stroke/hairline 和简单 UI 边缘。
+2. CGAA 可以提高 fill coverage 精度，但它必须走向 tile-scene resolve，否则无法根治多图元边界问题。
+3. Pathfinder 的最大价值是展示了 path tile、alpha tile、framebuffer tile list、area coverage、ordered composite 这一整套结构。
+4. Vello 的最大价值是展示了更激进的 GPU scene compiler：encoding、prefix scan、coarse PTCL、fine raster/composite。
+5. Qk 不应直接复制任意一个项目，而应按阶段吸收：
+   - 近期：AASide stroke + CGAA fill。
+   - 中期：Pathfinder-like tile draw list。
+   - 长期：Vello-like GPU scene pipeline。
+
+真正要解决的不是“某条边怎么 AA”，而是“一个目标 tile 内所有图元如何共同决定每个像素最终属于谁、覆盖多少、颜色是什么”。
+
+这才是 Qk 渲染器最重要的一块拼图。

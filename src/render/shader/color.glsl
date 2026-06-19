@@ -28,9 +28,14 @@ layout(location=3) flat in vec4 color;
 #define Qk_FLAG_AASIDE_Inverted (1u << 16)
 
 void main() {
+	// apply anti-aliasing coverage for aaside or cgaa
 	float coverage = aaCoverage();
 	if ((pc.flags & Qk_FLAG_AASIDE_Inverted) != 0)
 		coverage = 1.0 - coverage;
+
+	// apply clipping if enabled
+	if ((pc.flags & Qk_FLAG_CLIP) != 0)
+		coverage *= clipCoverage(-pc.surfaceOffset.xy);
+
 	fragColor = color * coverage;
-	Qk_CLIP_FROM(clipStat.range.xy - pc.surfaceOffset.xy);
 }

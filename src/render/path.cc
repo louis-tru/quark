@@ -1100,6 +1100,8 @@ namespace qk {
 			auto out = &outline.top + j;
 			outline.flags |= border[j] > 0 ? 1 << j : 0; // have border
 			build(*out, Bo+j, vertex, oR+j, iR+j, Ce+j, angle);
+			if (border[j] > 0)
+				out->close();
 			vertex+=6;
 			angle -= Qk_PI_2_1;
 		}

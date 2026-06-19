@@ -190,11 +190,13 @@ namespace qk {
 				fillPathAASide(vertex, paint, paint.stroke);
 				return;
 			}
-			if (fillPathCGAA(path, paint, paint.stroke, true)) {
-				return;
-			}
 			auto width = paint.strokeWidth - _1pxSize;
 			if (paint.strokeWidth > _1pxSize * 1.8) {
+				// Stroke is currently implemented using aaside
+				// because CGAA doesn't work well for wireframes with small lines,
+				// but we can't rule out the possibility that future algorithm improvements
+				// will allow wireframes to also be implemented using CGAA.
+				// if (fillPathCGAA(path, paint, paint.stroke, true)) return;
 				auto &stroke = _cache->getStrokePath(path, width, paint.cap, paint.join,0);
 				auto &vertex = buildVertex(stroke, aaRadius, paint.antiAlias);
 				fillPathAASide(vertex, paint, paint.stroke);

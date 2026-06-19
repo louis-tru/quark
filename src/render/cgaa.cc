@@ -53,13 +53,13 @@ namespace qk {
 			// 无法处理左边界为负的情况，因为x扫描线算法需要统计tile左边的backdrop值。
 			if (NeedClip) {
 				// 整条边都在bounds上方的无效区域，不生成任何数据
-				if (p0.y() <= begin.y() && p1.y() <= begin.y())
+				if (p0.y() < begin.y() && p1.y() < begin.y())
 					continue;
 				// 整条边都在bounds下方的无效区域，不生成任何数据
-				if (p0.y() >= end.y() && p1.y() >= end.y())
+				if (p0.y() > end.y() && p1.y() > end.y())
 					continue;
 				// 整条边都在bounds右侧的无效区域，不生成任何数据
-				if (p0.x() >= end.x() && p1.x() >= end.x())
+				if (p0.x() > end.x() && p1.x() > end.x())
 					continue;
 			}
 			p0 -= begin;
@@ -202,7 +202,7 @@ namespace qk {
 			float lastSampleY = left.y() * sampleGrid;
 			int lastSampleGridY = sample_grid_y(lastSampleY);
 			// 向下取整，做为当前 tile 的 X 索引
-			int tx = left.x() * kInvCGAATileSize;
+			int tx = floorf(left.x() * kInvCGAATileSize);
 			if (dx < invHalfSampleGrid) { // 竖边或近竖边，x跨度不足0.5个sample。
 				// 竖边或近竖边不需要沿 X 推进：边所在的左侧 tile 做局部精确测试，
 				// 边右侧 tile 从对应列开始继承 backdrop。
@@ -211,7 +211,7 @@ namespace qk {
 			}
 
 			// 右端点使用半开 X tile 范围：端点正好落在 tile 边界时，最后负责此边的仍是边界左侧 tile。
-			int finalTx = I32::min(right.x() * kInvCGAATileSize - 0.000001f, tileCountX); // 左闭右开
+			int finalTx = I32::min(ceilf(right.x() * kInvCGAATileSize) - 1, tileCountX); // 左闭右开
 			if (tx < finalTx) {
 				float sampleSlope = (right.y() - left.y()) * sampleGrid / dx;
 				float tileSampleYStep = sampleSlope * kCGAATileSize;

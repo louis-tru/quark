@@ -42,11 +42,11 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 layout(binding=0, set=1)  uniform sampler2D clipTex; // clip texture buffer
 
 // clipStat.op: 0 for intersect, 1 for difference
-void clip(ivec2 coord, inout vec4 color) {
-	float mask = texelFetch(clipTex, coord, 0).r;
+float clipCoverage(vec2 offset) {
+	float coverage = texelFetch(clipTex, ivec2(gl_FragCoord.xy - clipStat.range.xy + offset), 0).r;
 	if (clipStat.op == 1)
-		mask = 1.0 - mask; /* difference mode: invert mask*/
-	color *= mask;
+		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
+	return coverage;
 }
 
 // GLSL built-in functions:
@@ -74,8 +74,7 @@ float aaSideCoverage(const uint flags) {
 
 #define Qk_aaSideCoverage() fragColor *= aaSideCoverage(pc.flags)
 
-#define Qk_CLIP_FROM(offset) \
+#define Qk_CLIP() \
 if ((pc.flags & Qk_FLAG_CLIP) != 0) { \
-	clip(ivec2(gl_FragCoord.xy - offset), fragColor); \
+	fragColor *= clipCoverage(vec2(0)); \
 }
-#define Qk_CLIP() Qk_CLIP_FROM(clipStat.range.xy)
