@@ -41,6 +41,16 @@ namespace qk {
 	struct TexStat; // texture state
 
 	/**
+	 * @enum TextureFlags
+	 * Flags used to specify texture properties and usage.
+	 */
+	enum TextureFlags: uint8_t {
+		kNone_TextureFlags = 0,
+		kMipmap_TextureFlags = 1 << 0,
+		kComputeWrite_TextureFlags = 1 << 1,
+	};
+
+	/**
 	 * @class RenderResource
 	 * GPU resource management interface.
 	 *
@@ -139,7 +149,6 @@ namespace qk {
 		 * and do not need this function.
 		 *
 		 * @param id VertexData GPU cache id.
-		 * @param clearCpuData Whether to clear the CPU-side vertex array after successful GPU upload.
 		 * @returns true if backend-local GPU vertex resources are valid and ready to use.
 		 *
 		 * @note This function may modify VertexData::ID and may clear
@@ -147,7 +156,7 @@ namespace qk {
 		 *
 		 * @thread Rt
 		 */
-		static bool useVertexData(const VertexData::ID *id, bool clearCpuData = false);
+		static bool useVertexData(const VertexData::ID *id);
 	};
 
 	/**
@@ -251,12 +260,21 @@ namespace qk {
 		virtual void destroy() override;
 
 		/**
-		 * Create a GPU texture and return its backend-local handle or pointer wrapped in TexStat.
+		 * Create a GPU texture and return a reference-counted ImageSource wrapper.
+		 * @param flags {TextureFlags} to specify texture properties and usage.
+				- kMipmap_TextureFlags: whether mipmap levels should be generated for this texture.
+				- kComputeWrite_TextureFlags: whether the texture will be written by compute shaders, 
+					which may require special usage flags or memory properties on some platforms.
 		 */
-		virtual TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) = 0;
+		Sp<ImageSource> createTexture(Vec2 size, ColorType type, uint8_t flags);
 
 	protected:
 		RenderBackend(Options opts);
+
+		/**
+		 * Create a GPU texture and return its backend-local state.
+		*/
+		virtual TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) = 0;
 
 		/**
 		 * Return current platform surface size.

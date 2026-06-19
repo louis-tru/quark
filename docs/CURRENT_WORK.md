@@ -233,6 +233,13 @@ the renderer's clip mask and always applies `SrcOver` regardless of the selected
 blend mode. GL's `drawCGAAColorCmd` is an explicit no-op, and root-matrix display
 offsets beyond the normal target-pixel mapping have not yet been integrated.
 
+Follow-up integration added Metal `drawCGAAGradientCmd()` and
+`drawCGAAImageCmd()` for path fills. Gradient/image CGAA draws build their atlas
+immediately instead of joining the solid-color batch, reconstruct canvas-space
+paint coordinates from target-pixel CGAA quads with a pixel-to-canvas matrix,
+and reuse the existing gradient stops / image mask semantics. YUV images still
+fall back to the non-CGAA image path.
+
 An isolated Metal Compute AA prototype now lives in `test/compute_aa/` and is
 wired into the macOS test target. It demonstrates CPU-flattened path edges,
 16x16 tile binning, fixed-grid subpixel winding coverage, a coverage texture, and solid

@@ -169,8 +169,8 @@ namespace qk {
 	static void deleteAMediaFormat(AMediaFormat *p){ AMediaFormat_delete(p); }
 	static void deleteAMediaCodec(AMediaCodec *p){ AMediaCodec_delete(p); }
 
-	typedef Sp<AMediaFormat, object_traits_from<AMediaFormat, deleteAMediaFormat>> AMediaFormatAuto;
-	typedef Sp<AMediaCodec, object_traits_from<AMediaCodec, deleteAMediaCodec>> AMediaCodecAuto;
+	typedef Sp<AMediaFormat, ObjectTraitsFrom<AMediaFormat, deleteAMediaFormat>> AMediaFormatAuto;
+	typedef Sp<AMediaCodec, ObjectTraitsFrom<AMediaCodec, deleteAMediaCodec>> AMediaCodecAuto;
 
 	class AndroidHardwareMediaCodec: public MediaCodec {
 	public:

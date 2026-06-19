@@ -131,13 +131,10 @@ namespace qk {
 		Array<ComputeAABackdropRow> backdropRows;
 	};
 
-	// 配置以使用普通的平凡类型，这在容器中可以优化为不调用构造函数和析构函数。
-	template<> struct IsOrdinaryType<ComputeAAEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAATileEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAATile> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAAUniformTile> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAABackdropEvent> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<ComputeAABackdropRow> { static constexpr bool value = true; };
+	template<> struct ObjectTraits<ComputeAAEdge>: ObjectTraitsBase<ComputeAAEdge> {
+		static constexpr bool isOrdinary = true;
+	};
+
 	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
 	template<> struct AllocatorConfig<ComputeAAEdge> { static constexpr uint32_t kMinCapacity = 4; };
 	template<> struct AllocatorConfig<ComputeAATileEdge> { static constexpr uint32_t kMinCapacity = 4; };

@@ -102,7 +102,7 @@ namespace qk {
 		GLuint ubo = glGetUniformBlockIndex(program, "RootMatrixBlock");
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-		Qk_ASSERT(bufferSize == 64);
+		Qk_ASSERT(bufferSize == 144);
 #endif
 
 		glGenVertexArrays(1, &s->vao); // gen vao, vbo
@@ -117,8 +117,13 @@ namespace qk {
 		for (auto &i: uniforms) {
 			*i.location = glGetUniformLocation(program, i.name);
 			if (i.texSlot) {
-				glUniform1i(*i.location, texSlot); // set texture slot index to uniform
-				*i.texSlot = texSlot++;
+				if (GLint(*i.location) >= 0) {
+					glUniform1i(*i.location, texSlot); // set texture slot index to uniform
+					*i.texSlot = texSlot;
+				} else {
+					*i.texSlot = -1; // no texture slot
+				}
+				texSlot++;
 			}
 		}
 

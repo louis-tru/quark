@@ -355,9 +355,10 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getEdgeLines(float precision, const Mat* matrix) const {
-		Path tmp;
-		const Path *self = normalized(&tmp, precision, false);
-		self = matrix ? self->transformPath(&tmp, *matrix) : self; // transform path
+		Path tmp,tmp2;
+		auto self = matrix ? transformPath(&tmp, *matrix): this; // transform path
+		self = self->normalized(&tmp2, precision, false);
+
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
@@ -614,7 +615,7 @@ namespace qk {
 	}
 
 	Range Path::getBounds(const Mat* mat) const {
-		mat = mat && !mat->is_identity_matrix() ? mat: nullptr;
+		mat = mat && !mat->is_identity() ? mat: nullptr;
 		return getBoundsFromPoints((const Vec2*)*_pts, ptsLen(), mat);
 	}
 
@@ -627,7 +628,7 @@ namespace qk {
 		bool isMul = false;
 		if (mat) {
 			// if not only translate, need mul_vec2_no_translate
-			isMul = !mat->is_translation_matrix();
+			isMul = !mat->is_translate_only();
 		}
 		const Vec2* e = pts + ptsLen;
 		auto begin = isMul ? mat->mul_vec2_no_translate(*pts): *pts;
@@ -755,23 +756,41 @@ namespace qk {
 	}
 
 	const Path* Path::transformPath(Path *out, const Mat& matrix) const {
-		if (matrix.is_identity_matrix())
+		if (matrix.is_identity())
 			return this;
 		if (out != this)
 			*out = *this; // copy first, then transform
 		Vec2* pts = *out->_pts;
 		Vec2* e = pts + out->_pts.length();
-		if (matrix.is_translation_matrix()) { // only translate, no multiply
-			float tx = matrix.val[2],
-						ty = matrix.val[5];
+		bool has_translation = matrix.has_translation();
+		bool has_scaling = matrix.has_scaling();
+		if (matrix.has_skew()) {
+			if (has_translation) {
+				matrix.mul_vec2_batch(pts, out->_pts.length());
+			} else {
+				matrix.mul_vec2_no_translate_batch(pts, out->_pts.length());
+			}
+		} else if (has_translation && has_scaling) {
+			float sx = matrix.val[0], sy = matrix.val[4],
+						tx = matrix.val[2], ty = matrix.val[5];
+			while (pts < e) {
+				pts[0][0] = pts[0][0] * sx + tx;
+				pts[0][1] = pts[0][1] * sy + ty;
+				pts++;
+			}
+		} else if (has_translation) {
+			float tx = matrix.val[2], ty = matrix.val[5];
 			while (pts < e) {
 				pts[0][0] += tx;
 				pts[0][1] += ty;
 				pts++;
 			}
 		} else {
+			Qk_ASSERT(has_scaling, "Path::transformPath() matrix should have scaling if no translation");
+			float sx = matrix.val[0], sy = matrix.val[4];
 			while (pts < e) {
-				*pts = matrix * (*pts);
+				pts[0][0] *= sx;
+				pts[0][1] *= sy;
 				pts++;
 			}
 		}

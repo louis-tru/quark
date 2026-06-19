@@ -91,7 +91,7 @@ static void FinalizeCallback(JSObjectRef object) {
 	}
 }
 
-struct JSCStringTraits: object_traits<OpaqueJSString> {
+struct JSCStringTraits: ObjectTraits<OpaqueJSString> {
 	static void Release(JSStringRef str) {
 		if ( str )
 			JSStringRelease(str);

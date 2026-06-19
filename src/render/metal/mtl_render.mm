@@ -7,6 +7,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_render.h"
+#include "test/compute_aa/mtl_compute_aa_prototype.h"
+#include "src/render/render.h"
 #import "./mtl_canvas.h"
 #import "./mtl_shaders.h"
 #import "../pixel.h"
@@ -19,7 +21,7 @@ namespace qk {
 		return (__bridge MTLTextureID)stat->ptr();
 	}
 
-	MTLTextureID mtl_get_texture_from(ImageSource* src, MTLTextureID _else) {
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else) {
 		return src ? (__bridge MTLTextureID)src->texture(0)->ptr() : _else;
 	}
 
@@ -294,26 +296,26 @@ namespace qk {
 		return bitfields & paint->bitfields;
 	}
 
-	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, bool gpuRead, bool cpuRead, bool mipmap) {
+	MTLTextureID mtl_new_texture(MTLDeviceID device, Vec2 size, MTLPixelFormat format, uint8_t flags) {
 		auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
 																																		width:size.x()
 																																	height:size.y()
-																																mipmapped:mipmap];
-		desc.usage = MTLTextureUsageRenderTarget |
-			(gpuRead ? MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite : 0);
-		desc.storageMode = cpuRead ? MTLStorageModeShared : MTLStorageModePrivate;
+																																mipmapped:flags & kMipmap_TextureFlags];
+		desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead |
+			(flags & kComputeWrite_TextureFlags ? MTLTextureUsageShaderWrite : 0);
+		desc.storageMode = /*cpuRead ? MTLStorageModeShared :*/ MTLStorageModePrivate;
 		return [device newTextureWithDescriptor:desc];
 	}
 
-	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &storeStat, bool mipmap) {
+	cTexStat* mtl_rebuild_texture(MTLDeviceID device, Vec2 size, ColorType type, cTexStat* texStat, TexStat &storeStat, uint8_t flags) {
 		auto fmt = mtl_pixel_format(type);
 		auto tex = mtl_get_texture(texStat);
 		if (fmt == MTLPixelFormatInvalid)
 			return nullptr;
 		if (!tex || Vec2(tex.width, tex.height) != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
-				(mipmap && tex.mipmapLevelCount <= 1)
+				(flags & kMipmap_TextureFlags && tex.mipmapLevelCount <= 1)
 		) {
-			tex = mtl_new_texture(device, size, fmt, true, false, mipmap);
+			tex = mtl_new_texture(device, size, fmt, flags);
 			if (!tex)
 				return nullptr;
 			texStat = &storeStat; // update texStat to storeStat
@@ -332,23 +334,18 @@ namespace qk {
 	}
 
 	template<>
-	MemBlockAllocator<MTLBufferID>::MemBlock
+	MemBlockAllocator<MTLBufferID>::MemBlock*
 	MemBlockAllocator<MTLBufferID>::createBlock(uint32_t capacity) {
 		// get MTLDevice from shared render resource to create MTLBuffer for memory block
 		auto device = getSharedRenderMetalResource()->device();
-		MemBlock block {
-			// buffer will be created later when data is available
-			.val = [device newBufferWithLength:capacity options:MTLResourceStorageModeShared],
-			.begin = 0,
-			.end = 0,
-			.capacity = capacity,
-		};
-		Qk_ASSERT(block.val, "Failed to create MTLBuffer with capacity: %u", capacity);
+		MemBlock* block = new MemBlock([device newBufferWithLength:capacity options:MTLResourceStorageModeShared], capacity);
+		Qk_ASSERT(block->val, "Failed to create MTLBuffer with capacity: %u", capacity);
 		return block;
 	}
 	template<> 
-	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock &block) {
-		block.val = nil;
+	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block) {
+		block->val = nil;
+		delete block;
 	}
 
 	MetalRenderResource::MetalRenderResource()
@@ -669,8 +666,8 @@ namespace qk {
 		return new MetalCanvas(this, opts);
 	}
 
-	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, bool mipmap) {
-		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), true, false, mipmap);
+	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
+		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), flags);
 		return TexStat(CFBridgingRetain(tex));
 	}
 

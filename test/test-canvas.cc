@@ -40,7 +40,7 @@ class TestCanvas0: public Box {
 		canvas->save();
 
 		if (1) { // clip
-			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			// canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		if (1) { // gradient
@@ -71,7 +71,7 @@ class TestCanvas0: public Box {
 		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
-			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			// canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
 
 		canvas->translate(size*-0.5);
@@ -241,18 +241,18 @@ class TestCanvas2: public Box {
 	void draw(Painter *render) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
-		float t = float(f++) / 60.0f;
+		float t = float(f++) / 6000.0f;
 		Paint paint;
 
-		canvas->translate(size*-0.5);
-
-		paint.fill.color = Color4f(1, 0, 0);
+		paint.fill.color = Color4f(0, 0, 0, 1);
 
 		auto path = make_compute_aa_path(t);
-		path.transform(Mat({-50,-50},{1.5},0,0));
-		// canvas->drawPath(path, paint);
-		canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
+		path.transform(Mat(0,{1.5},0,0));
+		canvas->translate(size*-0.5);
 
+		for (int i = 0; i < 100; i++) {
+			canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
+		}
 		mark_rerender();
 	}
 };

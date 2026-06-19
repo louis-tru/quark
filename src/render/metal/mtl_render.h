@@ -56,7 +56,7 @@ namespace qk {
 		void release() override;
 		void reload() override;
 		Canvas* createCanvas(Options opts) override;
-		TexStat createTextureStat(Vec2 size, ColorType type, bool mipmap) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
 		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadTexture(TexStat *tex) override;

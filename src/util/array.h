@@ -89,8 +89,8 @@ namespace qk {
 		*/
 		bool isNull() const { return _ptr.extra == 0; }
 
-		uint32_t length() const { return _ptr.extra; }
-		uint32_t capacity() const { return _ptr.capacity; }
+		inline uint32_t length() const { return _ptr.extra; }
+		inline uint32_t capacity() const { return _ptr.capacity; }
 
 		operator bool() const { return _ptr.extra != 0; }
 		// operator=
@@ -418,7 +418,7 @@ namespace qk {
 
 	template<typename T, typename B>
 	Array<T, B>& Array<T, B>::operator=(Array&& arr) {
-		if ( arr._ptr.val != _ptr.val ) {
+		if ( this != &arr ) {
 			clear();
 			_ptr = arr._ptr;
 			arr._ptr.extra = 0;
@@ -443,7 +443,7 @@ namespace qk {
 	template<typename T, typename B>
 	void Array<T, B>::push(const T& item) {
 		_ptr.extend(_ptr.extra+1);
-		if (IsOrdinaryType<T>::value) {
+		if (ObjectTraits<T>::isOrdinary) {
 			_ptr.val[_ptr.extra++] = item;
 		} else {
 			new(_ptr.val + _ptr.extra++) T(item);
@@ -453,7 +453,7 @@ namespace qk {
 	template<typename T, typename B>
 	void Array<T, B>::push(T&& item) {
 		_ptr.extend(_ptr.extra+1);
-		if (IsOrdinaryType<T>::value) {
+		if (ObjectTraits<T>::isOrdinary) {
 			(_ptr.val[_ptr.extra++] = std::move(item));
 		} else {
 			new(_ptr.val + _ptr.extra++) T(std::move(item));
@@ -464,7 +464,7 @@ namespace qk {
 	void Array<T, B>::pop(uint32_t count) {
 		uint32_t newLen = Qk_Max(int(_ptr.extra - count), 0);
 		if (_ptr.extra > newLen) {
-			if (IsOrdinaryType<T>::value) {
+			if (ObjectTraits<T>::isOrdinary) {
 				_ptr.extra = newLen;
 			} else {
 				do {
@@ -485,7 +485,7 @@ namespace qk {
 			_ptr.extra = Qk_Max(end, _ptr.extra);
 			_ptr.extend(_ptr.extra);
 
-			if (IsOrdinaryType<T>::value) {
+			if (ObjectTraits<T>::isOrdinary) {
 				memcpy((void*)(_ptr.val + to), src, size_src * sizeof(T) );
 			} else {
 				T* to_ = _ptr.val + to;
@@ -506,7 +506,7 @@ namespace qk {
 		if (src_length) {
 			_ptr.extra += src_length;
 			_ptr.extend(_ptr.extra);
-			if (IsOrdinaryType<T>::value) {
+			if (ObjectTraits<T>::isOrdinary) {
 				T* src = _ptr.val;
 				T* to = _ptr.val + _ptr.extra - src_length;
 				memcpy((void*)to, src, src_length * sizeof(T));
@@ -554,7 +554,7 @@ namespace qk {
 	template<typename T, typename B>
 	void Array<T, B>::copy_(Ptr* dest, uint32_t start, uint32_t len) const {
 		dest->resize(len);
-		if (IsOrdinaryType<T>::value) {
+		if (ObjectTraits<T>::isOrdinary) {
 			memcpy(dest->val, _ptr.val + start, len * sizeof(T));
 		} else {
 			T* to = dest->val, *e = to + len;
@@ -577,7 +577,7 @@ namespace qk {
 
 	template<typename T, typename B>
 	std::vector<T> Array<T, B>::vector() const {
-		if (IsOrdinaryType<T>::value) {
+		if (ObjectTraits<T>::isOrdinary) {
 			std::vector<T> r(_ptr.extra);
 			if (_ptr.extra)
 				memcpy(r.data(), _ptr.val, sizeof(T) * _ptr.extra);
@@ -593,7 +593,7 @@ namespace qk {
 	template<typename T, typename B>
 	void Array<T, B>::clear() {
 		if (_ptr.extra) {
-			if (!IsOrdinaryType<T>::value) {
+			if (!ObjectTraits<T>::isOrdinary) {
 				T *i = _ptr.val, *end = i + _ptr.extra;
 				while (i < end)
 					reinterpret_cast<Sham*>(i++)->~Sham(); // release
@@ -607,7 +607,7 @@ namespace qk {
 	template<typename T, typename B>
 	void Array<T, B>::reset(uint32_t length) {
 		if (length < _ptr.extra) { // clear Partial data
-			if (!IsOrdinaryType<T>::value) {
+			if (!ObjectTraits<T>::isOrdinary) {
 				T* i = _ptr.val + length;
 				T* end = _ptr.val + _ptr.extra;
 				while (i < end)
@@ -623,7 +623,7 @@ namespace qk {
 	void Array<T, B>::extend(uint32_t length) {
 		if (length > _ptr.extra) {
 			_ptr.extend(length);
-			if (!IsOrdinaryType<T>::value)
+			if (!ObjectTraits<T>::isOrdinary)
 				new(_ptr.val + _ptr.extra) T[length - _ptr.extra]; // call default constructor
 			_ptr.extra = length;
 		}
@@ -652,7 +652,7 @@ namespace qk {
 	template<> Qk_EXPORT
 	void Array<char, Object>::_Reverse(Ptr *ptr, size_t size, uint32_t len);
 
-	#define Qk_DEF_ARRAY_SPECIAL_(T, B) \
+	#define Qk_DEF_ARRAY_SPECIAL(T, B) \
 		template<> Qk_EXPORT void            Array<T, B>::reset(uint32_t length); \
 		template<> Qk_EXPORT void            Array<T, B>::extend(uint32_t length); \
 		template<> Qk_EXPORT std::vector<T>  Array<T, B>::vector() const; \
@@ -664,9 +664,9 @@ namespace qk {
 		template<> Qk_EXPORT void            Array<T, B>::clear(); \
 		template<> Qk_EXPORT void            Array<T, B>::copy_(Ptr* dest, uint32_t start, uint32_t len) const;
 
-	#define Qk_DEF_ARRAY_SPECIAL(T) \
-		Qk_DEF_ARRAY_SPECIAL_(T, Object)
-	Qk_IsOrdinaryTypes(Qk_DEF_ARRAY_SPECIAL)
+	Qk_DEF_ARRAY_SPECIAL(char, Object)
+	Qk_DEF_ARRAY_SPECIAL(uint16_t, Object)
+	Qk_DEF_ARRAY_SPECIAL(uint32_t, Object)
 }
 
 #endif

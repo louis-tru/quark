@@ -34,6 +34,7 @@
 #define __quark_render_gpucanvas_filter__
 
 #include "./gpu_canvas.h"
+#include "src/render/render.h"
 
 namespace qk {
 
@@ -46,15 +47,17 @@ namespace qk {
 
 	class GC_BlurFilter: public GC_Filter {
 	public:
-		GC_BlurFilter(GPUCanvas *host, const Paint &paint, const Path *path)
-			: _host(host), _radius(paint.filter->val0), _bounds(path->getBounds(&host->_state->matrix))
+		GC_BlurFilter(GPUCanvas *host, const Paint &paint, const Path *path_)
+			: _host(host), _radius(paint.filter->val0)
 		{
+			// auto &path = host->_cache->getNormalizedPath(*path_);
+			_bounds = path_->getBounds(&host->_state->matrix);
 			begin(paint);
 		}
 		GC_BlurFilter(GPUCanvas *host, const Paint &paint, const Rect *rect)
 			: _host(host), _radius(paint.filter->val0), _bounds{rect->begin,rect->begin+rect->size}
 		{
-			if (!host->_state->matrix.is_identity_matrix()) { // Not unit matrix
+			if (!host->_state->matrix.is_identity()) { // Not unit matrix
 				auto &mat = host->_state->matrix;
 				if (mat[0] != 1 || mat[4] != 1) { // rotate or skew
 					Vec2 pts[] = {
@@ -124,8 +127,8 @@ namespace qk {
 			_blurRootMatrix.translate(Vec3(-_bounds.begin.max(0), 0));
 			// compute texture size for blur filter, limit to surface size
 			auto texS = (_bounds.end.min(_host->_size) - _bounds.begin.max(0)) * _host->_surfaceScale;
-			_tmpA = _host->getTextureFromPool(texS, _host->_opts.colorType, true);
-			_tmpB = _host->getTextureFromPool(texS, _host->_opts.colorType, true);
+			_tmpA = _host->getTextureFromPool(texS, _host->_opts.colorType, 0, kMipmap_TextureFlags);
+			_tmpB = _host->getTextureFromPool(texS, _host->_opts.colorType, 0, kMipmap_TextureFlags);
 			// disable clip for blur filter, to avoid blur being cut by clip
 			_host->_clipState = nullptr;
 			_host->blurFilterBeginCmd(_bounds, _blurRootMatrix, *_tmpA);

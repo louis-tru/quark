@@ -37,74 +37,25 @@
 #include "./canvas.h"
 #include "./cgaa.h"
 
-#define Qk_FLAG_CLIP (1u << 0)
-#define Qk_FLAG_AASIDE_LINE (1u << 2)
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
-#define Qk_FLAGS_DARK_COLOR (1 << 3)
-#define Qk_FLAG_COUNT2 (1u << 3)
-#define Qk_FLAG_AASIDE_Inverted (1u << 3)
-#define Qk_FLAG_RADIAL_GRADIENT (1u << 4)
-#define Qk_FLAG_IMAGE_MASK (1u << 3)
-#define Qk_FLAG_IMAGE_SDF_MASK (1u << 4)
+// global flags from 1u << 0 to 1u << 15, 0x0000FFFF
+#define Qk_FLAG_CLIP (1u << 0)
+#define Qk_FLAG_PMA (1u << 1)
+#define Qk_FLAG_AASIDE_LINE (1u << 2)
+#define Qk_FLAG_CGAA (1u << 3)
+// shader private flags from 1u << 16 to 1u << 31, 0xFFFF0000
+// gradient shader
+#define Qk_FLAG_GRADIENT_COUNT2 (1u << 16)
+#define Qk_FLAG_RADIAL_GRADIENT (1u << 17)
+// color shader
+#define Qk_FLAG_AASIDE_Inverted (1u << 16)
+// image shader
+#define Qk_FLAG_IMAGE_MASK (1u << 16)
+#define Qk_FLAG_IMAGE_SDF_MASK (1u << 17)
+// triangles shader
+#define Qk_FLAGS_DARK_COLOR (1u << 16)
 
 namespace qk {
-	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
-
-	constexpr bool isAlignUp(uint32_t ptr) {
-		constexpr auto alignment = alignof(void*);
-		return ((ptr + (alignment - 1)) & ~(alignment - 1)) == ptr;
-	}
-
-	/**
-	 * @class MemBlockAllocator - A simple memory allocator for GPU buffers, managing memory in blocks.
-	 * Allocates memory in fixed-size blocks and provides an interface for allocating memory within those blocks.
-	*/
-	template<class T> struct MemBlockAllocator {
-		struct MemBlock {
-			T val; uint32_t begin = 0, end = 0, capacity = 0;
-		};
-		MemBlockAllocator(uint32_t blockCapacity = 65536)
-				: blockCapacity(blockCapacity), blockIndex(0) {
-			Qk_ASSERT(isAlignUp(blockCapacity), "Block capacity must be aligned.");
-			blocks.push(createBlock(blockCapacity));
-			currentBlock = blocks.val();
-		}
-		~MemBlockAllocator() {
-			for (auto &block: blocks)
-				deleteBlock(block);
-		}
-		MemBlock createBlock(uint32_t capacity);
-		void deleteBlock(MemBlock &block);
-		void clear() {
-			currentBlock = blocks.val();
-			currentBlock->begin = currentBlock->end = 0;
-			blockIndex = 0;
-		}
-		MemBlock* alloc(uint32_t size, uint32_t reserve) {
-			Qk_ASSERT(reserve >= size, "Reserve size must be greater than requested size.");
-			Qk_ASSERT(reserve <= blockCapacity, "Requested size exceeds block capacity.");
-			size = alignUp(size);
-			auto block = currentBlock;
-			auto newEnd = block->end + size;
-			if (block->end + reserve > block->capacity) {
-				if (++blockIndex == blocks.length()) {
-					blocks.push(createBlock(blockCapacity));
-				}
-				block = blocks.val() + blockIndex;
-				block->end = 0; // reset block end for new block
-				newEnd = size;
-				currentBlock = block;
-			}
-			block->begin = block->end;
-			block->end = newEnd;
-			return block;
-		}
-		Qk_DISABLE_COPY(MemBlockAllocator);
-		Array<MemBlock> blocks; // memory blocks
-		MemBlock        *currentBlock; // current block for alloc
-		uint32_t        blockIndex; // current block index
-		uint32_t        blockCapacity; // default block capacity, should be aligned
-	};
 
 	struct GC_State { // gpu canvas state
 		struct Clip: Reference { // clip state
@@ -120,6 +71,20 @@ namespace qk {
 	enum GC_ClearFlags {
 		kOnlyColor_ClearFlags, // only clear color
 		kClearAll_ClearFlags, // clear color and reset render target state
+	};
+
+	enum GC_ImageDrawKind {
+		kImage_DrawKind,
+		kMask_DrawKind,
+		kSDFMask_DrawKind,
+	};
+
+	struct GC_ImageDrawInfo {
+		const PaintImage *paint;
+		Color4f color;
+		GC_ImageDrawKind kind = kImage_DrawKind;
+		Color4f strokeColor;
+		float stroke = 0;
 	};
 
 	class GC_Filter;
@@ -164,23 +129,19 @@ namespace qk {
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) override;
 		Vec2 surfaceSize() { return _surfaceSize; }
 		const Render::Options& opts() const { return _opts; }
-		void setBlendMode(BlendMode mode);
-		enum ImageDrawKind {
-			kImage_DrawKind,
-			kMask_DrawKind,
-			kSDFMask_DrawKind,
-		};
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
 		virtual void drawClipCmd(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, ClipOp rawOp) = 0;
 		virtual void clearColorCmd(const Color4f &color, GC_ClearFlags flags) = 0;
-		virtual void drawImageCmd(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				ImageDrawKind kind = kImage_DrawKind, const Color4f &strokeColor = {}, float stroke = 0) = 0;
+		virtual void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
-		virtual void drawCGAAColorCmd(const CGAADrawData &data, const Color4f &color) = 0;
+		virtual void makeCGAAAtlasCmd(cCGAADrawData &data) = 0;
+		virtual void drawCGAAColorCmd(cCGAADrawData &data) = 0;
+		virtual void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
+		virtual void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
@@ -191,8 +152,11 @@ namespace qk {
 		virtual void outputImageBeginCmd(ImageSource* dst) = 0;
 		virtual void outputImageEndCmd(ImageSource* exit) = 0;
 		virtual void restoreClipCmd(GC_State::Clip* clip) = 0;
-		// get texture count from pool and add ref count
-		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, bool mipmap);
+		// get texture count from pool and add ref count, limit texture size to surface size
+		// flags can be kMipmap_TextureFlags, kComputeWrite_TextureFlags, etc
+		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, 
+				Vec2 limit = Vec2(), uint8_t flags = 0);
+		void setBlendMode(BlendMode mode);
 	// fields:
 		Array<GC_State> _stateStack; // state
 		GC_State    *_state; // state pointer
@@ -204,8 +168,8 @@ namespace qk {
 		float  _allScaleMin; // _surfaceScaleAverage * min(scale)
 		float  _1pxSize; // _1pxSize = 1 / _allScaleMin
 		float  _aaRadius, _aaRadiusRect; // anti-aliasing side radius, for path and rect respectively
+		Mat4   _rootMatrix, _rootMatrixNoScale; // root matrix and root matrix with scale removed
 		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
-		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state
 		GC_State::Clip  *_clipState; // clip state
 		Render::Options _opts;
@@ -213,8 +177,10 @@ namespace qk {
 		// texture pool, key(w << 40 | h << 8 | colorType << 1 | mipmap),
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
+		Sp<CGAABuilder> _cgaaBuilder; // compute grid aa builder for anti-aliasing paths
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
+		friend class CGAABuilder;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

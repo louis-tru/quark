@@ -1,8 +1,10 @@
 #version 450
 
+// global flags from 1u << 0 to 1u << 15, 0x0000FFFF
 #define Qk_FLAG_CLIP (1u << 0)
 #define Qk_FLAG_PMA (1u << 1)
 #define Qk_FLAG_AASIDE_LINE (1u << 2)
+#define Qk_FLAG_CGAA (1u << 3)
 
 #define matrix (rMat.value * vMat.value)
 
@@ -11,9 +13,25 @@
 	uint flags; \
 } pc
 
-#if defined(Qk_FRAG) || defined(Qk_COMP)
+#vert
+layout(binding=1, set=0, std140) uniform RootMatrixBlock {
+	mat4 value;
+	mat4 noScale; // for non-scaling
+	vec2 surfaceScale;
+	vec2 _pad; // pad to 16-byte alignment
+} rMat;
+layout(binding=2, set=0, std140) uniform ViewMatrixBlock {
+	mat4 value;
+} vMat;
+layout(location=0) in      vec2  vertexIn;
+layout(location=1) in      float aaSideIn; // anti alias side
+layout(location=0) out     float aaSide;
+
+#frag
 precision mediump float; // lowp/highp
 precision mediump sampler2D;
+layout(location=0) in      float aaSide;
+layout(location=0) out     vec4  fragColor;
 layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	vec4 range; // x:left, y:top, z:right, w:bottom
 	// Clip sampling mode used by fragment shader:
@@ -28,28 +46,8 @@ void clip(ivec2 coord, inout vec4 color) {
 	float mask = texelFetch(clipTex, coord, 0).r;
 	if (clipStat.op == 1)
 		mask = 1.0 - mask; /* difference mode: invert mask*/
-	/*apply premultiplied alpha
-	float premul = mix(1.0, alpha, premultipliedAlpha);
-	color *= vec4(vec3(premul), alpha);
-	always apply premultiplied alpha*/
 	color *= mask;
 }
-#endif
-
-#vert
-layout(binding=1, set=0, std140) uniform RootMatrixBlock {
-	mat4 value;
-} rMat;
-layout(binding=2, set=0, std140) uniform ViewMatrixBlock {
-	mat4 value;
-} vMat;
-layout(location=0) in      vec2  vertexIn;
-layout(location=1) in      float aaSideIn; // anti alias side
-layout(location=0) out     float aaSide;
-
-#frag
-layout(location=0) in      float aaSide;
-layout(location=0) out     vec4  fragColor;
 
 // GLSL built-in functions:
 // mix(a, b, x)  x:0->1 => a->b

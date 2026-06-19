@@ -30,11 +30,9 @@
 
 #include "./gpu_canvas.h"
 #include "./gpu_canvas_filter.h"
-#include "src/util/object.h"
 
 namespace qk {
 	float get_level_font_size(float fontSize);
-	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 	uint32_t upPow2(uint32_t size);
 
 	typedef Typeface::TextImage TextImage;
@@ -47,7 +45,7 @@ namespace qk {
 		#define _inl(self) static_cast<GPUCanvas::Inl*>(self)
 
 		void computeScale(const Mat& mat) {
-			if (mat.is_translation_matrix()) { // is translation matrix only
+			if (mat.is_translate_only()) { // is translation matrix only
 				if (_scale != Vec2(1.0f)) {
 					_scale = 1.0f;
 					_scaleAverage = 1.0f;
@@ -71,9 +69,28 @@ namespace qk {
 			}
 		}
 
-		const VertexData &getVertex(const Path &path, float aaRadius, bool aa) {
+		bool isSDFImage(ImageSource* img) const {
+			return img && (img->type() == kSDF_Unsigned_F32_ColorType || img->type() == kSDF_F32_ColorType);
+		}
+
+		void commitCGAABatch() {
+			if (_cgaaBuilder)
+				_cgaaBuilder->commit();
+		}
+
+		const VertexData &buildVertex(const Path &path, float aaRadius, bool aa) {
 			return aa ?
 				_cache->getAASideTriangle(path, aaRadius): _cache->getPathTriangles(path);
+		}
+
+		cCGAADrawData& buildCGAAA(const Path &path, const Paint &paint, bool stroke) {
+			Qk_ASSERT(_cgaaBuilder, "CGAA builder is null");
+			_cgaaBuilder->commit();
+			_cgaaBuilder->build(stroke ?
+				_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
+			auto &data = _cgaaBuilder->endBuild();
+			makeCGAAAtlasCmd(data);
+			return data;
 		}
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
@@ -89,6 +106,8 @@ namespace qk {
 			p.mipmapMode = PaintImage::kLinear_MipmapMode;
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
+			_this->commitCGAABatch(); // commit current CGAA batch
+
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
 
 			Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
@@ -101,56 +120,84 @@ namespace qk {
 				right_bottom, left_bottom, // triangle 1 /|
 			}};
 
-			if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
+			if (isSDFImage(img.image.get())) { // SDF text
 				auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;
 				auto strokeWidth = paint.style == Paint::kFill_Style ? 0.0f: paint.strokeWidth;
-				drawImageCmd(vertex, &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale);
+				drawImageCmd(vertex, { &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale});
 			} else {
-				drawImageCmd(vertex, &p, paint.fill.color, kMask_DrawKind);
+				drawImageCmd(vertex, { &p, paint.fill.color, kMask_DrawKind});
 			}
 
 			return scale_1;
 		}
 
-		void fill(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
-			if (!vertex.vCount) return;
+		void fillPathAASide(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
+			if (!vertex.vCount)
+				return;
+			commitCGAABatch(); // commit current CGAA batch before fill path
 			if (style.image) {
-				drawImageCmd(vertex, style.image, style.color);
+				auto isSDF = isSDFImage(style.image->image);
+				drawImageCmd(vertex, { style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind });
 			} else if (style.gradient) {
 				drawGradientCmd(vertex, style.gradient, style.color);
 			} else if (paint.mask) {
-				drawImageCmd(vertex, paint.mask, style.color, kMask_DrawKind);
+				drawImageCmd(vertex, { paint.mask, style.color, kMask_DrawKind });
 			} else {
 				drawColorCmd(vertex, style.color);
 			}
 		}
 
+		bool fillPathCGAA(const Path &path, const Paint &paint, const PaintStyle& style, bool stroke) {
+			if (!_cgaaBuilder)
+				return false;
+			if (style.image) {
+				auto isSDF = isSDFImage(style.image->image);
+				if (!isSDF && !style.image->_isCanvas && style.image->image->type() == kYUV420P_Y_8_ColorType)
+					return false; // fallback to non-CGAA path for YUV420P image
+				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), {
+					style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind
+				});
+			} else if (style.gradient) {
+				drawCGAAGradientCmd(buildCGAAA(path, paint, stroke), style.gradient, style.color);
+			} else if (paint.mask) {
+				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), { paint.mask, style.color, kMask_DrawKind });
+			} else { // color fill/stroke with CGAA
+				_cgaaBuilder->color = style.color;
+				_cgaaBuilder->build(stroke ?
+					_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
+				return true;
+			}
+			_cgaaBuilder->reset();
+			return true;
+		}
+
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			auto &vertex = getVertex(path, aaRadius, aa);
-			drawColorCmd(vertex, color);
-			// LinearAllocator alloc;
-			// AllocatorScope scope(&alloc);
-			// Mat pixelMatrix(Vec2(0), _surfaceScale, 0, Vec2(0));
-			// pixelMatrix *= _state->matrix;
-			// Range clip{{0,0}, _surfaceSize};
-			// auto data = buildCGAADrawData(path, &clip, &pixelMatrix, _allScaleAverage * 0.5f);
-			// if (data.boundaryTiles.length() || data.uniformTiles.length()) {
-			// 	drawCGAAColorCmd(data, color);
-			// }
+			// for non-AA path with simple color fill, 
+			// we can directly use the path triangles without building CGAA data
+			if (_cgaaBuilder && aa) {
+				_cgaaBuilder->color = color;
+				_cgaaBuilder->build(path); // build CGAA data for path
+			} else {
+				commitCGAABatch();
+				drawColorCmd(buildVertex(path, aaRadius, aa), color);
+			}
 		}
 
 		void strokePath(const Path &path, const Paint& paint, float aaRadius) {
 			if (!paint.antiAlias) {
 				auto &stroke = _cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0);
 				auto &vertex = _cache->getPathTriangles(stroke);
-				fill(vertex, paint, paint.stroke);
+				fillPathAASide(vertex, paint, paint.stroke);
+				return;
+			}
+			if (fillPathCGAA(path, paint, paint.stroke, true)) {
 				return;
 			}
 			auto width = paint.strokeWidth - _1pxSize;
 			if (paint.strokeWidth > _1pxSize * 1.8) {
 				auto &stroke = _cache->getStrokePath(path, width, paint.cap, paint.join,0);
-				auto &vertex = getVertex(stroke, aaRadius, paint.antiAlias);
-				fill(vertex, paint, paint.stroke);
+				auto &vertex = buildVertex(stroke, aaRadius, paint.antiAlias);
+				fillPathAASide(vertex, paint, paint.stroke);
 			} else {
 				aaRadius = _1pxSize * 0.65; // min aa radius for thin strokes
 				auto radius = paint.strokeWidth * 0.56f; // bold strokes from 0.5 to 0.65 scale well
@@ -162,17 +209,18 @@ namespace qk {
 				}
 				auto &vertex = _cache->getAASideTriangle(path, aaRadius, true);
 				_flags |= Qk_FLAG_AASIDE_LINE; // set line AA flag for stroke path
-				fill(vertex, paint, stroke);
+				fillPathAASide(vertex, paint, stroke);
 				_flags &= ~Qk_FLAG_AASIDE_LINE; // clear line AA flag after stroke path
 			}
 		}
 
-		void drawPath(const Path &path0, const Paint &paint, float aaRadius) {
-			auto &path = _cache->getNormalizedPath(path0);
+		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
-				auto &vertex = getVertex(path, aaRadius, paint.antiAlias);
-				fill(vertex, paint, paint.fill);
+				if (!paint.antiAlias || !fillPathCGAA(path, paint, paint.fill, false)) {
+					auto &vertex = buildVertex(path, aaRadius, paint.antiAlias);
+					fillPathAASide(vertex, paint, paint.fill);
+				}
 			};
 			// gen stroke path and fill path and polygons
 			switch (paint.style) {
@@ -197,10 +245,11 @@ namespace qk {
 		, _1pxSize(1)
 		, _aaRadius(0.5), _aaRadiusRect(0.5)
 		, _rootMatrix()
+		, _flags(0)
 		, _blendMode(kInvalid_BlendMode)
 		, _clipState(nullptr)
 		, _opts(opts)
-		, _flags(0)
+		, _cgaaBuilder(nullptr)
 	{
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
@@ -215,30 +264,30 @@ namespace qk {
 		Releasep(_cache);
 	}
 
-	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, bool mipmap) {
+	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, Vec2 limit, uint8_t flags) {
+		if (limit.is_zero_axis()) {
+			limit = _surfaceSize; // default limit to surface size if not provided
+		}
 		// limit texture size to surface size,
 		// to avoid memory waste and performance loss on large render targets
-		int w = I32::clamp(upPow2(size.x()), 1, _surfaceSize[0]);
-		int h = I32::clamp(upPow2(size.y()), 1, _surfaceSize[1]);
+		int w = I32::clamp(upPow2(size.x()), 1, int(limit.x()));
+		int h = I32::clamp(upPow2(size.y()), 1, int(limit.y()));
 		// limit texture aspect ratio to 4:1,
 		// to avoid memory waste and performance loss on large render targets
-		if (w > h * 4) h = I32::min(w / 4, _surfaceSize[1]);
-		if (h > w * 4) w = I32::min(h / 4, _surfaceSize[0]);
-
-		uint64_t key = (uint64_t(w) << 40) | (uint64_t(h) << 8) | (type << 1) | mipmap;
+		if (w > h * 4) h = I32::min(w / 4, limit[1]);
+		if (h > w * 4) w = I32::min(h / 4, limit[0]);
+		uint64_t key =
+			(uint64_t(w) << 32) | // bit16
+			(uint64_t(h) << 16) | // bit16
+			(type << 8) | // bit8
+			flags; // bit8
 		auto &pool = _texPools[key];
 		for (auto &tex : pool) {
 			if (tex->refCount() == 1)
 				return tex;
 		}
-		auto src = ImageSource::Make(PixelInfo{w, h, type, kPremul_AlphaType}, nullptr);
+		auto src = _render->createTexture(Vec2(w,h), type, flags);
 		pool.push(src.get());
-		// create texture stat and set texture source
-		_render->post_message(Cb([render=_render, src=src.get(), w, h, type, mipmap](auto e) {
-			auto stat = render->createTextureStat(Vec2(w, h), type, mipmap);
-			src->set_mipmap(mipmap);
-			setTexUnsafe_SourceImage(src, &stat);
-		}, src.get())); // ref src to ensure texture stat is valid when cb is called
 		return src;
 	}
 
@@ -291,6 +340,9 @@ namespace qk {
 
 	void GPUCanvas::setBlendMode(BlendMode mode) {
 		if (_blendMode != mode) {
+			if (_cgaaBuilder) {
+				_cgaaBuilder->setBlendMode(mode); // commit current CGAA batch if blend mode changed
+			}
 			_blendMode = mode;
 			setBlendModeCmd();
 		}
@@ -310,6 +362,7 @@ namespace qk {
 		count = U32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
+			_this->commitCGAABatch(); // commit current CGAA batch before restore
 			do {
 				auto lastOut = _state->output; // save current output before pop
 				_stateStack.pop(); // exit current state
@@ -337,7 +390,7 @@ namespace qk {
 			Qk_DLog("Invalid ClipOp: %d, expected kIntersect_ClipOp, kDifference_ClipOp, or kReplace_ClipOp", rawOp);
 			return;
 		}
-		const Vec2 pad = _surfaceScale; // 1 pixel pad for anti-aliasing
+		const Vec2 pad = 1.0f; // 1 pixel pad for anti-aliasing
 		auto clip = new GC_State::Clip;
 		auto range = path.getBounds(&_state->matrix);
 		auto lastClip = _clipState;
@@ -390,7 +443,8 @@ namespace qk {
 				range = lastRange;
 			}
 		}
-		clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType, false);
+		_this->commitCGAABatch();
+		clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType);
 		clip->range = range;
 		// adjust range to actual allocated texture size
 		clip->range.end = clip->range.begin + clip->mask->size();
@@ -409,11 +463,14 @@ namespace qk {
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
+		if (_cgaaBuilder)
+			_cgaaBuilder->reset();
 		clearColorCmd(color, _stateStack.length() == 1 ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		_this->setBlendMode(mode); // switch blend mode
+		_this->commitCGAABatch();
 		drawColorCmd({0,6, {
 			{0,0,0}, {_size[0],0,0}, {_size[0],_size[1],0}, // triangle 1
 			{_size[0],_size[1],0}, {0,_size[1],0}, { 0,0,0 } // triangle 2
@@ -423,8 +480,10 @@ namespace qk {
 	void GPUCanvas::drawRRectBlurColor(const Rect& rect,
 		const float radius[4], float blur, const Color4f &color, BlendMode mode)
 	{
-		if (rect.size.is_zero_axis()) return;
+		if (rect.size.is_zero_axis())
+			return;
 		_this->setBlendMode(mode); // switch blend mode
+		_this->commitCGAABatch();
 		drawRRectBlurColorCmd(rect, radius, blur, color);
 	}
 
@@ -491,17 +550,17 @@ namespace qk {
 		if (fixedFSize == 0.0)
 			return;
 		auto scale = fixedFSize / fontSize; // scale from original font size to fixed font size
-		auto isSDF = paint.style != Paint::kFill_Style;
+		auto needSDF = paint.style != Paint::kFill_Style;
 
 		if (blob->img.fontSize != fixedFSize || !blob->img.image ||
-			(isSDF ? blob->img.image->type() != kSDF_Unsigned_F32_ColorType: false)
+			(needSDF ? !_this->isSDFImage(blob->img.image.get()): false)
 		) { // fill text bolb
 			Array<Vec2> offset;
 			if (blob->offset.length() >= blob->glyphs.length()) {
 				offset = blob->offset;
 				for (auto &o: offset) o *= scale;
 			}
-			blob->img = isSDF ?
+			blob->img = needSDF ?
 				blob->typeface->getSDFImage(blob->glyphs, fixedFSize, &offset, false):
 				blob->typeface->getImage(blob->glyphs, fixedFSize, &offset);
 			blob->img.image->set_mipmap(false); // disable mipmap for text
@@ -516,11 +575,13 @@ namespace qk {
 
 	void GPUCanvas::drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
+		_this->commitCGAABatch(); // commit current CGAA batch before read image
 		drawTrianglesCmd(triangles, paint.fill.image, paint.fill.color, copyData);
 	}
 
 	Sp<ImageSource> GPUCanvas::readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) {
 		_this->setBlendMode(mode); // switch blend mode
+		_this->commitCGAABatch();
 		auto o = src.begin;
 		auto s = Vec2{
 			F32::min(o.x()+src.size.x(), _size.x()) - o.x(),
@@ -548,6 +609,7 @@ namespace qk {
 		}
 		if (img == _state->output)
 			return img; // same image, no need to switch
+		_this->commitCGAABatch();
 		_state->output = img;
 		img->set_mipmap(mipmap);
 		outputImageBeginCmd(img.get());
@@ -571,7 +633,12 @@ namespace qk {
 		_scale = 0; // force computeScale()
 		_this->computeScale(_state->matrix);
 		_rootMatrix = root;
+		_rootMatrixNoScale = root;
+		_rootMatrixNoScale.scale_x(1.0f/surfaceScale.x());
+		_rootMatrixNoScale.scale_y(1.0f/surfaceScale.y());
 		_texPools.clear(); // clear texture pool when surface size changed
+		if (_cgaaBuilder)
+			_cgaaBuilder->reset(true);
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
 

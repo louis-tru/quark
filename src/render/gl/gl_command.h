@@ -151,7 +151,7 @@ namespace qk {
 			Color4f        strokeColor;
 			PaintImage     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			float          strokeWidth;
-			GPUCanvas::ImageDrawKind kind;
+			GC_ImageDrawKind kind;
 			~ImageCmd();
 		};
 
@@ -224,8 +224,7 @@ namespace qk {
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor(const VertexData &vertex, const Color4f &color); // add cmd
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
-		void drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
-				GPUCanvas::ImageDrawKind kind, const Color4f &strokeColor, float stroke);
+		void drawImage(const VertexData &vertex, const GC_ImageDrawInfo &info);
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color);
 		void drawClip(const VertexData &vertex, GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp);

@@ -387,7 +387,8 @@
 					'../tools/gen_glsl_natives.js',
 					'render/shader/_util.glsl',
 					'render/shader/_blur.glsl',
-					'render/shader/_image.glsl',
+					'render/shader/_cgaa.glsl',
+					'render/shader/cgaa.glsl',
 					'render/shader/color_batch.glsl',
 					'render/shader/color.glsl',
 					'render/shader/clear.glsl',
@@ -399,7 +400,6 @@
 					'render/shader/triangles.glsl',
 					'render/shader/cp.glsl',
 					'render/shader/vport_cp.glsl',
-					'render/shader/cgaa.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

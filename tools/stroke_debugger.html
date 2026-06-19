@@ -34,10 +34,10 @@
 	.stage {
 		position: relative;
 		min-width: 0;
-		background:
+		/* background:
 			linear-gradient(#eef1f4 1px, transparent 1px),
 			linear-gradient(90deg, #eef1f4 1px, transparent 1px),
-			#fbfcfd;
+			#fff; */
 		background-size: 24px 24px;
 	}
 	svg {
@@ -545,7 +545,8 @@ function draw() {
 		svg.appendChild(el("polygon", {
 			points: polyPoints(stroke.outline),
 			fill: controls.showCustom.checked ? controls.offsetFillColor.value : "none",
-			"fill-opacity": "0.58",
+			// "fill-opacity": "0.58",
+			"fill-opacity": "1",
 			stroke: controls.showCustomBorder.checked ? controls.offsetBorderColor.value : "none",
 			"stroke-width": "1",
 		}));

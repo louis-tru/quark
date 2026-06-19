@@ -54,7 +54,7 @@ namespace qk {
 	typedef id<MTLSamplerState> MTLSampler;
 	typedef id<MTLRenderCommandEncoder> MTLEncoder;
 	typedef id<MTLTexture> MTLTextureID;
-	typedef id<MTLCommandBuffer> MTLCommandBuffer;
+	typedef id<MTLCommandBuffer> MTLCommandBufferID;
 	typedef MTLRenderPassDescriptor* MTLPassDesc;
 	typedef id<CAMetalDrawable> MTLDrawable;
 	typedef id<MTLBuffer> MTLBufferID;
@@ -69,7 +69,7 @@ namespace qk {
 	typedef void* MTLSampler;
 	typedef void* MTLEncoder;
 	typedef void* MTLTextureID;
-	typedef void* MTLCommandBuffer;
+	typedef void* MTLCommandBufferID;
 	typedef void* MTLPassDesc;
 	typedef void* MTLDrawable;
 	typedef void* MTLBufferID;

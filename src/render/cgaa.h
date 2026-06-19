@@ -33,105 +33,79 @@
 #ifndef __quark_render_cgaa__
 #define __quark_render_cgaa__
 
+#include "./metal/mtl_shaders.h"
 #include "./path.h"
+#include "../util/handle.h"
 
 namespace qk {
-	
-	static constexpr uint32_t kCGAATileSize = 16;
-	static constexpr uint32_t kCGAASampleGrid = 4;
+	class GPUCanvas;
+	constexpr int kCGAATileSize = 16;
+	constexpr int kCGAASampleGrid = 4;
 	static_assert(kCGAATileSize * kCGAASampleGrid <= 64,
 		"Compute AA inside mask only supports up to 64 X samples per tile");
+	constexpr float kInvCGAATileSize = 1.0f / float(kCGAATileSize);
+	constexpr int kCGAATileSizeShift = __builtin_ctz(kCGAATileSize);
 
-	enum CGAAFillRule: uint32_t {
+	enum CGAAFillRule {
 		kCGAANonZero_FillRule = 0,
 		kCGAAEvenOdd_FillRule = 1,
 		kCGAAPositive_FillRule = 2,
 		kCGAANegative_FillRule = 3,
 	};
 
-	struct alignas(16) CGAAEdge {
-		Vec2 p0;          // atlas-space start point, y-down
-		Vec2 p1;          // atlas-space end point, y-down
-		float dxdy;       // cached dx/dy for GPU X intersection
-		int32_t winding;  // +1 for downward edge, -1 for upward edge
-		uint32_t _pad[2];
-	};
-	static_assert(sizeof(CGAAEdge) == sizeof(float) * 8,
-		"Metal edge ABI mismatch");
-
-	struct CGAATileEdge {
-		uint32_t edgeIndex;
-		// 当前 tile 内需要使用原始边做精确交点测试的 Y sample 范围。
-		uint16_t sampleBegin; // local Y sample range [begin, end)
-		uint16_t sampleEnd;
-	};
-	static_assert(sizeof(CGAATileEdge) == 8, "Metal tile-edge ABI mismatch");
-
-	struct CGAABackdropEvent {
-		// This is a compact span record, not an MTLEvent synchronization object.
-		// 从 firstTileX 开始，当前 tile 行内的 sample 范围已经完全位于
-		// 此边右侧，所有后续 tile 的 backdrop 都应加 winding。
-		uint32_t firstTileX;
-		uint16_t sampleBegin; // local Y sample range [begin, end)
-		uint16_t sampleEnd;
-		int32_t winding;
-	};
-	static_assert(sizeof(CGAABackdropEvent) == 12,
-		"Metal backdrop-event ABI mismatch");
-
-	struct CGAABackdropRow {
-		// 当前 yTile 行在 CGAADrawData::backdropEvents 中的切片。
-		uint32_t eventOffset;
-		uint32_t eventCount;
-	};
-	static_assert(sizeof(CGAABackdropRow) == 8,
-		"Metal backdrop-row ABI mismatch");
-
-	struct alignas(16) CGAATile {
-		uint32_t originX;    // atlas-space tile origin in pixels
-		uint32_t originY;
-		uint32_t edgeOffset; // offset into CGAADrawData::tileEdges
-		uint32_t edgeCount;
-	};
-	static_assert(sizeof(CGAATile) == sizeof(uint32_t) * 4,
-		"Metal tile ABI mismatch");
-
-	struct alignas(16) CGAAUniformTile {
-		uint32_t originX;
-		uint32_t originY;
-		int32_t winding;
-		uint32_t _pad;
-	};
-	static_assert(sizeof(CGAAUniformTile) == sizeof(uint32_t) * 4,
-		"Metal uniform-tile ABI mismatch");
+	typedef MSLImage::CGAAPath CGAAPath;
+	typedef MSLImage::CGAACompositeTile CGAACompositeTile;
+	typedef MSLCgaa::CGAAEdge CGAAEdge;
+	typedef MSLCgaa::CGAATileEdge CGAATileEdge;
+	typedef MSLCgaa::CGAATile CGAATile;
+	static_assert(sizeof(CGAACompositeTile) == sizeof(uint16_t) * 6, "Metal edge ABI mismatch");
+	static_assert(sizeof(CGAAEdge) == sizeof(float) * 6, "Metal edge ABI mismatch");
+	static_assert(sizeof(CGAATileEdge) == 12, "Metal tile-edge ABI mismatch");
+	static_assert(sizeof(CGAATile) == sizeof(uint32_t) * 4, "Metal tile ABI mismatch");
 
 	struct CGAADrawData {
-		Range bounds; // original path bounds before atlas origin subtraction
-		uint32_t tileCountX = 0;
-		uint32_t tileCountY = 0;
+		Sp<ImageSource> atlas; // atlas
+		Array<CGAAPath> paths;
 		Array<CGAAEdge> edges;
 		Array<CGAATileEdge> tileEdges;
-		Array<CGAATile> boundaryTiles; // compact; no entries for uniform tiles
-		Array<CGAAUniformTile> uniformTiles;
-		Array<CGAABackdropEvent> backdropEvents;
-		Array<CGAABackdropRow> backdropRows;
+		Array<CGAATile> tiles; // boundary tiles that require GPU edge testing
+		Array<CGAACompositeTile> compositeTiles;
 	};
 
-	// 配置以使用普通的平凡类型，这在容器中可以优化为不调用构造函数和析构函数。
-	template<> struct IsOrdinaryType<CGAAEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<CGAATileEdge> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<CGAATile> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<CGAAUniformTile> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<CGAABackdropEvent> { static constexpr bool value = true; };
-	template<> struct IsOrdinaryType<CGAABackdropRow> { static constexpr bool value = true; };
+	typedef const CGAADrawData cCGAADrawData;
+
+	template<> struct ObjectTraits<CGAAEdge>: ObjectTraitsBase<CGAAEdge> {
+		static constexpr bool isOrdinary = true;
+	};
+	template<> struct ObjectTraits<CGAAPath>: ObjectTraitsBase<CGAAPath> {
+		static constexpr bool isOrdinary = true;
+	};
 	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
 	template<> struct AllocatorConfig<CGAAEdge> { static constexpr uint32_t kMinCapacity = 4; };
 	template<> struct AllocatorConfig<CGAATileEdge> { static constexpr uint32_t kMinCapacity = 4; };
-	template<> struct AllocatorConfig<CGAABackdropEvent> { static constexpr uint32_t kMinCapacity = 4; };
 
-		// Builds CPU-side buffers for the compute prototype. The path may contain
-	// curves; Path::getEdgeLines() flattens them first.
-	CGAADrawData buildCGAADrawData(const Path &path,
-		Range *clip = nullptr, const Mat *mat = nullptr, float flattenPrecision = 1.0f);
+	struct CGAABuilder {
+		CGAABuilder(GPUCanvas *owner);
+		// 将路径边界数据追加到 CGAA 批处理中，用于 GPU 边缘测试和覆盖率计算。
+		// 如果数据超过限制则自动提交绘制命令；如果路径过大而无法绘制，则返回 false。
+		// 也可以手动结束构建并提交当前批次，或者重置丢弃当前批次数据。
+		bool build(const Path &path, Range *clip, const Mat *mat, float precision = 1.0f);
+		bool build(const Path &path);
+		cCGAADrawData& endBuild(); // end build and create atlas texture, should be called before drawing CGAA paths
+		void commit(); // end buffer and commit current CGAA data to GPU.
+		void reset(bool clear = false); // reset and clear all CGAA data.
+		// 为后续 CGAA 路径设置混合模式，如果混合模式更改，将自动提交当前批次。
+		void setBlendMode(BlendMode mode);
+		CGAAPath& getPath(int index) { return _data.paths[index]; }
+		cCGAADrawData& getDrawData() const { return _data; }
+		Color4f color; // color state for CGAABuilder
+		CGAAFillRule fillRule = kCGAANonZero_FillRule;
+	private:
+		bool buildTileEdges(Range &bounds, int edgeIndex, int edgeEnd, int tileCountX, int tileCountY);
+		CGAADrawData _data;
+		GPUCanvas *_owner;
+		LinearAllocator _alloc,_alloc2;
+		BlendMode _blendMode;
+	};
 }
 #endif

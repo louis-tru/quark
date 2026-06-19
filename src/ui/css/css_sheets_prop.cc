@@ -221,7 +221,7 @@ namespace qk {
 	template<typename T>
 	struct PropImpl<T*>: Property {
 		PropImpl(CssProp prop, T* value): _prop(prop), _value(value) {
-			static_assert(object_traits<T>::is::obj, "Property value must be a object type");
+			static_assert(ObjectTraits<T>::isObj, "Property value must be a object type");
 			Retain(value);
 		}
 		~PropImpl() {

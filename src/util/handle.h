@@ -39,13 +39,13 @@ namespace qk {
 	/**
 	 * @class Handle
 	*/
-	template<class T, typename Traits = object_traits<T>> class Handle {
+	template<class T, typename Traits = ObjectTraits<T>> class Handle {
 		//! Copy constructor is not permitted.
 		Qk_DISABLE_COPY(Handle);
 		T* _data;
 
 		inline T* move() {
-			return Traits::is::ref ? (Traits::Retain(_data), _data) : collapse();
+			return Traits::isRef ? (Traits::Retain(_data), _data) : collapse();
 		}
 	public:
 		typedef T Type;
@@ -133,7 +133,7 @@ namespace qk {
 	/**
 	 * Shared pointer
 	 */
-	template <class T, typename Traits = object_traits<T>>
+	template <class T, typename Traits = ObjectTraits<T>>
 	using Sp = Handle<T, Traits>;
 
 	/**
