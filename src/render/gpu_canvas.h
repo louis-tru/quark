@@ -36,6 +36,7 @@
 #include "./render.h"
 #include "./canvas.h"
 #include "./cgaa.h"
+#include "./capa.h"
 
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 // global flags from 1u << 0 to 1u << 15, 0x0000FFFF
@@ -142,6 +143,7 @@ namespace qk {
 		virtual void drawCGAAColorCmd(cCGAADrawData &data) = 0;
 		virtual void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) = 0;
+		virtual bool drawCAPAColorCmd(cCAPADrawData &data) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
@@ -178,9 +180,11 @@ namespace qk {
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
 		Sp<CGAABuilder> _cgaaBuilder; // compute grid aa builder for anti-aliasing paths
+		Sp<CAPABuilder> _capaBuilder;
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
 		friend class CGAABuilder;
+		friend class CAPABuilder;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

@@ -226,6 +226,18 @@ namespace qk {
 		}
 	}
 
+	const Array<Vec2>& PathvCache::getEdgeLines(const Path &path, float precision) {
+		Hash hash = path.hash();
+		hash.update1f(precision);
+		auto key = hash.hashCode();
+		Array<Vec2> const *out;
+		if (_edgeLines.get(key, out))
+			return *out;
+		auto lines = path.getEdgeLines(precision);
+		_capacity += lines.size();
+		return _edgeLines.set(key, std::move(lines));
+	}
+
 	void PathvCache::clear(int flags) {
 		if (flags == 0) {
 			if (_capacity > _maxCapacity) { // max limit clear
@@ -249,6 +261,7 @@ namespace qk {
 			it->clear();
 		}
 		_capacity = 0;
+		_edgeLines.clear();
 
 		// If the render backend is not available, directly clear the cache data and return
 		if (!_render) {

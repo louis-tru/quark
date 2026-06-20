@@ -168,7 +168,7 @@ namespace qk {
 
 	void MetalCanvas::clearColor(const Color4f &color, const Range *surfaceRange) {
 		if (!surfaceRange) {
-			// clear color by load action if no encoder and clear full surface, 
+			// clear color by load action if no encoder and clear full surface,
 			// which is more efficient than drawing a rect
 			auto pass = beginPass();
 			pass.colorAttachments[0].loadAction = MTLLoadActionClear;
@@ -257,6 +257,139 @@ namespace qk {
 						vertexStart:0
 						vertexCount:4
 					instanceCount:tileCount];
+	}
+
+	bool MetalCanvas::drawCAPAColorCmd(cCAPADrawData &data) {
+		auto edgeCount = data.edges.length();
+		if (!edgeCount || !data.paths.length() || !data.atlas)
+			return false;
+
+		endPass();
+
+		constexpr uint32_t kCAPAMaxTileRefs = 256;
+		constexpr float kCAPAShortEdgeLength = 8.0f;
+		uint32_t atlasTileCountX = (uint32_t(_surfaceSize.x()) + kCAPATileSize - 1) >> kCAPATileSizeShift;
+		uint32_t atlasTileCountY = (uint32_t(_surfaceSize.y()) + kCAPATileSize - 1) >> kCAPATileSizeShift;
+		uint32_t tileOriginX = 0;
+		uint32_t tileOriginY = 0;
+		uint32_t drawTileCountX = atlasTileCountX;
+		uint32_t drawTileCountY = atlasTileCountY;
+		uint32_t drawTileCount = drawTileCountX * drawTileCountY;
+		float surfaceDiagonal = sqrtf(_surfaceSize.x() * _surfaceSize.x() + _surfaceSize.y() * _surfaceSize.y());
+		uint32_t maxTasksPerEdge = uint32_t(ceilf(surfaceDiagonal / kCAPAShortEdgeLength)) + 4;
+		maxTasksPerEdge = Qk_Max(maxTasksPerEdge, uint32_t(1));
+		maxTasksPerEdge = Qk_Min(maxTasksPerEdge, uint32_t(512));
+		uint32_t maxTaskCount = edgeCount * maxTasksPerEdge;
+
+		auto rawEdges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
+		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
+		auto preparedSize = edgeCount * uint32_t(sizeof(MSLCapaPrepare::CAPAPreparedEdge));
+		auto &prepared = _cmdPack.buffer->alloc(preparedSize);
+		auto shortTasksSize = maxTaskCount * uint32_t(sizeof(MSLCapaPrepare::CAPAShortEdgeTask));
+		auto &shortTasks = _cmdPack.buffer->alloc(shortTasksSize);
+		uint32_t counterData[2] = { 0, 0 };
+		auto counters = makeBuffer(_cmdPack, counterData, sizeof(counterData));
+		auto tileCountsSize = drawTileCount * uint32_t(sizeof(uint32_t));
+		auto &tileCounts = _cmdPack.buffer->alloc(tileCountsSize);
+		memset((char*)tileCounts.val.contents + tileCounts.begin, 0, tileCountsSize);
+		auto tileRefsSize = drawTileCount * kCAPAMaxTileRefs * uint32_t(sizeof(uint32_t));
+		auto &tileRefs = _cmdPack.buffer->alloc(tileRefsSize);
+
+		{ // pass1 - prepare edge data
+			auto &shader = _shaders.capaPrepare;
+			MSLCapaPrepare::PcArgs pc{
+				.edgeCount=edgeCount,
+				.maxTaskCount=maxTaskCount,
+				.shortEdgeLength=kCAPAShortEdgeLength,
+			};
+			auto enc = [_cmdPack.current computeCommandEncoder];
+			enc.label = @"CAPA prepare";
+			[enc setComputePipelineState:shader.getComputePipeline()];
+			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+			[enc setBuffer:rawEdges.val offset:rawEdges.begin atIndex:shader.compute.edges];
+			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+			[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.preparedEdges];
+			[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+			[enc setBuffer:counters.val offset:counters.begin atIndex:shader.compute.counters];
+			[enc dispatchThreadgroups:MTLSizeMake((edgeCount + 63) >> 6, 1, 1)
+				threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
+			[enc endEncoding];
+		}
+		{ // pass2 - bin short-edge tasks into tile-local lists
+			auto &shader = _shaders.capaBin;
+			MSLCapaBin::PcArgs pc{
+				.maxTaskCount=maxTaskCount,
+				.atlasTileCountX=atlasTileCountX,
+				.atlasTileCountY=atlasTileCountY,
+				.maxTileRefs=kCAPAMaxTileRefs,
+				.tileSpanX=drawTileCountX,
+				.tileSpanY=drawTileCountY,
+				.tileOriginX=tileOriginX,
+				.tileOriginY=tileOriginY,
+			};
+			auto enc = [_cmdPack.current computeCommandEncoder];
+			enc.label = @"CAPA short-edge bin";
+			[enc setComputePipelineState:shader.getComputePipeline()];
+			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+			[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.edges];
+			[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+			[enc setBuffer:counters.val offset:counters.begin atIndex:shader.compute.counters];
+			[enc setBuffer:tileCounts.val offset:tileCounts.begin atIndex:shader.compute.tileCounts];
+			[enc setBuffer:tileRefs.val offset:tileRefs.begin atIndex:shader.compute.tileRefs];
+			[enc dispatchThreadgroups:MTLSizeMake((maxTaskCount + 63) >> 6, 1, 1)
+				threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
+			[enc endEncoding];
+		}
+		{ // pass3 - resolve coverage by right-expanded tile buckets
+			auto &shader = _shaders.capaTile;
+			MSLCapaTile::PcArgs pc{
+				.tileCount=drawTileCount,
+				.atlasTileCountX=atlasTileCountX,
+				.surfaceSize=_surfaceSize,
+				.maxTileRefs=kCAPAMaxTileRefs,
+				.aaMode=0,
+				.tileSpanX=drawTileCountX,
+				.tileOriginX=tileOriginX,
+				.tileOriginY=tileOriginY,
+				.flags=_flags,
+			};
+			auto enc = [_cmdPack.current computeCommandEncoder];
+			enc.label = @"CAPA tile coverage";
+			[enc setComputePipelineState:shader.getComputePipeline()];
+			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+			[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.edges];
+			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+			[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+			[enc setBuffer:tileCounts.val offset:tileCounts.begin atIndex:shader.compute.tileCounts];
+			[enc setBuffer:tileRefs.val offset:tileRefs.begin atIndex:shader.compute.tileRefs];
+			[enc setTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.compute.atlasTex];
+			[enc dispatchThreadgroups:MTLSizeMake(drawTileCount, 1, 1)
+				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize * kCAPATileSize, 1, 1)];
+			[enc endEncoding];
+		}
+		_cmdPack.recorded = true;
+
+		auto &shader = _shaders.capaResolve;
+		auto enc = usePipeline(shader);
+		enc.label = @"CAPA Color";
+
+		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+
+		float x1 = 0, y1 = 0, x2 = _surfaceSize.x(), y2 = _surfaceSize.y();
+		float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+		MSLCapaResolve::PcArgs pc{
+			.color=premul_alpha(data.paths[0].color),
+			.surfaceSize=_surfaceSize,
+			.flags=_flags,
+		};
+		[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:shader.bufferIndex];
+		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+						vertexStart:0
+						vertexCount:4];
+		return true;
 	}
 
 	const MemBlockAllocator<MTLBufferID>::MemBlock&
@@ -424,7 +557,7 @@ namespace qk {
 			if (!enc) return;
 			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
 			// set atlas texture for fragment shader,
-			// because resources cannot be empty, although not used in non-cgaa draw, 
+			// because resources cannot be empty, although not used in non-cgaa draw,
 			// so set a texture for non-cgaa draw to avoid error.
 			// Qk_ASSERT_EQ(true, use_texture(enc, src, 0, shader.fragment.atlasTex, info.paint));
 			// set color and other args for shader push constants
@@ -557,7 +690,7 @@ namespace qk {
 		*/
 	void MetalCanvas::blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
-		if (_cmdPack.enc == nil) 
+		if (_cmdPack.enc == nil)
 			return; // if no drawing command recorded for blur filter, skip post processing
 		auto texA = mtl_get_texture_from(tmpA);
 		auto texB = mtl_get_texture_from(tmpB);

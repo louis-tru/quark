@@ -168,6 +168,14 @@ namespace qk
 		*/
 		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
 
+		/**
+		* @dev get path edge lines cache, return line segments
+		 * @param path {Path} raw path
+		 * @param precision {float} line segment precision, the larger the value, the more segments
+		 * @return {Array<Vec2>} line segments array, each two points form a line segment
+		*/
+		const Array<Vec2>& getEdgeLines(const Path &path, float precision = 1.0);
+
 	protected:
 		/**
 		 * @dev set radius rect path cache from hash code
@@ -204,6 +212,7 @@ namespace qk
 		Dict<uint64_t, Wrap<VertexData>*> _aaSideTriangle; // path hash => aa side triangles
 		Dict<uint64_t, Wrap<RectPath>*> _rectPath; // rect hash => rect path
 		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _rectOutlinePath; // rect hash => rect outline path
+		Dict<uint64_t, Array<Vec2>> _edgeLines; // path hash => edge lines
 
 		friend class RenderResource;
 	};

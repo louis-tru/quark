@@ -54,6 +54,7 @@ namespace qk {
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cgaaBuilder = new CGAABuilder(this); // create CGAA builder for anti-aliasing paths
+		_capaBuilder = new CAPABuilder(this);
 	}
 
 	MetalCanvas::~MetalCanvas() {

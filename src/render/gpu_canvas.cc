@@ -171,7 +171,20 @@ namespace qk {
 			return true;
 		}
 
+		bool fillPathCAPA(const Path &path, const Color4f &color) {
+			if (!_capaBuilder->buildColor(path, color))
+				return false;
+			commitCGAABatch();
+			drawCAPAColorCmd(_capaBuilder->endBuild());
+			_capaBuilder->reset();
+			return true;
+		}
+
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
+			if (_capaBuilder && aa) {
+				if (fillPathCAPA(path, color))
+					return;
+			}
 			// for non-AA path with simple color fill, 
 			// we can directly use the path triangles without building CGAA data
 			if (_cgaaBuilder && aa) {
