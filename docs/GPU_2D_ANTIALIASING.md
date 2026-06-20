@@ -69,6 +69,17 @@ CGAA 目标是更准确地计算 tile 内边覆盖，但目前观察到的问题
 - 被裁掉的边可能让某些 tile 不再有 crossing edge，从而被当成纯色 tile，表现为颜色向右或向下延伸。
 - 这类问题本质上不是“水平边/垂直边能不能忽略”，而是 tile 是否仍然拥有足够的边信息来决定 coverage 和 backdrop。
 
+### 浏览器 SVG / CAPA / CGAA / AASide 对比观察
+
+`tools/capa_svg_compare.html` 用同一个星形 + 双三次曲线路径对比了浏览器 SVG transform、SVG 几何重绘、Canvas cached bitmap 和 Canvas vector redraw。当前观察结论：
+
+- 浏览器的静态 SVG transform 很可能不是每帧重新做矢量 coverage，而是先生成一张中间纹理/layer，再对这张纹理做 transform。小图时它的锯齿最少，但边缘细节不够干净；放大后锯齿会回来，表现接近动态几何绘制。
+- Canvas cached bitmap 在修正 canvas 尺寸比例后，和浏览器 SVG transform 的观感非常接近。它的“小图更平滑”更像高分辨率图像下采样 / mipmap / linear filter 抹掉了原始锯齿细节，而不是更准确的矢量 AA。
+- 浏览器动态 SVG geometry 和 Canvas vector redraw 更像 GRID 4x4 或 2x2 技术。它们的锯齿波是离散采样造成的“跳格/撕裂”感，和 Qk 开启 CGAA 时的动态观感相近。
+- CAPA 当前解析面积积分与 AASide 在单条直线边上的质量非常接近。这说明 AASide 的距离 ramp 对单边场景已经近似一维面积积分；CAPA 的价值主要在多边、多轮廓、backdrop、tile-local 统一 resolve，而不是让一条旋转直线边神奇超过 AASide。
+- CAPA / AASide 的小角度直线旋转会出现非常均匀、柔和、连续移动的低频波纹；CGAA / GRID 也有波动，但更像离散采样锯齿在移动。两者都不是免费午餐，只是在“平滑波纹”和“离散锯齿”之间选择不同代价。
+- CAPA 中用 point-sample 方式模拟 2x2 / 4x4 GRID 时，动态锯齿可能出现突然跳位；这不等同于 CGAA 当前的 tile/sample 组织。真正要模拟 CGAA，需要按它的 sample grid、tile backdrop、边穿越和覆盖 resolve 语义来做，而不是只在解析面积 pass 中替换为若干点采样。
+
 ### 逻辑图元 coverage 问题
 
 这是目前最关键的质量问题之一。
@@ -164,7 +175,7 @@ MSAA 对三角形边缘天然有效，可以作为对比或特定 surface 的 fa
 - 如果 coverage 计算仍然粗糙，mask 只是存储错误结果。
 - per-path mask 不能自然解决多图元共享边界漏光。
 
-### Compute AA / CGAA
+### Compute area pipeline Anti-aliasing / CAPA
 
 把路径边分配到 tile，在 compute shader 中计算 tile 内 coverage。
 
@@ -173,6 +184,227 @@ MSAA 对三角形边缘天然有效，可以作为对比或特定 surface 的 fa
 - 它不是单个 shader 可以解决的问题，而是完整的路径编译、binning、backdrop、tile resolve 管线。
 - 如果仍然每个 path 独立生成 mask，再普通 alpha blend，边界漏光仍会存在。
 - 性能关键在于减少 CPU/GPU 同步、减少全局原子、减少临时 buffer、控制每 tile 工作量。
+
+当前 `CGAA` 可以视为 compute coverage AA 的原型名称。下一代重构建议命名为 `CAPA`：Compute Area Pipeline Anti-aliasing。这个名字强调两个重点：
+
+- `Area`：coverage 来自面积积分，而不是启发式软边。
+- `Pipeline`：它不是单个 shader，而是一条包含 transform、count、scan、binning、backdrop、coverage、tile resolve 的 GPU 管线。
+
+### Qk 下一步 CAPA 管线草案
+
+当前讨论后的判断：Qk 不必急着把 path flatten 搬到 GPU。路径本身通常变化不频繁，变化更多来自 offset、matrix、surface scale、clip 等状态。CPU flatten 已经有良好缓存命中，计算量也不大，类似当前 AASide 缓存路线。因此下一阶段可以先保留 CPU 展平，把 GPU 工作集中在 transform、binning、backdrop、tile coverage 和 tile resolve 上。
+
+CAPA 第一版先不追求完全均衡地展开不同长度的原始边。可以先让原始边线程循环写轻量 short-edge task，把真正重的 tile/bin/area 工作放到后续按短边或 tile 调度的 pass 中。这个取舍更接近 Pathfinder/Vello 的真实工程路线：先把动态数据流和面积积分管线跑通，再用 profiler 判断是否需要把某些 atomic/task 生成点替换成 count + scan。
+
+CAPA v1 先按 6 个阶段设计，其中 `pass 0` 在 CPU，后面 5 个是 GPU pass：
+
+当前仓库里的可运行原型已经进入第三个中间状态：CPU 只保留路径展平和绘制命令编码，上传 path-space edge list、path matrix/color 和 edge range；GPU 的 `capa_prepare` 负责变换到 surface-space 并生成 short-edge task，`capa_bin` 把 short-edge task 分配到固定容量 per-tile list，`capa_tile` 目前把这份 list 主要作为 boundary-tile 分类器：无本地边的 tile 走 row-area backdrop 快路径，有本地边的 boundary tile 暂时回退到 full-edge area kernel，`capa_resolve` 把 coverage atlas 写回目标。这个版本已经移除了 CPU surface-space edge transform 和 CPU tile 分桶，但还没有 count + scan tile allocation、backdrop prefix、正确的 tile-local short-edge area resolve 或 tile 内多 draw 有序 resolve；它仍然不是最终性能形态。
+
+```text
+pass 0 / CPU 编码
+  输入：
+    路径、样式、矩阵、绘制顺序
+  输出：
+    展平后的原始边 buffer
+    绘制元数据 buffer
+  工作：
+    在 CPU 展平 path
+    缓存展平后的直线边
+    上传 edge list、path id、draw id、矩阵、样式、clip 元数据
+
+pass 1 / 原始边准备与短边任务生成
+  输入：
+    展平后的原始边 buffer
+    绘制元数据 buffer
+  输出：
+    变换后的边 / 短边任务 buffer
+    path tile bounds
+    短边任务数量
+  工作：
+    每个线程处理一条原始边
+    用 draw matrix 变换 p0 / p1
+    计算变换后的边长度
+    计算需要生成多少条短边 shortEdgeCount
+    计算局部 bounds
+    计算 winding / backdrop 贡献
+    在 GPU 上归约/修正 path 在 tile 空间中的 bounds
+    使用 atomic / bump 分配短边任务区间
+    循环写入 short-edge task
+
+pass 2 / 短边分配到 tile
+  输入：
+    短边任务 buffer
+    变换后的边 buffer
+    path tile bounds
+  输出：
+    tile-edge 引用 buffer
+    tile backdrop delta buffer
+    tile-edge 数量或范围
+  工作：
+    每个线程处理一个 short-edge task
+    构造实际短边
+    计算短边影响的 tile 或 tile 范围
+    写入 tile-edge 引用
+    写入 tile backdrop delta
+
+pass 3 / tile backdrop 传播
+  输入：
+    tile backdrop delta buffer
+    path tile bounds
+  输出：
+    tile 初始 winding / backdrop buffer
+  工作：
+    在每个 path 的 tile 范围内传播 / prefix backdrop delta
+    让每个 tile 得到面积积分所需的初始 winding / backdrop
+
+pass 4 / tile 面积覆盖计算
+  输入：
+    tile-edge 引用 buffer
+    变换后的边 buffer
+    tile 初始 winding / backdrop buffer
+  输出：
+    tile coverage / mask buffer，或 tile-local coverage command
+  工作：
+    每个 workgroup 处理一个 tile 或一组 tile
+    读取 tile-local edges
+    做面积积分，计算 coverage
+
+pass 5 / tile 颜色合成
+  输入：
+    tile coverage / mask buffer
+    绘制元数据 buffer
+    有序 tile draw list
+  输出：
+    最终目标像素
+  工作：
+    v1 先只处理单纯色填充
+    在同一个 framebuffer tile 内按绘制顺序 resolve 多个 draw layer
+    一次性计算最终 color / coverage / blend
+```
+
+其中 path tile bounds 是必须落实的细节。它用于定位当前 path 在 tile 空间中的起始位置，也用于限制 backdrop prefix 的传播范围。当前方向是让 GPU pass 1 在变换原始边时同步产生 bounds 信息，后续通过 atomic min/max 或 count + scan/reduction 得到 path tile bounds；CPU 不再根据 path bounds 和 draw matrix 估算保守 tile 范围。这样 CPU 端只保留路径展平和绘制命令上传。
+
+backdrop 在 CAPA 中也需要重新定义。旧 CGAA 中 backdrop 更接近离散 winding 初值，方便判断纯色 tile；但 CAPA 做面积解析后，不能只依赖“离散纯色 tile”概念。CAPA 的 backdrop 应先理解为 tile 面积积分的初始 winding / 参考状态：它告诉 tile 在没有局部边贡献前的填充状态，tile 内真实 coverage 仍由 tile-local edges 的面积贡献共同决定。
+
+Pathfinder 和 Vello 在面积覆盖上可以作为参考：
+
+- Pathfinder 的 `fill.cs.glsl` 从 tile 的 backdrop 开始，把 fill list 中每条 line segment 的面积贡献累加进去，再按 fill rule 把 coverage 限制到 `[0, 1]`。它的 `fill_area.inc.glsl` 使用 area LUT 计算单条线段对像素的覆盖贡献。
+- Vello 的 `fine.wgsl::fill_path` 更直接：`area[i] = backdrop`，随后遍历 tile-local segments，对每个像素累加有符号面积贡献，最后 even-odd 用周期折叠，non-zero 用 `min(abs(area), 1)`。
+- 这两个项目都说明：backdrop 不是最终 coverage，而是面积积分的初始项；最终 coverage 必须由 backdrop 加上 tile-local edge/segment 贡献共同决定。
+- 多条边影响同一个像素时，不应分别 alpha blend。应在同一个 tile pass 内先把这些边的面积贡献累加到同一个 `area`，再统一按 fill rule 得到 coverage。
+
+本地可直接对照的源码位置：
+
+```text
+../vello/vello_shaders/src/cpu/fine.rs
+  fill_path():
+    area[] 先全部初始化为 fill.backdrop
+    遍历 tile-local PathSegment
+    对每个像素 area += y_edge + a * dy
+    最后按 even-odd / non-zero 规则 resolve
+
+../vello/vello_shaders/shader/fine.wgsl
+  fill_path_ms():
+    MSAA 路线更复杂
+    使用 workgroup shared winding 数组
+    先统计 segment 触达的采样/像素数量
+    workgroup 内 scan + 二分把实际工作分配给线程
+    再做 x/y prefix 得到每个采样点 winding
+
+../vello/vello_shaders/src/cpu/path_count.rs
+  对 line 做 tile 划分
+  写 tile.backdrop delta
+  写 SegmentCount task
+
+../vello/vello_encoding/src/path.rs
+  Tile.backdrop 表示 tile 左边界的累计 backdrop
+
+../pathfinder/shaders/d3d11/fill.cs.glsl
+  coverages = vec4(backdrop)
+  coverages += accumulateCoverageForFillList(...)
+  最后 abs/clamp 并写入 coverage tile
+
+../pathfinder/shaders/fill_area.inc.glsl
+  computeCoverage(from, to, areaLUT)
+  对单条线段使用 area LUT 近似像素覆盖面积
+
+../pathfinder/shaders/d3d11/bin.cs.glsl
+  addFill() 把 tile-local line 写入 fill list
+  adjustBackdrop() 写入 backdrop delta
+```
+
+因此 CAPA 的像素面积核心不应该是“边产生一个 alpha 然后混合一次”，而应该是：
+
+```text
+float area[16][16] = initialBackdrop
+
+for edge in tileLocalEdges:
+  for pixel touched by edge:
+    area[pixel] += signedAnalyticArea(edge, pixel)
+
+for pixel:
+  coverage[pixel] = resolveFillRule(area[pixel])
+```
+
+这样同一个像素内有多条边时，所有边先合并为一个面积/winding 结果，再输出一次 coverage；这也是它能避免很多 per-edge/per-path AA 叠加错误的关键。
+
+CAPA v1 的单色 fill 面积计算可以先参考 Vello 的解析形式：
+
+```text
+area = initialBackdrop
+for edge in tileLocalEdges:
+  area += signedAreaContribution(edge, pixel)
+coverage = resolveFillRule(area)
+color = premulSolidColor * coverage
+```
+
+后续如果解析公式在某些边界上不稳定，可以再参考 Pathfinder 的 area LUT 路线。
+
+CAPA v1 的原则：
+
+- pass 1 可以使用 atomic/bump 分配 short-edge task，先避免额外 count/scan pass。
+- pass 1 允许原始边线程循环写轻量 task，但不要在这里做 tile coverage 重活。
+- pass 2 之后尽量按 short edge、tile、tile command 调度，让昂贵工作更均衡。
+- 如果 pass 1 或 pass 2 的动态分配成为瓶颈，再把对应位置替换成 count + prefix-sum。
+- v1 只先支持纯色 fill；渐变、图像、复杂 clip 后放。
+
+backdrop 也不应让每个 tile raster 时反复向左查询到 `xtile_0`。更好的结构是：
+
+```text
+bin 阶段:
+  边跨 tile 时写 backdrop delta
+
+backdrop 阶段:
+  对 tile 行/列做 prefix/propagate
+  每个 tile 得到自己的 initial backdrop
+
+coverage 阶段:
+  tile 只读自己的 initial backdrop + local edge list
+```
+
+这样 tile raster 才是局部工作。
+
+多图元漏光问题则要求 tile 中不能只存边，还要保留绘制命令信息：
+
+```text
+tile command:
+  draw id
+  path id
+  paint/style
+  clip state
+  blend mode
+  edge list or coverage source
+```
+
+最终目标是同一个 framebuffer tile 内按 draw order 统一 resolve coverage/color，而不是 path A 独立 AA 到 framebuffer 后 path B 再独立 AA。这个结构才是解决不同颜色、多轮廓、border/fill 共享边界漏光的根本方向。
+
+CAPA v1 对颜色合成的边界：
+
+- 单个纯色 fill 是第一目标。
+- 同色图元在同一个 tile 内比较容易合并，可以把 coverage 合并后按同一颜色输出。
+- 不同颜色不能简单相加，因为还要保留绘制顺序、alpha、blend mode。
+- 不同颜色共享边界的漏光问题，最终要靠 tile 内 ordered resolve 或 coverage ownership 解决；v1 先验证管线是否具备消除漏光的结构基础。
+- 渐变、图像、复杂 clip 暂不进入第一版，避免 paint/clip 复杂度掩盖面积积分和 tile pipeline 本身的问题。
 
 ## Skia 研究结论
 

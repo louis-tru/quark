@@ -35,14 +35,14 @@
 
 #include "./render.h"
 #include "./canvas.h"
-#include "./cgaa.h"
+#include "./capa.h"
 
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
 // global flags from 1u << 0 to 1u << 15, 0x0000FFFF
 #define Qk_FLAG_CLIP (1u << 0)
 #define Qk_FLAG_PMA (1u << 1)
 #define Qk_FLAG_AASIDE_LINE (1u << 2)
-#define Qk_FLAG_CGAA (1u << 3)
+#define Qk_FLAG_CAPA (1u << 3)
 // shader private flags from 1u << 16 to 1u << 31, 0xFFFF0000
 // gradient shader
 #define Qk_FLAG_GRADIENT_COUNT2 (1u << 16)
@@ -138,10 +138,10 @@ namespace qk {
 		virtual void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
-		virtual void makeCGAAAtlasCmd(cCGAADrawData &data) = 0;
-		virtual void drawCGAAColorCmd(cCGAADrawData &data) = 0;
-		virtual void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
-		virtual void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) = 0;
+		virtual void makeCAPAAtlasCmd(cCAPADrawData &data) = 0;
+		virtual void drawCAPAColorCmd(cCAPADrawData &data) = 0;
+		virtual void drawCAPAGradientCmd(cCAPADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
+		virtual void drawCAPAImageCmd(cCAPADrawData &data, const GC_ImageDrawInfo &info) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
@@ -177,10 +177,11 @@ namespace qk {
 		// texture pool, key(w << 40 | h << 8 | colorType << 1 | mipmap),
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
-		Sp<CGAABuilder> _cgaaBuilder; // compute grid aa builder for anti-aliasing paths
+		Sp<CAPABuilder> _capaBuilder; // compute area pipeline aa prototype
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
-		friend class CGAABuilder;
+		friend class CAPABuilder;
+		friend class CAPABuilder;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

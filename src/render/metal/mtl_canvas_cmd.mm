@@ -29,7 +29,7 @@ namespace qk {
 
 	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length) {
 		auto &block = cmd.buffer->alloc(length);
-		Qk_ASSERT(block.end >= block.begin + length, "Not enough space in buffer block for CGAA data");
+		Qk_ASSERT(block.end >= block.begin + length, "Not enough space in buffer block for CAPA data");
 		memcpy((char*)block.val.contents + block.begin, bytes, length);
 		return block;
 	};
@@ -196,26 +196,26 @@ namespace qk {
 		drawColor(vertex, premul_alpha(color), Vec4(0), _flags);
 	}
 
-	void MetalCanvas::makeCGAAAtlasCmd(cCGAADrawData &data) {
+	void MetalCanvas::makeCAPAAtlasCmd(cCAPADrawData &data) {
 		auto tileCount = data.tiles.length();
 		if (!tileCount)
 			return;
 		endPass(); // end current pass
 
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+		Qk_ASSERT(data.atlas, "CAPA atlas texture is null");
 
 		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
 		auto tileEdges = makeBuffer(_cmdPack, data.tileEdges.val(), data.tileEdges.size());
 		auto tiles = makeBuffer(_cmdPack, data.tiles.val(), data.tiles.size());
 
-		auto &shader = _shaders.cgaa;
-		MSLCgaa::PcArgs pc{
-			.atlasTileCountX=uint32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.atlasTileCountY=uint32_t(data.atlas->height() >> kCGAATileSizeShift),
+		auto &shader = _shaders.capa;
+		MSLCapa::PcArgs pc{
+			.atlasTileCountX=uint32_t(data.atlas->width() >> kCAPATileSizeShift),
+			.atlasTileCountY=uint32_t(data.atlas->height() >> kCAPATileSizeShift),
 			.flags=_flags,
 		};
 		auto enc = [_cmdPack.current computeCommandEncoder];
-		enc.label = @"CGAA atlas Coverage";
+		enc.label = @"CAPA atlas Coverage";
 		[enc setComputePipelineState:shader.getComputePipeline()];
 		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 		[enc setBuffer:edges.val offset:edges.begin atIndex:shader.compute.edges];
@@ -224,20 +224,20 @@ namespace qk {
 		[enc setTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.compute.atlasTex];
 
 		[enc dispatchThreadgroups:MTLSizeMake(tileCount, 1, 1)
-			threadsPerThreadgroup:MTLSizeMake(kCGAATileSize * kCGAASampleGrid, 1, 1)];
+			threadsPerThreadgroup:MTLSizeMake(kCAPATileSize * kCAPASampleGrid, 1, 1)];
 		[enc endEncoding];
 		_cmdPack.recorded = true;
 	}
 
-	void MetalCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
+	void MetalCanvas::drawCAPAColorCmd(cCAPADrawData &data) {
 		auto tileCount = data.compositeTiles.length();
 		if (!tileCount)
 			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+		Qk_ASSERT(data.atlas, "CAPA atlas texture is null");
 
 		auto &shader = _shaders.color;
 		auto enc = usePipeline(shader);
-		enc.label = @"CGAA Color";
+		enc.label = @"CAPA Color";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
 		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
@@ -245,8 +245,8 @@ namespace qk {
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
 		MSLColor::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.flags=_flags | Qk_FLAG_CGAA,
+			.capaAtlasTiles=int32_t(data.atlas->width() >> kCAPATileSizeShift),
+			.flags=_flags | Qk_FLAG_CAPA,
 		};
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
@@ -256,8 +256,141 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
 						vertexStart:0
 						vertexCount:4
-					instanceCount:tileCount];
+						instanceCount:tileCount];
 	}
+
+	// bool MetalCanvas::drawCAPAColorCmd(cCAPADrawData &data) {
+	// 	auto edgeCount = data.edges.length();
+	// 	if (!edgeCount || !data.paths.length() || !data.atlas)
+	// 		return false;
+
+	// 	endPass();
+
+	// 	constexpr uint32_t kCAPAMaxTileRefs = 256;
+	// 	constexpr float kCAPAShortEdgeLength = 8.0f;
+	// 	uint32_t atlasTileCountX = (uint32_t(_surfaceSize.x()) + kCAPATileSize - 1) >> kCAPATileSizeShift;
+	// 	uint32_t atlasTileCountY = (uint32_t(_surfaceSize.y()) + kCAPATileSize - 1) >> kCAPATileSizeShift;
+	// 	uint32_t tileOriginX = 0;
+	// 	uint32_t tileOriginY = 0;
+	// 	uint32_t drawTileCountX = atlasTileCountX;
+	// 	uint32_t drawTileCountY = atlasTileCountY;
+	// 	uint32_t drawTileCount = drawTileCountX * drawTileCountY;
+	// 	float surfaceDiagonal = sqrtf(_surfaceSize.x() * _surfaceSize.x() + _surfaceSize.y() * _surfaceSize.y());
+	// 	uint32_t maxTasksPerEdge = uint32_t(ceilf(surfaceDiagonal / kCAPAShortEdgeLength)) + 4;
+	// 	maxTasksPerEdge = Qk_Max(maxTasksPerEdge, uint32_t(1));
+	// 	maxTasksPerEdge = Qk_Min(maxTasksPerEdge, uint32_t(512));
+	// 	uint32_t maxTaskCount = edgeCount * maxTasksPerEdge;
+
+	// 	auto rawEdges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
+	// 	auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
+	// 	auto preparedSize = edgeCount * uint32_t(sizeof(MSLCapaPrepare::CAPAPreparedEdge));
+	// 	auto &prepared = _cmdPack.buffer->alloc(preparedSize);
+	// 	auto shortTasksSize = maxTaskCount * uint32_t(sizeof(MSLCapaPrepare::CAPAShortEdgeTask));
+	// 	auto &shortTasks = _cmdPack.buffer->alloc(shortTasksSize);
+	// 	uint32_t counterData[2] = { 0, 0 };
+	// 	auto counters = makeBuffer(_cmdPack, counterData, sizeof(counterData));
+	// 	auto tileCountsSize = drawTileCount * uint32_t(sizeof(uint32_t));
+	// 	auto &tileCounts = _cmdPack.buffer->alloc(tileCountsSize);
+	// 	memset((char*)tileCounts.val.contents + tileCounts.begin, 0, tileCountsSize);
+	// 	auto tileRefsSize = drawTileCount * kCAPAMaxTileRefs * uint32_t(sizeof(uint32_t));
+	// 	auto &tileRefs = _cmdPack.buffer->alloc(tileRefsSize);
+
+	// 	{ // pass1 - prepare edge data
+	// 		auto &shader = _shaders.capaPrepare;
+	// 		MSLCapaPrepare::PcArgs pc{
+	// 			.edgeCount=edgeCount,
+	// 			.maxTaskCount=maxTaskCount,
+	// 			.shortEdgeLength=kCAPAShortEdgeLength,
+	// 		};
+	// 		auto enc = [_cmdPack.current computeCommandEncoder];
+	// 		enc.label = @"CAPA prepare";
+	// 		[enc setComputePipelineState:shader.getComputePipeline()];
+	// 		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+	// 		[enc setBuffer:rawEdges.val offset:rawEdges.begin atIndex:shader.compute.edges];
+	// 		[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+	// 		[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.preparedEdges];
+	// 		[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+	// 		[enc setBuffer:counters.val offset:counters.begin atIndex:shader.compute.counters];
+	// 		[enc dispatchThreadgroups:MTLSizeMake((edgeCount + 63) >> 6, 1, 1)
+	// 			threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
+	// 		[enc endEncoding];
+	// 	}
+	// 	{ // pass2 - bin short-edge tasks into tile-local lists
+	// 		auto &shader = _shaders.capaBin;
+	// 		MSLCapaBin::PcArgs pc{
+	// 			.maxTaskCount=maxTaskCount,
+	// 			.atlasTileCountX=atlasTileCountX,
+	// 			.atlasTileCountY=atlasTileCountY,
+	// 			.maxTileRefs=kCAPAMaxTileRefs,
+	// 			.tileSpanX=drawTileCountX,
+	// 			.tileSpanY=drawTileCountY,
+	// 			.tileOriginX=tileOriginX,
+	// 			.tileOriginY=tileOriginY,
+	// 		};
+	// 		auto enc = [_cmdPack.current computeCommandEncoder];
+	// 		enc.label = @"CAPA short-edge bin";
+	// 		[enc setComputePipelineState:shader.getComputePipeline()];
+	// 		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+	// 		[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.edges];
+	// 		[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+	// 		[enc setBuffer:counters.val offset:counters.begin atIndex:shader.compute.counters];
+	// 		[enc setBuffer:tileCounts.val offset:tileCounts.begin atIndex:shader.compute.tileCounts];
+	// 		[enc setBuffer:tileRefs.val offset:tileRefs.begin atIndex:shader.compute.tileRefs];
+	// 		[enc dispatchThreadgroups:MTLSizeMake((maxTaskCount + 63) >> 6, 1, 1)
+	// 			threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
+	// 		[enc endEncoding];
+	// 	}
+	// 	{ // pass3 - resolve coverage by right-expanded tile buckets
+	// 		auto &shader = _shaders.capaTile;
+	// 		MSLCapaTile::PcArgs pc{
+	// 			.tileCount=drawTileCount,
+	// 			.atlasTileCountX=atlasTileCountX,
+	// 			.surfaceSize=_surfaceSize,
+	// 			.maxTileRefs=kCAPAMaxTileRefs,
+	// 			.aaMode=0,
+	// 			.tileSpanX=drawTileCountX,
+	// 			.tileOriginX=tileOriginX,
+	// 			.tileOriginY=tileOriginY,
+	// 			.flags=_flags,
+	// 		};
+	// 		auto enc = [_cmdPack.current computeCommandEncoder];
+	// 		enc.label = @"CAPA tile coverage";
+	// 		[enc setComputePipelineState:shader.getComputePipeline()];
+	// 		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+	// 		[enc setBuffer:prepared.val offset:prepared.begin atIndex:shader.compute.edges];
+	// 		[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+	// 		[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
+	// 		[enc setBuffer:tileCounts.val offset:tileCounts.begin atIndex:shader.compute.tileCounts];
+	// 		[enc setBuffer:tileRefs.val offset:tileRefs.begin atIndex:shader.compute.tileRefs];
+	// 		[enc setTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.compute.atlasTex];
+	// 		[enc dispatchThreadgroups:MTLSizeMake(drawTileCount, 1, 1)
+	// 			threadsPerThreadgroup:MTLSizeMake(kCAPATileSize * kCAPATileSize, 1, 1)];
+	// 		[enc endEncoding];
+	// 	}
+	// 	_cmdPack.recorded = true;
+
+	// 	auto &shader = _shaders.capaResolve;
+	// 	auto enc = usePipeline(shader);
+	// 	enc.label = @"CAPA Color";
+
+	// 	[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
+	// 	[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+
+	// 	float x1 = 0, y1 = 0, x2 = _surfaceSize.x(), y2 = _surfaceSize.y();
+	// 	float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
+	// 	MSLCapaResolve::PcArgs pc{
+	// 		.color=premul_alpha(data.paths[0].color),
+	// 		.surfaceSize=_surfaceSize,
+	// 		.flags=_flags,
+	// 	};
+	// 	[enc setVertexBytes:vertex length:sizeof(vertex) atIndex:shader.bufferIndex];
+	// 	[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
+	// 	[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
+	// 	[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+	// 					vertexStart:0
+	// 					vertexCount:4];
+	// 	return true;
+	// }
 
 	const MemBlockAllocator<MTLBufferID>::MemBlock&
 	MetalCanvas::buildGradientBuffer(const PaintGradient *paint, const Color4f &color) {
@@ -281,16 +414,16 @@ namespace qk {
 		return block;
 	}
 
-	void MetalCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
+	void MetalCanvas::drawCAPAGradientCmd(cCAPADrawData &data, const PaintGradient *paint, const Color4f &color) {
 		auto tileCount = data.compositeTiles.length();
 		if (!tileCount)
 			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+		Qk_ASSERT(data.atlas, "CAPA atlas texture is null");
 
 		int count = Qk_Min(64, paint->count);
 		auto &shader = _shaders.colorGradient;
 		auto enc = usePipeline(shader);
-		enc.label = @"CGAA Gradient";
+		enc.label = @"CAPA Gradient";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
 		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
@@ -298,11 +431,11 @@ namespace qk {
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
 		MSLColorGradient::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.capaAtlasTiles=int32_t(data.atlas->width() >> kCAPATileSizeShift),
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),
 			.count=count,
-			.flags = _flags | Qk_FLAG_CGAA |
+			.flags = _flags | Qk_FLAG_CAPA |
 				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
 				(paint->type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0),
 		};
@@ -322,16 +455,16 @@ namespace qk {
 					instanceCount:tileCount];
 	}
 
-	void MetalCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
+	void MetalCanvas::drawCAPAImageCmd(cCAPADrawData &data, const GC_ImageDrawInfo &info) {
 		auto tileCount = data.compositeTiles.length();
 		if (!tileCount)
 			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
+		Qk_ASSERT(data.atlas, "CAPA atlas texture is null");
 
 		auto &shader = _shaders.image;
 		Qk_useTexture0(info.paint, shader.fragment.image);
 		setPipeline(enc, shader);
-		enc.label = @"CGAA Image";
+		enc.label = @"CAPA Image";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
 		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
@@ -340,14 +473,14 @@ namespace qk {
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
 		auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
 		MSLImage::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
+			.capaAtlasTiles=int32_t(data.atlas->width() >> kCAPATileSizeShift),
 			.texCoords=*((Vec4*)info.paint->coord.begin.val),
 			.color=premul_alpha(info.color),
 			.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
 			.strokeWidth=info.stroke,
 			.alphaIndex=info.kind == kMask_DrawKind ?
 				(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
-			.flags = _flags | Qk_FLAG_CGAA |
+			.flags = _flags | Qk_FLAG_CAPA |
 				(info.kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
 				(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
 		};
@@ -424,8 +557,8 @@ namespace qk {
 			if (!enc) return;
 			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
 			// set atlas texture for fragment shader,
-			// because resources cannot be empty, although not used in non-cgaa draw, 
-			// so set a texture for non-cgaa draw to avoid error.
+			// because resources cannot be empty, although not used in non-capa draw,
+			// so set a texture for non-capa draw to avoid error.
 			// Qk_ASSERT_EQ(true, use_texture(enc, src, 0, shader.fragment.atlasTex, info.paint));
 			// set color and other args for shader push constants
 			MSLImage::PcArgs pc{

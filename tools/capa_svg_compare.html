@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAPA AA Browser Reference</title>
+<style>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		background: #fff;
+		overflow: hidden;
+	}
+
+	body {
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	}
+
+	.toolbar {
+		position: fixed;
+		left: 12px;
+		top: 10px;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px;
+		background: rgb(255 255 255 / 0.88);
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+		user-select: none;
+	}
+
+	button {
+		min-width: 34px;
+		height: 28px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		background: #fff;
+		color: #333;
+		font: inherit;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	label {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		color: #555;
+		font-size: 12px;
+	}
+
+	input {
+		width: 72px;
+		height: 28px;
+		box-sizing: border-box;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		padding: 0 6px;
+		font: inherit;
+		font-size: 12px;
+	}
+
+	button.active {
+		background: #111;
+		border-color: #111;
+		color: #fff;
+	}
+
+	.grid {
+		width: 100vw;
+		height: 100vh;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: 1fr 1fr;
+	}
+
+	.grid.solo .panel {
+		display: none;
+	}
+
+	.grid.solo .panel.active-panel {
+		display: block;
+		grid-column: 1 / -1;
+		grid-row: 1 / -1;
+		border: 0;
+	}
+
+	.panel {
+		position: relative;
+		overflow: hidden;
+		background: #fff;
+		border-right: 1px solid #ddd;
+		border-bottom: 1px solid #ddd;
+		cursor: grab;
+		touch-action: none;
+	}
+
+	.panel.dragging {
+		cursor: grabbing;
+	}
+
+	.panel:nth-child(2n) {
+		border-right: 0;
+	}
+
+	.panel:nth-child(n + 3) {
+		border-bottom: 0;
+	}
+
+	.label {
+		position: absolute;
+		left: 14px;
+		top: 50px;
+		z-index: 2;
+		padding: 4px 7px;
+		background: rgb(255 255 255 / 0.82);
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		color: #555;
+		font-size: 12px;
+		line-height: 1.2;
+		pointer-events: none;
+	}
+
+	.solo-button {
+		position: absolute;
+		right: 12px;
+		top: 10px;
+		z-index: 3;
+		min-width: 54px;
+		background: rgb(255 255 255 / 0.88);
+	}
+
+	svg,
+	canvas {
+		width: 100%;
+		height: 100%;
+		display: block;
+		background: white;
+	}
+
+	.svg-rotor {
+		transform-box: view-box;
+		transform-origin: 260px 260px;
+	}
+</style>
+</head>
+<body>
+	<div class="toolbar" id="toolbar">
+		<button data-zoom="1" class="active">1x</button>
+		<button data-zoom="2">2x</button>
+		<button data-zoom="4">4x</button>
+		<button data-zoom="8">8x</button>
+		<label>sec/turn <input id="speedInput" type="number" step="10" value="1000"></label>
+	</div>
+
+	<div class="grid">
+		<section class="panel">
+			<div class="label">SVG transform</div>
+			<button class="solo-button" type="button">solo</button>
+			<svg id="staticSvg" xmlns="http://www.w3.org/2000/svg">
+				<path id="staticPath" class="svg-rotor" fill="#000" fill-rule="nonzero"/>
+			</svg>
+		</section>
+
+		<section class="panel">
+			<div class="label">SVG geometry changes</div>
+			<button class="solo-button" type="button">solo</button>
+			<svg id="dynamicSvg" xmlns="http://www.w3.org/2000/svg">
+				<path id="dynamicPath" fill="#000" fill-rule="nonzero"/>
+			</svg>
+		</section>
+
+		<section class="panel">
+			<div class="label">Canvas cached bitmap, one texture</div>
+			<button class="solo-button" type="button">solo</button>
+			<canvas id="cachedCanvas"></canvas>
+		</section>
+
+		<section class="panel">
+			<div class="label">Canvas redraw vector</div>
+			<button class="solo-button" type="button">solo</button>
+			<canvas id="vectorCanvas"></canvas>
+		</section>
+	</div>
+
+<script>
+const W = 520;
+const H = 520;
+const CX = 260;
+const CY = 260;
+const TAU = Math.PI * 2;
+const PI_2 = Math.PI * 0.5;
+let zoom = 1;
+let lastAngle = 0;
+let lastT = 0;
+let lastWobble = 0;
+let drag = null;
+let speedSeconds = 1000;
+
+const focus = { x: 328, y: 134 };
+const staticSvg = document.getElementById("staticSvg");
+const dynamicSvg = document.getElementById("dynamicSvg");
+const staticPath = document.getElementById("staticPath");
+const dynamicPath = document.getElementById("dynamicPath");
+const cachedCanvas = document.getElementById("cachedCanvas");
+const vectorCanvas = document.getElementById("vectorCanvas");
+const grid = document.querySelector(".grid");
+const speedInput = document.getElementById("speedInput");
+
+function starPoints(rot) {
+	const pts = [];
+	for (let i = 0; i < 10; i++) {
+		const r = (i & 1) ? 84 : 190;
+		const a = rot + i * Math.PI * 0.2 - PI_2;
+		pts.push({
+			x: CX + Math.cos(a) * r,
+			y: CY + Math.sin(a) * r,
+		});
+	}
+	return pts;
+}
+
+function shapePath(t, cubicWobble = 0) {
+	const pts = starPoints(t * 0.9);
+	const first = pts[0];
+	let d = `M ${first.x} ${first.y}`;
+	for (let i = 1; i < pts.length; i++)
+		d += ` L ${pts[i].x} ${pts[i].y}`;
+	d += " Z";
+
+	const w = cubicWobble;
+	d += `
+		M 110 260
+		C ${160 + w} ${35 - w * 0.5} ${360 - w} ${485 + w * 0.5} 410 260
+		C ${360 + w} ${35 + w * 0.5} ${160 - w} ${485 - w * 0.5} 110 260
+		Z
+	`;
+	return d;
+}
+
+function buildPath2D(t, cubicWobble = 0) {
+	return new Path2D(shapePath(t, cubicWobble));
+}
+
+function currentViewBox() {
+	if (zoom === 1)
+		return { x: 0, y: 0, w: W, h: H };
+	const w = W / zoom;
+	const h = H / zoom;
+	return {
+		x: Math.max(0, Math.min(W - w, focus.x - w * 0.5)),
+		y: Math.max(0, Math.min(H - h, focus.y - h * 0.5)),
+		w,
+		h,
+	};
+}
+
+function applySvgViewBox() {
+	const v = currentViewBox();
+	const value = `${v.x} ${v.y} ${v.w} ${v.h}`;
+	staticSvg.setAttribute("viewBox", value);
+	dynamicSvg.setAttribute("viewBox", value);
+}
+
+function drawScene(ctx, t, cubicWobble = 0) {
+	ctx.fillStyle = "#000";
+	ctx.fill(buildPath2D(t, cubicWobble));
+}
+
+function resizeCanvas(canvas) {
+	const rect = canvas.getBoundingClientRect();
+	const dpr = window.devicePixelRatio || 1;
+	const width = Math.max(1, Math.round(rect.width * dpr));
+	const height = Math.max(1, Math.round(rect.height * dpr));
+	if (canvas.width !== width || canvas.height !== height) {
+		canvas.width = width;
+		canvas.height = height;
+	}
+	return canvas.getContext("2d");
+}
+
+function fitForCanvas(canvas) {
+	const v = currentViewBox();
+	const scale = Math.min(canvas.width / v.w, canvas.height / v.h);
+	const drawW = v.w * scale;
+	const drawH = v.h * scale;
+	return {
+		view: v,
+		scale,
+		x: (canvas.width - drawW) * 0.5,
+		y: (canvas.height - drawH) * 0.5,
+	};
+}
+
+function setViewTransform(ctx) {
+	const fit = fitForCanvas(ctx.canvas);
+	const v = fit.view;
+	ctx.setTransform(fit.scale, 0, 0, fit.scale, fit.x - v.x * fit.scale, fit.y - v.y * fit.scale);
+	return fit;
+}
+
+function setHighQualitySampling(ctx) {
+	ctx.imageSmoothingEnabled = true;
+	ctx.imageSmoothingQuality = "high";
+}
+
+function clampFocus() {
+	const v = currentViewBox();
+	focus.x = Math.max(v.w * 0.5, Math.min(W - v.w * 0.5, focus.x));
+	focus.y = Math.max(v.h * 0.5, Math.min(H - v.h * 0.5, focus.y));
+}
+
+const offscreen = document.createElement("canvas");
+const TEXTURE_SCALE = 4;
+offscreen.width = W * TEXTURE_SCALE;
+offscreen.height = H * TEXTURE_SCALE;
+const off = offscreen.getContext("2d");
+setHighQualitySampling(off);
+off.scale(TEXTURE_SCALE, TEXTURE_SCALE);
+drawScene(off, 0, 0);
+
+function clearCanvas(ctx) {
+	ctx.save();
+	ctx.setTransform(1, 0, 0, 1, 0, 0);
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.restore();
+}
+
+function drawCached(angle) {
+	const ctx = resizeCanvas(cachedCanvas);
+	setHighQualitySampling(ctx);
+	clearCanvas(ctx);
+	setViewTransform(ctx);
+	ctx.save();
+	ctx.translate(CX, CY);
+	ctx.rotate(angle);
+	ctx.translate(-CX, -CY);
+	ctx.drawImage(offscreen, 0, 0, W, H);
+	ctx.restore();
+}
+
+function drawVector(t) {
+	const ctx = resizeCanvas(vectorCanvas);
+	setHighQualitySampling(ctx);
+	clearCanvas(ctx);
+	setViewTransform(ctx);
+	drawScene(ctx, t, Math.sin(t * 2.2) * 7);
+}
+
+function renderCurrent() {
+	clampFocus();
+	applySvgViewBox();
+	staticPath.style.transform = `rotate(${lastAngle}rad)`;
+	dynamicPath.setAttribute("d", shapePath(lastT, lastWobble));
+	drawCached(lastAngle);
+	drawVector(lastT);
+}
+
+function setZoom(value) {
+	zoom = value;
+	for (const button of document.querySelectorAll("button[data-zoom]"))
+		button.classList.toggle("active", Number(button.dataset.zoom) === zoom);
+	renderCurrent();
+}
+
+document.getElementById("toolbar").addEventListener("click", event => {
+	const button = event.target.closest("button[data-zoom]");
+	if (button)
+		setZoom(Number(button.dataset.zoom));
+});
+
+speedInput.addEventListener("input", () => {
+	const value = Number(speedInput.value);
+	if (Number.isFinite(value))
+		speedSeconds = value;
+});
+
+function setSolo(panel) {
+	const isActive = panel.classList.contains("active-panel");
+	grid.classList.toggle("solo", !isActive);
+	for (const item of document.querySelectorAll(".panel")) {
+		item.classList.toggle("active-panel", !isActive && item === panel);
+		const button = item.querySelector(".solo-button");
+		button.textContent = !isActive && item === panel ? "grid" : "solo";
+	}
+	renderCurrent();
+}
+
+grid.addEventListener("click", event => {
+	const button = event.target.closest(".solo-button");
+	if (button)
+		setSolo(button.closest(".panel"));
+});
+
+grid.addEventListener("pointerdown", event => {
+	if (event.target.closest("button"))
+		return;
+	const panel = event.target.closest(".panel");
+	if (!panel)
+		return;
+	const ctxCanvas = panel.querySelector("canvas");
+	const scale = ctxCanvas ?
+		fitForCanvas(ctxCanvas).scale :
+		Math.min(panel.clientWidth / currentViewBox().w, panel.clientHeight / currentViewBox().h);
+	drag = {
+		id: event.pointerId,
+		x: event.clientX,
+		y: event.clientY,
+		scale,
+		panel,
+	};
+	panel.classList.add("dragging");
+	panel.setPointerCapture(event.pointerId);
+});
+
+grid.addEventListener("pointermove", event => {
+	if (!drag || event.pointerId !== drag.id)
+		return;
+	const dx = event.clientX - drag.x;
+	const dy = event.clientY - drag.y;
+	drag.x = event.clientX;
+	drag.y = event.clientY;
+	focus.x -= dx / drag.scale;
+	focus.y -= dy / drag.scale;
+	renderCurrent();
+});
+
+function endDrag(event) {
+	if (!drag || event.pointerId !== drag.id)
+		return;
+	drag.panel.classList.remove("dragging");
+	drag = null;
+}
+
+grid.addEventListener("pointerup", endDrag);
+grid.addEventListener("pointercancel", endDrag);
+
+addEventListener("keydown", event => {
+	if (event.key === "Escape" && grid.classList.contains("solo")) {
+		const active = document.querySelector(".active-panel");
+		if (active)
+			setSolo(active);
+	}
+	if (event.key >= "1" && event.key <= "4")
+		setZoom([1, 2, 4, 8][Number(event.key) - 1]);
+});
+
+function tick(now) {
+	if (speedSeconds === 0) {
+		lastAngle = 0;
+	} else {
+		lastAngle = now * 0.001 / speedSeconds * TAU;
+	}
+	lastT = lastAngle / 0.9;
+	lastWobble = Math.sin(lastT * 1.7) * 7;
+
+	renderCurrent();
+	requestAnimationFrame(tick);
+}
+
+addEventListener("resize", () => {
+	renderCurrent();
+});
+
+applySvgViewBox();
+staticPath.setAttribute("d", shapePath(0, 0));
+dynamicPath.setAttribute("d", shapePath(0, 0));
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

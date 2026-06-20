@@ -366,6 +366,7 @@ namespace qk {
 			: Vec<float, 4>(r, g, b, 1) {}
 		Color4f(float r, float g, float b, float a)
 			: Vec<float, 4>(r, g, b, a) {}
+		Color4f(const Vec4 &color): Vec<float, 4>(color) {}
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
 		Color4f mul_alpha_only(float alpha) const;

@@ -30,8 +30,8 @@
 
 // @private head
 
-#ifndef __quark_render_cgaa__
-#define __quark_render_cgaa__
+#ifndef __quark_render_capa__
+#define __quark_render_capa__
 
 #include "./metal/mtl_shaders.h"
 #include "./path.h"
@@ -39,70 +39,70 @@
 
 namespace qk {
 	class GPUCanvas;
-	constexpr int kCGAATileSize = 16;
-	constexpr int kCGAASampleGrid = 4;
-	static_assert(kCGAATileSize * kCGAASampleGrid <= 64,
+	constexpr int kCAPATileSize = 16;
+	constexpr int kCAPASampleGrid = 4;
+	static_assert(kCAPATileSize * kCAPASampleGrid <= 64,
 		"Compute AA inside mask only supports up to 64 X samples per tile");
-	constexpr float kInvCGAATileSize = 1.0f / float(kCGAATileSize);
-	constexpr int kCGAATileSizeShift = __builtin_ctz(kCGAATileSize);
+	constexpr float kInvCAPATileSize = 1.0f / float(kCAPATileSize);
+	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
 
-	enum CGAAFillRule {
-		kCGAANonZero_FillRule = 0,
-		kCGAAEvenOdd_FillRule = 1,
-		kCGAAPositive_FillRule = 2,
-		kCGAANegative_FillRule = 3,
+	enum CAPAFillRule {
+		kCAPANonZero_FillRule = 0,
+		kCAPAEvenOdd_FillRule = 1,
+		kCAPAPositive_FillRule = 2,
+		kCAPANegative_FillRule = 3,
 	};
 
-	typedef MSLImage::CGAAPath CGAAPath;
-	typedef MSLImage::CGAACompositeTile CGAACompositeTile;
-	typedef MSLCgaa::CGAAEdge CGAAEdge;
-	typedef MSLCgaa::CGAATileEdge CGAATileEdge;
-	typedef MSLCgaa::CGAATile CGAATile;
-	static_assert(sizeof(CGAACompositeTile) == sizeof(uint16_t) * 6, "Metal edge ABI mismatch");
-	static_assert(sizeof(CGAAEdge) == sizeof(float) * 6, "Metal edge ABI mismatch");
-	static_assert(sizeof(CGAATileEdge) == 12, "Metal tile-edge ABI mismatch");
-	static_assert(sizeof(CGAATile) == sizeof(uint32_t) * 4, "Metal tile ABI mismatch");
+	typedef MSLImage::CAPAPath CAPAPath;
+	typedef MSLImage::CAPACompositeTile CAPACompositeTile;
+	typedef MSLCapa::CAPAEdge CAPAEdge;
+	typedef MSLCapa::CAPATileEdge CAPATileEdge;
+	typedef MSLCapa::CAPATile CAPATile;
+	static_assert(sizeof(CAPACompositeTile) == sizeof(uint16_t) * 6, "Metal edge ABI mismatch");
+	static_assert(sizeof(CAPAEdge) == sizeof(float) * 6, "Metal edge ABI mismatch");
+	static_assert(sizeof(CAPATileEdge) == 12, "Metal tile-edge ABI mismatch");
+	static_assert(sizeof(CAPATile) == sizeof(uint32_t) * 4, "Metal tile ABI mismatch");
 
-	struct CGAADrawData {
+	struct CAPADrawData {
 		Sp<ImageSource> atlas; // atlas
-		Array<CGAAPath> paths;
-		Array<CGAAEdge> edges;
-		Array<CGAATileEdge> tileEdges;
-		Array<CGAATile> tiles; // boundary tiles that require GPU edge testing
-		Array<CGAACompositeTile> compositeTiles;
+		Array<CAPAPath> paths;
+		Array<CAPAEdge> edges;
+		Array<CAPATileEdge> tileEdges;
+		Array<CAPATile> tiles; // boundary tiles that require GPU edge testing
+		Array<CAPACompositeTile> compositeTiles;
 	};
 
-	typedef const CGAADrawData cCGAADrawData;
+	typedef const CAPADrawData cCAPADrawData;
 
-	template<> struct ObjectTraits<CGAAEdge>: ObjectTraitsBase<CGAAEdge> {
+	template<> struct ObjectTraits<CAPAEdge>: ObjectTraitsBase<CAPAEdge> {
 		static constexpr bool isOrdinary = true;
 	};
-	template<> struct ObjectTraits<CGAAPath>: ObjectTraitsBase<CGAAPath> {
+	template<> struct ObjectTraits<CAPAPath>: ObjectTraitsBase<CAPAPath> {
 		static constexpr bool isOrdinary = true;
 	};
 	// 配置最小容量以避频繁扩容，分配器默认最小容量为 1。
-	template<> struct AllocatorConfig<CGAAEdge> { static constexpr uint32_t kMinCapacity = 4; };
-	template<> struct AllocatorConfig<CGAATileEdge> { static constexpr uint32_t kMinCapacity = 4; };
+	template<> struct AllocatorConfig<CAPAEdge> { static constexpr uint32_t kMinCapacity = 4; };
+	template<> struct AllocatorConfig<CAPATileEdge> { static constexpr uint32_t kMinCapacity = 4; };
 
-	struct CGAABuilder {
-		CGAABuilder(GPUCanvas *owner);
-		// 将路径边界数据追加到 CGAA 批处理中，用于 GPU 边缘测试和覆盖率计算。
+	struct CAPABuilder {
+		CAPABuilder(GPUCanvas *owner);
+		// 将路径边界数据追加到 CAPA 批处理中，用于 GPU 边缘测试和覆盖率计算。
 		// 如果数据超过限制则自动提交绘制命令；如果路径过大而无法绘制，则返回 false。
 		// 也可以手动结束构建并提交当前批次，或者重置丢弃当前批次数据。
 		bool build(const Path &path, Range *clip, const Mat *mat, float precision = 1.0f);
 		bool build(const Path &path);
-		cCGAADrawData& endBuild(); // end build and create atlas texture, should be called before drawing CGAA paths
-		void commit(); // end buffer and commit current CGAA data to GPU.
-		void reset(bool clear = false); // reset and clear all CGAA data.
-		// 为后续 CGAA 路径设置混合模式，如果混合模式更改，将自动提交当前批次。
+		cCAPADrawData& endBuild(); // end build and create atlas texture, should be called before drawing CAPA paths
+		void commit(); // end buffer and commit current CAPA data to GPU.
+		void reset(bool clear = false); // reset and clear all CAPA data.
+		// 为后续 CAPA 路径设置混合模式，如果混合模式更改，将自动提交当前批次。
 		void setBlendMode(BlendMode mode);
-		CGAAPath& getPath(int index) { return _data.paths[index]; }
-		cCGAADrawData& getDrawData() const { return _data; }
-		Color4f color; // color state for CGAABuilder
-		CGAAFillRule fillRule = kCGAANonZero_FillRule;
+		CAPAPath& getPath(int index) { return _data.paths[index]; }
+		cCAPADrawData& getDrawData() const { return _data; }
+		Color4f color; // color state for CAPABuilder
+		CAPAFillRule fillRule = kCAPANonZero_FillRule;
 	private:
 		bool buildTileEdges(Range &bounds, int edgeIndex, int edgeEnd, int tileCountX, int tileCountY);
-		CGAADrawData _data;
+		CAPADrawData _data;
 		GPUCanvas *_owner;
 		LinearAllocator _alloc,_alloc2;
 		BlendMode _blendMode;

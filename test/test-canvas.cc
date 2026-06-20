@@ -14,7 +14,7 @@
 
 using namespace qk;
 
-#define Qk_TEST_CANVAS(Fn) Fn(0)
+#define Qk_TEST_CANVAS(Fn) Fn(2)
 
 void test_gui_new(Box *r);
 
@@ -71,7 +71,7 @@ class TestCanvas0: public Box {
 		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
-			// canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
 
 		canvas->translate(size*-0.5);
@@ -251,7 +251,7 @@ class TestCanvas2: public Box {
 		path.transform(Mat(0,{1.5},0,0));
 		canvas->translate(size*-0.5);
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1; i++) {
 			canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
 		}
 		mark_rerender();

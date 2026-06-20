@@ -442,7 +442,8 @@ async function resolve_ast(name, stage, source_both) {
 
 	fs.writeFileSync(glsl_out, source, 'utf8');
 
-	await exec2(`${glslc} -DQk_SHADER_FLAGS_ENABLE_CGAA=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
+	await exec2(`${glslc} -DQk_SHADER_FLAGS_ENABLE_CGAA=1 -DQk_SHADER_FLAGS_ENABLE_CAPA=1 ` +
+		` -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
 	if (stage != 'comp') {
 		await exec2(`${glslc} -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
 		await exec2(`${spirv_cross} ${spv_es300_out} --es --version 300 > ${es300_out}`);

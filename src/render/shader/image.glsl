@@ -9,18 +9,18 @@
 #define Qk_FLAG_IMAGE_MASK (1u << 16)
 #define Qk_FLAG_IMAGE_SDF_MASK (1u << 17)
 
-#import "_cgaa.glsl"
+#import "_capa.glsl"
 
 #vert
 layout(location=3) out vec2 coords; // texture coordinates uv for fragment shader
 
 void main() {
 	vec2 vertex = vertexIn.xy;
-#if Qk_SHADER_FLAGS_ENABLE_CGAA
-	if ((pc.flags & Qk_FLAG_CGAA) != 0) {
-		Qk_cgaaVertexSteps();
-		vertex = cgaaCanvasPosition();
-		gl_Position = rMat.noScale * vec4(cgaaPosition, 0.0, 1.0);
+#if Qk_SHADER_FLAGS_ENABLE_CAPA
+	if ((pc.flags & Qk_FLAG_CAPA) != 0) {
+		Qk_capaVertexSteps();
+		vertex = capaCanvasPosition();
+		gl_Position = rMat.noScale * vec4(capaPosition, 0.0, 1.0);
 	} else
 #endif
 	{

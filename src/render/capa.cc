@@ -28,23 +28,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./cgaa.h"
+#include "./capa.h"
 #include "./gpu_canvas.h"
 #include "./path.h"
 
 namespace qk {
-	const int sampleGrid = kCGAASampleGrid;
-	const int tileSampleCount = kCGAATileSize * sampleGrid;
+	const int sampleGrid = kCAPASampleGrid;
+	const int tileSampleCount = kCAPATileSize * sampleGrid;
 	const float invHalfSampleGrid = 0.5f / float(sampleGrid);
 	static_assert(
-		(kCGAATileSize & (kCGAATileSize - 1)) == 0 &&
+		(kCAPATileSize & (kCAPATileSize - 1)) == 0 &&
 		(sampleGrid & (sampleGrid - 1)) == 0, "Compute AA tile/sample sizes must be powers of two"
 	);
 	// tileSampleShift 是 tile/sample 数量的二进制位数，用于整数转换代替除法。log2(16*4) = 6
 	const int tileSampleShift = __builtin_ctz(tileSampleCount);
 
 	template<bool NeedClip>
-	static void append_edges(CGAADrawData &out, Range bounds, Array<Vec2> &lines) {
+	static void append_edges(CAPADrawData &out, Range bounds, Array<Vec2> &lines) {
 		auto begin = bounds.begin,
 				end = bounds.end;
 		for (uint32_t i = 1; i < lines.length(); i += 2) {
@@ -69,24 +69,24 @@ namespace qk {
 			int32_t winding = p1.y() > p0.y() ? 1 : p1.y() < p0.y() ? -1 : 0;
 			float invDy = winding ? 1.0f / (p1.y() - p0.y()) : 0.0f;
 			float dxdy = (p1.x() - p0.x()) * invDy;
-			out.edges.push(CGAAEdge{
+			out.edges.push(CAPAEdge{
 				.p0=p0, .p1=p1, .dxdy=dxdy, .winding=winding
 			});
 		}
 	}
 
-	static bool cgaa_inside(uint16_t fillRule, int winding) {
+	static bool capa_inside(uint16_t fillRule, int winding) {
 		switch(fillRule) {
-			case kCGAANonZero_FillRule: return winding != 0;
-			case kCGAAEvenOdd_FillRule: return (std::abs(winding) & 1) != 0;
-			case kCGAAPositive_FillRule: return winding > 0;
-			case kCGAANegative_FillRule: return winding < 0;
+			case kCAPANonZero_FillRule: return winding != 0;
+			case kCAPAEvenOdd_FillRule: return (std::abs(winding) & 1) != 0;
+			case kCAPAPositive_FillRule: return winding > 0;
+			case kCAPANegative_FillRule: return winding < 0;
 			default: return false;
 		}
 	}
 
 	struct TileScratch {
-		Array<CGAATileEdge> edges;
+		Array<CAPATileEdge> edges;
 		int backdropBegin; // 当前tile的第0个y样本backdrop winding，来自tileX=-1的边界事件
 		bool boundary;
 	};
@@ -118,7 +118,7 @@ namespace qk {
 		}
 	};
 
-	bool CGAABuilder::buildTileEdges(Range &bounds, int edgeIndex, int edgeEnd, int tileCountX, int tileCountY) {
+	bool CAPABuilder::buildTileEdges(Range &bounds, int edgeIndex, int edgeEnd, int tileCountX, int tileCountY) {
 		// 临时数组按 tile / tile-row 分桶，最后再压平为连续 GPU buffer。
 		Allocator::pushAllocator(&_alloc2); // 临时数组使用另一个线性分配器。
 		TileScratchs scratch(tileCountX * tileCountY);
@@ -166,7 +166,7 @@ namespace qk {
 				scratch.maekBoundary(tileRowOffset + tileX); // 标记为 boundary tile
 				// 当前 tile 内，只有这个 local sample 区间仍需要 GPU
 				// 使用原始边做精确 X 交点测试；tile 内其他 sample 不测试此边。
-				scratch[tileRowOffset + tileX].edges.push(CGAATileEdge{
+				scratch[tileRowOffset + tileX].edges.push(CAPATileEdge{
 					.edgeIndex=edgeIndex,
 					.tileX=int16_t(tx), // 小于0表示边界不需要做精确测试，仅用于 backdrop 计算
 					.sampleBegin=uint16_t(localBegin),
@@ -202,7 +202,7 @@ namespace qk {
 			float lastSampleY = left.y() * sampleGrid;
 			int lastSampleGridY = sample_grid_y(lastSampleY);
 			// 向下取整，做为当前 tile 的 X 索引
-			int tx = floorf(left.x() * kInvCGAATileSize);
+			int tx = floorf(left.x() * kInvCAPATileSize);
 			if (dx < invHalfSampleGrid) { // 竖边或近竖边，x跨度不足0.5个sample。
 				// 竖边或近竖边不需要沿 X 推进：边所在的左侧 tile 做局部精确测试，
 				// 边右侧 tile 从对应列开始继承 backdrop。
@@ -211,11 +211,11 @@ namespace qk {
 			}
 
 			// 右端点使用半开 X tile 范围：端点正好落在 tile 边界时，最后负责此边的仍是边界左侧 tile。
-			int finalTx = I32::min(ceilf(right.x() * kInvCGAATileSize) - 1, tileCountX); // 左闭右开
+			int finalTx = I32::min(ceilf(right.x() * kInvCAPATileSize) - 1, tileCountX); // 左闭右开
 			if (tx < finalTx) {
 				float sampleSlope = (right.y() - left.y()) * sampleGrid / dx;
-				float tileSampleYStep = sampleSlope * kCGAATileSize;
-				float firstTileRight = (tx + 1) * kCGAATileSize;
+				float tileSampleYStep = sampleSlope * kCAPATileSize;
+				float firstTileRight = (tx + 1) * kCAPATileSize;
 				float nextSampleY = lastSampleY + (firstTileRight - left.x()) * sampleSlope;
 				do {
 					// 每次推进一个完整 X tile。若离散 Y sample 没有变化，
@@ -247,9 +247,9 @@ namespace qk {
 		uint32_t atlasTileIndex = _data.tiles.length();
 		uint32_t atlasTileCount = atlasTileIndex + scratch.boundaryCount;
 		if ( atlasTileCount >= UINT16_MAX) {
-			Array<CGAAEdge> edges;
+			Array<CAPAEdge> edges;
 			edges.write(_data.edges.val() + edgeIndex, edgeEnd - edgeIndex);
-			commit(); // 提交并清空当前 CGAA 数据到 GPU
+			commit(); // 提交并清空当前 CAPA 数据到 GPU
 			Qk_ASSERT(_data.edges.isNull(), "edges should have been moved to GPU buffers");
 			_data.edges.concat(edges); // copy back remaining edges for next build
 			atlasTileIndex = 0;
@@ -270,7 +270,7 @@ namespace qk {
 				auto &tile = scratch[tileIndex];
 				winding += tile.backdropBegin; // 加上 tileX=-1 的边界事件贡献的 backdrop winding
 				if (tile.boundary) {
-					_data.tiles[atlasTileIndex] = (CGAATile{
+					_data.tiles[atlasTileIndex] = (CAPATile{
 						.tileX=tx,
 						.tileY=ty,
 						.fillRule=uint16_t(fillRule),
@@ -278,7 +278,7 @@ namespace qk {
 						.edgeOffset=_data.tileEdges.length(),
 						.edgeCount=tile.edges.length()
 					});
-					_data.compositeTiles.push(CGAACompositeTile{
+					_data.compositeTiles.push(CAPACompositeTile{
 						.originX=originX,
 						.originY=originY,
 						.spanX=1,
@@ -291,7 +291,7 @@ namespace qk {
 					atlasTileIndex++;
 				}
 				// Direct-target production drawing does not need empty outside tiles.
-				else if (winding && cgaa_inside(fillRule, winding)) {
+				else if (winding && capa_inside(fillRule, winding)) {
 					Qk_ASSERT(!tile.edges.length(), "uniform tile should not contain coverage edges");
 					Qk_ASSERT(_data.compositeTiles.length(), "there should be at least one composite tile before any outside tile");
 					auto &back = _data.compositeTiles.back();
@@ -299,7 +299,7 @@ namespace qk {
 						// 同一行的连续纯色 tile 可以合并为一个 composite tile，减少 GPU 顶点数量，y方向暂时不合并。
 						back.spanX++;
 					} else {
-					_data.compositeTiles.push(CGAACompositeTile{
+					_data.compositeTiles.push(CAPACompositeTile{
 						.originX=originX,
 						.originY=originY,
 						.spanX=1,
@@ -309,14 +309,14 @@ namespace qk {
 					});
 					}
 				}
-				originX += kCGAATileSize;
+				originX += kCAPATileSize;
 			}
 			tileRowOffset += tileCountX;
-			originY += kCGAATileSize;
+			originY += kCAPATileSize;
 		}
 
 		// 当前路径的边界数据已经全部生成，记录路径信息供后续绘制使用。
-		_data.paths.push(CGAAPath{
+		_data.paths.push(CAPAPath{
 			.originX=uint32_t(bounds.begin.x()),
 			.originY=uint32_t(bounds.begin.y()),
 			.fillRule=uint32_t(fillRule),
@@ -329,7 +329,7 @@ namespace qk {
 		return true;
 	}
 
-	bool CGAABuilder::build(const Path &path, Range *clip, const Mat *mat, float precision) {
+	bool CAPABuilder::build(const Path &path, Range *clip, const Mat *mat, float precision) {
 		AllocatorScope scope(&_alloc);
 		auto lines = path.getEdgeLines(precision, mat);
 		if (!lines.length())
@@ -354,13 +354,13 @@ namespace qk {
 		if (edgeIndex == _data.edges.length())
 			return false; // 没有有效边，直接返回
 
-		int tileCountX = ceilf(size.x() * kInvCGAATileSize);
-		int tileCountY = ceilf(size.y() * kInvCGAATileSize);
+		int tileCountX = ceilf(size.x() * kInvCAPATileSize);
+		int tileCountY = ceilf(size.y() * kInvCAPATileSize);
 
 		return buildTileEdges(clipBounds, edgeIndex, _data.edges.length(), tileCountX, tileCountY);
 	}
 
-	bool CGAABuilder::build(const Path &path) {
+	bool CAPABuilder::build(const Path &path) {
 		Mat mat(_owner->_state->matrix);
 		Vec2 surfaceScale = _owner->_surfaceScale;
 		// 这里等价于Mat({0}, surfaceScale, 0, {0}) * _state->matrix)，
@@ -378,37 +378,36 @@ namespace qk {
 		return build(path, &clip, &mat, _owner->_allScaleAverage * 0.5f);
 	}
 
-	cCGAADrawData& CGAABuilder::endBuild() {
+	cCAPADrawData& CAPABuilder::endBuild() {
 		if (_data.tiles.length() == 0)
 			return _data;
-		float atlasSize = ceil(sqrtf(_data.tiles.length())) * kCGAATileSize;
+		float atlasSize = ceil(sqrtf(_data.tiles.length())) * kCAPATileSize;
 		auto isSelfAlloc = &_alloc == Allocator::current();
 		if (isSelfAlloc)
 			// 这里必需弹出当前分配器，因为后续创建纹理不能使用这个线性分配器，因为这里的内存可能随时释放。
 			Allocator::popAllocator();
 		_data.atlas = _owner->getTextureFromPool(atlasSize, kLuminance_8_ColorType, 4096, kComputeWrite_TextureFlags);
 		if (isSelfAlloc)
-			// 重新压入当前分配器，确保后续的 CGAA 数据仍然使用这个线性分配器。
+			// 重新压入当前分配器，确保后续的 CAPA 数据仍然使用这个线性分配器。
 			Allocator::pushAllocator(&_alloc);
 		return _data;
 	}
 
-	void CGAABuilder::commit() {
+	void CAPABuilder::commit() {
 		if (_data.tiles.length() == 0)
 			return;
 		endBuild();
-		_owner->makeCGAAAtlasCmd(_data); // 生成 atlas 纹理
+		_owner->makeCAPAAtlasCmd(_data); // 生成 atlas 纹理
 		// 默认都提交到纯色绘制，图像绘制应该在build后立即生成atlas，只有纯色可以使用批处理。
-		_owner->drawCGAAColorCmd(_data); // 绘制 CGAA 路径，使用CGAA纯色着色器
+		_owner->drawCAPAColorCmd(_data); // 绘制 CAPA 路径，使用CAPA纯色着色器
 		reset();
 	}
 
-	CGAABuilder::CGAABuilder(GPUCanvas *owner): _owner(owner), _blendMode(owner->_blendMode) {
-		AllocatorScope scope(&_alloc);
-		_data = {};
+	CAPABuilder::CAPABuilder(GPUCanvas *owner): _owner(owner), _blendMode(owner->_blendMode) {
+		reset();
 	}
 
-	void CGAABuilder::reset(bool clear) {
+	void CAPABuilder::reset(bool clear) {
 		if (&_alloc == Allocator::current()) {
 			_data = {};
 		} else {
@@ -424,7 +423,7 @@ namespace qk {
 		}
 	}
 
-	void CGAABuilder::setBlendMode(BlendMode mode) {
+	void CAPABuilder::setBlendMode(BlendMode mode) {
 		if (_blendMode != mode) {
 			commit(); // commit current batch before changing blend mode
 			_blendMode = mode;

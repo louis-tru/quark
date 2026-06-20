@@ -2,15 +2,15 @@
 	vec4 color; \
 	vec4 surfaceOffset;
 
-#import "_cgaa.glsl"
+#import "_capa.glsl"
 
 #vert
 layout(location=3) flat out vec4 color;
 void main() {
-#if Qk_SHADER_FLAGS_ENABLE_CGAA
-	if ((pc.flags & Qk_FLAG_CGAA) != 0) {
-		Qk_cgaaVertexSteps();
-		gl_Position = rMat.noScale * vec4(cgaaPosition + pc.surfaceOffset.xy, 0.0, 1.0);
+#if Qk_SHADER_FLAGS_ENABLE_CAPA
+	if ((pc.flags & Qk_FLAG_CAPA) != 0) {
+		Qk_capaVertexSteps();
+		gl_Position = rMat.noScale * vec4(capaPosition + pc.surfaceOffset.xy, 0.0, 1.0);
 		color = path.color;
 	} else
 #endif
@@ -28,7 +28,7 @@ layout(location=3) flat in vec4 color;
 #define Qk_FLAG_AASIDE_Inverted (1u << 16)
 
 void main() {
-	// apply anti-aliasing coverage for aaside or cgaa
+	// apply anti-aliasing coverage for aaside or capa
 	float coverage = aaCoverage();
 	if ((pc.flags & Qk_FLAG_AASIDE_Inverted) != 0)
 		coverage = 1.0 - coverage;

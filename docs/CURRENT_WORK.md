@@ -184,9 +184,64 @@ For small render backend changes:
 
 ## Compute AA Prototype State
 
-The selected algorithm is now named **CGAA (Compute Grid Anti-Aliasing)**.
-Historical references to Compute AA or Compute GRID AA in this document refer
-to the CGAA research path.
+The earlier compute AA prototype is named **CGAA (Compute Grid Anti-Aliasing)**.
+It is a milestone prototype, but not the final production direction.
+
+The active next rendering-quality thread is now **CAPA (Compute Area Pipeline
+Anti-aliasing)**. CAPA keeps CPU path flattening/cache as the first version's
+front-end, then moves transform, short-edge task generation, tile binning,
+backdrop propagation, area coverage, and tile-local color resolve into a GPU
+pipeline. Detailed pass notes and Pathfinder/Vello references live in
+`docs/GPU_2D_ANTIALIASING.md`.
+
+### CAPA Current Prototype State
+
+Current local code now has the first visible Metal prototype, but it is still
+not the final CAPA pipeline:
+
+- `src/render/capa.h` and `src/render/capa.cc` define `CAPABuilder`,
+  path-space `CAPAEdge`, path metadata `CAPAPath`, and `CAPADrawData`.
+- `CAPABuilder::buildColor()` currently flattens a path on CPU with
+  `Path::getEdgeLines()`, but no longer transforms the edges to surface-space
+  and no longer emits CPU tile buckets or CGAA-compatible composite tile
+  metadata. CPU now uploads flattened path-space edges, draw matrix rows, draw
+  color, and edge ranges only.
+- `GPUCanvas::Inl::fillPathColor()` now has a CAPA hook through
+  `fillPathCAPAColor()`. The backend `drawCAPAColorCmd()` returns `bool`; the
+  default implementation returns `false`, so non-Metal backends still fall back
+  to the existing CGAA / triangle path.
+- `src/render/shader/capa_prepare.glsl`, `capa_bin.glsl`, and
+  `capa_tile.glsl` now compile into real compute shaders. `capa_prepare`
+  applies the draw matrix on GPU, writes prepared surface-space edges with
+  unit direction/length/`dxdy`, and appends short-edge tasks. `capa_bin`
+  assigns those short-edge tasks into fixed-capacity per-tile lists. The
+  current tile pass uses those lists primarily as boundary-tile classification:
+  tiles with no local edge refs use a row-area backdrop fast path, while
+  boundary tiles temporarily fall back to the full-edge area kernel until the
+  tile-local short-edge area path is corrected.
+- `MetalCanvas::drawCAPAColorCmd()` uploads CAPA buffers, dispatches prepare,
+  short-edge binning, and tile coverage compute passes, then uses
+  `capa_resolve.glsl` to draw the coverage atlas back into the active render
+  target with the current clip mask.
+- This prototype currently handles single solid-color AA fills only. It does
+  not yet implement count + scan tile allocation, backdrop prefix propagation,
+  ordered multi-draw tile resolve, gradients, images, strokes, or complex
+  CAPA-native clip handling. The tile pass still dispatches every surface tile,
+  and boundary tiles still use the full-edge fallback; it is not the final
+  performance shape.
+
+Verification for this step:
+
+- The shader generator completed successfully for the new CAPA shader ABI.
+- `git diff --check` passed.
+- Per `docs/ENGINEERING_RULES.md`, no broad C++ build was run by default.
+- Local branch `snapshot/cgaa-69751de8` preserves the current `HEAD` CGAA
+  snapshot before the uncommitted CAPA path/bucketing changes.
+
+Immediate next CAPA step:
+
+- Replace the fixed-capacity tile list with count + scan allocation, then move
+  tile-left backdrop from per-tile row scans into a prefix propagation pass.
 
 ### CGAA Current Findings
 

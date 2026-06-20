@@ -53,7 +53,7 @@ namespace qk {
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
-		_cgaaBuilder = new CGAABuilder(this); // create CGAA builder for anti-aliasing paths
+		_capaBuilder = new CAPABuilder(this); // create CAPA builder for anti-aliasing paths
 	}
 
 	MetalCanvas::~MetalCanvas() {
@@ -161,8 +161,8 @@ namespace qk {
 	}
 
 	bool MetalCanvas::swapBuffer() {
-		if (_cgaaBuilder)
-			_cgaaBuilder->commit(); // commit CGAA data for current frame before swap
+		if (_capaBuilder)
+			_capaBuilder->commit(); // commit CAPA data for current frame before swap
 		endPass(); // end current pass to ensure all commands are encoded before swap
 		_mutex.lock();
 		bool canSwap = _cmdPackFront.current == nil;

@@ -4,7 +4,7 @@
 #define Qk_FLAG_CLIP (1u << 0)
 #define Qk_FLAG_PMA (1u << 1)
 #define Qk_FLAG_AASIDE_LINE (1u << 2)
-#define Qk_FLAG_CGAA (1u << 3)
+#define Qk_FLAG_CAPA (1u << 3)
 
 #define matrix (rMat.value * vMat.value)
 

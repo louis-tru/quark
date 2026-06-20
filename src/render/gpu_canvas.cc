@@ -73,9 +73,9 @@ namespace qk {
 			return img && (img->type() == kSDF_Unsigned_F32_ColorType || img->type() == kSDF_F32_ColorType);
 		}
 
-		void commitCGAABatch() {
-			if (_cgaaBuilder)
-				_cgaaBuilder->commit();
+		void commitCAPABatch() {
+			if (_capaBuilder)
+				_capaBuilder->commit();
 		}
 
 		const VertexData &buildVertex(const Path &path, float aaRadius, bool aa) {
@@ -83,13 +83,13 @@ namespace qk {
 				_cache->getAASideTriangle(path, aaRadius): _cache->getPathTriangles(path);
 		}
 
-		cCGAADrawData& buildCGAAA(const Path &path, const Paint &paint, bool stroke) {
-			Qk_ASSERT(_cgaaBuilder, "CGAA builder is null");
-			_cgaaBuilder->commit();
-			_cgaaBuilder->build(stroke ?
+		cCAPADrawData& buildCAPAA(const Path &path, const Paint &paint, bool stroke) {
+			Qk_ASSERT(_capaBuilder, "CAPA builder is null");
+			_capaBuilder->commit();
+			_capaBuilder->build(stroke ?
 				_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
-			auto &data = _cgaaBuilder->endBuild();
-			makeCGAAAtlasCmd(data);
+			auto &data = _capaBuilder->endBuild();
+			makeCAPAAtlasCmd(data);
 			return data;
 		}
 
@@ -106,7 +106,7 @@ namespace qk {
 			p.mipmapMode = PaintImage::kLinear_MipmapMode;
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
-			_this->commitCGAABatch(); // commit current CGAA batch
+			_this->commitCAPABatch(); // commit current CAPA batch
 
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
 
@@ -134,7 +134,7 @@ namespace qk {
 		void fillPathAASide(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
 			if (!vertex.vCount)
 				return;
-			commitCGAABatch(); // commit current CGAA batch before fill path
+			commitCAPABatch(); // commit current CAPA batch before fill path
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
 				drawImageCmd(vertex, { style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind });
@@ -147,38 +147,36 @@ namespace qk {
 			}
 		}
 
-		bool fillPathCGAA(const Path &path, const Paint &paint, const PaintStyle& style, bool stroke) {
-			if (!_cgaaBuilder)
+		bool fillPathCAPA(const Path &path, const Paint &paint, const PaintStyle& style, bool stroke) {
+			if (!_capaBuilder)
 				return false;
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
 				if (!isSDF && !style.image->_isCanvas && style.image->image->type() == kYUV420P_Y_8_ColorType)
-					return false; // fallback to non-CGAA path for YUV420P image
-				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), {
+					return false; // fallback to non-CAPA path for YUV420P image
+				drawCAPAImageCmd(buildCAPAA(path, paint, stroke), {
 					style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind
 				});
 			} else if (style.gradient) {
-				drawCGAAGradientCmd(buildCGAAA(path, paint, stroke), style.gradient, style.color);
+				drawCAPAGradientCmd(buildCAPAA(path, paint, stroke), style.gradient, style.color);
 			} else if (paint.mask) {
-				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), { paint.mask, style.color, kMask_DrawKind });
-			} else { // color fill/stroke with CGAA
-				_cgaaBuilder->color = style.color;
-				_cgaaBuilder->build(stroke ?
+				drawCAPAImageCmd(buildCAPAA(path, paint, stroke), { paint.mask, style.color, kMask_DrawKind });
+			} else { // color fill/stroke with CAPA
+				_capaBuilder->color = style.color;
+				_capaBuilder->build(stroke ?
 					_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
 				return true;
 			}
-			_cgaaBuilder->reset();
+			_capaBuilder->reset();
 			return true;
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			// for non-AA path with simple color fill, 
-			// we can directly use the path triangles without building CGAA data
-			if (_cgaaBuilder && aa) {
-				_cgaaBuilder->color = color;
-				_cgaaBuilder->build(path); // build CGAA data for path
+			if (_capaBuilder && aa) {
+				_capaBuilder->color = color;
+				_capaBuilder->build(path); // build CAPA data for path
 			} else {
-				commitCGAABatch();
+				commitCAPABatch();
 				drawColorCmd(buildVertex(path, aaRadius, aa), color);
 			}
 		}
@@ -193,10 +191,10 @@ namespace qk {
 			auto width = paint.strokeWidth - _1pxSize;
 			if (paint.strokeWidth > _1pxSize * 1.8) {
 				// Stroke is currently implemented using aaside
-				// because CGAA doesn't work well for wireframes with small lines,
+				// because CAPA doesn't work well for wireframes with small lines,
 				// but we can't rule out the possibility that future algorithm improvements
-				// will allow wireframes to also be implemented using CGAA.
-				// if (fillPathCGAA(path, paint, paint.stroke, true)) return;
+				// will allow wireframes to also be implemented using CAPA.
+				// if (fillPathCAPA(path, paint, paint.stroke, true)) return;
 				auto &stroke = _cache->getStrokePath(path, width, paint.cap, paint.join,0);
 				auto &vertex = buildVertex(stroke, aaRadius, paint.antiAlias);
 				fillPathAASide(vertex, paint, paint.stroke);
@@ -219,7 +217,7 @@ namespace qk {
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
-				if (!paint.antiAlias || !fillPathCGAA(path, paint, paint.fill, false)) {
+				if (!paint.antiAlias || !fillPathCAPA(path, paint, paint.fill, false)) {
 					auto &vertex = buildVertex(path, aaRadius, paint.antiAlias);
 					fillPathAASide(vertex, paint, paint.fill);
 				}
@@ -251,7 +249,7 @@ namespace qk {
 		, _blendMode(kInvalid_BlendMode)
 		, _clipState(nullptr)
 		, _opts(opts)
-		, _cgaaBuilder(nullptr)
+		, _capaBuilder(nullptr)
 	{
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
@@ -342,8 +340,8 @@ namespace qk {
 
 	void GPUCanvas::setBlendMode(BlendMode mode) {
 		if (_blendMode != mode) {
-			if (_cgaaBuilder) {
-				_cgaaBuilder->setBlendMode(mode); // commit current CGAA batch if blend mode changed
+			if (_capaBuilder) {
+				_capaBuilder->setBlendMode(mode); // commit current CAPA batch if blend mode changed
 			}
 			_blendMode = mode;
 			setBlendModeCmd();
@@ -364,7 +362,7 @@ namespace qk {
 		count = U32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
-			_this->commitCGAABatch(); // commit current CGAA batch before restore
+			_this->commitCAPABatch(); // commit current CAPA batch before restore
 			do {
 				auto lastOut = _state->output; // save current output before pop
 				_stateStack.pop(); // exit current state
@@ -445,7 +443,7 @@ namespace qk {
 				range = lastRange;
 			}
 		}
-		_this->commitCGAABatch();
+		_this->commitCAPABatch();
 		clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType);
 		clip->range = range;
 		// adjust range to actual allocated texture size
@@ -465,14 +463,14 @@ namespace qk {
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
-		if (_cgaaBuilder)
-			_cgaaBuilder->reset();
+		if (_capaBuilder)
+			_capaBuilder->reset();
 		clearColorCmd(color, _stateStack.length() == 1 ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
+		_this->commitCAPABatch();
 		drawColorCmd({0,6, {
 			{0,0,0}, {_size[0],0,0}, {_size[0],_size[1],0}, // triangle 1
 			{_size[0],_size[1],0}, {0,_size[1],0}, { 0,0,0 } // triangle 2
@@ -485,7 +483,7 @@ namespace qk {
 		if (rect.size.is_zero_axis())
 			return;
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
+		_this->commitCAPABatch();
 		drawRRectBlurColorCmd(rect, radius, blur, color);
 	}
 
@@ -577,13 +575,13 @@ namespace qk {
 
 	void GPUCanvas::drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
-		_this->commitCGAABatch(); // commit current CGAA batch before read image
+		_this->commitCAPABatch(); // commit current CAPA batch before read image
 		drawTrianglesCmd(triangles, paint.fill.image, paint.fill.color, copyData);
 	}
 
 	Sp<ImageSource> GPUCanvas::readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) {
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
+		_this->commitCAPABatch();
 		auto o = src.begin;
 		auto s = Vec2{
 			F32::min(o.x()+src.size.x(), _size.x()) - o.x(),
@@ -611,7 +609,7 @@ namespace qk {
 		}
 		if (img == _state->output)
 			return img; // same image, no need to switch
-		_this->commitCGAABatch();
+		_this->commitCAPABatch();
 		_state->output = img;
 		img->set_mipmap(mipmap);
 		outputImageBeginCmd(img.get());
@@ -639,8 +637,8 @@ namespace qk {
 		_rootMatrixNoScale.scale_x(1.0f/surfaceScale.x());
 		_rootMatrixNoScale.scale_y(1.0f/surfaceScale.y());
 		_texPools.clear(); // clear texture pool when surface size changed
-		if (_cgaaBuilder)
-			_cgaaBuilder->reset(true);
+		if (_capaBuilder)
+			_capaBuilder->reset(true);
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
 

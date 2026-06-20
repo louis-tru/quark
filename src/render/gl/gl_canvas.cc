@@ -207,22 +207,22 @@ namespace qk {
 		_cmdPack->drawColor(vertex, color);
 	}
 
-	void GLCanvas::makeCGAAAtlasCmd(const CGAADrawData &data) {
-		// CGAA is currently connected only on Metal for direct-target testing.
+	void GLCanvas::makeCAPAAtlasCmd(const CAPADrawData &data) {
+		// CAPA is currently connected only on Metal for direct-target testing.
 		(void)data;
 	}
 
-	void GLCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
+	void GLCanvas::drawCAPAColorCmd(cCAPADrawData &data) {
 		(void)data;
 	}
 
-	void GLCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
+	void GLCanvas::drawCAPAGradientCmd(cCAPADrawData &data, const PaintGradient *paint, const Color4f &color) {
 		(void)data;
 		(void)paint;
 		(void)color;
 	}
 
-	void GLCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
+	void GLCanvas::drawCAPAImageCmd(cCAPADrawData &data, const GC_ImageDrawInfo &info) {
 		(void)data;
 		(void)info;
 	}
