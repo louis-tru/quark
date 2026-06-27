@@ -327,6 +327,8 @@ namespace qk {
 		inline MRange expandToInteger() const;
 		// clip to another range, useful for pixel coverage calculation with a clip rect
 		inline MRange clip(const MRange &clip) const;
+		// join two ranges (union)
+		inline MRange join(const MRange &b) const;
 	};
 	template<typename T> struct MRegion {
 		// range = (origin+begin, origin+end), size = end - begin
@@ -343,6 +345,7 @@ namespace qk {
 	typedef Vec<int,3>        IVec3;
 	typedef Vec<int,4>        IVec4;
 	typedef MRect<IVec2>      IRect;
+	typedef MRange<IVec2>     IRange;
 
 	template<>
 	inline Range Range::expandToInteger() const {
@@ -351,6 +354,10 @@ namespace qk {
 	template<>
 	inline Range Range::clip(const Range &clip) const {
 		return {begin.max(clip.begin), end.min(clip.end)};
+	}
+	template<>
+	inline Range Range::join(const Range &b) const {
+		return {begin.min(b.begin), end.max(b.end)};
 	}
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const;

@@ -355,43 +355,77 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getEdgeLines(float precision, const Mat* matrix) const {
+		return getEdgeInfo<true>(precision, matrix).edges;
+	}
+
+	PathEdgeInfo Path::getEdgeInfo(float precision, const Mat* matrix) const {
+		return getEdgeInfo<false>(precision, matrix);
+	}
+
+	template<bool OnlyEdge>
+	PathEdgeInfo Path::getEdgeInfo(float precision, const Mat* matrix) const {
 		Path tmp,tmp2;
 		auto self = matrix ? transformPath(&tmp, *matrix): this; // transform path
 		self = self->normalized(&tmp2, precision, false);
 
-		Array<Vec2> edges;
+		PathEdgeInfo info;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
 		Vec2 move, from;
+		Vec2 begin = *pts, end = begin;
+
+		auto bounds = [&](Vec2 p) {
+			float x = p.x();
+			float y = p.y();
+			if (x < begin[0]) {
+				begin[0] = x;
+			} else if (x > end[0]) {
+				end[0] = x;
+			}
+			if (y < begin[1]) {
+				begin[1] = y;
+			} else if (y > end[1]) {
+				end[1] = y;
+			}
+		};
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
 				case kLine_Verb:
 					if (!isZero) {
-						edges.push(from);
+						if (!OnlyEdge) {
+							bounds(*pts);
+							info.totalEdgeLength += (from - *pts).length();
+						}
+						info.edges.push(from);
 						from = *pts++;
-						edges.push(from); // edge 0
+						info.edges.push(from); // edge 0
 						break;
 					}
 				case kMove_Verb:
 					move = from = *pts++;
+					if (!OnlyEdge)
+						bounds(move);
 					isZero = false;
 					break;
 				case kClose_Verb: // close
 					if (!isZero) {
 						if (move != from) { // close path
-							edges.push(from);
-							edges.push(move);
+							if (!OnlyEdge)
+								info.totalEdgeLength += (move - from).length();
+							info.edges.push(from);
+							info.edges.push(move);
 						}
 						isZero = true;
 					}
 					break;
 				default:
-					Qk_Fatal("Path::getEdgeLines() invalid verb");
+					Qk_Fatal("Path::getEdgeInfo() invalid verb");
 			}
 		}
-
-		Qk_ReturnLocal(edges);
+		if (!OnlyEdge)
+			info.bounds = { begin, end };
+		Qk_ReturnLocal(info);
 	}
 
 	bool tessAddPathContours(TESStesselator *tess, const Path *path, float z = 0) {
@@ -756,44 +790,9 @@ namespace qk {
 	}
 
 	const Path* Path::transformPath(Path *out, const Mat& matrix) const {
-		if (matrix.is_identity())
-			return this;
 		if (out != this)
 			*out = *this; // copy first, then transform
-		Vec2* pts = *out->_pts;
-		Vec2* e = pts + out->_pts.length();
-		bool has_translation = matrix.has_translation();
-		bool has_scaling = matrix.has_scaling();
-		if (matrix.has_skew()) {
-			if (has_translation) {
-				matrix.mul_vec2_batch(pts, out->_pts.length());
-			} else {
-				matrix.mul_vec2_no_translate_batch(pts, out->_pts.length());
-			}
-		} else if (has_translation && has_scaling) {
-			float sx = matrix.val[0], sy = matrix.val[4],
-						tx = matrix.val[2], ty = matrix.val[5];
-			while (pts < e) {
-				pts[0][0] = pts[0][0] * sx + tx;
-				pts[0][1] = pts[0][1] * sy + ty;
-				pts++;
-			}
-		} else if (has_translation) {
-			float tx = matrix.val[2], ty = matrix.val[5];
-			while (pts < e) {
-				pts[0][0] += tx;
-				pts[0][1] += ty;
-				pts++;
-			}
-		} else {
-			Qk_ASSERT(has_scaling, "Path::transformPath() matrix should have scaling if no translation");
-			float sx = matrix.val[0], sy = matrix.val[4];
-			while (pts < e) {
-				pts[0][0] *= sx;
-				pts[0][1] *= sy;
-				pts++;
-			}
-		}
+		matrix.mul_vec2_batch(out->_pts.val(), out->_pts.length());
 		return out;
 	}
 

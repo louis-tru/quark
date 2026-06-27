@@ -77,10 +77,10 @@ namespace qk {
 
 	static bool cgaa_inside(uint16_t fillRule, int winding) {
 		switch(fillRule) {
-			case kCGAANonZero_FillRule: return winding != 0;
-			case kCGAAEvenOdd_FillRule: return (std::abs(winding) & 1) != 0;
-			case kCGAAPositive_FillRule: return winding > 0;
-			case kCGAANegative_FillRule: return winding < 0;
+			case kNonZero_FillRule: return winding != 0;
+			case kEvenOdd_FillRule: return (std::abs(winding) & 1) != 0;
+			case kPositive_FillRule: return winding > 0;
+			case kNegative_FillRule: return winding < 0;
 			default: return false;
 		}
 	}

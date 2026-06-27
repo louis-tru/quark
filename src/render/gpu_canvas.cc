@@ -73,9 +73,16 @@ namespace qk {
 			return img && (img->type() == kSDF_Unsigned_F32_ColorType || img->type() == kSDF_F32_ColorType);
 		}
 
-		void commitCGAABatch() {
+		void commitCGAABatch(bool includeCAPA = true) {
+			if (includeCAPA)
+				commitCAPABatch();
 			if (_cgaaBuilder)
 				_cgaaBuilder->commit();
+		}
+
+		void commitCAPABatch() {
+			if (_capaBuilder)
+				_capaBuilder->commit();
 		}
 
 		const VertexData &buildVertex(const Path &path, float aaRadius, bool aa) {
@@ -106,7 +113,7 @@ namespace qk {
 			p.mipmapMode = PaintImage::kLinear_MipmapMode;
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
-			_this->commitCGAABatch(); // commit current CGAA batch
+			commitCGAABatch(); // commit current AA batches
 
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
 
@@ -134,7 +141,7 @@ namespace qk {
 		void fillPathAASide(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
 			if (!vertex.vCount)
 				return;
-			commitCGAABatch(); // commit current CGAA batch before fill path
+			commitCGAABatch(); // commit current AA batches before fill path
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
 				drawImageCmd(vertex, { style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind });
@@ -150,6 +157,7 @@ namespace qk {
 		bool fillPathCGAA(const Path &path, const Paint &paint, const PaintStyle& style, bool stroke) {
 			if (!_cgaaBuilder)
 				return false;
+			commitCAPABatch();
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
 				if (!isSDF && !style.image->_isCanvas && style.image->image->type() == kYUV420P_Y_8_ColorType)
@@ -172,12 +180,8 @@ namespace qk {
 		}
 
 		bool fillPathCAPA(const Path &path, const Color4f &color) {
-			if (!_capaBuilder->buildColor(path, color))
-				return false;
-			commitCGAABatch();
-			drawCAPAColorCmd(_capaBuilder->endBuild());
-			_capaBuilder->reset();
-			return true;
+			commitCGAABatch(false);
+			return _capaBuilder->build(path, color);
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
@@ -188,6 +192,7 @@ namespace qk {
 			// for non-AA path with simple color fill, 
 			// we can directly use the path triangles without building CGAA data
 			if (_cgaaBuilder && aa) {
+				commitCAPABatch();
 				_cgaaBuilder->color = color;
 				_cgaaBuilder->build(path); // build CGAA data for path
 			} else {
@@ -377,7 +382,7 @@ namespace qk {
 		count = U32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
-			_this->commitCGAABatch(); // commit current CGAA batch before restore
+			_this->commitCGAABatch(); // commit current AA batches before restore
 			do {
 				auto lastOut = _state->output; // save current output before pop
 				_stateStack.pop(); // exit current state
@@ -478,8 +483,7 @@ namespace qk {
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
-		if (_cgaaBuilder)
-			_cgaaBuilder->reset();
+		_this->commitCGAABatch();
 		clearColorCmd(color, _stateStack.length() == 1 ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
@@ -590,7 +594,7 @@ namespace qk {
 
 	void GPUCanvas::drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
-		_this->commitCGAABatch(); // commit current CGAA batch before read image
+		_this->commitCGAABatch(); // commit current AA batches before triangle draw
 		drawTrianglesCmd(triangles, paint.fill.image, paint.fill.color, copyData);
 	}
 

@@ -654,7 +654,7 @@ namespace qk {
 		val[5] = 0;
 	}
 
-	Mat::Mat(float m0, float m1, float m2, float m3, float m4, float m5): Vec(m1, m2) {
+	Mat::Mat(float m0, float m1, float m2, float m3, float m4, float m5): Vec(m0, m1) {
 		val[2] = m2;
 		val[3] = m3;
 		val[4] = m4;
@@ -933,6 +933,8 @@ namespace qk {
 	void Mat::mul_vec2_batch(Vec2* batch, int count) const {
 		if (!batch || count <= 0)
 			return;
+		if (is_identity())
+			return; // no need to transform
 		const float* a = val;
 		int i = 0;
 #if Qk_NEON_Maybe
@@ -962,6 +964,48 @@ namespace qk {
 			__m128 out = _mm_add_ps(_mm_add_ps(_mm_mul_ps(x, mx), _mm_mul_ps(y, my)), mt);
 			_mm_storeu_ps(batch[i].val, out);
 		}
+#else
+		// Fallback for non-SIMD platforms
+		Vec2* e = batch + count;
+		bool has_translation = this->has_translation();
+		bool has_scaling = this->has_scaling();
+		if (has_skew()) {
+			if (has_translation) {
+				while (batch < e) {
+					float x = batch->val[0];
+					float y = batch->val[1];
+					batch->val[0] = a[0] * x + a[1] * y + a[2];
+					batch->val[1] = a[3] * x + a[4] * y + a[5];
+					batch++;
+				}
+			} else {
+				mul_vec2_no_translate_batch(batch, count);
+			}
+		} else if (has_translation && has_scaling) {
+			float sx = val[0], sy = val[4],
+						tx = val[2], ty = val[5];
+			while (batch < e) {
+				batch[0][0] = batch[0][0] * sx + tx;
+				batch[0][1] = batch[0][1] * sy + ty;
+				batch++;
+			}
+		} else if (has_translation) {
+			float tx = val[2], ty = val[5];
+			while (batch < e) {
+				batch[0][0] += tx;
+				batch[0][1] += ty;
+				batch++;
+			}
+		} else {
+			Qk_ASSERT(has_scaling, "Mat::mul_vec2_batch: unexpected case");
+			float sx = val[0], sy = val[4];
+			while (batch < e) {
+				batch[0][0] *= sx;
+				batch[0][1] *= sy;
+				batch++;
+			}
+		}
+		return;
 #endif
 		for (; i < count; i++) {
 			float x = batch[i].val[0];

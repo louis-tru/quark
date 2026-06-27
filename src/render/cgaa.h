@@ -46,13 +46,6 @@ namespace qk {
 	constexpr float kInvCGAATileSize = 1.0f / float(kCGAATileSize);
 	constexpr int kCGAATileSizeShift = __builtin_ctz(kCGAATileSize);
 
-	enum CGAAFillRule {
-		kCGAANonZero_FillRule = 0,
-		kCGAAEvenOdd_FillRule = 1,
-		kCGAAPositive_FillRule = 2,
-		kCGAANegative_FillRule = 3,
-	};
-
 	typedef MSLImage::CGAAPath CGAAPath;
 	typedef MSLImage::CGAACompositeTile CGAACompositeTile;
 	typedef MSLCgaa::CGAAEdge CGAAEdge;
@@ -99,7 +92,7 @@ namespace qk {
 		CGAAPath& getPath(int index) { return _data.paths[index]; }
 		cCGAADrawData& getDrawData() const { return _data; }
 		Color4f color; // color state for CGAABuilder
-		CGAAFillRule fillRule = kCGAANonZero_FillRule;
+		FillRule fillRule = kNonZero_FillRule;
 	private:
 		bool buildTileEdges(Range &bounds, int edgeIndex, int edgeEnd, int tileCountX, int tileCountY);
 		CGAADrawData _data;

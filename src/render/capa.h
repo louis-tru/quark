@@ -13,22 +13,33 @@
 
 #include "./metal/mtl_shaders.h"
 #include "./path.h"
-#include "../util/handle.h"
 
 namespace qk {
 	class GPUCanvas;
 
 	constexpr int kCAPATileSize = 16;
-	constexpr float kInvCAPATileSize = 1.0f / float(kCAPATileSize);
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
+	constexpr float kCAPAShortEdgeLength = 8.0f;
+	constexpr int kCAPAShortEdgeChunkSize = 4;
 
 	typedef MSLCapaPrepare::CAPAEdge CAPAEdge;
-	typedef MSLCapaTile::CAPAPath CAPAPath;
+	typedef MSLCapaPrepare::CAPAPath CAPAPath;
+
+	struct CAPABudget {
+		Range globalBounds{{F32::limit_max}, {F32::limit_min}};
+		IRange globalTileBounds;
+		uint32_t globalTileCount;
+		uint32_t maxPathTileRowCount = 0;
+		uint32_t maxPathTileCount = 0;
+		uint32_t maxShortEdgeCount = 0;
+		uint32_t maxShortEdgeChunkCount = 0;
+		uint32_t maxBoundaryTileCount = 0;
+	};
 
 	struct CAPADrawData {
-		Sp<ImageSource> atlas;
 		Array<CAPAPath> paths;
 		Array<CAPAEdge> edges;
+		CAPABudget budget;
 	};
 
 	typedef const CAPADrawData cCAPADrawData;
@@ -43,14 +54,16 @@ namespace qk {
 
 	struct CAPABuilder {
 		CAPABuilder(GPUCanvas *owner);
-		bool buildColor(const Path &path, const Color4f &color);
-		cCAPADrawData& endBuild();
+		bool build(const Path &path, const Color4f &color);
+		void commit();
 		void reset(bool clear = false);
 		cCAPADrawData& getDrawData() const { return _data; }
+		FillRule fillRule = kNonZero_FillRule;
 	private:
 		CAPADrawData _data;
 		GPUCanvas *_owner;
 		LinearAllocator _alloc;
+		float _totalEdgeLength;
 	};
 }
 #endif

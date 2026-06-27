@@ -504,7 +504,7 @@ async function resolve_ast(name, stage, source_both) {
 }
 
 async function resolve_doc(name_, input) {
-	const source_both = resolve_source_both('#import "_util.glsl"\n', input);
+	const source_both = resolve_source_both(`#import "${__dirname}/../src/render/shader/_util.glsl"\n`, input);
 	const name = name_.replace(/[\-_](.)/gm, (_,b)=>b.toUpperCase());
 	const className = `${name[0].toUpperCase()}${name.substring(1)}`;
 	const vert_ast = source_both.hasRender ? await resolve_ast(name, 'vert', source_both): null;

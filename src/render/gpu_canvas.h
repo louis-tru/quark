@@ -143,7 +143,7 @@ namespace qk {
 		virtual void drawCGAAColorCmd(cCGAADrawData &data) = 0;
 		virtual void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) = 0;
-		virtual bool drawCAPAColorCmd(cCAPADrawData &data) = 0;
+		virtual bool drawCAPACmd(cCAPADrawData &data) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,

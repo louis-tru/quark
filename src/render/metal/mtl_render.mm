@@ -302,6 +302,7 @@ namespace qk {
 																																	height:size.y()
 																																mipmapped:flags & kMipmap_TextureFlags];
 		desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead |
+			MTLTextureUsageShaderWrite |
 			(flags & kComputeWrite_TextureFlags ? MTLTextureUsageShaderWrite : 0);
 		desc.storageMode = /*cpuRead ? MTLStorageModeShared :*/ MTLStorageModePrivate;
 		return [device newTextureWithDescriptor:desc];

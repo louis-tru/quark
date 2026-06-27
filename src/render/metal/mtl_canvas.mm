@@ -162,6 +162,8 @@ namespace qk {
 	}
 
 	bool MetalCanvas::swapBuffer() {
+		if (_capaBuilder)
+			_capaBuilder->commit(); // commit CAPA data for current frame before swap
 		if (_cgaaBuilder)
 			_cgaaBuilder->commit(); // commit CGAA data for current frame before swap
 		endPass(); // end current pass to ensure all commands are encoded before swap
@@ -227,6 +229,7 @@ namespace qk {
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = 0;
 		auto enc = [cmd renderCommandEncoderWithDescriptor:pass];
+		enc.label = @"Viewport Copy Pass";
 		setrMatrixFromEnc(enc, &_rootMatrix, _surfaceScale);
 		setvMatrixFromEnc(enc, Mat());
 		[enc setViewport: {0, 0, (float)tex.width, (float)tex.height, 0, 1}];

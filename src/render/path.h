@@ -56,6 +56,25 @@ namespace qk {
 		Array<Vec3> vertex;       ///< CPU-side vertices: {x, y, aaSide/z}.
 	};
 
+	/**
+	 * Path edge line info, including edge lines, bounds and total edge length.
+	*/
+	struct PathEdgeInfo {
+		Array<Vec2> edges;
+		Range bounds;
+		float totalEdgeLength = 0;
+	};
+
+	/**
+	* Path fill rule, used for path filling and clipping.
+	*/
+	enum FillRule {
+		kNonZero_FillRule,
+		kEvenOdd_FillRule,
+		kPositive_FillRule,
+		kNegative_FillRule,
+	};
+
 	class Qk_EXPORT Path: public Reference {
 	public:
 		enum PathVerb: uint8_t {
@@ -123,6 +142,12 @@ namespace qk {
 		Array<Vec2> getEdgeLines(float precision = 1.0, const Mat* matrix = nullptr) const;
 
 		/**
+		* @method getEdgeInfo() convert to edge lines and get bounds and total edge length
+		* @return {PathEdgeInfo} { edges: { x, y }[], bounds: { x, y, width, height }, totalEdgeLength }
+		*/
+		PathEdgeInfo getEdgeInfo(float precision = 1.0, const Mat* matrix = nullptr) const;
+
+		/**
 		 * @method getTriangles() Convert to fixed size polygon vertices
 		 * @return {VertexData} { .vertex={ x, y, z }[] }
 		*/
@@ -166,6 +191,8 @@ namespace qk {
 		// get region bounds from pts, do not check unit matrix
 		static Range getBoundsFromPoints(const Vec2 pts[], uint32_t ptsLen, const Mat* matrix = nullptr);
 	private:
+		template<bool OnlyEdge>
+		PathEdgeInfo getEdgeInfo(float precision, const Mat* matrix) const;
 		const Path* normalized(Path *out, float precision, bool updateHash) const;
 		const Path* boundaryPath(Path *out, float precision) const;
 		const Path* transformPath(Path *out, const Mat& matrix) const;

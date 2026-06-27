@@ -601,6 +601,498 @@ Vello 的核心启发：
 
 ## 当前结论
 
+### 2026-06 CAPA / 浏览器 / CGAA 对比结论
+
+这轮实验从浏览器 SVG、Canvas bitmap、CGAA、AASide 和 CAPA 的动态旋转
+对比得到几个阶段性判断：
+
+- 浏览器 SVG 的最佳表现并不是“完美解析边缘”。小图时边缘看起来更稳，
+  但放大后仍能看到纹理/采样毛边，说明它很可能经过了中间纹理或
+  grid/sample 类路径，而不是每帧做无限精度的真实几何覆盖。
+- SVG geometry 动态变形时更接近 GRID 采样，观察上像 4x4 或 2x2 grid。
+  它也有波浪/锯齿，只是形态不同。
+- Canvas cached bitmap 在比例、采样、mipmap 没处理好时质量最差；修正比例
+  后，单张高分辨率纹理旋转并配合合适 mip/filter，小图可以隐藏很多锯齿，
+  但放大后锯齿会回来。
+- CGAA 4x4 与浏览器 SVG 的若干表现接近，尤其是离散 grid 造成的阶梯感。
+- CAPA 当前面积积分结果与 AASide 的主观质量非常接近。这说明 AASide 的
+  距离边 ramp 在很多普通边缘上已经很接近面积积分。
+- 面积积分本身并不自动消除动态波浪。CAPA/AASide 的波浪更均匀、柔和；
+  GRID/CGAA 的波浪更像离散采样造成的锯齿流动。二者都是代价不同的
+  approximation，并没有免费的“浏览器级”神秘 AA。
+
+当前 CAPA 工程状态：
+
+- 分支 `experiment/capa` 的提交 `7564f7a92`
+  (`Restore CAPA prototype snapshot`) 是当前恢复点。
+- CAPA 和 CGAA 应并存；当前研究继续在 CAPA 上进行，不要再默认切回 CGAA。
+- CAPA 的目标已经收窄：它只应作为解决多图元相邻边界漏光 /
+  background seam 的 ordered tile resolve/compositor 研究路径。如果不解决
+  漏光，CAPA 相比 AASide/CGAA 没有足够优势。
+- AASide、CGAA、CAPA 三条线可以并行存在并通过宏或运行时参数切换：
+  AASide 负责最快普通 UI/stroke/hairline，CGAA 负责较轻的 coverage/area
+  路径，CAPA 负责高复杂度 no-leak compositor。
+- 后端范围要收敛：GL/GLES 只需要保底 AASide，不计划支持 CGAA 或 CAPA。
+  CGAA/CAPA 属于 Metal/Vulkan-class compute 后端方向。
+- 当前正确图像依赖 `capa_tile.glsl` 中 `rawCount > 0u` 时走完整
+  `capa_area_coverage(...)` 的 fallback。
+- CAPA 图像已经恢复正常，但性能还不合格：简单测试约 7 ms/frame GPU 时间；
+  AASide 约 0.2 ms，CGAA 约 0.4 ms。这个差距不是靠零碎微优化能解决的。
+- 下一步应先理解 CAPA 的 pass、bin/tile/backdrop 数据流，再决定大结构优化。
+  重点是减少无效 tile work、减少昂贵全量 area fallback，并逐步把 CPU 侧
+  tile/bin/backdrop 准备搬到 GPU，而不是在 CPU 侧继续堆逻辑。
+- Xcode Metal capture 需要把 frame capture `Count` 设为 2 才能稳定抓到
+  当前 Qk/Metal 帧。一次实际 capture 显示 `CAPA tile coverage` 占绝对
+  大头（约 93.8%），而 `CAPA prepare` 与 `CAPA short-edge bin` 都很小
+  （约 0.05% 与 0.18%）。这说明当前瓶颈不是 atomic binning 或矩阵/短边
+  准备，而是 tile coverage 中仍然依赖全路径扫描/fallback。
+- 如果 CAPA 真要根治漏光，它最终不能只是单通道 coverage atlas。它必须在
+  CAPA/tile 管线内按 draw order 直接混合目标颜色，包含 solid color、
+  gradient、image sampling 和 blend。这样会失去“只存边框/coverage atlas”
+  和纹理压缩式轻量路径的优势，性能不应再与 AASide/CGAA 做同类预期。
+- blur/filter/output image/readback 等依赖临时 A/B 绘图或复杂后处理的操作
+  不应强行塞进 CAPA 管线。遇到这些操作时可以结束/flush CAPA pass，再回到
+  普通 backend 路径。显式 clip 变化也可以先作为 CAPA pass 边界处理：
+  CAPA 第一版只消费当前 clip 状态，不负责内部生成 clip。这样可能留下少量
+  跨 pass 图元交错漏光，但当前 Qk GUI 场景预计 90% 以上不会遇到可见问题。
+- CAPA ordered compositor 需要把 image paint 的纹理资源做成每个 pass 的
+  texture table，命令流只存 `textureIndex` / `samplerIndex`。Metal 优先用
+  argument buffer indexed textures；Vulkan 运行时查询
+  `VkPhysicalDeviceLimits` 的 sampled-image 数量限制，并查询 descriptor
+  indexing / non-uniform indexing 能力。默认目标可以是每个 CAPA pass 32 个
+  texture；如果设备只保证 16 个，就降到 16。达到上限时结束当前 CAPA pass。
+- CAPA ordered color blending 不应为每个 `path.tile` 分配完整 RGBA
+  像素空间。颜色由最终混合阶段现场根据 path paint 计算；中间缓存只保存
+  必需的 coverage。空 tile、full tile、uniform coverage tile 不分配
+  coverage/backdrop page，只在 path-tile/header 上保存常量语义。只有
+  AA/edge path-tile 才从固定预算的 R8 coverage/backdrop page pool 中分配
+  `16x16` page。这个前提很重要：实心 tile 与空 tile 必须能完全脱离边界
+  coverage 和 row-backdrop 存储，否则长度预算无法成立。
+- CPU 侧无法只靠 conservative bounds 证明真实 coverage page 数量，因此
+  不要回到最保守的 bounds 面积分配。第一版应使用 GPU atomic page
+  allocator，并为 `boundaryTileIndex` 保留特殊值：`0` 表示空/外部，
+  `1` 表示实心/full tile，`2` 表示分配失败/debug coverage，`>=3` 表示真实
+  boundary tile。添加第一条边时先用 `atomicCompSwap(boundaryTileIndex, 0,
+  2)` 锁定；分配成功后写回真实 index，分配失败则保留 `2`。`boundaryTiles`
+  的真实分配从 `3` 开始，pass6 从索引 `3` 开始处理真实 boundary tiles；
+  pass7 遇到 `0/1/2` 都按特殊 coverage 语义正常混合，其中 `2` 可绑定一张
+  debug coverage，失败层数越多颜色越深。Overflow 是预算/debug 失败，不是
+  正常 shader correctness fallback，因为边界 coverage 与 row-backdrop
+  状态是一体的，不能在 final compositor 便宜重建。需要记录 `usedPages`、
+  `overflowPathTiles`、`overflowGlobalTiles`、`edgeTileCount`、
+  `fullTileCount`、`emptyTileCount` 等计数，帮助选择合适的 pool 预算。
+- 一个更实用的 CPU 侧 coverage page 预算不是 path bounds 面积，而是
+  surface-space 总边长除以 `16`：`estimatedEdgeTiles = ceil(totalEdgeLength
+  / kCAPATileSize)`。同一个 tile 内常有多条边，因此这个估算通常会多不少，
+  但相比 `boundsArea / 256` 对空心/大描边路径会精确得多。矩阵缩放可以先
+  用变换后的边向量长度估算；若要更便宜，可用矩阵列长度/最大奇异值一类的
+  保守 scale 放大 path-space 边长。CPU 根据这个估算和预算倍率分配 R8
+  coverage page pool；如果估算本身已经超过允许内存，就拆 CAPA pass 或回退
+  AASide，不启动 CAPA。
+- 如果采用上面的长度预算，shader 里的 overflow 可以先不做昂贵的正确性
+  fallback。生产路径可承认 overflow 为应避免的预算错误并丢弃该 edge
+  path-tile；调试路径把 overflow tile/layer 用固定颜色叠到目标上。目标是
+  通过 length-based sizing 和调试计数把正常 UI 场景的 overflow 降到 0。
+
+### CAPA vNext ordered compositor plan
+
+当前 CAPA 下一版的最新可执行 pass 表以 `docs/CAPA_PASS_PROCESS.md` 和
+`src/render/shader/capa/` 为准：1 个 CPU 准备步骤 + 10 个 shader pass。
+其中 `capa_prepare1.glsl`、`capa_prepare2.glsl` 和 `capa_bin1.glsl` 是真实
+调度链路的一部分，不能按旧的 7-pass 记忆省略。它的目标不是
+替代 AASide/CGAA 的普通 coverage，而是把多 path/layer 的颜色混合移动到
+有序 tile compositor 中，解决 shared edge/background seam 漏光。
+
+#### pass0：CPU 构建 path 输入
+
+- CPU 只为每个 path 构建简单展平边数据，不在 CPU 侧构建 CGAA 式精确
+  tile list。
+- 记录当前 root matrix 的 surface 偏移。这个偏移现在 `GPUCanvas` 没有
+  直接刻录成 CAPA 输入；blur 等路径会调整 root 偏移，所以 CAPA pass0
+  需要单独保存一份。
+- 为每个 path 记录 paint、fill rule、path order、edge offset/count、粗略
+  资源预算信息。
+- 用变换后的总边长估算 coverage/backdrop page pool：
+  `estimatedEdgeTiles = ceil(totalEdgeLength / 16) * budgetMultiplier`。
+  如果估算超过预算，优先拆 CAPA pass 或回退 AASide，而不是启动一个必然
+  overflow 的 CAPA pass。
+
+#### pass1：prepare paths / edges / tasks
+
+- 对原始边计算单位方向、长度、矩阵变换后的 surface-space 边、粗略裁剪、
+  path screen bounds，并处理 pass0 记录的 root matrix 偏移。
+- 写短边 task。当前最不均衡的工作预计就是长边拆短边 task。
+- 当一个 path 的 bounds 已经可用时，不必等待所有短边 task 写完；完成该
+  path 的线程可以先记录 `pathsDone`，并为当前 path 分配连续
+  `path.tiles` 存储：
+
+```txt
+path.originTileX / originTileY
+path.tileSpanX / tileSpanY
+path.tileOffset
+path.tileCount
+```
+
+- 如果 `path.tiles` 空间不足，丢弃该 path 或标记为不可进入 CAPA。
+- 关键 atomic：
+
+```txt
+atomicAdd(path.edgesDone, 1u)
+atomicAdd(pathsDone, 1u)
+```
+
+- 最后完成全部 paths 的线程写出后续 pass 的 indirect dispatch 参数，例如
+  short-edge task groups、path.tile groups、path.tile row groups 等。短边
+  task 的真实数量仍需等 task 写完；如果不等待，就必须用 conservative
+  task count 启动 pass3 并在 shader 内跳过无效 task。
+
+#### pass2：按 path 顺序建立 global tile layer 链表
+
+- 一个线程处理一个 global target tile。global tile 自带 `tileX/tileY`。
+- 线程按 path order 顺序遍历 paths，用简单范围比对判断当前 global tile
+  是否落在 path tile rect 内：
+
+```txt
+localX = tileX - path.originTileX
+localY = tileY - path.originTileY
+inside = localX < path.tileSpanX && localY < path.tileSpanY
+pathTileIndex = path.tileOffset + localY * path.tileSpanX + localX
+```
+
+- 命中后把该 `path.tile` 按当前 path 顺序串入 global tile 链表：
+
+```txt
+pathTile.next = NIL
+previous.next = pathTileIndex
+globalTile.head = firstPathTileIndex
+```
+
+- 同时清零 path.tile 状态。为了省空间，path.tile 可暂不分配默认短边存储，
+  短边链表在 pass3 动态分配。
+- 这一步负载不均衡，但每个任务很轻；更重要的是它把 pass7 需要的 ordered
+  layer list 固定下来，避免 unordered atomic append 破坏 draw order。
+
+#### pass3：短边 binning / boundary tile allocation
+
+- 处理 pass1 写出的短边 task，把短边加入对应 path.tile 的短边链表。短边
+  可带一个“完全位于 path.tileX0 左侧”的标记，方便后续面积积分快速排除。
+- 当某个 path.tile 添加第一条边时，把它加入 `boundaryTiles`。这个
+  boundaryTile 包含该边界 tile 的 row-backdrop 与 R8 coverage page。
+- `boundaryTileIndex` 保留特殊值：
+
+```txt
+0    = empty / outside / no boundary
+1    = solid / full tile
+2    = allocation failure / debug coverage / transient lock
+>=3 = real boundaryTile index
+```
+
+- 分配逻辑：
+
+```glsl
+if (pathTile.boundaryTileIndex == 0u) {
+  if (atomicCompSwap(pathTile.boundaryTileIndex, 0u, 2u) == 0u) {
+    uint idx = atomicAdd(boundaryTiles.count, 1u); // count starts at 3
+    if (idx < boundaryTileCapacity)
+      pathTile.boundaryTileIndex = idx;
+  }
+}
+```
+
+- `2` 可以直接兼作锁和失败/debug 索引。分配失败时不需要再改值。pass7 可
+  把 index 2 当作可正常混合的 debug coverage，失败层数越多颜色越深。
+- pass3 是最后一个动态分配阶段。完成线程写出与 `boundaryTiles` 相关的
+ 后续 indirect dispatch 参数，例如 pass4/pass6 需要的 boundaryTile row
+  groups。
+
+#### pass4：计算 boundaryTile local backdrop
+
+- 只处理真实 boundaryTiles，线程索引从 `3` 开始；`0/1/2` 为特殊 coverage
+  语义，不进入 pass4。
+- 每个 boundaryTile 分配 16 个线程，通常 4 个 tile row 组成一个 threadgroup。
+- pass4 计算每个 boundaryTile 的本地 row area/backdrop：
+  - `tileX < path.tileX0` 的贡献保存到 `tileX0.backdrop`，作为 tileX0 的
+    初始前缀累计值。
+  - `tileX0` 自身每行 local value 暂时保存到
+    `boundaryTile.coverage[0..63]`，即 16 行各一个 float32 拆成 4 个
+    `uint8_t`，因为此时 coverage page 还没有最终 R8 coverage 语义。
+  - `tileX > tileX0` 的值先保存为本 tile local value，等待 pass5 转成
+    横向前缀值。
+- `boundaryTile.coverage` 是 `uint8_t[256]`。临时保存每行 float 时需要把
+  16 个 float bits 分别拆成 4 个 `uint8_t`，共借用 64 字节。pass6
+  面积积分会按像素直接写最终 R8 coverage 值，这 64 个临时字节会被对应
+  像素的最终 coverage 自然覆盖；不需要额外初始化整页 coverage。
+
+#### pass5：把 path.tile backdrop 转成横向前缀
+
+- 每个 path.tile row 分配 16 个线程，通常 4 个 path.tile row 组成一个
+  threadgroup。这里的“row 线程”沿 tileX 从左到右循环，不引入额外 scan。
+- `tileX0.backdrop` 在 pass4 后已经是前缀值，不需要改写。
+- pass5 先从 `tileX0.boundaryTile.coverage[0..63]` 读出 tileX0 每行自身
+  local value，然后：
+
+```txt
+prefix = tileX0.backdrop + tileX0.localSelf
+tileX1.backdrop = prefix
+prefix += tileX1.localSelf
+tileX2.backdrop = prefix
+...
+```
+
+- 对无边 tile，用前缀值和 path fill rule 判断它是 empty 还是 solid/full：
+  `boundaryTileIndex = 1` 表示实心/full，否则保持 `0`。
+- 到 pass5 结束，面积积分所需的 path.tile 前缀 backdrop 准备完成。
+
+#### pass6：boundaryTiles 面积积分写 R8 coverage
+
+- 只处理真实 boundaryTiles，从索引 `3` 开始。每个 boundaryTile row 一个
+  线程，通常 4 个 boundaryTile row 组成一个 threadgroup。
+- 每个 row 线程使用线程本地 `float[16]` 保存该行 16 个像素的连续 signed
+  area / local coverage 累计。
+- 遍历该 boundaryTile 的短边链表。每条短边对其影响的行只计算一次，写入
+  线程本地 `float[16]`；中间空白区域可用前缀/填充方式处理，避免每个像素
+  重复扫同一条边。
+- 最终使用 path fill rule 把 signed area 转为 coverage，再写入
+  `boundaryTile.coverage[0..255]`：
+  - NonZero/Positive/Negative 使用连续 signed area 语义。
+  - EvenOdd 使用之前确定的 triangle-wave 折叠，不退回 GRID/parity 采样。
+- 如果 path rule 访问太远，可在 boundaryTile 中保存一份 rule 拷贝。
+
+#### pass7：ordered global tile color compositor
+
+- 每个 global target tile 启动 256 个线程，即一个像素一个线程。
+- 每个线程按 pass2 构建的 global tile path.tile 链表顺序遍历 layers：
+  - `boundaryTileIndex == 0`：coverage = 0。
+  - `boundaryTileIndex == 1`：coverage = 1，可以直接走常量分支；也可以由
+    CPU/初始化数据提供全 1 coverage，但最好保留显式判断。
+  - `boundaryTileIndex == 2`：读取 debug coverage 并正常混合。
+  - `boundaryTileIndex >= 3`：读取真实 `boundaryTile.coverage[pixelIndex]`。
+- 根据 path paint 现场计算颜色。image paint 通过 CAPA pass 的 texture
+  table 用 `textureIndex/samplerIndex` 访问；solid/gradient 根据 path paint
+  参数求值。
+- 第一版至少要保证 premultiplied `SrcOver` 正确：
+
+```txt
+src.rgb = premulPaint.rgb * coverage
+src.a   = paint.a * coverage
+dst     = src + dst * (1 - src.a)
+```
+
+- 其它 blend mode 可后续扩展，但这里是 CAPA 解决颜色漏光的关键位置，不能
+  简化成普通相加，除非 blend mode 本身就是 plus。
+
+CGAA 并行方向：
+
+- 如果目标只是更好的单 path coverage 或面积积分质量，CGAA 仍然是更轻的
+  路线。把 CGAA 从 GRID 采样进一步改成面积积分后，它可以保留 coverage
+  atlas/mask 的轻量优势，不需要把颜色、渐变和图片全部纳入 ordered CAPA
+  compositor。
+- CGAA 可以研究更大的 `64x64` tile：面积积分版本不需要每个像素都重新扫边，
+  可以让 64 个线程处理 64 行，并让每条边每行只计算一次。这可能降低 CPU
+  tile 管理/binning 成本，同时保持 GPU 时间与 AASide 在同一量级附近。
+
+CAPA tile 数据结构方向：
+
+- 暂时不要在 CAPA 中引入 prefix scan / scan 作为主要短边分配机制。它在
+  算法上漂亮，能生成紧凑连续数组，但一旦 tile 数超过单个 threadgroup，
+  就需要 block scan、block sums scan、prefix add-back 等多 pass 结构，
+  还会引入 threadgroup memory/barrier 和递归式边界处理。对当前 CAPA
+  来说，这会显著增加实现和调试复杂度，性能也未必更好。
+- 优先研究 tile-owned append storage：每个 tile 持有自己的 header，
+  后续 pass 通过 tile index 访问该 tile 的 `offset/count/cursor`、
+  inline edge 区和 overflow 状态。常见 tile 直接写固定小 inline 区；
+  超过 inline 容量时再通过全局 atomic chunk allocator 分配 overflow
+  chunk，并用 atomic exchange / compare-exchange 维护链表头。
+- 当前首选结构是 per-tile initial chunk + overflow chunk list。每个 tile
+  初始拥有一个 `CHUNK_CAP = 16` 的 chunk，绝大多数 tile 应该只命中这个
+  初始空间；只有复杂 tile 才通过 `growLock` 扩容。这样 `atomicAdd` 主要
+  发生在 tile 当前 chunk 的 `used` 字段，竞争范围被限制在单个 tile 内；
+  全局 chunk allocator 只在溢出时触发。
+
+建议的结构语义：
+
+```cpp
+const uint CHUNK_CAP = 16;
+const uint NIL = 0xffffffffu;
+
+struct CAPATile {
+	uint head;
+	uint growLock;
+	uint flags;
+	uint _pad;
+};
+
+struct CAPAChunk {
+	uint next;
+	uint used;
+	ShortEdge edges[CHUNK_CAP];
+};
+
+struct CAPAChunkAllocator {
+	uint count;
+	uint overflow;
+};
+```
+
+初始化策略：
+
+```txt
+每个 tile 预分配一个 initial chunk
+tile.head = tileIndex
+tile.growLock = 0
+tile.flags = 0
+chunks[tileIndex].next = NIL
+chunks[tileIndex].used = 0
+allocator.count = tileCount
+allocator.overflow = 0
+```
+
+append 伪代码：
+
+```glsl
+bool tryAppend(uint chunk, ShortEdge edge) {
+	uint local = atomicAdd(chunks[chunk].used, 1u);
+	if (local < CHUNK_CAP) {
+		chunks[chunk].edges[local] = edge;
+		return true;
+	}
+	return false;
+}
+
+bool appendTileEdge(uint tileIndex, ShortEdge edge) {
+	uint head = tiles[tileIndex].head;
+	if (tryAppend(head, edge))
+		return true;
+
+	for (uint attempt = 0u; attempt < MAX_RETRY; attempt++) {
+		if (atomicCompSwap(tiles[tileIndex].growLock, 0u, 1u) == 0u) {
+			uint freshHead = tiles[tileIndex].head;
+
+			if (tryAppend(freshHead, edge)) {
+				atomicExchange(tiles[tileIndex].growLock, 0u);
+				return true;
+			}
+
+			uint newChunk = atomicAdd(allocator.count, 1u);
+			if (newChunk >= MAX_CHUNKS) {
+				atomicExchange(allocator.overflow, 1u);
+				atomicExchange(tiles[tileIndex].growLock, 0u);
+				return false;
+			}
+
+			chunks[newChunk].used = 1u;
+			chunks[newChunk].edges[0] = edge;
+			chunks[newChunk].next = freshHead;
+
+			atomicExchange(tiles[tileIndex].head, newChunk);
+			atomicExchange(tiles[tileIndex].growLock, 0u);
+			return true;
+		}
+	}
+
+	atomicExchange(tiles[tileIndex].flags, TILE_APPEND_FAILED);
+	return false;
+}
+```
+
+coverage 遍历伪代码：
+
+```glsl
+for (uint c = tiles[tileIndex].head; c != NIL; c = chunks[c].next) {
+	uint n = min(chunks[c].used, CHUNK_CAP);
+	for (uint i = 0u; i < n; i++) {
+		ShortEdge edge = chunks[c].edges[i];
+		...
+	}
+}
+```
+
+并发规则：
+
+- `growLock` 只保护扩容路径；普通 append 不加锁。
+- 拿到 `growLock` 后必须重新读取 `freshHead` 并再次 `tryAppend`，避免刚
+  释放锁后重复扩容。
+- `head` 发布顺序必须是：初始化 chunk 数据和 `next`，再
+  `atomicExchange(tile.head, newChunk)`，最后释放 `growLock`。
+- bin pass 只 append，coverage pass 在后续 pass 读取；不支持同一 pass
+  边写边遍历。
+- tile 内 edge 顺序不重要，因为 CAPA coverage 对 tile-local edges 做累加。
+
+- 这个方向的目标是控制原子竞争，而不是完全避免原子。可接受的原子包括：
+  per-edge 的 task/count 分配、per-tile append cursor、per-path/tile bounds
+  的 `atomicMin/Max`，以及少量 overflow chunk 分配。应避免在 pixel/sample
+  内层循环中使用原子。
+- `capa_prepare` 可以顺手生成 surface-space edge、edge length/unit/dxdy、
+  conservative path/screen bounds 和 clip 后 tile range。bounds 可用
+  `atomicMin/Max` 维护；外层普通 `if` 预检查可以减少不必要的 atomic 调用，
+  但 correctness 仍依赖 atomic 本身。
+- clip/bounds 只能用于缩小无关 tile work，不能随意裁掉 x 扫描线左侧会
+  影响 backdrop/winding 的边。左侧边可以不进 local edge list，但必须以
+  backdrop/prefix 形式贡献状态，否则 tile 会把 inside/outside 判错。
+- CAPA backdrop 必须保存连续 signed area 状态，而不是最终 alpha、离散
+  GRID sample 或单纯 parity。tile 内局部边贡献与 backdrop 是线性相加：
+
+```txt
+signedArea(row, pixelX)
+  = rowBackdropAtTileLeft[row]
+  + localSignedAreaDelta(row, tileLeft -> pixelX)
+```
+
+  最终写 atlas 前才按 fill rule 把 `signedArea` 转成 coverage。不要提前
+  clamp backdrop、tile delta 或 local area。
+- 对当前 pixel 的局部边贡献是面积；对右侧 tile 的 row backdrop delta 是
+  这个 row 内被边跨过的有向高度。例：左侧边给当前 row 贡献 `+0.5`
+  backdrop；右侧一条反向边在当前 pixel 的 `x = 0.5` 处只跨过 `0.5` 个
+  y 像素，则当前 pixel 的局部面积贡献是 `-0.25`，所以
+  `0.5 + (-0.25) = 0.25`；但传给更右侧区域的 backdrop 变化是 `-0.5`，
+  后续 backdrop 变为 `0.0`。
+- 多重 winding/螺旋形状会让 signed backdrop 持续增加或减少，例如
+  `0 -> 1 -> 2 -> 3` 再回落。中间状态必须完整保存为 signed float；只有
+  最终 coverage 可以 clamp/fold。
+- 四种 CGAA/CAPA fill rule 都可以基于连续 signed area 统一转换：
+
+```glsl
+float capa_fill_rule_coverage(float area, uint rule) {
+	if (rule == kCGAANonZero_FillRule)
+		return clamp(abs(area), 0.0, 1.0);
+
+	if (rule == kCGAAEvenOdd_FillRule) {
+		float m = mod(abs(area), 2.0);
+		return 1.0 - abs(m - 1.0);
+	}
+
+	if (rule == kCGAAPositive_FillRule)
+		return clamp(area, 0.0, 1.0);
+
+	if (rule == kCGAANegative_FillRule)
+		return clamp(-area, 0.0, 1.0);
+
+	return clamp(abs(area), 0.0, 1.0);
+}
+```
+
+  `kCGAAEvenOdd_FillRule` 不应退回离散 parity/GRID。它可以对连续
+  `abs(area)` 做 triangle-wave folding：`0.5 -> 0.5`、`1.5 -> 0.5`、
+  `2.0 -> 0.0`、`2.5 -> 0.5`。
+- 动态线程数可以通过 GPU counters 驱动：prepare pass 用 `atomicAdd`
+  维护真实 task count；如果需要 indirect dispatch，可用完成计数器让最后
+  完成的 invocation 写 threadgroup 数。这个方案比按 `maxTaskCount` 暴力
+  dispatch 更干净，但是否值得要用 capture 验证。
+- 后续实现必须用 Xcode GPU Capture 验证：`CAPA short-edge bin` 是否仍
+  保持低占比、`CAPA tile coverage` 是否从全路径 fallback 大幅下降、
+  `allocator.overflow` / `TILE_APPEND_FAILED` 是否为 0，以及多数 tile 是否
+  只使用 initial chunk。
+
+需要记住的判断：
+
+- 解析面积积分没有发现根本错误；当前质量问题更像算法取舍和采样表现，
+  而不是公式明显算错。
+- 若要模拟 GRID，CAPA 能近似做出来，但简单量化面积会出现跳变/抖动；
+  CGAA 的 grid 波是连续移动的，这与实现细节、采样位置和 tile/backdrop
+  组织有关。
+- 未来如果要根治多图元边界、clip、blend 和 AA 统一问题，仍应走
+  tile scene / ordered resolve 方向，而不是 per-path mask 后直接 alpha blend。
+
 1. AASide 不是失败路线，它仍适合 stroke/hairline 和简单 UI 边缘。
 2. CGAA 可以提高 fill coverage 精度，但它必须走向 tile-scene resolve，否则无法根治多图元边界问题。
 3. Pathfinder 的最大价值是展示了 path tile、alpha tile、framebuffer tile list、area coverage、ordered composite 这一整套结构。

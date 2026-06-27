@@ -45,3 +45,22 @@ time-consuming compilation commands unless the user explicitly requests them.
 Prefer source inspection, targeted searches, syntax checks, diff checks, and
 required code generators. The user will run compilation and provide any
 resulting errors for follow-up fixes.
+
+## 3. AI Assistants Do Not Edit Code Without Explicit Approval
+
+When the user is asking for inspection, explanation, review, debugging help, or
+whether code is correct, AI assistants must not modify source code or generated
+code unless the user explicitly asks for a change.
+
+If the assistant finds a concrete problem, it should first report the issue,
+the relevant file/location, and the suggested fix. Wait for the user's explicit
+approval before editing code. Documentation may be updated only when the user
+explicitly asks for that documentation change.
+
+## 4. Avoid Large Shader Struct Copies
+
+In GPU shader code, do not copy large SSBO/storage-buffer structs into local
+variables just for convenience. For structs such as `CAPABoundaryTile`, copying
+the whole value can move many words per invocation and hide expensive generated
+code. Read only the needed fields directly from the storage buffer, or cache
+small scalar/vector fields individually when reuse is worthwhile.

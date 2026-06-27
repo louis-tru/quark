@@ -78,3 +78,6 @@ float aaSideCoverage(const uint flags) {
 if ((pc.flags & Qk_FLAG_CLIP) != 0) { \
 	fragColor *= clipCoverage(vec2(0)); \
 }
+
+#comp
+precision mediump float;
