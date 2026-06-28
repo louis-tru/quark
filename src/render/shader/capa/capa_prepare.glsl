@@ -88,7 +88,7 @@ void main() {
 	vec2 delta = p1 - p0;
 	float edgeLength = length(delta);
 	// vec2 unit = edgeLength > 1e-6 ? delta / edgeLength : vec2(0.0);
-	int winding = p1.y > p0.y ? 1 : p1.y < p0.y ? -1 : 0;
+	float winding = p1.y > p0.y ? 1 : p1.y < p0.y ? -1 : 0;
 	float dy = p1.y - p0.y;
 	float dxdy = winding != 0 && dy != 0.0 ? (p1.x - p0.x) / dy : 0.0;
 

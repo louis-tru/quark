@@ -39,13 +39,6 @@ namespace qk {
 		// return uint32_t(ceilf(totalEdgeLen * kInvCAPATileSize * kCAPACoverageBudgetMultiplier));
 	}
 
-	uint32_t capa_maxShortEdgeChunkCount(uint32_t maxShortEdgeCount, uint32_t maxBoundaryTileCount) {
-		uint32_t extraEdgeCount = maxShortEdgeCount > maxBoundaryTileCount
-				? maxShortEdgeCount - maxBoundaryTileCount : 0u;
-		return maxBoundaryTileCount +
-			(extraEdgeCount + kCAPAShortEdgeChunkSize - 1u) / kCAPAShortEdgeChunkSize;
-	}
-
 	Range capa_bounds_transform(const Mat& mat, const Range &bounds) {
 		Vec2 points[4] = {
 			bounds.begin, Vec2(bounds.end.x(), bounds.begin.y()),
@@ -122,7 +115,6 @@ namespace qk {
 		auto totalEdgeLen = _totalEdgeLength + info.totalEdgeLength * capa_path_scale(path);
 		auto maxShortEdgeCount = capa_maxShortEdgeCount(totalEdgeLen, edgeCount);
 		auto maxBoundaryTileCount = capa_maxBoundaryTileCount(totalEdgeLen, edgeCount);
-		auto maxShortEdgeChunkCount = capa_maxShortEdgeChunkCount(maxShortEdgeCount, maxBoundaryTileCount);
 
 		if (maxBoundaryTileCount > kCAPAMaxBoundaryTileCapacity) {
 			// TODO: cancel CAPA draw if boundary tile count exceeds max capacity
@@ -141,7 +133,6 @@ namespace qk {
 		budget.globalBounds = budget.globalBounds.join(bounds);
 		budget.maxPathTileCount += tileSpan.x() * tileSpan.y();
 		budget.maxShortEdgeCount = maxShortEdgeCount;
-		budget.maxShortEdgeChunkCount = maxShortEdgeChunkCount;
 		budget.maxBoundaryTileCount = maxBoundaryTileCount;
 		budget.maxPathTileRowCount += tileSpan.y();
 
@@ -166,7 +157,6 @@ namespace qk {
 		auto tileSpan = budget.globalTileBounds.size();
 		budget.globalTileCount = tileSpan.x() * tileSpan.y();
 		budget.maxBoundaryTileCount += kCAPAMinBoundaryTileCapacity;
-		// budget.maxPathTileRowCount *= kCAPACoverageBudgetMultiplier;
 		_owner->drawCAPACmd(_data);
 		reset();
 	}

@@ -5,7 +5,6 @@
 
 Qk_CONSTANT(
 	uint maxTaskCount;
-	uint maxShortEdgeChunkCount;
 	uint maxBoundaryTileCount;
 );
 
@@ -26,92 +25,27 @@ layout(binding=3,set=0,std430) readonly buffer CAPAEdges {
 	CAPAEdge values[];
 } edges;
 
-layout(binding=4,set=0,std430) readonly buffer CAPAShortEdgeTasks {
+layout(binding=4,set=0,std430) buffer CAPAShortEdges {
+	CAPAShortEdge values[];
+} shortEdges;
+
+layout(binding=5,set=0,std430) readonly buffer CAPAShortEdgeTasks {
 	CAPAShortEdgeTask values[];
 } shortEdgeTasks;
 
-layout(binding=5,set=0,std430) buffer CAPAPathTiles {
+layout(binding=6,set=0,std430) buffer CAPAPathTiles {
 	CAPAPathTile values[];
 } pathTiles;
 
-layout(binding=6,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=7,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
-
-layout(binding=7,set=0,std430) buffer CAPAShortEdgeChunks {
-	CAPAShortEdgeChunk values[];
-} shortEdgeChunks;
 
 // Left/top Closed, Right/bottom Open
 int capa_tile_coord_half_open(bool isMin, float value) {
 	return isMin
 		? int(floor(value / CAPA_TILE_SIZE_F))
 		: int(ceil(value / CAPA_TILE_SIZE_F)) - 1;
-}
-
-void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex, uint pathIndex, float winding) {
-	if (pathTiles.values[pathTileIndex].boundaryTileIndex != 0u)
-		return;
-
-	// try atomic lock to allocate a boundary tile for this path tile
-	if (atomicCompSwap(pathTiles.values[pathTileIndex].boundaryTileIndex, 0u, 2u) != 0u)
-		return;
-
-	uint boundaryIndex = atomicAdd(env.value.boundaryTileCount, 1u);
-	if (boundaryIndex < pc.maxBoundaryTileCount) {
-		if (winding != 0) {
-			uint chunkIndex = atomicAdd(env.value.shortEdgeChunkCount, 1u);
-			if (chunkIndex < pc.maxShortEdgeChunkCount) {
-				shortEdgeChunks.values[chunkIndex].count = 0u;
-				shortEdgeChunks.values[chunkIndex].next =
-					atomicExchange(pathTiles.values[pathTileIndex].shortEdgeChunkHead, chunkIndex);
-			}
-		}
-		boundaryTiles.values[boundaryIndex].pathTileIndex = pathTileIndex;
-		boundaryTiles.values[boundaryIndex].pathIndex = pathIndex;
-		boundaryTiles.values[boundaryIndex].tileCoord = tileCoord;
-		pathTiles.values[pathTileIndex].boundaryTileIndex = boundaryIndex;
-	}
-}
-
-void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex) {
-	ivec4 tileRect = paths.values[pathIndex].tileRect;
-	ivec2 local = tileCoord - tileRect.xy;
-
-	// check if the tileCoord is in the path tile rect, if not, ignore this edge
-	if (local.y < 0 || local.y >= tileRect.w || local.x >= tileRect.z)
-		return;
-
-	if (local.x < 0)
-		local.x = 0; // clamp to the left edge of the path tile rect
-
-	// get the path tile index for this tile coordinate
-	uint pathTileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
-
-	// allocate a boundary tile for this path tile
-	capa_alloc_boundary_tile(tileCoord, pathTileIndex, pathIndex, edge.winding);
-
-	// don't need to store it if is horizontal edge
-	if (edge.winding == 0)
-		return;
-
-	uint head = pathTiles.values[pathTileIndex].shortEdgeChunkHead;
-	if (head != CAPA_NIL) {
-		uint offset = atomicAdd(shortEdgeChunks.values[head].count, 1u);
-		if (offset < CAPA_SHORT_EDGE_CHUNK_SIZE) {
-			// store the short edge in the chunk
-			shortEdgeChunks.values[head].values[offset] = edge;
-			return;
-		}
-	}
-	uint chunkIndex = atomicAdd(env.value.shortEdgeChunkCount, 1u);
-	if (chunkIndex >= pc.maxShortEdgeChunkCount)
-		return; // overflow, ignore this short edge
-
-	shortEdgeChunks.values[chunkIndex].count = 1u;
-	shortEdgeChunks.values[chunkIndex].values[0] = edge;
-	shortEdgeChunks.values[chunkIndex].next =
-		atomicExchange(pathTiles.values[pathTileIndex].shortEdgeChunkHead, chunkIndex);
 }
 
 CAPAShortEdge capa_short_edge(uint edgeIndex, float t0, float t1) {
@@ -121,8 +55,52 @@ CAPAShortEdge capa_short_edge(uint edgeIndex, float t0, float t1) {
 		mix(p0, p1, t0),
 		mix(p0, p1, t1),
 		edges.values[edgeIndex].dxdy,
-		float(edges.values[edgeIndex].winding)
+		edges.values[edgeIndex].winding,
+		CAPA_NIL,
+		0
 	);
+}
+
+void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex, uint pathIndex) {
+	if (pathTiles.values[pathTileIndex].boundaryTileIndex != 0u)
+		return;
+	// try atomic lock to allocate a boundary tile for this path tile
+	if (atomicCompSwap(pathTiles.values[pathTileIndex].boundaryTileIndex, 0u, 2u) != 0u)
+		return;
+	uint boundaryIndex = atomicAdd(env.value.boundaryTileCount, 1u);
+	if (boundaryIndex < pc.maxBoundaryTileCount) {
+		boundaryTiles.values[boundaryIndex].pathTileIndex = pathTileIndex;
+		boundaryTiles.values[boundaryIndex].pathIndex = pathIndex;
+		boundaryTiles.values[boundaryIndex].tileCoord = tileCoord;
+		pathTiles.values[pathTileIndex].boundaryTileIndex = boundaryIndex;
+	}
+}
+
+void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint shortEdgeIndex) {
+	ivec4 tileRect = paths.values[pathIndex].tileRect;
+	ivec2 local = tileCoord - tileRect.xy;
+
+	// check if the tileCoord is in the path tile rect, if not, ignore this edge
+	if (local.y < 0 || local.y >= tileRect.w || local.x >= tileRect.z)
+		return;
+
+	if (local.x < 0) {
+		local.x = 0; // clamp to the left edge of the path tile rect
+		tileCoord.x = tileRect.x;
+	}
+	// get the path tile index for this tile coordinate
+	uint pathTileIndex = paths.values[pathIndex].tileOffset;
+	pathTileIndex += local.y * tileRect.z + local.x;
+
+	// allocate a boundary tile for this path tile
+	capa_alloc_boundary_tile(tileCoord, pathTileIndex, pathIndex);
+
+	// don't need to store it if is horizontal edge
+	if (edge.winding == 0)
+		return;
+
+	edge.next = atomicExchange(pathTiles.values[pathTileIndex].shortEdgeHead, shortEdgeIndex);
+	shortEdges.values[shortEdgeIndex] = edge;
 }
 
 void main() {
@@ -160,7 +138,11 @@ void main() {
 		tile0.x = tile1.x;
 	}
 
-	capa_emit_edge(tile0, edge, task.pathIndex);
+	// short edge store index,
+	// each short edge task can emit at most 3 short edges to the path tile
+	uint shortEdgeIndex = taskIndex * 3;
+
+	capa_emit_edge(tile0, edge, task.pathIndex, shortEdgeIndex);
 
 	if (tile0 == tile1)
 		return;
@@ -172,11 +154,11 @@ void main() {
 		float dy2 = abs(dx / edge.dxdy);
 
 		if (dy2 < dy) {
-			capa_emit_edge(tile0 + ivec2(1, 0), edge, task.pathIndex);
+			capa_emit_edge(tile0 + ivec2(1, 0), edge, task.pathIndex, shortEdgeIndex + 1);
 		} else if (dy2 > dy) {
-			capa_emit_edge(tile0 + ivec2(0, p0yIsMin ? 1 : -1), edge, task.pathIndex);
+			capa_emit_edge(tile0 + ivec2(0, p0yIsMin ? 1 : -1), edge, task.pathIndex, shortEdgeIndex + 1);
 		}
 	}
 
-	capa_emit_edge(tile1, edge, task.pathIndex);
+	capa_emit_edge(tile1, edge, task.pathIndex, shortEdgeIndex + 2);
 }

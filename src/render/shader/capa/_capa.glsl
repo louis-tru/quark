@@ -35,8 +35,8 @@ const uint CAPA_BLEND_PLUS_LEGACY = 15u;     //!< r = sa*s + d
 const uint CAPA_BLEND_MODULATE = 16u; //!< r = s*d
 const uint CAPA_BLEND_SCREEN = 17u;   //!< r = s + (1-s)*d
 const uint CAPA_BLEND_MULTIPLY = 18u; //!< r = d*s + (1-sa)*d
-
 struct CAPAEnvironment {
+	uvec4 tilePassGroups_Size32; // number of 32-wide dispatch groups for path tile init pass
 	uvec4 orderPassGroups_Size32; // number of 32-wide dispatch groups for order pass
 	uvec4 binPassGroups_Size64; // number of 64-wide dispatch groups for bin pass
 	uvec4 backdropPassGroups_Size16_2; // number of 16x2-wide dispatch groups for backdrop pass
@@ -48,12 +48,15 @@ struct CAPAEnvironment {
 	uint taskCount; // number of short-edge tasks generated
 	uint pathTileCount; // number of CAPAPathTile generated
 	uint pathTileRowCount; // number of CAPATileRows generated
-	uint shortEdgeChunkCount; // number of CAPAShortEdgeChunk allocated
 	uint boundaryTileCount; // number of CAPABoundaryTile allocated, starts at 3
 };
 
 struct CAPAGlobalTile {
 	uint head; // index to CAPAPathTile
+};
+
+struct CAPAPathTileRow {
+	uint pathTileIndex; // pathTileIndex of the first tile in this row
 };
 
 struct CAPAPath {
@@ -77,8 +80,17 @@ struct CAPAEdge {
 	vec2 p1;
 	float len;
 	float dxdy;
-	int winding;
+	float winding;
 	uint pathIndex;
+};
+
+struct CAPAShortEdge {
+	vec2 p0;
+	vec2 p1;
+	float dxdy;
+	float winding;
+	uint next; // index to next CAPAShortEdge
+	uint _pad;
 };
 
 struct CAPAShortEdgeTask {
@@ -88,24 +100,12 @@ struct CAPAShortEdgeTask {
 	float t1;
 };
 
-struct CAPAShortEdge {
-	vec2 p0;
-	vec2 p1;
-	float dxdy;
-	float winding;
-};
-
-struct CAPAShortEdgeChunk {
-	CAPAShortEdge values[CAPA_SHORT_EDGE_CHUNK_SIZE];
-	uint count; // number of valid values in this chunk
-	uint next; // index to next CAPAShortEdgeChunk
-};
-
 struct CAPAPathTile {
 	uint pathIndex;
 	uint boundaryTileIndex;
-	uint shortEdgeChunkHead; // index to CAPAShortEdgeChunk
+	uint shortEdgeHead; // index to CAPAShortEdge
 	uint next; // index to next CAPAPathTile
+	uint color; // packed RGBA8 PMA color for preblended full tiles
 };
 
 struct CAPABoundaryTile {
@@ -173,4 +173,19 @@ vec4 capa_blend(vec4 src, vec4 dst, uint mode) {
 		default:
 			return src + dst * (1.0 - src.a); // fallback SrcOver
 	}
+}
+
+uint capa_pack_rgba8(vec4 c) {
+	vec4 v = clamp(c, vec4(0.0), vec4(1.0)) * 255.0 + 0.5;
+	uvec4 b = uvec4(v);
+	return b.r | (b.g << 8u) | (b.b << 16u) | (b.a << 24u);
+}
+
+vec4 capa_unpack_rgba8(uint c) {
+	return vec4(
+		float(c & 255u),
+		float((c >> 8u) & 255u),
+		float((c >> 16u) & 255u),
+		float((c >> 24u) & 255u)
+	) * (1.0 / 255.0);
 }

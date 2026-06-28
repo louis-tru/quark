@@ -1,7 +1,6 @@
-// CAPA pass 2.
-// Build the ordered global-tile layer chain. This first landing version uses
-// the full pass tile span for every path; later prepare-path bounds can narrow
-// each path's local tile rect without changing pass7's traversal contract.
+// CAPA ordered global-tile chain pass.
+// Build the ordered global-tile layer chain after coverage classification.
+// Empty path tiles are excluded here; full-tile merging can be added later.
 
 Qk_CONSTANT(
 	uint pathCount;
@@ -34,21 +33,52 @@ void main() {
 		return;
 
 	uint head = CAPA_NIL;
+	uint pendingFullNode = CAPA_NIL;
+	vec4 pendingFullColor = vec4(0.0);
 	ivec2 globalTileSpan = env.value.globalTileSpan;
 	ivec2 tileCoord = env.value.globalTileBounds.xy +
 										ivec2(tileIndex % globalTileSpan.x, tileIndex / globalTileSpan.x);
+
+	#define CAPA_FLUSH_PENDING_FULL() \
+		if (pendingFullNode != CAPA_NIL) { \
+			uint packedColor = capa_pack_rgba8(pendingFullColor); \
+			if (packedColor != 0u) { \
+				pathTiles.values[pendingFullNode].boundaryTileIndex = 1u; \
+				pathTiles.values[pendingFullNode].color = packedColor; \
+				pathTiles.values[pendingFullNode].next = head; \
+				head = pendingFullNode; \
+			} \
+			pendingFullNode = CAPA_NIL; \
+			pendingFullColor = vec4(0.0); \
+		}
 
 	for (uint pathIndex = 0u; pathIndex < pc.pathCount; pathIndex++) {
 		if (paths.values[pathIndex].tileCount != 0u) {
 			ivec4 tileRect = paths.values[pathIndex].tileRect;
 			if (capa_is_coord_in_rect(tileCoord, tileRect)) {
-				CAPAPathTile tile = CAPAPathTile(pathIndex, 0u, CAPA_NIL, head);
-				head = paths.values[pathIndex].tileOffset;
-				head += capa_local_offset_row_major(tileCoord, tileRect);
-				pathTiles.values[head] = tile;
+				uint pathTileIndex = paths.values[pathIndex].tileOffset;
+				pathTileIndex += capa_local_offset_row_major(tileCoord, tileRect);
+				uint boundaryIndex = pathTiles.values[pathTileIndex].boundaryTileIndex;
+				if (boundaryIndex == 1u && paths.values[pathIndex].blendMode == CAPA_BLEND_SRC_OVER) {
+					vec4 src = paths.values[pathIndex].color;
+					src.rgb *= src.a;
+					if (pendingFullNode == CAPA_NIL) {
+						pendingFullNode = pathTileIndex;
+						pendingFullColor = src;
+					} else {
+						pendingFullColor = capa_blend(pendingFullColor, src, CAPA_BLEND_SRC_OVER);
+					}
+				} else if (boundaryIndex != 0u) {
+					CAPA_FLUSH_PENDING_FULL();
+					pathTiles.values[pathTileIndex].pathIndex = pathIndex;
+					pathTiles.values[pathTileIndex].next = head;
+					head = pathTileIndex;
+				}
 			}
 		}
 	}
+	CAPA_FLUSH_PENDING_FULL();
+	#undef CAPA_FLUSH_PENDING_FULL
 
 	// write the head of the tile chain to the global tile
 	globalTiles.values[tileIndex] = CAPAGlobalTile(head);

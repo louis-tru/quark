@@ -239,3 +239,91 @@ Prevention rule:
 - Collect counters in memory and emit them once after measurement.
 - Compare identical deterministic workloads for equal durations and inspect the
   target function directly rather than relying on whole-process percentages.
+
+## GPU Shaders: Custom Spin Locks Can Deadlock Or Jitter
+
+Symptom:
+
+- CAPA rendered a completely static five-point star with severe visual jitter.
+- CPU budgets and stable GPU counters such as `taskCount`, `pathTileCount`,
+  `pathTileRowCount`, and `boundaryTileCount` matched across frames.
+- `shortEdgeChunkCount` still varied between otherwise identical frames.
+
+Misleading clues:
+
+- A custom shader lock built from `atomicCompSwap` can appear to work in a small
+  capture or on one device.
+- The code can look logically correct if read like CPU threading: one invocation
+  takes the lock, initializes data, releases the lock, and other invocations
+  wait.
+
+Root cause / risk:
+
+- GPU execution does not guarantee CPU-style forward progress between arbitrary
+  invocations. An invocation that acquired a custom lock is not guaranteed to
+  run to its unlock path before sibling lanes/work items spin on the lock.
+- Such locks can deadlock or produce scheduling-dependent behavior. This is
+  especially dangerous across workgroups, where workgroup execution order is
+  not a synchronization primitive.
+
+Prevention rule:
+
+- DANGER: never use shader-level custom mutexes/spin locks that wait for another
+  invocation to release a value.
+- Use only synchronization with a real GPU guarantee for the current scope, such
+  as workgroup barriers inside one workgroup.
+- For cross-workgroup data structures, prefer non-blocking atomic append,
+  fixed-capacity per-tile storage with explicit overflow/debug markers, or
+  separate dispatch passes that publish data before later passes consume it.
+
+## CAPA: Shared Short-Edge Chunks Dropped Edges Despite Valid Atomics
+
+Symptom:
+
+- A static CAPA five-point-star test jittered even after background and area
+  math were ruled out.
+- Per-pathTile fixed short-edge slots produced stable output, but the dynamic
+  tile-local short-edge chunk list lost several edge slots.
+- Debug counters showed the expected short-edge references were `1466`, while
+  the chunk-list traversal saw only about `1457-1458` in failing versions.
+- A chain-debug pass found no orphan chunks, invalid links, or cycles; making
+  each emitted short edge its own linked node produced stable counts
+  (`1466/1466`).
+
+Misleading clues:
+
+- The chunk list used `atomicAdd` and `atomicExchange`, so it looked like a
+  standard GPU linked-list append structure.
+- `atomicExchange` itself was not proven faulty. When each edge owned a node,
+  the linked list behaved correctly.
+
+Root cause / risk:
+
+- The failing protocol let many invocations append into the same small
+  fixed-capacity chunk via `atomicAdd(chunk.count)`. Threads that found the
+  chunk full then allocated and linked overflow chunks in the same pass.
+- This multi-step "claim slot, detect overflow, allocate repair chunk, publish
+  new head" protocol was too complex to reason about reliably on the GPU.
+  Individual atomics were not enough to guarantee that every emitted edge
+  reached one final readable slot.
+- The eventual stable structure changed data ownership: instead of sizing
+  storage by "how many edges can a tile receive?", it used the hard invariant
+  that one short-edge task can touch at most three tiles. Each task owns three
+  `CAPAShortEdge` node slots and links the used nodes to tile chains.
+
+Prevention rule:
+
+- IMPORTANT: avoid same-pass shared small-chunk append plus dynamic overflow
+  repair for GPU data structures.
+- Do not build complex atomic write-then-read dependency protocols inside one
+  pass. If later work needs to read atomic-written state to decide additional
+  shared mutations, split it into another pass or redesign ownership so each
+  invocation writes only its own node/slot.
+- Prefer per-edge linked nodes, fixed owned slots, or a multi-pass
+  count/prefix/fill design.
+- If using atomics, keep each atomic protocol one-step and auditable: unique
+  index allocation, one fully written node linked once, or simple counters.
+- When a GPU binning problem looks like it needs dynamic per-tile capacity,
+  first look for a stronger bound on the producer side. Moving ownership from
+  the unbounded consumer tile to the bounded producer task can remove the need
+  for scan and complex atomic synchronization entirely.

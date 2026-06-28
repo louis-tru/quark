@@ -251,7 +251,7 @@ class TestCanvas2: public Box {
 		path.transform(Mat(0,{1.5},0,0));
 		canvas->translate(size*-0.5);
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 100; i++) {
 			canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
 		}
 		mark_rerender();

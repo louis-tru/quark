@@ -396,6 +396,7 @@
 					'render/shader/capa/capa_prepare.glsl',
 					'render/shader/capa/capa_prepare1.glsl',
 					'render/shader/capa/capa_prepare2.glsl',
+					'render/shader/capa/capa_tile.glsl',
 					'render/shader/capa/capa_order.glsl',
 					'render/shader/capa/capa_bin.glsl',
 					'render/shader/capa/capa_bin1.glsl',

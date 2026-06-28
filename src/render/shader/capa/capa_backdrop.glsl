@@ -35,9 +35,30 @@ layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
 
-layout(binding=5,set=0,std430) readonly buffer CAPAShortEdgeChunks {
-	CAPAShortEdgeChunk values[];
-} shortEdgeChunks;
+layout(binding=5,set=0,std430) buffer CAPAShortEdges {
+	CAPAShortEdge values[];
+} shortEdges;
+
+float capa_edge_cross_x(float sampleY, CAPAShortEdge edge) {
+	return fma(sampleY - edge.p0.y, edge.dxdy, edge.p0.x);
+}
+
+float capa_left_dy(float y0, float y1, CAPAShortEdge edge, float x) {
+	float x0 = capa_edge_cross_x(y0, edge);
+	float x1 = capa_edge_cross_x(y1, edge);
+	bool left0 = x0 <= x;
+	bool left1 = x1 <= x;
+	if (left0 && left1)
+		return y1 - y0;
+	if (!left0 && !left1)
+		return 0.0;
+	if (abs(edge.dxdy) < 1e-6)
+		return left0 ? y1 - y0 : 0.0;
+
+	float yCross = edge.p0.y + (x - edge.p0.x) / edge.dxdy;
+	yCross = clamp(yCross, y0, y1);
+	return left0 ? yCross - y0 : y1 - yCross;
+}
 
 void main() {
 	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y + 3u;
@@ -51,34 +72,36 @@ void main() {
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
 
 	float tileLeft = float(tileCoord.x) * CAPA_TILE_SIZE_F;
+	float tileRight = tileLeft + CAPA_TILE_SIZE_F;
 	float y0 = float(tileCoord.y) * CAPA_TILE_SIZE_F + float(row);
 	float y1 = y0 + 1.0;
 	bool isTileX0 = tileCoord.x <= paths.values[pathIndex].tileRect.x;
 	float local = 0.0;
 	float left = 0.0;
 
-	for (uint head = pathTiles.values[pathTileIndex].shortEdgeChunkHead;
+	for (uint head = pathTiles.values[pathTileIndex].shortEdgeHead;
 			head != CAPA_NIL;
-			head = shortEdgeChunks.values[head].next)
+			head = shortEdges.values[head].next)
 	{
-		uint edgeCount = min(shortEdgeChunks.values[head].count, CAPA_SHORT_EDGE_CHUNK_SIZE);
-		for (uint i = 0u; i < edgeCount; i++) {
-			CAPAShortEdge edge = shortEdgeChunks.values[head].values[i];
-			float edgeY0 = min(edge.p0.y, edge.p1.y);
-			float edgeY1 = max(edge.p0.y, edge.p1.y);
-			float beginY = max(y0, edgeY0);
-			float endY = min(y1, edgeY1);
-			if (beginY >= endY)
-				continue;
+		CAPAShortEdge edge = shortEdges.values[head];
+		float edgeY0 = min(edge.p0.y, edge.p1.y);
+		float edgeY1 = max(edge.p0.y, edge.p1.y);
+		float beginY = max(y0, edgeY0);
+		float endY = min(y1, edgeY1);
+		if (beginY >= endY)
+			continue;
 
-			float delta = float(edge.winding) * (endY - beginY);
-			float edgeRight = max(edge.p0.x, edge.p1.x);
-			if (isTileX0 && edgeRight <= tileLeft) {
-				left += delta;
-			} else {
-				local += delta;
-			}
-		}
+		// float delta = edge.winding * (endY - beginY);
+		// float edgeRight = max(edge.p0.x, edge.p1.x);
+		// if (isTileX0 && edgeRight <= tileLeft) {
+		// 	left += delta;
+		// } else {
+		// 	local += delta;
+		// }
+		float leftDy = capa_left_dy(beginY, endY, edge, tileLeft);
+		float rightDy = capa_left_dy(beginY, endY, edge, tileRight);
+		left += edge.winding * leftDy;
+		local += edge.winding * (rightDy - leftDy);
 	}
 
 	if (isTileX0) {

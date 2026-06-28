@@ -17,8 +17,6 @@ layout(binding=1,set=0,std430) buffer CAPAEnvironments {
 
 void main() {
 	uint boundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
-	// 减去前3个特别含义的边界tile，剩下的才是实际的边界tile数量
-	// Subtract the first 3 special boundary tiles, the remaining are the actual number of boundary tiles
 	uint realBoundaryTileCount = boundaryTileCount > 3u ? boundaryTileCount - 3u : 0u;
 	env.value.backdropPassGroups_Size16_2 = uvec4((realBoundaryTileCount + 1u) / 2u, 1u, 1u, 0u);
 }

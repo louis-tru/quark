@@ -11,19 +11,23 @@ Qk_CONSTANT(
 #comp
 layout(local_size_x=16, local_size_y=16, local_size_z=1) in;
 
-layout(binding=1,set=0,std430) readonly buffer CAPAPaths {
+layout(binding=1,set=0,std430) buffer CAPAEnvironments {
+	CAPAEnvironment value;
+} env;
+
+layout(binding=2,set=0,std430) readonly buffer CAPAPaths {
 	CAPAPath values[];
 } paths;
 
-layout(binding=2,set=0,std430) readonly buffer CAPAGlobalTiles {
+layout(binding=3,set=0,std430) readonly buffer CAPAGlobalTiles {
 	CAPAGlobalTile values[];
 } globalTiles;
 
-layout(binding=3,set=0,std430) readonly buffer CAPAPathTiles {
+layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
 	CAPAPathTile values[];
 } pathTiles;
 
-layout(binding=4,set=0,std430) readonly buffer CAPABoundaryTiles {
+layout(binding=5,set=0,std430) readonly buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
 
@@ -56,6 +60,8 @@ void main() {
 	if (head == CAPA_NIL && !clearDst) {
 		return;
 	}
+
+	tileCoord += env.value.globalTileBounds.xy;
 	uvec2 localPixel = gl_LocalInvocationID.xy;
 	uvec2 pixel = pc.surfaceOffset + tileCoord * CAPA_TILE_SIZE_U + localPixel;
 	uint pixelIndex = localPixel.y * CAPA_TILE_SIZE_U + localPixel.x;
@@ -65,6 +71,12 @@ void main() {
 			node != CAPA_NIL;
 			node = pathTiles.values[node].next)
 	{
+		if (pathTiles.values[node].boundaryTileIndex == 1u && pathTiles.values[node].color != 0u) {
+			vec4 src = capa_unpack_rgba8(pathTiles.values[node].color);
+			dst = capa_blend(src, dst, CAPA_BLEND_SRC_OVER);
+			continue;
+		}
+
 		uint pathIndex = pathTiles.values[node].pathIndex;
 		uint boundaryIndex = pathTiles.values[node].boundaryTileIndex;
 		float coverage = capa_path_tile_coverage(boundaryIndex, pixelIndex);

@@ -15,19 +15,20 @@ Current checkpoint:
 - Do not switch the current experiment back to CGAA unless explicitly asked.
   CGAA should remain present as a reference/fallback path, but the active
   research target is CAPA.
-- The vNext implementation now uses the 10 shader pass file set in
+- The vNext implementation now uses the 11 shader pass file set in
   `src/render/shader/capa/`: `capa_prepare.glsl`, `capa_prepare1.glsl`,
-  `capa_prepare2.glsl`, `capa_order.glsl`, `capa_bin.glsl`,
+  `capa_prepare2.glsl`, `capa_tile.glsl`, `capa_bin.glsl`,
   `capa_bin1.glsl`, `capa_backdrop.glsl`, `capa_prefix.glsl`,
-  `capa_coverage.glsl`, and `capa_composite.glsl`.
+  `capa_coverage.glsl`, `capa_order.glsl`, and `capa_composite.glsl`.
 
 CAPA current state:
 
 - CAPA and CGAA are intended to coexist in the tree.
 - `GPUCanvas::drawPathColor()` currently tries CAPA first for AA color path
   fills and falls back to the older path if CAPA cannot build.
-- The old prototype shader files `capa_tile.glsl` and `capa_resolve.glsl` have
-  been removed from the vNext path.
+- The old prototype `capa_resolve.glsl` has been removed from the vNext path.
+  `capa_tile.glsl` is now a new vNext pass dedicated to `CAPAPathTile`
+  initialization.
 - CAPA's active research goal is now narrowed to solving multi-primitive
   leakage / background seams through ordered tile resolve. If CAPA does not
   solve leakage, AASide and CGAA already cover the other quality/performance
@@ -94,16 +95,22 @@ Current CAPA caution:
   absent in normal scenes after conservative length-based sizing.
 - The current executable CAPA pass plan is documented in
   `docs/CAPA_PASS_PROCESS.md`. Treat `src/render/shader/capa/` as the source of
-  truth: CPU pass0 plus 10 shader passes cover edge prepare, path tile
-  allocation, indirect dispatch arg generation, ordered global tile chains,
+  truth: CPU pass0 plus 11 shader passes cover edge prepare, path tile
+  allocation, indirect dispatch arg generation, path tile initialization,
   short-edge binning, boundary dispatch arg generation, backdrop, prefix,
-  boundary coverage, and final ordered color compositing.
-- Latest handoff note: the user may start implementing this in a new session.
-  Preserve the current CAPA vNext semantics when coding: pass2 is one thread per
-  global tile and walks paths in draw order, so the global tile pathTile chain is
-  ordered; `boundaryTileIndex` values are `0` empty, `1` solid/full, `2`
-  allocation failure/debug coverage/transient lock, and `>=3` real boundary
-  tile; `atomicAdd(boundaryTiles.count, 1u)` starts from count `3`; tileX0
+  boundary coverage, ordered global tile chains, and final ordered color
+  compositing.
+- Latest handoff note: preserve the current CAPA vNext semantics when coding:
+  `capa_tile.glsl` is a 32-wide linear clear over `CAPAPathTile` records before
+  binning, with one thread clearing one tile, not a path/global-tile traversal;
+  `capa_order.glsl` now runs after coverage and builds the global tile pathTile chain while excluding
+  `boundaryTileIndex == 0` empty tiles. `boundaryTileIndex` values are `0`
+  empty, `1` solid/full, `2`
+  allocation failure/debug coverage, and `>=3` real boundary tile;
+  continuous SrcOver full tiles may be folded into one retained full
+  `CAPAPathTile` by storing packed PMA RGBA8 in `CAPAPathTile.color`, without
+  changing the boundary index semantics;
+  `atomicAdd(boundaryTiles.count, 1u)` starts from count `3`; tileX0
   stores 16 per-row local backdrop floats by borrowing the same
   `boundaryTile.coverage` buffer words until pass6 overwrites them with packed
   R8 coverage.
@@ -115,9 +122,9 @@ Current CAPA caution:
   short-edge task budget, max tile refs, matrix-scaled edge-length estimate, and
   boundary coverage-page estimate. Metal consumes this budget instead of
   re-deriving it. CAPA shader common types/helpers live in `_capa.glsl`.
-  `drawCAPACmd()` must submit the current 10 shader pass set in order:
-  prepare, prepare1, prepare2, order, bin, bin1, backdrop, prefix, coverage,
-  and composite. Coverage storage is now the
+  `drawCAPACmd()` must submit the current 11 shader pass set in order:
+  prepare, prepare1, prepare2, tile, bin, bin1, backdrop, prefix, coverage,
+  order, and composite. Coverage storage is now the
   `CAPABoundaryTile` buffer, not a texture: pass3 allocates real boundary tiles
   from the fixed pool, pass4 writes local row backdrop into
   `boundaryTile.coverage`, pass5 rewrites those words as tile-left prefix
@@ -140,24 +147,38 @@ CAPA GPU data-structure direction:
   adds multi-pass block scans, threadgroup barriers, recursive/block prefix
   handling, and substantial debugging complexity. It is not the preferred
   solution for CAPA tile short-edge storage.
-- Prefer a tile-owned append structure driven by bounded atomic operations:
-  each tile header should own `offset/count/cursor`-style state or inline
-  storage, and tile indexing should use the tile's global/local index directly.
-  A practical first direction is fixed small inline storage per tile plus an
-  overflow chunk list allocated from a global atomic chunk counter only when a
-  tile exceeds the inline capacity.
-- The next concrete CAPA tile-list experiment should treat tile-local
-  short-edge lists as the key breakthrough: each tile starts with one
-  preallocated chunk of `CHUNK_CAP = 16` short-edge slots, and only tiles that
-  exceed that initial capacity enter the overflow/grow path. This should keep
-  most `atomicAdd` traffic local to a single tile's current chunk; global chunk
-  allocation should be a rare fallback, not a normal-path operation.
-- Use a lightweight per-tile `growLock` only for expansion. Normal append should
-  not lock. After acquiring `growLock`, the shader must reload `freshHead` and
-  retry append before allocating a new chunk; this avoids duplicate expansion
-  when another thread just grew the tile list. Publish order is: initialize the
-  new chunk data and `next`, `atomicExchange(tile.head, newChunk)`, then release
-  `growLock`.
+- The shared small-chunk append direction is now considered unsafe for CAPA:
+  do not have many invocations append into the same fixed-capacity short-edge
+  chunk with `atomicAdd(count)` and then dynamically repair overflow in the
+  same pass. Experiments on a static five-point star showed missing short-edge
+  slots and jitter even though the chunk chains were reachable. A one-edge-per
+  linked node experiment produced stable `1466/1466` short-edge counts.
+- Prefer a simpler tile-owned linked list where each emitted `CAPAShortEdge`
+  is itself the node (with a `next` field), or move to a multi-pass
+  count/prefix/fill design. Atomic operations are still acceptable for unique
+  node allocation and linking a fully written node, but not for complex
+  same-pass small-bucket append/overflow state machines.
+- Final pass3 storage insight from the painful iteration: stop asking "how many
+  short edges can this tile receive?" and instead use the stronger task-side
+  invariant, "one short-edge task can touch at most three tiles." Allocate
+  `maxShortEdgeCount * 3` `CAPAShortEdge` nodes, let each task own
+  `taskIndex * 3 + {0,1,2}`, and link each used node into the target
+  `CAPAPathTile.shortEdgeHead`. This avoids scan/prefix allocation, avoids
+  shared chunk slot atomics, avoids overflow repair, uses less space than
+  4-slot chunks, and measured `CAPA short-edge bin` around `1.07%` in capture.
+  The important design lesson: the beautiful data structure came from changing
+  ownership to the dimension with a hard bound.
+- HARD RULE for CAPA GPU data structures: do not create complex same-pass
+  atomic write-then-read dependency protocols. If one invocation's atomic write
+  must be read by another invocation to decide further shared mutations, move
+  that decision to a later pass or redesign the data so each invocation owns the
+  node/slot it writes.
+- DANGER: do not use shader-level custom locks or spin waits for CAPA tile-list
+  growth. GPU execution does not guarantee that an invocation holding a custom
+  lock will run to the unlock path while other invocations are spinning. Tile
+  list growth must use non-blocking atomic append/allocation, fixed-capacity
+  inline storage with overflow marking, or multi-pass compaction/prefix
+  structures that do not wait for another invocation's forward progress.
 - Atomic operations are acceptable in CAPA when they are coarse and
   low-contention: per-edge `atomicAdd` for task allocation/completion,
   per-path/per-tile `atomicMin/Max` for conservative bounds, and per-tile
@@ -231,42 +252,131 @@ CAPA GPU data-structure direction:
   not handle image/gradient paint, clip sampling, inter-layer leakage fixes, or
   a fragment-shader A/B implementation.
 - 2026-06-27 Metal wiring checkpoint: `MetalCanvas::drawCAPACmd()` must submit
-  the current 10 CAPA shader passes directly, including pass7
-  `capaComposite` writing `_outColorTex`. Startup parameters for `order`,
+  the current CAPA shader passes directly, including
+  `capaComposite` writing `_outColorTex`. Startup parameters for `tile`, `order`,
   `bin`, `backdrop`, `prefix`, `coverage`, and `composite` are generated in
   shader and stored in `CAPAEnvironment`; Metal must dispatch those passes with
   indirect threadgroup counts from the corresponding `uvec4` fields.
 - Dispatch argument direction: CAPA pass group counts in `CAPAEnvironment`
   should be stored as 16-byte-aligned `uvec4` values so they can map cleanly to
   Metal indirect dispatch arguments. Current shader fields include
-  `orderPassGroups_Size32`, `binPassGroups_Size64`,
+  `tilePassGroups_Size32`, `orderPassGroups_Size32`, `binPassGroups_Size64`,
   `backdropPassGroups_Size16_2`, `prefixPassGroups_Size16_2`, and
   `compositePassGroups_Size16_16`. `capa_prepare2.glsl` writes the composite
   args as `uvec4(globalTileSpan.x, globalTileSpan.y, 1, 0)`;
   `capa_bin1.glsl` writes `backdropPassGroups_Size16_2`, which is also used by
   the coverage pass because both process real boundary tiles.
-- 2026-06-27 executable CAPA checkpoint: the first Metal 10-pass vNext path is
+- 2026-06-27 executable CAPA checkpoint: the first Metal vNext path is
   now producing an image and the measured GPU time has dropped to about
   `0.3ms` in the current test scene, a major improvement from the earlier
   ~`10ms` prototype path and below the observed CGAA cost. The image is still
   visually incorrect, with horizontal striping / missing coverage bands, so the
   next debugging focus should be correctness in backdrop, prefix, boundary
   coverage, and chunk-chain edge completeness rather than performance.
-- CAPA pass3 note: do not use shader-level spin locks or any loop that waits
-  for another invocation to release a custom lock. The attempted
-  `CAPA_LOCK`/`atomicCompSwap` short-edge chunk allocator can deadlock because
-  GPU SIMD/SIMT execution does not guarantee forward progress for a lane whose
-  release path is pending while sibling lanes spin on the lock. The current
-  runnable version avoids waiting by allocating an initial short-edge chunk
-  when a non-horizontal edge claims a real boundary tile, then uses
-  non-blocking append / overflow chunk allocation. Horizontal edges can still
-  claim boundary tiles for prefix/backdrop semantics without allocating a short
-  edge chunk. This trades some storage for forward progress: recent debug
-  values were approximately `boundaryTileCount ~= 508` and
-  `shortEdgeChunkCount ~= 553` under budgets of `640` and `738`.
+- CAPA pass3 DANGER note: do not use shader-level spin locks or any loop that
+  waits for another invocation to release a custom lock. A fixed-initial-chunk
+  experiment using a custom `atomicCompSwap` lock was reverted; static five-star
+  input still jittered, and GPU APIs do not guarantee that the lock holder will
+  execute its release path before waiting invocations stall progress. Important:
+  horizontal edges must still be allowed to claim boundary tiles even though
+  they are not stored in short-edge chunks. They do not contribute local area,
+  but the claimed tile may still need prefix-filled coverage/classification. Do
+  not "optimize" by returning before boundary-tile allocation for
+  `edge.winding == 0`; that drops tiles that should be filled by prefix state
+  and creates unrelated errors.
+- CAPA pass3 IMPORTANT result: the dynamic shared short-edge chunk protocol was
+  isolated as a correctness risk. With expected short-edge refs around `1466`,
+  chunk-list traversal saw only about `1457-1458` in failing versions. A debug
+  pass showed no orphan chunks, invalid links, or cycles, and a one-edge-per
+  node linked-list experiment restored stable `1466/1466` counts. Avoid
+  same-pass shared `chunk.count` slot append plus overflow repair; use
+  per-edge nodes or count/prefix/fill instead.
+- CAPA pass3 final storage direction: `CAPAShortEdge` should be the linked-list
+  node itself (`p0/p1/dxdy/winding/next`), not wrapped by an external chunk.
+  Allocate three nodes per short-edge task because pass1 keeps a short segment
+  short enough to touch at most three tiles. In `capa_bin.glsl`, each task writes
+  only its own node slots and uses `atomicExchange(pathTile.shortEdgeHead,
+  nodeIndex)` to link fully written nodes. Static test logs stabilized at
+  `taskCount=944`, `pathTileCount=4556`, `boundaryTileCount=503`, and the bin
+  pass became cheaper than the chunk version.
 - CAPA debug marker note: Metal initializes reserved boundary tile slot `2`
   with a centered low-intensity `F` coverage page (`F = 32`) so budget/failure
   tiles are visible without overwhelming the output.
+- 2026-06-28 CAPA compositor performance note: testing with 100 five-point
+  stars showed AASide around `3ms`, CGAA around `4.5ms`, and current CAPA
+  around `8ms`. Xcode capture showed the composite pass dominating because the
+  current pixel-pull compositor makes every pixel in a global tile traverse the
+  pathTile chain. Empty bbox tiles must be removed from the final chain, and
+  the early order pass can be split conceptually into pathTile initialization
+  first and final non-empty ordering after prefix/classification. Changing the
+  chain from linked nodes to a compact contiguous layer list can improve memory
+  behavior, but does not by itself change the `pixels * activeLayers` cost.
+  A stronger future direction is late-order precomposition of tile-uniform
+  solid full tiles: consecutive full SrcOver solid-color layers can be folded
+  into a synthetic uniform layer until a boundary or unsupported layer forces a
+  flush.
+- 2026-06-28 CAPA correctness note: do not add a per-row full mask for an
+  edge-free pathTile. If no path boundary crosses a connected tile, the tile's
+  winding/inside state must be constant over the whole tile. The horizontal
+  bands therefore point elsewhere: inspect whether boundary tiles are missing
+  edges, whether prefix/backdrop row state is wrong, or whether full/empty
+  classification is being applied before all relevant boundary information is
+  present.
+- 2026-06-28 CAPA left-clamp fix: when `capa_bin.glsl` clamps a short edge
+  tile coordinate left of `path.tileRect` into the first local pathTile column,
+  it must also clamp the stored `tileCoord.x` to `tileRect.x`. Otherwise the
+  pathTile index and `CAPABoundaryTile.tileCoord` disagree, and backdrop /
+  coverage use the wrong tile origin.
+- 2026-06-28 CAPA backdrop fix: `capa_backdrop.glsl` must compute row prefix
+  contribution as the vertical measure of an edge crossing that lies left of
+  the tile boundary, not simply add the whole row `dy` whenever an edge touches
+  a tile. For a slanted short edge crossing a tile's right boundary, only part
+  of the row interval contributes to that tile's outgoing prefix. The current
+  shader uses `capa_left_dy(..., tileLeft/tileRight)` and stores
+  `rightDy - leftDy` as the tile-local prefix delta.
+- 2026-06-28 CAPA coverage-prefix fix: `capa_coverage.glsl` starts each row
+  from the tile-left prefix written by pass5. When an edge segment already has
+  some vertical measure left of the tile's left boundary, pass6 must not add
+  that same measure again through `crossingDelta[localEndX]`. The current
+  shader clips each edge segment to the right side of the tile-left boundary
+  before computing local pixel area and in-tile crossing deltas.
+- 2026-06-28 CAPA binning experiment result: temporarily changing
+  `capa_bin.glsl` from the exact three-tile short-edge traversal to conservative
+  half-open 2D tile-bbox emission did not visibly change the boundary-only
+  debug image. The experiment was reverted; current code keeps the original
+  traversal plus the left-clamp `tileCoord.x = tileRect.x` fix.
+- 2026-06-28 CAPA coverage formula experiment result: temporarily switching
+  `capa_coverage.glsl` from the compact analytic integral to the older
+  `capa_test.glsl`-style segmented right-area formula produced a very similar
+  boundary-only debug image. The experiment was reverted; the compact formula
+  is probably not the source of the current blocky/striped boundary artifact.
+  Continue investigating prefix/backdrop row state and event timing.
+- 2026-06-28 CAPA horizontal-edge boundary rule: do not skip boundary-tile
+  allocation for horizontal edges. Horizontal edges do not need short-edge
+  storage, but their tiles may still need prefix-filled coverage; skipping
+  allocation is not related to the current artifact and can remove coverage that
+  should be present.
+- 2026-06-28 workflow rule for this CAPA debugging thread: do not proactively
+  run the shader native generator (`tools/gen_glsl_natives.js`) after GLSL
+  edits. It is too slow for this iteration loop. Edit source files only and let
+  the user run generation/build; respond to any resulting errors when provided.
+- 2026-06-28 CAPA visual clue: in the dynamic boundary-only image, a bad row
+  often starts from the left and continues all the way to the right. Treat this
+  as a row-prefix/backdrop propagation problem, not a local per-pixel area
+  integral problem. Focus on consistency between `capa_backdrop.glsl` row
+  deltas, pass5 prefix propagation, and `capa_coverage.glsl` crossing events.
+- 2026-06-28 CAPA current test-scene constraint: the active debug scene is the
+  unclipped five-point star. Do not chase clipping or `tileCoord.x < tileRect.x`
+  / left-clamp duplicate-edge theories for this scene; the user has confirmed
+  there should be no edges left of `tileX0` in the relevant failure. Focus on
+  `capa_backdrop.glsl` and `capa_coverage.glsl` row-prefix semantics for the
+  actual star input.
+- 2026-06-28 CAPA debugging guardrail: stop making speculative changes to
+  `capa_bin.glsl` for the current five-point-star artifact unless the user
+  explicitly asks for a binning change or provides bin-specific evidence. Recent
+  repeated binning guesses were unrelated to the active failure and wasted
+  iteration time. Keep focus on `capa_backdrop.glsl` and
+  `capa_coverage.glsl`.
 
 The `aa-side-refactor` rendering-quality thread is now at a stage closeout:
 AASide has replaced the old AAFuzz/UI-compensation approach for normal GUI

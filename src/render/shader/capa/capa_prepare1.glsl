@@ -21,7 +21,7 @@ layout(binding=2,set=0,std430) buffer CAPAPaths {
 } paths;
 
 layout(binding=7,set=0,std430) buffer CAPATileRows {
-	uint values[]; // index to CAPAPathTile for each tile row
+	CAPAPathTileRow values[];
 } tileRows;
 
 void main() {
@@ -52,8 +52,8 @@ void main() {
 			uint offset = atomicAdd(env.value.pathTileRowCount, tileSpan.y);
 			int rows = min(tileSpan.y, int(pc.maxPathTileRowCount) - int(offset));
 			for (int i = 0; i < rows; i++) {
-				// write the index to the first tile of this row in CAPATileRows
-				tileRows.values[offset+i] = tileOffset + i * tileSpan.x;
+				// write the index to the first tile of this row in the path tile row
+				tileRows.values[offset+i] = CAPAPathTileRow(tileOffset + i * tileSpan.x);
 			}
 		}
 		paths.values[pathIndex].tileRect = ivec4(tileBounds.xy, tileSpan);

@@ -27,7 +27,7 @@ layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
 } boundaryTiles;
 
 layout(binding=5,set=0,std430) readonly buffer CAPATileRows {
-	uint values[];
+	CAPAPathTileRow values[];
 } tileRows;
 
 bool capa_is_full_backdrop(float area, uint fillRule) {
@@ -50,14 +50,14 @@ void main() {
 	if (tileRow >= tileRowCount)
 		return;
 
-	uint firstPathTileIndex = tileRows.values[tileRow];
-	uint pathIndex = pathTiles.values[firstPathTileIndex].pathIndex;
+	uint pathTileX0Index = tileRows.values[tileRow].pathTileIndex;
+	uint pathIndex = pathTiles.values[pathTileX0Index].pathIndex;
 	uint tileSpanX = uint(paths.values[pathIndex].tileRect.z);
 	uint fillRule = paths.values[pathIndex].fillRule;
 	float prefix = 0.0;
 
 	for (uint tileX = 0u; tileX < tileSpanX; tileX++) {
-		uint pathTileIndex = firstPathTileIndex + tileX;
+		uint pathTileIndex = pathTileX0Index + tileX;
 		uint boundaryIndex = pathTiles.values[pathTileIndex].boundaryTileIndex;
 		if (boundaryIndex >= 3u) {
 			if (tileX == 0u) {

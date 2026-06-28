@@ -20,7 +20,6 @@ namespace qk {
 	constexpr int kCAPATileSize = 16;
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
 	constexpr float kCAPAShortEdgeLength = 8.0f;
-	constexpr int kCAPAShortEdgeChunkSize = 4;
 
 	typedef MSLCapaPrepare::CAPAEdge CAPAEdge;
 	typedef MSLCapaPrepare::CAPAPath CAPAPath;
@@ -32,7 +31,6 @@ namespace qk {
 		uint32_t maxPathTileRowCount = 0;
 		uint32_t maxPathTileCount = 0;
 		uint32_t maxShortEdgeCount = 0;
-		uint32_t maxShortEdgeChunkCount = 0;
 		uint32_t maxBoundaryTileCount = 0;
 	};
 
