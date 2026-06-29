@@ -15,11 +15,12 @@ Current checkpoint:
 - Do not switch the current experiment back to CGAA unless explicitly asked.
   CGAA should remain present as a reference/fallback path, but the active
   research target is CAPA.
-- The vNext implementation now uses the 11 shader pass file set in
+- The vNext implementation now uses the 12 shader pass file set in
   `src/render/shader/capa/`: `capa_prepare.glsl`, `capa_prepare1.glsl`,
   `capa_prepare2.glsl`, `capa_tile.glsl`, `capa_bin.glsl`,
   `capa_bin1.glsl`, `capa_backdrop.glsl`, `capa_prefix.glsl`,
-  `capa_coverage.glsl`, `capa_order.glsl`, and `capa_composite.glsl`.
+  `capa_prefix1.glsl`, `capa_coverage.glsl`, `capa_order.glsl`, and
+  `capa_composite.glsl`.
 
 CAPA current state:
 
@@ -95,11 +96,11 @@ Current CAPA caution:
   absent in normal scenes after conservative length-based sizing.
 - The current executable CAPA pass plan is documented in
   `docs/CAPA_PASS_PROCESS.md`. Treat `src/render/shader/capa/` as the source of
-  truth: CPU pass0 plus 11 shader passes cover edge prepare, path tile
+  truth: CPU pass0 plus 12 shader passes cover edge prepare, path tile
   allocation, indirect dispatch arg generation, path tile initialization,
-  short-edge binning, boundary dispatch arg generation, backdrop, prefix,
-  boundary coverage, ordered global tile chains, and final ordered color
-  compositing.
+  short-edge binning, boundary dispatch arg generation, backdrop, boundary-row
+  chain building, boundary-only prefix/classification, boundary coverage,
+  ordered global tile chains, and final ordered color compositing.
 - Latest handoff note: preserve the current CAPA vNext semantics when coding:
   `capa_tile.glsl` is a 32-wide linear clear over `CAPAPathTile` records before
   binning, with one thread clearing one tile, not a path/global-tile traversal;
@@ -122,14 +123,15 @@ Current CAPA caution:
   short-edge task budget, max tile refs, matrix-scaled edge-length estimate, and
   boundary coverage-page estimate. Metal consumes this budget instead of
   re-deriving it. CAPA shader common types/helpers live in `_capa.glsl`.
-  `drawCAPACmd()` must submit the current 11 shader pass set in order:
-  prepare, prepare1, prepare2, tile, bin, bin1, backdrop, prefix, coverage,
-  order, and composite. Coverage storage is now the
+  `drawCAPACmd()` must submit the current 12 shader pass set in order:
+  prepare, prepare1, prepare2, tile, bin, bin1, backdrop, prefix, prefix1,
+  coverage, order, and composite. Coverage storage is now the
   `CAPABoundaryTile` buffer, not a texture: pass3 allocates real boundary tiles
   from the fixed pool, pass4 writes local row backdrop into
-  `boundaryTile.coverage`, pass5 rewrites those words as tile-left prefix
-  backdrop and marks empty/full path-tiles, pass6 overwrites real boundary
-  tiles with packed R8 coverage, and pass7 reads that buffer while handling
+  `boundaryTile.coverage`, pass5 builds per-row boundary chains, pass5.1
+  rewrites those words as tile-left prefix backdrop and marks empty/full
+  path-tiles, pass6 overwrites real boundary tiles with packed R8 coverage, and
+  pass7 reads that buffer while handling
   `0` empty, `1` full, and `2` debug/failure coverage as constants. Blend mode
   is stored per `CAPAPath`; changing blend mode does not flush the CAPA batch,
   and `capa_composite.glsl` handles the implemented Porter-Duff modes
@@ -254,15 +256,16 @@ CAPA GPU data-structure direction:
 - 2026-06-27 Metal wiring checkpoint: `MetalCanvas::drawCAPACmd()` must submit
   the current CAPA shader passes directly, including
   `capaComposite` writing `_outColorTex`. Startup parameters for `tile`, `order`,
-  `bin`, `backdrop`, `prefix`, `coverage`, and `composite` are generated in
+  `bin`, `backdrop`, `prefix`, `prefix1`, `coverage`, and `composite` are generated in
   shader and stored in `CAPAEnvironment`; Metal must dispatch those passes with
   indirect threadgroup counts from the corresponding `uvec4` fields.
 - Dispatch argument direction: CAPA pass group counts in `CAPAEnvironment`
   should be stored as 16-byte-aligned `uvec4` values so they can map cleanly to
   Metal indirect dispatch arguments. Current shader fields include
   `tilePassGroups_Size32`, `orderPassGroups_Size32`, `binPassGroups_Size64`,
-  `backdropPassGroups_Size16_2`, `prefixPassGroups_Size16_2`, and
-  `compositePassGroups_Size16_16`. `capa_prepare2.glsl` writes the composite
+  `backdropPassGroups_Size16_2`, `prefixPassGroups_Size32`,
+  `prefix1PassGroups_Size16_2`, and `compositePassGroups_Size16_16`.
+  `capa_prepare2.glsl` writes the composite
   args as `uvec4(globalTileSpan.x, globalTileSpan.y, 1, 0)`;
   `capa_bin1.glsl` writes `backdropPassGroups_Size16_2`, which is also used by
   the coverage pass because both process real boundary tiles.
@@ -315,6 +318,34 @@ CAPA GPU data-structure direction:
   solid full tiles: consecutive full SrcOver solid-color layers can be folded
   into a synthetic uniform layer until a boundary or unsupported layer forces a
   flush.
+- 2026-06-29 CAPA performance checkpoint after empty-tile removal and SrcOver
+  full-tile preblend: the 100 five-point-star test is now around `4.2ms`, with
+  CPU time reported lower than AASide in the current local test. Xcode GPU
+  capture pass share in one representative run: render encoder `3.42%`,
+  prepare `0.76%`, prepare path tiles `0.13%`, prepare dispatch args
+  `~0.01%`, path tile init `1.46%`, short-edge bin `6.19%`, bin dispatch args
+  `~0.01%`, backdrop `9.05%`, prefix `13.98%`, coverage `22.08%`, ordered tile
+  chain `5.95%`, composite `30.58%`. Composite, coverage, and prefix remain the
+  largest GPU targets. A 4-pixels-per-thread composite experiment showed only a
+  small improvement and made the shader much more complex, so it was reverted;
+  revisit composite with a cleaner structural change later.
+- 2026-06-29 CAPA prefix split experiment: `capa_prefix.glsl` is now a cheap
+  32-wide row-chain pass that scans each path tile row once, writes
+  `CAPAPathTileRow.boundaryTileIndex`, and links boundary tiles through
+  `CAPABoundaryTile.nextBoundaryTileX`. The new `capa_prefix1.glsl` performs
+  the real per-row prefix only along those boundary chains and marks full
+  edge-free spans on row0. This is intended to remove the old 16-row-lane pass
+  repeatedly walking every path tile in large rows.
+- 2026-06-30 CAPA memory-access checkpoint: an inline short-edge slot
+  experiment inside `CAPAPathTile` was reverted, but the capture was useful.
+  Making `CAPAPathTile` wider immediately made the lightweight `prefix_pre`
+  row scan, path-tile init, and ordered tile-chain passes much slower, while
+  backdrop/coverage improved only moderately from more contiguous edge access.
+  Treat this as evidence that the row scan over all path tiles is dominated by
+  memory stride/cache behavior. Future edge-local storage should stay outside
+  the main `CAPAPathTile` array, and the next structure direction is a small
+  per-path tile buffer used for bin/prefix staging so threads avoid scattered
+  reads from large path-tile records.
 - 2026-06-28 CAPA correctness note: do not add a per-row full mask for an
   edge-free pathTile. If no path boundary crosses a connected tile, the tile's
   winding/inside state must be constant over the whole tile. The horizontal

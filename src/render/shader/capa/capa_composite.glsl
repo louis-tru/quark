@@ -69,7 +69,7 @@ void main() {
 
 	for (uint node = head;
 			node != CAPA_NIL;
-			node = pathTiles.values[node].next)
+			node = pathTiles.values[node].nextLevel)
 	{
 		if (pathTiles.values[node].boundaryTileIndex == 1u && pathTiles.values[node].color != 0u) {
 			vec4 src = capa_unpack_rgba8(pathTiles.values[node].color);

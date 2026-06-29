@@ -188,8 +188,8 @@ namespace qk {
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:shortEdges.val offset:shortEdges.begin atIndex:shader.compute.shortEdges];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
-				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, binPassGroups_Size64))
-				threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
+				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, binPassGroups_Size32))
+				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
 		{ // pass3.1 - write boundary-tile indirect dispatch group counts
@@ -226,6 +226,25 @@ namespace qk {
 			[enc endEncoding];
 		}
 		{ // pass5 - prefix/solid-empty classification
+			auto &shader = _shaders.capaPrefixPre;
+			MSLCapaPrefixPre::PcArgs pc{
+				.maxPathTileRowCount=budget.maxPathTileRowCount,
+			};
+			auto enc = [_cmdPack.current computeCommandEncoder];
+			enc.label = @"CAPA prefix pre";
+			[enc setComputePipelineState:shader.getComputePipeline()];
+			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
+			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
+			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
+			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
+			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
+			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
+				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, prefixPrePassGroups_Size32))
+				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
+			[enc endEncoding];
+		}
+		{ // pass5.1 - boundary prefix/full-empty classification
 			auto &shader = _shaders.capaPrefix;
 			MSLCapaPrefix::PcArgs pc{
 				.maxPathTileRowCount=budget.maxPathTileRowCount,
@@ -235,8 +254,6 @@ namespace qk {
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
-			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val

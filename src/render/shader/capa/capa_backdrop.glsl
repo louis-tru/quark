@@ -27,17 +27,17 @@ layout(binding=2,set=0,std430) readonly buffer CAPAPaths {
 	CAPAPath values[];
 } paths;
 
-layout(binding=3,set=0,std430) readonly buffer CAPAPathTiles {
+layout(binding=3,set=0,std430) readonly buffer CAPAShortEdges {
+	CAPAShortEdge values[];
+} shortEdges;
+
+layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
 	CAPAPathTile values[];
 } pathTiles;
 
-layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=5,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
-
-layout(binding=5,set=0,std430) buffer CAPAShortEdges {
-	CAPAShortEdge values[];
-} shortEdges;
 
 float capa_edge_cross_x(float sampleY, CAPAShortEdge edge) {
 	return fma(sampleY - edge.p0.y, edge.dxdy, edge.p0.x);
@@ -62,22 +62,20 @@ float capa_left_dy(float y0, float y1, CAPAShortEdge edge, float x) {
 
 void main() {
 	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y + 3u;
-	uint row = gl_LocalInvocationID.x;
-	uint boundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
-	if (boundaryIndex >= boundaryTileCount)
+	if (boundaryIndex >= env.value.realBoundaryTileCount)
 		return;
-
-	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
+	uint row = gl_LocalInvocationID.x;
 	uint pathTileIndex = boundaryTiles.values[boundaryIndex].pathTileIndex;
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
+	uint pathIndex = pathTiles.values[pathTileIndex].pathIndex;
 
 	float tileLeft = float(tileCoord.x) * CAPA_TILE_SIZE_F;
 	float tileRight = tileLeft + CAPA_TILE_SIZE_F;
 	float y0 = float(tileCoord.y) * CAPA_TILE_SIZE_F + float(row);
 	float y1 = y0 + 1.0;
 	bool isTileX0 = tileCoord.x <= paths.values[pathIndex].tileRect.x;
-	float local = 0.0;
 	float left = 0.0;
+	float local = 0.0;
 
 	for (uint head = pathTiles.values[pathTileIndex].shortEdgeHead;
 			head != CAPA_NIL;
@@ -103,11 +101,8 @@ void main() {
 		left += edge.winding * leftDy;
 		local += edge.winding * (rightDy - leftDy);
 	}
-
-	if (isTileX0) {
-		boundaryTiles.values[boundaryIndex].backdrop[row] = left;
-		boundaryTiles.values[boundaryIndex].coverage[row] = floatBitsToUint(local);
-	} else {
-		boundaryTiles.values[boundaryIndex].backdrop[row] = local;
-	}
+	if (isTileX0)
+		// save prefix for this row in coverage as float bits
+		boundaryTiles.values[boundaryIndex].coverage[row] = floatBitsToUint(left);
+	boundaryTiles.values[boundaryIndex].backdrop[row] = local;
 }

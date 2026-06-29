@@ -19,17 +19,17 @@ layout(binding=2,set=0,std430) readonly buffer CAPAPaths {
 	CAPAPath values[];
 } paths;
 
-layout(binding=3,set=0,std430) readonly buffer CAPAPathTiles {
+layout(binding=3,set=0,std430) readonly buffer CAPAShortEdges {
+	CAPAShortEdge values[];
+} shortEdges;
+
+layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
 	CAPAPathTile values[];
 } pathTiles;
 
-layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=5,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
-
-layout(binding=5,set=0,std430) buffer CAPAShortEdges {
-	CAPAShortEdge values[];
-} shortEdges;
 
 float capa_area_to_coverage(float area, uint fillRule) {
 	switch (fillRule) {
@@ -46,12 +46,10 @@ float capa_area_to_coverage(float area, uint fillRule) {
 	}
 }
 
-uint capa_pack4(float c0, float c1, float c2, float c3) {
-	uint b0 = uint(c0 * 255.0 + 0.5);
-	uint b1 = uint(c1 * 255.0 + 0.5);
-	uint b2 = uint(c2 * 255.0 + 0.5);
-	uint b3 = uint(c3 * 255.0 + 0.5);
-	return b0 | (b1 << 8u) | (b2 << 16u) | (b3 << 24u);
+uint capa_pack4(vec4 c) {
+	vec4 v = c * 255.0 + 0.5;
+	uvec4 b = uvec4(v);
+	return b.r | (b.g << 8u) | (b.b << 16u) | (b.a << 24u);
 }
 
 float capa_edge_cross_x(float sampleY, CAPAShortEdge edge) {
@@ -104,14 +102,12 @@ float capa_right_area(float y0, float y1, CAPAShortEdge edge, float pixelX) {
 
 void main() {
 	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y + 3u;
-	uint row = gl_LocalInvocationID.x;
-	uint boundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
-	if (boundaryIndex >= boundaryTileCount)
+	if (boundaryIndex >= env.value.realBoundaryTileCount)
 		return;
-
+	uint row = gl_LocalInvocationID.x;
 	uint pathTileIndex = boundaryTiles.values[boundaryIndex].pathTileIndex;
-	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
+	uint pathIndex = pathTiles.values[pathTileIndex].pathIndex;
 	float originX = float(tileCoord.x * CAPA_TILE_SIZE);
 	float y0 = float(tileCoord.y * CAPA_TILE_SIZE + row);
 	float y1 = y0 + 1.0;
@@ -152,17 +148,12 @@ void main() {
 	uint baseWord = row * 4u;
 	for (uint word = 0u; word < 4u; word++) {
 		uint x = word << 2u;
-		float coverage[4];
+		vec4 coverage;
 		for (uint i = 0u; i < 4u; i++) {
 			uint px = x + i;
 			prefix += crossingDelta[px];
 			coverage[i] = capa_area_to_coverage(prefix + localArea[px], fillRule);
 		}
-		boundaryTiles.values[boundaryIndex].coverage[baseWord + word] = capa_pack4(
-			coverage[0],
-			coverage[1],
-			coverage[2],
-			coverage[3]
-		);
+		boundaryTiles.values[boundaryIndex].coverage[baseWord + word] = capa_pack4(coverage);
 	}
 }

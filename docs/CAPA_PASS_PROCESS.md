@@ -1,10 +1,10 @@
 # CAPA PASS PROCESS
 
 本文记录当前 `src/render/shader/capa/` 目录里的 CAPA pass 事实源。不要再按旧的
-7-pass 记忆接 Metal；当前目录中有 11 个 shader pass，且多个后续 pass 的启动
+7-pass 记忆接 Metal；当前目录中有 12 个 shader pass，且多个后续 pass 的启动
 group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect dispatch。
 
-## 当前 11 个 Shader Pass
+## 当前 12 个 Shader Pass
 
 0. CPU pass0
    - CPU 只构建 path-space flattened edges 和 path metadata。
@@ -30,8 +30,8 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
    - 根据 `env.globalTileBounds/taskCount/pathTileRowCount` 写后续 indirect
      dispatch 参数：
      `tilePassGroups_Size32`、`orderPassGroups_Size32`、
-     `binPassGroups_Size64`、`prefixPassGroups_Size16_2`、
-     `compositePassGroups_Size16_16`。
+     `binPassGroups_Size64`、`prefixPassGroups_Size32`、
+     `prefix1PassGroups_Size16_2`、`compositePassGroups_Size16_16`。
    - 同时写 `env.globalTileSpan/globalTileCount`。
 
 4. `capa_tile.glsl`
@@ -77,17 +77,24 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
      累积值，并临时借用 `coverage[row]` 存 tileX0 local 值。
 
 8. `capa_prefix.glsl`
-   - 使用 `env.prefixPassGroups_Size16_2` indirect dispatch。
-   - 按 path tile row 做横向 prefix；row 元数据保存
-     `firstPathTileIndex/pathIndex`。
-   - 将空边 tile 标记为空或实心，实心使用 `boundaryTileIndex=1`。
+   - 使用 `env.prefixPassGroups_Size32` indirect dispatch。
+   - `local_size_x=32`，每个线程处理一条 path tile row。
+   - 只扫描该 row 的 `CAPAPathTile`，找出 real boundary tile，写
+     `CAPAPathTileRow.boundaryTileIndex`，并用
+     `CAPABoundaryTile.nextBoundaryTileX` 串起同一 row 的 boundary 链。
 
-9. `capa_coverage.glsl`
+9. `capa_prefix1.glsl`
+   - 使用 `env.prefix1PassGroups_Size16_2` indirect dispatch。
+   - 沿每条 row 的 boundary 链做真正 prefix。只有 boundary tile 参与 per-row
+     prefix；row0 同时把 boundary 之间的 edge-free tile 标记为空或实心，实心
+     使用 `boundaryTileIndex=1`。
+
+10. `capa_coverage.glsl`
    - 使用 `env.backdropPassGroups_Size16_2` indirect dispatch。
    - 只处理 real boundary tiles，从索引 `3` 开始。
    - 将 short-edge node + row backdrop 积分成 16x16 packed R8 coverage page。
 
-10. `capa_order.glsl`
+11. `capa_order.glsl`
     - 使用 `env.orderPassGroups_Size32` indirect dispatch。
     - coverage/prefix 完成后，每个 global tile 线程按 draw order 建立
       path-tile 链，并写 `CAPAGlobalTile.head`。
@@ -97,7 +104,7 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
       `CAPAPathTile.color`。没有压缩色的普通 full tile 仍通过原 path color
       合成。
 
-11. `capa_composite.glsl`
+12. `capa_composite.glsl`
     - 使用 `env.compositePassGroups_Size16_16` indirect dispatch。
     - 每个 global tile 一个 16x16 workgroup，每个线程写一个 pixel。
     - 按 global tile 的 ordered path-tile 链读取 coverage，并在 shader 内按
@@ -105,10 +112,10 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
 
 ## Metal Wiring Rules
 
-- `MetalCanvas::drawCAPACmd()` 必须提交上面的 11 个 shader pass。
+- `MetalCanvas::drawCAPACmd()` 必须提交上面的 12 个 shader pass。
 - 只有生成调度参数之前的 pass 可以用 CPU 固定 group count：
   `prepare`、`prepare1`、`prepare2`、`bin1`。
-- `tile`、`order`、`bin`、`backdrop`、`prefix`、`coverage`、`composite` 必须从
+- `tile`、`order`、`bin`、`backdrop`、`prefix`、`prefix1`、`coverage`、`composite` 必须从
   `CAPAEnvironment` 对应 `uvec4` 字段做 Metal indirect dispatch。
 - `CAPAEnvironment` 的 `uvec4` 字段按 16 字节对齐，Metal indirect dispatch 读取
   前三个 `uint32_t` 作为 `threadgroupsPerGrid`。

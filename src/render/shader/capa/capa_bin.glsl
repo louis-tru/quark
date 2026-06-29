@@ -11,7 +11,7 @@ Qk_CONSTANT(
 #import "_capa.glsl"
 
 #comp
-layout(local_size_x=64, local_size_y=1, local_size_z=1) in;
+layout(local_size_x=32, local_size_y=1, local_size_z=1) in;
 
 layout(binding=1,set=0,std430) buffer CAPAEnvironments {
 	CAPAEnvironment value;
@@ -61,7 +61,7 @@ CAPAShortEdge capa_short_edge(uint edgeIndex, float t0, float t1) {
 	);
 }
 
-void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex, uint pathIndex) {
+void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex) {
 	if (pathTiles.values[pathTileIndex].boundaryTileIndex != 0u)
 		return;
 	// try atomic lock to allocate a boundary tile for this path tile
@@ -70,8 +70,8 @@ void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex, uint pathInde
 	uint boundaryIndex = atomicAdd(env.value.boundaryTileCount, 1u);
 	if (boundaryIndex < pc.maxBoundaryTileCount) {
 		boundaryTiles.values[boundaryIndex].pathTileIndex = pathTileIndex;
-		boundaryTiles.values[boundaryIndex].pathIndex = pathIndex;
 		boundaryTiles.values[boundaryIndex].tileCoord = tileCoord;
+		boundaryTiles.values[boundaryIndex].nextBoundaryTileX = CAPA_NIL;
 		pathTiles.values[pathTileIndex].boundaryTileIndex = boundaryIndex;
 	}
 }
@@ -89,11 +89,10 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint sh
 		tileCoord.x = tileRect.x;
 	}
 	// get the path tile index for this tile coordinate
-	uint pathTileIndex = paths.values[pathIndex].tileOffset;
-	pathTileIndex += local.y * tileRect.z + local.x;
+	uint pathTileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
 
 	// allocate a boundary tile for this path tile
-	capa_alloc_boundary_tile(tileCoord, pathTileIndex, pathIndex);
+	capa_alloc_boundary_tile(tileCoord, pathTileIndex);
 
 	// don't need to store it if is horizontal edge
 	if (edge.winding == 0)
@@ -105,8 +104,7 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint sh
 
 void main() {
 	uint taskIndex = gl_GlobalInvocationID.x;
-	uint taskCount = min(env.value.taskCount, pc.maxTaskCount);
-	if (taskIndex >= taskCount)
+	if (taskIndex >= env.value.realTaskCount)
 		return;
 
 	CAPAShortEdgeTask task = shortEdgeTasks.values[taskIndex];

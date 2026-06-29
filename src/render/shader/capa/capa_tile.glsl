@@ -19,14 +19,9 @@ void main() {
 	uint pathTileIndex = gl_GlobalInvocationID.x;
 	if (pathTileIndex >= pc.maxPathTileCount)
 		return;
-	pathTiles.values[pathTileIndex] = CAPAPathTile(0u, 0u, CAPA_NIL, CAPA_NIL, 0u);
-
-	// 32 threads per group, 32 path tiles per thread, 1024 path tiles per group
-	// uint pathTileIndex = gl_GlobalInvocationID.x * 32u;
-	// for (uint i = 0u; i < 32u; i++) {
-	// 	uint index = pathTileIndex + i;
-	// 	if (index >= pc.maxPathTileCount)
-	// 		return;
-	// 	pathTiles.values[index] = CAPAPathTile(0u, 0u, CAPA_NIL, CAPA_NIL, 0u);
-	// }
+	pathTiles.values[pathTileIndex].pathIndex = 0u;
+	pathTiles.values[pathTileIndex].boundaryTileIndex = 0u;
+	pathTiles.values[pathTileIndex].shortEdgeHead = CAPA_NIL;
+	pathTiles.values[pathTileIndex].nextLevel = CAPA_NIL;
+	pathTiles.values[pathTileIndex].color = 0u;
 }

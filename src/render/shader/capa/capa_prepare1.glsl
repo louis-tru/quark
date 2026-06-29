@@ -53,7 +53,7 @@ void main() {
 			int rows = min(tileSpan.y, int(pc.maxPathTileRowCount) - int(offset));
 			for (int i = 0; i < rows; i++) {
 				// write the index to the first tile of this row in the path tile row
-				tileRows.values[offset+i] = CAPAPathTileRow(tileOffset + i * tileSpan.x);
+				// tileRows.values[offset+i] = CAPAPathTileRow(pathIndex, tileOffset + i * tileSpan.x, CAPA_NIL);
 			}
 		}
 		paths.values[pathIndex].tileRect = ivec4(tileBounds.xy, tileSpan);

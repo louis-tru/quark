@@ -22,11 +22,15 @@ void main() {
 	if (tileSpan.x > 0 && tileSpan.y > 0) {
 		env.value.globalTileSpan = tileSpan;
 		env.value.globalTileCount = tileSpan.x * tileSpan.y; // number of CAPAGlobalTile generated
-		// env.value.tilePassGroups_Size32 = uvec4((min(env.value.pathTileCount, pc.maxPathTileCount) + 1023u) / 1024u, 1u, 1u, 0u);
-		env.value.tilePassGroups_Size32 = uvec4((min(env.value.pathTileCount, pc.maxPathTileCount) + 31u) / 32u, 1u, 1u, 0u);
+		env.value.realTaskCount = min(env.value.taskCount, pc.maxTaskCount);
+		env.value.realPathTileCount = min(env.value.pathTileCount, pc.maxPathTileCount);
+		env.value.realPathTileRowCount = min(env.value.pathTileRowCount, pc.maxPathTileRowCount);
+		// compute the number of dispatch groups
+		env.value.tilePassGroups_Size32 = uvec4((env.value.realPathTileCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.orderPassGroups_Size32 = uvec4((env.value.globalTileCount + 31u) / 32u, 1u, 1u, 0u);
-		env.value.binPassGroups_Size64 = uvec4((min(env.value.taskCount, pc.maxTaskCount) + 63u) / 64u, 1u, 1u, 0u);
-		env.value.prefixPassGroups_Size16_2 = uvec4((min(env.value.pathTileRowCount, pc.maxPathTileRowCount) + 1u) / 2u, 1u, 1u, 0u);
+		env.value.binPassGroups_Size32 = uvec4((env.value.realTaskCount + 31u) / 32u, 1u, 1u, 0u);
+		env.value.prefixPrePassGroups_Size32 = uvec4((env.value.realPathTileRowCount + 31u) / 32u, 1u, 1u, 0u);
+		env.value.prefixPassGroups_Size16_2 = uvec4((env.value.realPathTileRowCount + 1u) / 2u, 1u, 1u, 0u);
 		env.value.compositePassGroups_Size16_16 = uvec4(tileSpan.x, tileSpan.y, 1u, 0u);
 	}
 }

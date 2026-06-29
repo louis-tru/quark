@@ -401,6 +401,7 @@
 					'render/shader/capa/capa_bin.glsl',
 					'render/shader/capa/capa_bin1.glsl',
 					'render/shader/capa/capa_backdrop.glsl',
+					'render/shader/capa/capa_prefix_pre.glsl',
 					'render/shader/capa/capa_prefix.glsl',
 					'render/shader/capa/capa_coverage.glsl',
 					'render/shader/capa/capa_composite.glsl',

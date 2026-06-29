@@ -16,7 +16,8 @@ layout(binding=1,set=0,std430) buffer CAPAEnvironments {
 } env;
 
 void main() {
-	uint boundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
-	uint realBoundaryTileCount = boundaryTileCount > 3u ? boundaryTileCount - 3u : 0u;
+	uint realBoundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
+	env.value.realBoundaryTileCount = realBoundaryTileCount;
+	realBoundaryTileCount = realBoundaryTileCount > 3u ? realBoundaryTileCount - 3u : 0u;
 	env.value.backdropPassGroups_Size16_2 = uvec4((realBoundaryTileCount + 1u) / 2u, 1u, 1u, 0u);
 }

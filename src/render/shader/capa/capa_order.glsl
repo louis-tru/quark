@@ -45,7 +45,7 @@ void main() {
 			if (packedColor != 0u) { \
 				pathTiles.values[pendingFullNode].boundaryTileIndex = 1u; \
 				pathTiles.values[pendingFullNode].color = packedColor; \
-				pathTiles.values[pendingFullNode].next = head; \
+				pathTiles.values[pendingFullNode].nextLevel = head; \
 				head = pendingFullNode; \
 			} \
 			pendingFullNode = CAPA_NIL; \
@@ -71,7 +71,7 @@ void main() {
 				} else if (boundaryIndex != 0u) {
 					CAPA_FLUSH_PENDING_FULL();
 					pathTiles.values[pathTileIndex].pathIndex = pathIndex;
-					pathTiles.values[pathTileIndex].next = head;
+					pathTiles.values[pathTileIndex].nextLevel = head;
 					head = pathTileIndex;
 				}
 			}
