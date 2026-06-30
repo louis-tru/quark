@@ -1,4 +1,4 @@
-// CAPA pass 7.
+// CAPA composite pass.
 // Ordered global-tile pure-color compositor.
 
 Qk_CONSTANT(
@@ -42,9 +42,9 @@ float capa_load_boundary_coverage(uint boundaryIndex, uint pixelIndex) {
 }
 
 float capa_path_tile_coverage(uint boundaryIndex, uint pixelIndex) {
-	if (boundaryIndex == 0u)
+	if (boundaryIndex == CAPA_NIL)
 		return 0.0;
-	if (boundaryIndex == 1u)
+	if (boundaryIndex == CAPA_FULL_TILE)
 		return 1.0;
 	return capa_load_boundary_coverage(boundaryIndex, pixelIndex);
 }
@@ -53,11 +53,12 @@ void main() {
 	uvec2 tileCoord = gl_WorkGroupID.xy;
 	uint globalTileIndex = tileCoord.y * gl_NumWorkGroups.x + tileCoord.x;
 	uint head = globalTiles.values[globalTileIndex].head;
+	uint count = globalTiles.values[globalTileIndex].count;
 	bool clearDst = (pc.flags & CAPA_COMPOSITE_CLEAR_DST) != 0u;
 
 	// If there are no path tiles in this global tile,
 	// and we are not clearing the destination, then we can skip this tile entirely.
-	if (head == CAPA_NIL && !clearDst) {
+	if (count == 0u && !clearDst) {
 		return;
 	}
 
@@ -67,11 +68,9 @@ void main() {
 	uint pixelIndex = localPixel.y * CAPA_TILE_SIZE_U + localPixel.x;
 	vec4 dst = clearDst ? pc.clearColor : imageLoad(dstImage, ivec2(pixel));
 
-	for (uint node = head;
-			node != CAPA_NIL;
-			node = pathTiles.values[node].nextLevel)
-	{
-		if (pathTiles.values[node].boundaryTileIndex == 1u && pathTiles.values[node].color != 0u) {
+	for (uint i = 0u; i < count; i++) {
+		uint node = head + i;
+		if (pathTiles.values[node].boundaryTileIndex == CAPA_FULL_TILE && pathTiles.values[node].color != 0u) {
 			vec4 src = capa_unpack_rgba8(pathTiles.values[node].color);
 			dst = capa_blend(src, dst, CAPA_BLEND_SRC_OVER);
 			continue;

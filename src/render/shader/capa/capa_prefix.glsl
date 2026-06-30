@@ -1,4 +1,4 @@
-// CAPA pass 5.1.
+// CAPA prefix pass.
 // Turn boundary-tile local row backdrop values into row-prefix backdrop.
 
 Qk_CONSTANT(
@@ -18,7 +18,11 @@ layout(binding=2,set=0,std430) readonly buffer CAPATileRows {
 	CAPAPathTileRow values[];
 } tileRows;
 
-layout(binding=3,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=3,set=0,std430) readonly buffer CAPAPaths {
+	CAPAPath values[];
+} paths;
+
+layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
 
@@ -32,18 +36,18 @@ void main() {
 		return;
 
 	uint row = gl_LocalInvocationID.x;
-	uint pathTileX0Index = tileRows.values[tileRow].pathTileIndex;
 	float prefix = 0.0;
 
 	// tilex0 boundary tile's coverage is the prefix for this row
-	if (boundaryTiles.values[boundaryIndex].pathTileIndex == pathTileX0Index) {
+	uint pathIndex = tileRows.values[tileRow].pathIndex;
+	if (boundaryTiles.values[boundaryIndex].tileCoord.x <= paths.values[pathIndex].tileRect.x) {
 		prefix = uintBitsToFloat(boundaryTiles.values[boundaryIndex].coverage[row]);
 	}
-	do {
+	uint end = boundaryIndex + tileRows.values[tileRow].boundaryTileCount;
+	for (; boundaryIndex < end; boundaryIndex++) {
 		float local = boundaryTiles.values[boundaryIndex].backdrop[row];
 		// replace local to the prefix value for this row
 		boundaryTiles.values[boundaryIndex].backdrop[row] = prefix;
 		prefix += local;
-		boundaryIndex = boundaryTiles.values[boundaryIndex].nextBoundaryTileX;
-	} while (boundaryIndex != CAPA_NIL);
+	}
 }

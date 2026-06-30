@@ -1,5 +1,5 @@
-// CAPA path-tile initialization pass.
-// Initialize every allocated path tile before binning writes boundary/edge data.
+// CAPA small tile init pass.
+// Clear every allocated CAPASmallTile before binning writes short-edge heads.
 
 Qk_CONSTANT(
 	uint maxPathTileCount;
@@ -10,18 +10,14 @@ Qk_CONSTANT(
 #comp
 layout(local_size_x=32, local_size_y=1, local_size_z=1) in;
 
-layout(binding=2,set=0,std430) buffer CAPAPathTiles {
-	CAPAPathTile values[];
-} pathTiles;
+layout(binding=2,set=0,std430) buffer CAPASmallTiles {
+	CAPASmallTile values[];
+} smallTiles;
 
 void main() {
-	// 1 thread per path tile, 32 path tiles per group
-	uint pathTileIndex = gl_GlobalInvocationID.x;
-	if (pathTileIndex >= pc.maxPathTileCount)
+	// 1 thread per small tile, 32 small tiles per group
+	uint smallTileIndex = gl_GlobalInvocationID.x;
+	if (smallTileIndex >= pc.maxPathTileCount)
 		return;
-	pathTiles.values[pathTileIndex].pathIndex = 0u;
-	pathTiles.values[pathTileIndex].boundaryTileIndex = 0u;
-	pathTiles.values[pathTileIndex].shortEdgeHead = CAPA_NIL;
-	pathTiles.values[pathTileIndex].nextLevel = CAPA_NIL;
-	pathTiles.values[pathTileIndex].color = 0u;
+	smallTiles.values[smallTileIndex].value = CAPA_NIL;
 }

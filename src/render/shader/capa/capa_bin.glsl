@@ -1,11 +1,10 @@
-// CAPA pass 3.
+// CAPA short-edge bin pass.
 // Bin each short-edge task into the path tiles touched by the short segment.
-// Pass1 keeps short edges shorter than a tile, so a task can touch at most
+// The prepare pass keeps short edges shorter than a tile, so a task can touch at most
 // three tiles: start, optional crossed neighbor, and end.
 
 Qk_CONSTANT(
 	uint maxTaskCount;
-	uint maxBoundaryTileCount;
 );
 
 #import "_capa.glsl"
@@ -33,13 +32,9 @@ layout(binding=5,set=0,std430) readonly buffer CAPAShortEdgeTasks {
 	CAPAShortEdgeTask values[];
 } shortEdgeTasks;
 
-layout(binding=6,set=0,std430) buffer CAPAPathTiles {
-	CAPAPathTile values[];
-} pathTiles;
-
-layout(binding=7,set=0,std430) buffer CAPABoundaryTiles {
-	CAPABoundaryTile values[];
-} boundaryTiles;
+layout(binding=6,set=0,std430) buffer CAPASmallTiles {
+	CAPASmallTile values[];
+} smallTiles;
 
 // Left/top Closed, Right/bottom Open
 int capa_tile_coord_half_open(bool isMin, float value) {
@@ -61,21 +56,6 @@ CAPAShortEdge capa_short_edge(uint edgeIndex, float t0, float t1) {
 	);
 }
 
-void capa_alloc_boundary_tile(ivec2 tileCoord, uint pathTileIndex) {
-	if (pathTiles.values[pathTileIndex].boundaryTileIndex != 0u)
-		return;
-	// try atomic lock to allocate a boundary tile for this path tile
-	if (atomicCompSwap(pathTiles.values[pathTileIndex].boundaryTileIndex, 0u, 2u) != 0u)
-		return;
-	uint boundaryIndex = atomicAdd(env.value.boundaryTileCount, 1u);
-	if (boundaryIndex < pc.maxBoundaryTileCount) {
-		boundaryTiles.values[boundaryIndex].pathTileIndex = pathTileIndex;
-		boundaryTiles.values[boundaryIndex].tileCoord = tileCoord;
-		boundaryTiles.values[boundaryIndex].nextBoundaryTileX = CAPA_NIL;
-		pathTiles.values[pathTileIndex].boundaryTileIndex = boundaryIndex;
-	}
-}
-
 void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint shortEdgeIndex) {
 	ivec4 tileRect = paths.values[pathIndex].tileRect;
 	ivec2 local = tileCoord - tileRect.xy;
@@ -86,19 +66,17 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint sh
 
 	if (local.x < 0) {
 		local.x = 0; // clamp to the left edge of the path tile rect
-		tileCoord.x = tileRect.x;
 	}
-	// get the path tile index for this tile coordinate
-	uint pathTileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
+	// compute the tile index in the path tile rect
+	uint tileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
 
-	// allocate a boundary tile for this path tile
-	capa_alloc_boundary_tile(tileCoord, pathTileIndex);
+	if (edge.winding == 0.0) {
+		edge.p0.y = -1.0e20;
+		edge.p1.y = -1.0e20;
+	}
 
-	// don't need to store it if is horizontal edge
-	if (edge.winding == 0)
-		return;
-
-	edge.next = atomicExchange(pathTiles.values[pathTileIndex].shortEdgeHead, shortEdgeIndex);
+	uint next = atomicExchange(smallTiles.values[tileIndex].value, shortEdgeIndex);
+	edge.next = next;
 	shortEdges.values[shortEdgeIndex] = edge;
 }
 

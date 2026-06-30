@@ -1,5 +1,6 @@
-// CAPA pass 1.1
-// This pass allocates path tiles and tile rows.
+// CAPA prepare tiles pass.
+// Allocate path-tile rows from prepared path bounds and publish path tile ranges
+// only when the full row allocation fits the row budget.
 
 Qk_CONSTANT(
 	uint pathCount;
@@ -20,7 +21,7 @@ layout(binding=2,set=0,std430) buffer CAPAPaths {
 	CAPAPath values[];
 } paths;
 
-layout(binding=7,set=0,std430) buffer CAPATileRows {
+layout(binding=3,set=0,std430) buffer CAPATileRows {
 	CAPAPathTileRow values[];
 } tileRows;
 
@@ -43,19 +44,23 @@ void main() {
 	ivec2 tileSpan = tileBounds.zw - tileBounds.xy;
 	// only allocate path tiles if there are any tiles to allocate
 	if (tileSpan.x > 0 && tileSpan.y > 0) {
-		uint tileCount = tileSpan.x *  tileSpan.y;
-		uint tileOffset = atomicAdd(env.value.pathTileCount, tileCount);
-		if (tileOffset + tileCount <= pc.maxPathTileCount) {
-			paths.values[pathIndex].tileOffset = tileOffset;
-			paths.values[pathIndex].tileCount = tileCount;
+		uint smallTileCount = tileSpan.x * tileSpan.y;
+		uint tileOffset = atomicAdd(env.value.pathTileCount, smallTileCount);
+		if (tileOffset + smallTileCount <= pc.maxPathTileCount) {
 			// allocate tile rows for this path
 			uint offset = atomicAdd(env.value.pathTileRowCount, tileSpan.y);
 			int rows = min(tileSpan.y, int(pc.maxPathTileRowCount) - int(offset));
 			for (int i = 0; i < rows; i++) {
 				// write the index to the first tile of this row in the path tile row
-				// tileRows.values[offset+i] = CAPAPathTileRow(pathIndex, tileOffset + i * tileSpan.x, CAPA_NIL);
+				tileRows.values[offset+i] = CAPAPathTileRow(pathIndex, tileOffset + i * tileSpan.x, CAPA_NIL, 0u);
+			}
+			// if all rows are allocated, write the tile offset and count to the path
+			if (rows == tileSpan.y) {
+				paths.values[pathIndex].tileOffset = tileOffset;
+				paths.values[pathIndex].tileRowOffset = offset;
+				paths.values[pathIndex].tileRect = ivec4(tileBounds.xy, tileSpan);
+				paths.values[pathIndex].tileEnd = tileBounds.zw;
 			}
 		}
-		paths.values[pathIndex].tileRect = ivec4(tileBounds.xy, tileSpan);
 	}
 }

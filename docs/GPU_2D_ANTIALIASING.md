@@ -636,8 +636,13 @@ Vello 的核心启发：
   CGAA/CAPA 属于 Metal/Vulkan-class compute 后端方向。
 - 当前正确图像依赖 `capa_tile.glsl` 中 `rawCount > 0u` 时走完整
   `capa_area_coverage(...)` 的 fallback。
-- CAPA 图像已经恢复正常，但性能还不合格：简单测试约 7 ms/frame GPU 时间；
-  AASide 约 0.2 ms，CGAA 约 0.4 ms。这个差距不是靠零碎微优化能解决的。
+- CAPA 早期恢复图像时仍有约 7 ms/frame GPU 时间，主要问题是无效 tile
+  work 和昂贵全量 area fallback。后续经过 empty-tile removal、full-tile
+  preblend、small-tile staging、boundary/classify/prefix 拆分后，100 个重复
+  五角星本地测试约为：CGAA `4.5ms`，AASide `3.1ms`，CAPA `3.2ms`。这个
+  场景有大量重复重叠，预混合排除了大部分下游工作；但当前结论已经从
+  “CAPA GPU 明显落后”变成“CAPA GPU 接近 AASide、超过 CGAA”，并且 CPU
+  时间明显领先 AASide/CGAA。
 - 下一步应先理解 CAPA 的 pass、bin/tile/backdrop 数据流，再决定大结构优化。
   重点是减少无效 tile work、减少昂贵全量 area fallback，并逐步把 CPU 侧
   tile/bin/backdrop 准备搬到 GPU，而不是在 CPU 侧继续堆逻辑。
@@ -670,13 +675,9 @@ Vello 的核心启发：
   coverage 和 row-backdrop 存储，否则长度预算无法成立。
 - CPU 侧无法只靠 conservative bounds 证明真实 coverage page 数量，因此
   不要回到最保守的 bounds 面积分配。第一版应使用 GPU atomic page
-  allocator，并为 `boundaryTileIndex` 保留特殊值：`0` 表示空/外部，
-  `1` 表示实心/full tile，`2` 表示分配失败/debug coverage，`>=3` 表示真实
-  boundary tile。添加第一条边时先用 `atomicCompSwap(boundaryTileIndex, 0,
-  2)` 锁定；分配成功后写回真实 index，分配失败则保留 `2`。`boundaryTiles`
-  的真实分配从 `3` 开始，pass6 从索引 `3` 开始处理真实 boundary tiles；
-  pass7 遇到 `0/1/2` 都按特殊 coverage 语义正常混合，其中 `2` 可绑定一张
-  debug coverage，失败层数越多颜色越深。Overflow 是预算/debug 失败，不是
+  allocator，并为 `boundaryTileIndex` 保留高位特殊值：`CAPA_NIL` 表示
+  空/外部/分配失败，`CAPA_FULL_TILE = CAPA_NIL - 1` 表示实心/full tile，
+  真实 boundary tile index 从 `0` 开始。Overflow 是预算/debug 失败，不是
   正常 shader correctness fallback，因为边界 coverage 与 row-backdrop
   状态是一体的，不能在 final compositor 便宜重建。需要记录 `usedPages`、
   `overflowPathTiles`、`overflowGlobalTiles`、`edgeTileCount`、
@@ -698,7 +699,7 @@ Vello 的核心启发：
 
 当前 CAPA 下一版的最新可执行 pass 表以 `docs/CAPA_PASS_PROCESS.md` 和
 `src/render/shader/capa/` 为准：1 个 CPU 准备步骤 + 10 个 shader pass。
-其中 `capa_prepare1.glsl`、`capa_prepare2.glsl` 和 `capa_bin1.glsl` 是真实
+其中 `capa_prepare_tiles.glsl`、`capa_prepare_dispatch.glsl` 和 `capa_boundary.glsl` 是真实
 调度链路的一部分，不能按旧的 7-pass 记忆省略。它的目标不是
 替代 AASide/CGAA 的普通 coverage，而是把多 path/layer 的颜色混合移动到
 有序 tile compositor 中，解决 shared edge/background seam 漏光。
@@ -728,9 +729,8 @@ Vello 的核心启发：
 
 ```txt
 path.originTileX / originTileY
-path.tileSpanX / tileSpanY
+path.tileEndX / tileEndY
 path.tileOffset
-path.tileCount
 ```
 
 - 如果 `path.tiles` 空间不足，丢弃该 path 或标记为不可进入 CAPA。
@@ -744,7 +744,7 @@ atomicAdd(pathsDone, 1u)
 - 最后完成全部 paths 的线程写出后续 pass 的 indirect dispatch 参数，例如
   short-edge task groups、path.tile groups、path.tile row groups 等。短边
   task 的真实数量仍需等 task 写完；如果不等待，就必须用 conservative
-  task count 启动 pass3 并在 shader 内跳过无效 task。
+  task count 启动短边 binning pass 并在 shader 内跳过无效 task。
 
 #### pass2：按 path 顺序建立 global tile layer 链表
 
@@ -768,11 +768,11 @@ globalTile.head = firstPathTileIndex
 ```
 
 - 同时清零 path.tile 状态。为了省空间，path.tile 可暂不分配默认短边存储，
-  短边链表在 pass3 动态分配。
-- 这一步负载不均衡，但每个任务很轻；更重要的是它把 pass7 需要的 ordered
+  短边链表在短边 binning pass 动态分配。
+- 这一步负载不均衡，但每个任务很轻；更重要的是它把 final composite 需要的 ordered
   layer list 固定下来，避免 unordered atomic append 破坏 draw order。
 
-#### pass3：短边 binning / boundary tile allocation
+#### 短边 binning / boundary tile allocation
 
 - 处理 pass1 写出的短边 task，把短边加入对应 path.tile 的短边链表。短边
   可带一个“完全位于 path.tileX0 左侧”的标记，方便后续面积积分快速排除。
@@ -781,58 +781,56 @@ globalTile.head = firstPathTileIndex
 - `boundaryTileIndex` 保留特殊值：
 
 ```txt
-0    = empty / outside / no boundary
-1    = solid / full tile
-2    = allocation failure / debug coverage / transient lock
->=3 = real boundaryTile index
+CAPA_NIL       = empty / outside / no boundary / allocation failure
+CAPA_FULL_TILE = CAPA_NIL - 1 = solid / full tile
+0..N           = real boundaryTile index
 ```
 
 - 分配逻辑：
 
 ```glsl
-if (pathTile.boundaryTileIndex == 0u) {
-  if (atomicCompSwap(pathTile.boundaryTileIndex, 0u, 2u) == 0u) {
-    uint idx = atomicAdd(boundaryTiles.count, 1u); // count starts at 3
-    if (idx < boundaryTileCapacity)
-      pathTile.boundaryTileIndex = idx;
-  }
+if (pathTile.boundaryTileIndex == CAPA_NIL) {
+  uint idx = atomicAdd(boundaryTiles.count, 1u); // count starts at 0
+  if (idx < boundaryTileCapacity)
+    pathTile.boundaryTileIndex = idx;
+  else
+    pathTile.boundaryTileIndex = CAPA_NIL;
 }
 ```
 
-- `2` 可以直接兼作锁和失败/debug 索引。分配失败时不需要再改值。pass7 可
-  把 index 2 当作可正常混合的 debug coverage，失败层数越多颜色越深。
-- pass3 是最后一个动态分配阶段。完成线程写出与 `boundaryTiles` 相关的
- 后续 indirect dispatch 参数，例如 pass4/pass6 需要的 boundaryTile row
+- 不再保留失败/debug coverage tile。分配失败直接回写 `CAPA_NIL`，final
+  compositor 不把它入链。
+- `capa_boundary.glsl` 是最后一个动态分配阶段。完成线程写出与 `boundaryTiles` 相关的
+ 后续 indirect dispatch 参数，例如 backdrop/coverage 需要的 boundaryTile row
   groups。
 
-#### pass4：计算 boundaryTile local backdrop
+#### backdrop：计算 boundaryTile local backdrop
 
-- 只处理真实 boundaryTiles，线程索引从 `3` 开始；`0/1/2` 为特殊 coverage
-  语义，不进入 pass4。
-- 每个 boundaryTile 分配 16 个线程，通常 4 个 tile row 组成一个 threadgroup。
-- pass4 计算每个 boundaryTile 的本地 row area/backdrop：
-  - `tileX < path.tileX0` 的贡献保存到 `tileX0.backdrop`，作为 tileX0 的
-    初始前缀累计值。
-  - `tileX0` 自身每行 local value 暂时保存到
-    `boundaryTile.coverage[0..63]`，即 16 行各一个 float32 拆成 4 个
-    `uint8_t`，因为此时 coverage page 还没有最终 R8 coverage 语义。
-  - `tileX > tileX0` 的值先保存为本 tile local value，等待 pass5 转成
-    横向前缀值。
-- `boundaryTile.coverage` 是 `uint8_t[256]`。临时保存每行 float 时需要把
-  16 个 float bits 分别拆成 4 个 `uint8_t`，共借用 64 字节。pass6
-  面积积分会按像素直接写最终 R8 coverage 值，这 64 个临时字节会被对应
-  像素的最终 coverage 自然覆盖；不需要额外初始化整页 coverage。
+- 只处理真实 boundaryTiles；真实 boundary tile index 从 `0` 开始。
+- 每个 boundaryTile 分配 16 个 row 线程，当前 `local_size_y=2`，一个
+  workgroup 处理两个 boundary tiles。
+- `capa_backdrop.glsl` 计算每个 boundaryTile 的本地 row area/backdrop：
+  - `tileX < path.tileX0` 的贡献临时保存到 tileX0 的
+    `boundaryTile.coverage[row]`，作为 tileX0 的初始前缀累计值。
+  - 每个 boundary tile 自身的 local row value 保存到
+    `boundaryTile.backdrop[row]`。
+  - `capa_prefix.glsl` 后，`backdrop[row]` 被改写成 coverage pass 需要的
+    tile-left row prefix；final coverage pass 会覆盖 `coverage[64]` 为
+    packed R8 coverage。
 
-#### pass5：把 path.tile backdrop 转成横向前缀
+#### classify + prefix：把 boundary backdrop 转成横向前缀
 
-- 每个 path.tile row 分配 16 个线程，通常 4 个 path.tile row 组成一个
-  threadgroup。这里的“row 线程”沿 tileX 从左到右循环，不引入额外 scan。
-- `tileX0.backdrop` 在 pass4 后已经是前缀值，不需要改写。
-- pass5 先从 `tileX0.boundaryTile.coverage[0..63]` 读出 tileX0 每行自身
-  local value，然后：
+- `capa_classify.glsl` 扫描 `CAPASmallTile`，用当前 boundary tile 的 row0
+  backdrop/prefix 判断 edge-free small tile 是 empty 还是 solid/full。
+- `capa_prefix.glsl` 对真实 boundary tile 的每行 backdrop 做横向前缀。
+  这里的“row 线程”沿 tileX 从左到右循环，不引入额外 scan。
+- `tileX0` 在 `capa_backdrop.glsl` 后已经有左侧前缀值；prefix pass 从
+  `tileX0.boundaryTile.coverage[row]` 读出初始值，然后：
 
 ```txt
-prefix = tileX0.backdrop + tileX0.localSelf
+prefix = tileX0.leftPrefix
+tileX0.backdrop = prefix
+prefix += tileX0.localSelf
 tileX1.backdrop = prefix
 prefix += tileX1.localSelf
 tileX2.backdrop = prefix
@@ -840,12 +838,13 @@ tileX2.backdrop = prefix
 ```
 
 - 对无边 tile，用前缀值和 path fill rule 判断它是 empty 还是 solid/full：
-  `boundaryTileIndex = 1` 表示实心/full，否则保持 `0`。
-- 到 pass5 结束，面积积分所需的 path.tile 前缀 backdrop 准备完成。
+  `boundaryTileIndex = CAPA_FULL_TILE` 表示实心/full，否则保持 `CAPA_NIL`。
+- 到 `capa_prefix.glsl` 结束，面积积分所需的 boundary tile 前缀 backdrop
+  准备完成。
 
-#### pass6：boundaryTiles 面积积分写 R8 coverage
+#### coverage：boundaryTiles 面积积分写 R8 coverage
 
-- 只处理真实 boundaryTiles，从索引 `3` 开始。每个 boundaryTile row 一个
+- 只处理真实 boundaryTiles，从索引 `0` 开始。每个 boundaryTile row 一个
   线程，通常 4 个 boundaryTile row 组成一个 threadgroup。
 - 每个 row 线程使用线程本地 `float[16]` 保存该行 16 个像素的连续 signed
   area / local coverage 累计。
@@ -858,15 +857,18 @@ tileX2.backdrop = prefix
   - EvenOdd 使用之前确定的 triangle-wave 折叠，不退回 GRID/parity 采样。
 - 如果 path rule 访问太远，可在 boundaryTile 中保存一份 rule 拷贝。
 
-#### pass7：ordered global tile color compositor
+#### composite：ordered global tile color compositor
 
 - 每个 global target tile 启动 256 个线程，即一个像素一个线程。
-- 每个线程按 pass2 构建的 global tile path.tile 链表顺序遍历 layers：
-  - `boundaryTileIndex == 0`：coverage = 0。
-  - `boundaryTileIndex == 1`：coverage = 1，可以直接走常量分支；也可以由
+- 当前实现由 `capa_order.glsl` 按每个 global tile 命中的 path `tileRect`
+  层数重新分配连续 `CAPAPathTile` span，`CAPAGlobalTile.head/count` 指向这段
+  连续内存。order 的 count 阶段只做 rect 命中统计；写入阶段再读
+  `CAPASmallTile.value`、过滤 `CAPA_NIL`，并合并连续 SrcOver full tiles。
+- 每个线程按这段 global tile path.tile span 顺序遍历 layers：
+  - `boundaryTileIndex == CAPA_NIL`：不入链，或 coverage = 0。
+  - `boundaryTileIndex == CAPA_FULL_TILE`：coverage = 1，可以直接走常量分支；也可以由
     CPU/初始化数据提供全 1 coverage，但最好保留显式判断。
-  - `boundaryTileIndex == 2`：读取 debug coverage 并正常混合。
-  - `boundaryTileIndex >= 3`：读取真实 `boundaryTile.coverage[pixelIndex]`。
+  - 其它值：读取真实 `boundaryTile.coverage[pixelIndex]`。
 - 根据 path paint 现场计算颜色。image paint 通过 CAPA pass 的 texture
   table 用 `textureIndex/samplerIndex` 访问；solid/gradient 根据 path paint
   参数求值。
@@ -943,7 +945,7 @@ tile.growLock = 0
 tile.flags = 0
 chunks[tileIndex].next = NIL
 chunks[tileIndex].used = 0
-allocator.count = tileCount
+allocator.count = initialChunkCount
 allocator.overflow = 0
 ```
 

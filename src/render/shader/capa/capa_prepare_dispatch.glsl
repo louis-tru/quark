@@ -1,5 +1,6 @@
-// CAPA pass 1.2
-// This pass computes the global tile bounds and the number of dispatch groups for the next passes.
+// CAPA prepare dispatch pass.
+// Publish global tile span/count and indirect dispatch group counts for the
+// GPU-driven CAPA passes.
 
 Qk_CONSTANT(
 	uint maxTaskCount;
@@ -29,7 +30,7 @@ void main() {
 		env.value.tilePassGroups_Size32 = uvec4((env.value.realPathTileCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.orderPassGroups_Size32 = uvec4((env.value.globalTileCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.binPassGroups_Size32 = uvec4((env.value.realTaskCount + 31u) / 32u, 1u, 1u, 0u);
-		env.value.prefixPrePassGroups_Size32 = uvec4((env.value.realPathTileRowCount + 31u) / 32u, 1u, 1u, 0u);
+		env.value.classifyPassGroups_Size32 = uvec4((env.value.realPathTileRowCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.prefixPassGroups_Size16_2 = uvec4((env.value.realPathTileRowCount + 1u) / 2u, 1u, 1u, 0u);
 		env.value.compositePassGroups_Size16_16 = uvec4(tileSpan.x, tileSpan.y, 1u, 0u);
 	}

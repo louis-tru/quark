@@ -1,4 +1,4 @@
-// CAPA pass 6.
+// CAPA coverage pass.
 // Integrate pathTile-local short edges with tile-left row backdrop and write R8
 // coverage pages.
 
@@ -23,11 +23,7 @@ layout(binding=3,set=0,std430) readonly buffer CAPAShortEdges {
 	CAPAShortEdge values[];
 } shortEdges;
 
-layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
-	CAPAPathTile values[];
-} pathTiles;
-
-layout(binding=5,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
 
@@ -101,16 +97,17 @@ float capa_right_area(float y0, float y1, CAPAShortEdge edge, float pixelX) {
 }
 
 void main() {
-	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y + 3u;
+	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y;
 	if (boundaryIndex >= env.value.realBoundaryTileCount)
 		return;
 	uint row = gl_LocalInvocationID.x;
-	uint pathTileIndex = boundaryTiles.values[boundaryIndex].pathTileIndex;
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
-	uint pathIndex = pathTiles.values[pathTileIndex].pathIndex;
+	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 	float originX = float(tileCoord.x * CAPA_TILE_SIZE);
 	float y0 = float(tileCoord.y * CAPA_TILE_SIZE + row);
 	float y1 = y0 + 1.0;
+	uint baseWord = row * 4u;
+	float prefix = boundaryTiles.values[boundaryIndex].backdrop[row];
 	float localArea[16];
 	float crossingDelta[16];
 	for (uint x = 0u; x < CAPA_TILE_SIZE_U; x++) {
@@ -118,7 +115,7 @@ void main() {
 		crossingDelta[x] = 0.0;
 	}
 
-	for (uint head = pathTiles.values[pathTileIndex].shortEdgeHead;
+	for (uint head = boundaryTiles.values[boundaryIndex].shortEdgeHead;
 			head != CAPA_NIL;
 			head = shortEdges.values[head].next)
 	{
@@ -143,9 +140,7 @@ void main() {
 		}
 	}
 
-	float prefix = boundaryTiles.values[boundaryIndex].backdrop[row];
 	uint fillRule = paths.values[pathIndex].fillRule;
-	uint baseWord = row * 4u;
 	for (uint word = 0u; word < 4u; word++) {
 		uint x = word << 2u;
 		vec4 coverage;

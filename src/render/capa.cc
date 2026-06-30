@@ -109,6 +109,9 @@ namespace qk {
 			.edgeCount = info.edges.length() >> 1,
 			.blendMode = uint32_t(_owner->_blendMode),
 			.fillRule = uint32_t(fillRule),
+			.tileOffset = 0,
+			.tileRect = IVec4(0, 0, 0, 0),
+			.tileEnd = IVec2(0, 0),
 		};
 		// budget space for path tiles, short edges, and boundary tiles
 		auto edgeCount = edgeOffset + path.edgeCount;

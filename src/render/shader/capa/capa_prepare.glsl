@@ -1,4 +1,4 @@
-// CAPA pass 1.
+// CAPA prepare pass.
 // CPU uploads only path-space flattened edges and path metadata. This pass
 // applies the path matrix/surface scale on GPU and prepares surface-space edges.
 
@@ -91,6 +91,9 @@ void main() {
 	float winding = p1.y > p0.y ? 1 : p1.y < p0.y ? -1 : 0;
 	float dy = p1.y - p0.y;
 	float dxdy = winding != 0 && dy != 0.0 ? (p1.x - p0.x) / dy : 0.0;
+
+	if (abs(dxdy) > 1e6)
+		winding = 0.0; // ignore almost horizontal edges
 
 	// overwrite with transformed edge
 	edges.values[edgeIndex] = CAPAEdge(

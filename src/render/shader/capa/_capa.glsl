@@ -6,6 +6,7 @@ const uint CAPA_TILE_SIZE_U = 16u;
 const float CAPA_TILE_SIZE_F = 16.0;
 const int CAPA_TILE_SIZE_BITS = 4;
 const uint CAPA_NIL = 0xffffffffu;
+const uint CAPA_FULL_TILE = CAPA_NIL - 1u;
 const uint CAPA_SHORT_EDGE_CHUNK_SIZE = 4u;
 // CAPA fill rules
 const uint CAPA_NON_ZERO_RULE = 0u;
@@ -35,12 +36,13 @@ const uint CAPA_BLEND_PLUS_LEGACY = 15u;     //!< r = sa*s + d
 const uint CAPA_BLEND_MODULATE = 16u; //!< r = s*d
 const uint CAPA_BLEND_SCREEN = 17u;   //!< r = s + (1-s)*d
 const uint CAPA_BLEND_MULTIPLY = 18u; //!< r = d*s + (1-sa)*d
+
 struct CAPAEnvironment {
-	uvec4 tilePassGroups_Size32; // number of 32-wide dispatch groups for path tile init pass
+	uvec4 tilePassGroups_Size32; // number of 32-wide dispatch groups for small tile init pass
 	uvec4 orderPassGroups_Size32; // number of 32-wide dispatch groups for order pass
 	uvec4 binPassGroups_Size32; // number of 32-wide dispatch groups for bin pass
 	uvec4 backdropPassGroups_Size16_2; // number of 16x2-wide dispatch groups for backdrop pass
-	uvec4 prefixPrePassGroups_Size32; // number of 32-wide dispatch groups for prefix row-chain pass
+	uvec4 classifyPassGroups_Size32; // number of 32-wide dispatch groups for classify pass
 	uvec4 prefixPassGroups_Size16_2; // number of 16x2-wide dispatch groups for prefix pass
 	uvec4 compositePassGroups_Size16_16; // number of 16x16-wide dispatch groups for composite pass
 	ivec4 globalTileBounds; // global tile bounds begin, end
@@ -48,32 +50,35 @@ struct CAPAEnvironment {
 	uint globalTileCount; // number of CAPAGlobalTile generated
 	uint taskCount; // number of short-edge tasks generated
 	uint realTaskCount; // number of short-edge tasks generated for non-overflow edges
-	uint pathTileCount; // number of CAPAPathTile generated
-	uint realPathTileCount; // number of CAPAPathTile generated, non-overflow
+	uint pathTileCount; // number of CAPASmallTile slots allocated by prepare_tiles
+	uint realPathTileCount; // number of CAPASmallTile slots allocated, non-overflow
 	uint pathTileRowCount; // number of CAPATileRows generated
 	uint realPathTileRowCount; // number of CAPATileRows generated, non-overflow
-	uint boundaryTileCount; // number of CAPABoundaryTile allocated, starts at 3
+	uint boundaryTileCount; // number of CAPABoundaryTile allocated, starts at 0
 	uint realBoundaryTileCount; // number of CAPABoundaryTile allocated, non-overflow, starts at 0
+	uint boundaryDoneCount; // completed tile rows in boundary allocation pass
+	uint orderedPathTileCount; // number of CAPAPathTile nodes allocated by order pass
 };
 
 struct CAPAGlobalTile {
-	uint head; // index to CAPAPathTile
+	uint head; // first contiguous CAPAPathTile index for this global tile
+	uint count; // contiguous CAPAPathTile count for this global tile
 };
 
 struct CAPAPath {
 	vec4 matrixX; // 2x3 transform matrix for path coordinates
 	vec4 matrixY; // 2x3 transform matrix for path coordinates
 	vec4 clip; // clip begin,end
-	ivec4 bounds; // path begin,end
-	ivec4 tileRect; // path tile begin, size
 	vec4 color; // fill color
+	ivec4 bounds; // path begin,end
+	ivec4 tileRect; // path tile begin, end
+	ivec2 tileEnd; // path tile end (exclusive)
 	uint fillRule; // 0: non-zero, 1: even-odd, 2: positive, 3: negative
 	uint blendMode; // color blend mode
-	uint tileOffset; // index to CAPAPathTile
-	uint tileCount; // number of CAPAPathTile for this path
+	uint tileOffset; // index to CAPASmallTile
+	uint tileRowOffset; // index to CAPATileRow
 	uint edgeOffset; // index to CAPAEdge
 	uint edgeCount; // number of CAPAEdge for this path
-	uint _pad0[2];
 };
 
 struct CAPAEdge {
@@ -103,7 +108,7 @@ struct CAPAShortEdgeTask {
 
 struct CAPAPathTileRow {
 	uint pathIndex; // index to CAPAPath
-	uint smallTileIndex; // smallTileIndex of the first tile in this row
+	uint pathTileIndex; // pathTileIndex of the first tile in this row
 	uint boundaryTileIndex; // boundaryTileIndex of the first tile in this row
 	uint boundaryTileCount; // number of boundary tiles in this row
 };
@@ -111,8 +116,6 @@ struct CAPAPathTileRow {
 struct CAPAPathTile {
 	uint pathIndex;
 	uint boundaryTileIndex;
-	uint shortEdgeHead; // index to CAPAShortEdge
-	uint nextLevel; // index to next level of CAPAPathTile for this path
 	uint color; // packed RGBA8 PMA color for preblended full tiles
 };
 
@@ -124,7 +127,7 @@ struct CAPABoundaryTile {
 	uint pathIndex; // index to CAPAPath
 	uint shortEdgeHead; // index to CAPAShortEdge
 	ivec2 tileCoord;
-	float backdrop[16];
+	float backdrop[16]; // local row delta before prefix, tile-left row prefix after prefix pass
 	uint coverage[64];
 };
 

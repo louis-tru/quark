@@ -1,14 +1,13 @@
-// CAPA pass 4.
+// CAPA backdrop pass.
 // Compute per-boundary-tile row backdrop values.
 //
 // tileX0 is special:
-// - backdrop[row] keeps the accumulated backdrop from tiles left of tileX0.
-// - coverage[row] temporarily stores tileX0's own local row value as float bits.
+// - coverage[row] temporarily stores the accumulated backdrop from tiles left of tileX0.
 //
 // For tileX > tileX0:
 // - backdrop[row] stores this tile's own local row value.
 //
-// Pass5 will turn these local values into row-prefix backdrop.
+// The prefix pass will turn backdrop[row] into row-prefix values.
 
 Qk_CONSTANT(
 	uint maxBoundaryTileCount;
@@ -31,11 +30,7 @@ layout(binding=3,set=0,std430) readonly buffer CAPAShortEdges {
 	CAPAShortEdge values[];
 } shortEdges;
 
-layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
-	CAPAPathTile values[];
-} pathTiles;
-
-layout(binding=5,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
 
@@ -61,13 +56,12 @@ float capa_left_dy(float y0, float y1, CAPAShortEdge edge, float x) {
 }
 
 void main() {
-	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y + 3u;
+	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y;
 	if (boundaryIndex >= env.value.realBoundaryTileCount)
 		return;
 	uint row = gl_LocalInvocationID.x;
-	uint pathTileIndex = boundaryTiles.values[boundaryIndex].pathTileIndex;
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
-	uint pathIndex = pathTiles.values[pathTileIndex].pathIndex;
+	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 
 	float tileLeft = float(tileCoord.x) * CAPA_TILE_SIZE_F;
 	float tileRight = tileLeft + CAPA_TILE_SIZE_F;
@@ -77,7 +71,7 @@ void main() {
 	float left = 0.0;
 	float local = 0.0;
 
-	for (uint head = pathTiles.values[pathTileIndex].shortEdgeHead;
+	for (uint head = boundaryTiles.values[boundaryIndex].shortEdgeHead;
 			head != CAPA_NIL;
 			head = shortEdges.values[head].next)
 	{
@@ -88,21 +82,13 @@ void main() {
 		float endY = min(y1, edgeY1);
 		if (beginY >= endY)
 			continue;
-
-		// float delta = edge.winding * (endY - beginY);
-		// float edgeRight = max(edge.p0.x, edge.p1.x);
-		// if (isTileX0 && edgeRight <= tileLeft) {
-		// 	left += delta;
-		// } else {
-		// 	local += delta;
-		// }
 		float leftDy = capa_left_dy(beginY, endY, edge, tileLeft);
 		float rightDy = capa_left_dy(beginY, endY, edge, tileRight);
 		left += edge.winding * leftDy;
 		local += edge.winding * (rightDy - leftDy);
 	}
 	if (isTileX0)
-		// save prefix for this row in coverage as float bits
+		// save initial prefix for this row in coverage as float bits
 		boundaryTiles.values[boundaryIndex].coverage[row] = floatBitsToUint(left);
 	boundaryTiles.values[boundaryIndex].backdrop[row] = local;
 }

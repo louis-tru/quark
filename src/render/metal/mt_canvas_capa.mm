@@ -12,25 +12,6 @@
 
 namespace qk {
 	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length);
-	static const uint8_t F = 32; // coverage value for fail boundary tile
-	static const uint8_t failBoundaryCoverage[256] = {
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,F,F,F,F,F,F,F,F,0,0,0,
-		0,0,0,F,F,F,F,F,F,F,F,F,F,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,F,F,F,F,F,F,F,0,0,0,0,
-		0,0,0,F,F,F,F,F,F,F,F,F,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,F,F,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	};
 	bool MetalCanvas::drawCAPACmd(cCAPADrawData &data) {
 		auto edgeCount = data.edges.length();
 		if (!edgeCount)
@@ -46,7 +27,9 @@ namespace qk {
 		envData->taskCount = 0;
 		envData->pathTileCount = 0;
 		envData->pathTileRowCount = 0;
-		envData->boundaryTileCount = 3;
+		envData->boundaryTileCount = 0;
+		envData->boundaryDoneCount = 0;
+		envData->orderedPathTileCount = 0;
 
 		// copy data to GPU buffer
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
@@ -54,12 +37,10 @@ namespace qk {
 		auto shortTasks = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAShortEdgeTask>(budget.maxShortEdgeCount);
 		auto shortEdges = _cmdPack.buffer->alloc<MSLCapaBin::CAPAShortEdge>(budget.maxShortEdgeCount * 3);
 		auto globalTiles = _cmdPack.buffer->alloc<MSLCapaOrder::CAPAGlobalTile>(budget.globalTileCount);
-		auto pathTiles = _cmdPack.buffer->alloc<MSLCapaTile::CAPAPathTile>(budget.maxPathTileCount);
+		auto pathTiles = _cmdPack.buffer->alloc<MSLCapaOrder::CAPAPathTile>(budget.maxPathTileCount);
+		auto smallTiles = _cmdPack.buffer->alloc<MSLCapaTile::CAPASmallTile>(budget.maxPathTileCount);
 		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
-		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepare1::CAPAPathTileRow>(budget.maxPathTileRowCount);
-		// copy fail boundary tile to fail boundary tile slot (index 2)
-		auto boundaryTilesData= (MSLCapaCoverage::CAPABoundaryTile*)((char*)boundaryTiles.val.contents + boundaryTiles.begin);
-		memcpy(boundaryTilesData[2].coverage, failBoundaryCoverage, sizeof(failBoundaryCoverage));
+		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
 
 		auto envIndirectOffset = [&](auto field) -> NSUInteger {
 			return NSUInteger(env.begin + field);
@@ -87,7 +68,8 @@ namespace qk {
 							"taskCount        : %d, "
 							"pathTileCount   : %d, "
 							"pathTileRowCount   : %d, "
-							"boundaryTileCount   : %d "
+							"boundaryTileCount   : %d, "
+							"orderedPathTileCount   : %d "
 				,
 				envData->globalTileBounds.x(),
 				envData->globalTileBounds.y(),
@@ -97,12 +79,13 @@ namespace qk {
 				envData->taskCount,
 				envData->pathTileCount,
 				envData->pathTileRowCount,
-				envData->boundaryTileCount
+				envData->boundaryTileCount,
+				envData->orderedPathTileCount
 			);
 		}];
 #endif
 
-		{ // pass1 - prepare edge data
+		{ // prepare edge data
 			auto &shader = _shaders.capaPrepare;
 			MSLCapaPrepare::PcArgs pc{
 				.shortEdgeLength=kCAPAShortEdgeLength,
@@ -121,9 +104,9 @@ namespace qk {
 					threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass1.1 - allocate path tiles and tile rows
-			auto &shader = _shaders.capaPrepare1;
-			MSLCapaPrepare1::PcArgs pc{
+		{ // prepare path tiles and tile rows
+			auto &shader = _shaders.capaPrepareTiles;
+			MSLCapaPrepareTiles::PcArgs pc{
 				.pathCount=pathCount,
 				.maxPathTileCount=budget.maxPathTileCount,
 				.maxPathTileRowCount=budget.maxPathTileRowCount,
@@ -139,9 +122,9 @@ namespace qk {
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass1.2 - write indirect dispatch group counts
-			auto &shader = _shaders.capaPrepare2;
-			MSLCapaPrepare2::PcArgs pc{
+		{ // prepare indirect dispatch group counts
+			auto &shader = _shaders.capaPrepareDispatch;
+			MSLCapaPrepareDispatch::PcArgs pc{
 				.maxTaskCount=budget.maxShortEdgeCount,
 				.maxPathTileCount=budget.maxPathTileCount,
 				.maxPathTileRowCount=budget.maxPathTileRowCount,
@@ -155,26 +138,25 @@ namespace qk {
 				threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass2 - initialize path tiles
+		{ // initialize small tiles
 			auto &shader = _shaders.capaTile;
 			MSLCapaTile::PcArgs pc{
 				.maxPathTileCount=budget.maxPathTileCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
-			enc.label = @"CAPA path tile init";
+			enc.label = @"CAPA small tile init";
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
+			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, tilePassGroups_Size32))
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass3 - bin short-edge tasks into tile-local lists
+		{ // bin short-edge tasks into tile-local lists
 			auto &shader = _shaders.capaBin;
 			MSLCapaBin::PcArgs pc{
 				.maxTaskCount=budget.maxShortEdgeCount,
-				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA short-edge bin";
@@ -184,29 +166,33 @@ namespace qk {
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:edges.val offset:edges.begin atIndex:shader.compute.edges];
 			[enc setBuffer:shortTasks.val offset:shortTasks.begin atIndex:shader.compute.shortEdgeTasks];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
-			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
+			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
 			[enc setBuffer:shortEdges.val offset:shortEdges.begin atIndex:shader.compute.shortEdges];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, binPassGroups_Size32))
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass3.1 - write boundary-tile indirect dispatch group counts
-			auto &shader = _shaders.capaBin1;
-			MSLCapaBin1::PcArgs pc{
+		{ // allocate boundary tiles and write boundary-tile dispatch group counts
+			auto &shader = _shaders.capaBoundary;
+			MSLCapaBoundary::PcArgs pc{
 				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
-			enc.label = @"CAPA bin dispatch args";
+			enc.label = @"CAPA boundary tile alloc";
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
-			[enc dispatchThreadgroups:MTLSizeMake(1, 1, 1)
-				threadsPerThreadgroup:MTLSizeMake(1, 1, 1)];
+			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
+			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
+			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
+			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
+			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
+				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, classifyPassGroups_Size32))
+				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass4 - compute pathTile row backdrop
+		{ // compute boundary-tile row backdrop
 			auto &shader = _shaders.capaBackdrop;
 			MSLCapaBackdrop::PcArgs pc{
 				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
@@ -217,7 +203,6 @@ namespace qk {
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:shortEdges.val offset:shortEdges.begin atIndex:shader.compute.shortEdges];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
@@ -225,26 +210,26 @@ namespace qk {
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize, 2, 1)];
 			[enc endEncoding];
 		}
-		{ // pass5 - prefix/solid-empty classification
-			auto &shader = _shaders.capaPrefixPre;
-			MSLCapaPrefixPre::PcArgs pc{
+		{ // classify edge-free full tiles
+			auto &shader = _shaders.capaClassify;
+			MSLCapaClassify::PcArgs pc{
 				.maxPathTileRowCount=budget.maxPathTileRowCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
-			enc.label = @"CAPA prefix pre";
+			enc.label = @"CAPA classify";
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
+			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
-				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, prefixPrePassGroups_Size32))
+				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, classifyPassGroups_Size32))
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass5.1 - boundary prefix/full-empty classification
+		{ // compute boundary row prefix
 			auto &shader = _shaders.capaPrefix;
 			MSLCapaPrefix::PcArgs pc{
 				.maxPathTileRowCount=budget.maxPathTileRowCount,
@@ -256,12 +241,13 @@ namespace qk {
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
+			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, prefixPassGroups_Size16_2))
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize, 2, 1)];
 			[enc endEncoding];
 		}
-		{ // pass6 - boundary pathTile coverage
+		{ // compute boundary tile coverage
 			auto &shader = _shaders.capaCoverage;
 			MSLCapaCoverage::PcArgs pc{
 				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
@@ -272,7 +258,6 @@ namespace qk {
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
-			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:shortEdges.val offset:shortEdges.begin atIndex:shader.compute.shortEdges];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
@@ -280,25 +265,27 @@ namespace qk {
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize, 2, 1)];
 			[enc endEncoding];
 		}
-		{ // pass7 - build ordered global-tile layer chains after coverage
+		{ // build ordered global-tile layer spans after coverage
 			auto &shader = _shaders.capaOrder;
 			MSLCapaOrder::PcArgs pc{
 				.pathCount=pathCount,
+				.maxPathTileCount=budget.maxPathTileCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
-			enc.label = @"CAPA ordered tile chain";
+			enc.label = @"CAPA ordered tile span";
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:globalTiles.val offset:globalTiles.begin atIndex:shader.compute.globalTiles];
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
+			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, orderPassGroups_Size32))
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // pass8 - ordered color composite into the current target texture
+		{ // ordered color composite into the current target texture
 			auto &shader = _shaders.capaComposite;
 			MSLCapaComposite::PcArgs pc{
 				.clearColor=Vec4(0),
