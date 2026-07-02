@@ -11,7 +11,7 @@
 
 namespace qk {
 	constexpr float kCAPACoverageBudgetMultiplier = 1.2f;
-	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 20;
+	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 16;
 	constexpr uint32_t kCAPACoveragePageBytes = sizeof(MSLCapaBackdrop::CAPABoundaryTile);
 
 	IVec2 capa_floor_tile_origin(Vec2 origin) {
@@ -64,11 +64,11 @@ namespace qk {
 		return {begin, end};
 	}
 
-	float capa_path_scale(const CAPAPath& path) {
-		float a = path.matrixX.x();
-		float b = path.matrixX.y();
-		float c = path.matrixY.x();
-		float d = path.matrixY.y();
+	float capa_path_scale(const Mat& mat) {
+		float a = mat[0];
+		float b = mat[1];
+		float c = mat[3];
+		float d = mat[4];
 		float s1 = a*a + b*b + c*c + d*d; // ||M||F²
 		// Frobenius Norm, ||M||F = sqrt(a² + b² + c² + d²)
 		// return sqrtf(s1);
@@ -81,14 +81,57 @@ namespace qk {
 		reset();
 	}
 
-	bool CAPABuilder::build(const Path &rawPath, const Color4f &color) {
+	void CAPABuilder::setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat) {
+		uint32_t flags = color.a() >= 1.0f ? kCAPA_FLAG_PAINT_OPAQUE : 0u;
+		uint32_t paintIndex = 0;
+		uint32_t paintType = kCAPA_PAINT_SOLID;
+		if (paint) {
+			if (paint->type == kCAPA_PAINT_IMAGE) {
+				// TODO ...
+				if (paint->image->paint->image->info().alphaType() != kOpaque_AlphaType) {
+					flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
+				}
+				paintType = kCAPA_PAINT_IMAGE;
+			} else if (paint->type == kCAPA_PAINT_GRADIENT) {
+				if (flags & kCAPA_FLAG_PAINT_OPAQUE) {
+					for (int i = 0; i < paint->gradient->count; i++) {
+						if (paint->gradient->colors[i].a() < 1.0f) {
+							flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
+							break;
+						}
+					}
+				}
+				paintType = kCAPA_PAINT_GRADIENT;
+				paintIndex = _data.gradientPaints.length();
+				_data.gradientPaints.push(CAPAGradientPaint{
+					.origin = paint->gradient->origin,
+					.endOrRadius = paint->gradient->endOrRadius,
+					.type = paint->gradient->type == PaintGradient::kRadial_Type
+						? kCAPA_GRADIENT_RADIAL
+						: kCAPA_GRADIENT_LINEAR,
+					.count = paint->gradient->count,
+					.colors = _data.colors.length(),
+					.positions = _data.positions.length(),
+				});
+				for (uint32_t i = 0; i < paint->gradient->count; i++) {
+					_data.colors.push(paint->gradient->colors[i].premul_alpha().mul(color));
+				}
+				_data.positions.write(paint->gradient->positions, paint->gradient->count);
+			}
+		}
+		path.paintIndex = paintIndex;
+		path.paintType = paintType;
+		path.flags = flags;
+	}
+
+	bool CAPABuilder::build(const Path &rawPath, const Color4f& color, CAPAPaint* paint) {
 		auto &info = _owner->_cache->getEdgeInfo(rawPath, _owner->_allScaleAverage * 0.5f);
 		if (info.edges.length() < 2)
-			return false;
+			return true; // Skip empty paths
 
+		auto &budget = _data.budget;
 		auto &matrix = _owner->_state->matrix;
 		Vec2 surfaceScale = _owner->_surfaceScale;
-		auto pathIndex = _data.paths.length();
 		auto edgeOffset = _data.edges.length();
 		Mat mat(
 			matrix[0] * surfaceScale.x(),
@@ -96,6 +139,20 @@ namespace qk {
 			matrix[3] * surfaceScale.y(),
 			matrix[4] * surfaceScale.y(), matrix[5] * surfaceScale.y()
 		);
+		// Budget space for staging small tiles, short-edge nodes, row records,
+		// boundary tiles, and final z-linear coverage pages.
+		auto edgeCount = edgeOffset + (info.edges.length() >> 1);
+		auto totalEdgeLen = _totalEdgeLength + info.totalEdgeLength * capa_path_scale(mat);
+		auto maxShortEdgeCount = capa_maxShortEdgeCount(totalEdgeLen, edgeCount);
+		auto maxBoundaryTileCount = capa_maxBoundaryTileCount(totalEdgeLen, edgeCount);
+
+		if (maxBoundaryTileCount > kCAPAMaxBoundaryTileCapacity) {
+			if (budget.maxBoundaryTileCount == 0)
+				return false; // Path is too large to fit in a single CAPA draw call
+			commit(); // Flush current draw data to free up boundary tile capacity
+			return build(rawPath, color, paint); // Retry after commit
+		}
+
 		Range clip{{0,0}, _owner->_surfaceSize};
 		if (_owner->_clipState) {
 			clip = _owner->_clipState->range;
@@ -116,17 +173,10 @@ namespace qk {
 			.tileRect = IVec4(0, 0, 0, 0),
 			.tileEnd = IVec2(0, 0),
 		};
-		// Budget space for staging small tiles, short-edge nodes, row records,
-		// boundary tiles, and final z-linear coverage pages.
-		auto edgeCount = edgeOffset + path.edgeCount;
-		auto totalEdgeLen = _totalEdgeLength + info.totalEdgeLength * capa_path_scale(path);
-		auto maxShortEdgeCount = capa_maxShortEdgeCount(totalEdgeLen, edgeCount);
-		auto maxBoundaryTileCount = capa_maxBoundaryTileCount(totalEdgeLen, edgeCount);
+		setPaint(path, color, paint, mat);
 
-		if (maxBoundaryTileCount > kCAPAMaxBoundaryTileCapacity) {
-			// TODO: cancel CAPA draw if boundary tile count exceeds max capacity
-		}
-		_data.paths.push(path);
+		auto pathIndex = _data.paths.length();
+		_data.paths.push(std::move(path));
 		_data.edges.reset(edgeCount);
 		_totalEdgeLength = totalEdgeLen;
 		auto bounds = capa_bounds_transform(mat, info.bounds)
@@ -136,7 +186,6 @@ namespace qk {
 			capa_floor_tile_origin(bounds.begin), capa_ceil_tile_end(bounds.end)
 		};
 		auto tileSpan = tileBounds.size();
-		auto &budget = _data.budget;
 		budget.globalBounds = budget.globalBounds.join(bounds);
 		budget.maxPathTileCount += tileSpan.x() * tileSpan.y();
 		budget.maxShortEdgeCount = maxShortEdgeCount;
@@ -151,6 +200,16 @@ namespace qk {
 			};
 		}
 		return true;
+	}
+
+	bool CAPABuilder::buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color) {
+		CAPAPaint paint{.gradient = gradient, .type = kCAPA_PAINT_GRADIENT};
+		return build(path, color, &paint);
+	}
+
+	bool CAPABuilder::buildImage(const Path &path, const GC_ImageDrawInfo &info) {
+		CAPAPaint paint{.image = &info, .type = kCAPA_PAINT_IMAGE};
+		return build(path, info.color, &paint);
 	}
 
 	void CAPABuilder::commit() {

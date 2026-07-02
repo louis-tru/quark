@@ -101,7 +101,11 @@ bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
 	if (boundaryIndex == CAPA_NIL)
 		return true;
 
-	if (boundaryIndex == CAPA_FULL_TILE && paths.values[pathIndex].blendMode == CAPA_BLEND_SRC_OVER) {
+	uint blendMode = paths.values[pathIndex].blendMode;
+	uint paintType = paths.values[pathIndex].paintType;
+	uint flags = paths.values[pathIndex].flags;
+	if (boundaryIndex == CAPA_FULL_TILE && blendMode == CAPA_BLEND_SRC_OVER &&
+			paintType == CAPA_PAINT_SOLID) {
 		vec4 src = paths.values[pathIndex].color;
 		if (!hasPendingSrcOverFull) {
 			hasPendingSrcOverFull = true;
@@ -110,7 +114,7 @@ bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
 		} else {
 			pendingSrcOverColor = capa_blend(pendingSrcOverColor, src, CAPA_BLEND_SRC_OVER);
 		}
-		if (pendingSrcOverColor.a >= 1.0) {
+		if ((flags & CAPA_FLAG_PAINT_OPAQUE) != 0u) {
 			// A fully opaque front SrcOver full tile hides all remaining lower
 			// full/boundary layers for this global tile.
 			return false;
@@ -118,6 +122,14 @@ bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
 	} else {
 		capa_flush_pending_src_over_full();
 		capa_write_order_node(pathIndex, boundaryIndex, 0u);
+		if (boundaryIndex == CAPA_FULL_TILE && blendMode == CAPA_BLEND_SRC_OVER &&
+				(flags & CAPA_FLAG_PAINT_OPAQUE) != 0u) {
+			if (paintType == CAPA_PAINT_IMAGE) {
+				// TODO ...
+			} else {
+				return false;
+			}
+		}
 	}
 	return true;
 }

@@ -25,10 +25,37 @@ layout(binding=3,set=0,std430) buffer CAPATileRows {
 	CAPAPathTileRow values[];
 } tileRows;
 
+void capa_prepare_path_inverse_matrix(uint pathIndex) {
+	vec4 mx = paths.values[pathIndex].matrixX;
+	vec4 my = paths.values[pathIndex].matrixY;
+	float det = mx.x * my.y - mx.y * my.x;
+	if (abs(det) <= 1e-12) {
+		paths.values[pathIndex].inverseMatrixX = vec4(1.0, 0.0, 0.0, 0.0);
+		paths.values[pathIndex].inverseMatrixY = vec4(0.0, 1.0, 0.0, 0.0);
+		return;
+	}
+
+	float invDet = 1.0 / det;
+	paths.values[pathIndex].inverseMatrixX = vec4(
+		my.y * invDet,
+		-mx.y * invDet,
+		(mx.y * my.z - my.y * mx.z) * invDet,
+		0.0
+	);
+	paths.values[pathIndex].inverseMatrixY = vec4(
+		-my.x * invDet,
+		mx.x * invDet,
+		(my.x * mx.z - mx.x * my.z) * invDet,
+		0.0
+	);
+}
+
 void main() {
 	uint pathIndex = gl_GlobalInvocationID.x;
 	if (pathIndex >= pc.pathCount)
 		return;
+
+	capa_prepare_path_inverse_matrix(pathIndex);
 
 	ivec4 bounds = paths.values[pathIndex].bounds;
 	ivec4 tileBounds = ivec4(

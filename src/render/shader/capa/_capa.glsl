@@ -37,6 +37,19 @@ const uint CAPA_BLEND_PLUS_LEGACY = 15u;     //!< r = sa*s + d
 const uint CAPA_BLEND_MODULATE = 16u; //!< r = s*d
 const uint CAPA_BLEND_SCREEN = 17u;   //!< r = s + (1-s)*d
 const uint CAPA_BLEND_MULTIPLY = 18u; //!< r = d*s + (1-sa)*d
+// CAPA paint types
+const uint CAPA_PAINT_SOLID = 0u;
+const uint CAPA_PAINT_GRADIENT = 1u;
+const uint CAPA_PAINT_IMAGE = 2u;
+// Gradient types
+const uint CAPA_GRADIENT_LINEAR = 0u;
+const uint CAPA_GRADIENT_RADIAL = 1u;
+// CAPA image paint kinds
+const uint CAPA_IMAGE_DEFAULT = 0;
+const uint CAPA_IMAGE_MASK = 1;
+const uint CAPA_IMAGE_SDF_MASK = 2;
+// Paint source is guaranteed to produce alpha == 1 for every sampled point.
+const uint CAPA_FLAG_PAINT_OPAQUE = 1u << 0;
 
 struct CAPAEnvironment {
 	// Indirect dispatch arguments are uvec4-aligned so Metal can dispatch from
@@ -66,6 +79,24 @@ struct CAPAEnvironment {
 	uint layerPlanPathTileCount; // number of CAPAPathTile nodes allocated by layer plan pass
 };
 
+struct CAPAGradientPaint {
+	vec2 origin;        // Gradient origin position.
+	vec2 endOrRadius;   // End point (linear) or radius (radial).
+	uint type;          // Gradient type: 0: linear, 1: radial.
+	uint count;         // Number of color stops.
+	uint colors;        // index to vec4 color array.
+	uint positions;     // index to float position array.
+};
+
+struct CAPAImagePaint {
+	vec4 coord; // origin/scale
+	vec4 strokeColor; // premultiplied stroke color for sdf mask
+	uint textureIndex; // index to texture array
+	uint samplerIndex; // index to sampler array
+	float stroke; // sdf stroke width
+	uint kind; // 0: image, 1: mask, 2: sdf mask
+};
+
 struct CAPAGlobalTile {
 	uint head; // first contiguous CAPAPathTile index for this global tile
 	uint count; // contiguous CAPAPathTile count for this global tile
@@ -76,6 +107,8 @@ struct CAPAPath {
 	// surface-space CAPAEdge values and fills the tile ranges below.
 	vec4 matrixX; // 2x3 transform matrix for path coordinates
 	vec4 matrixY; // 2x3 transform matrix for path coordinates
+	vec4 inverseMatrixX; // surface pixel -> path coordinates
+	vec4 inverseMatrixY; // surface pixel -> path coordinates
 	vec4 clip; // clip begin,end
 	vec4 color; // premultiplied fill color
 	ivec4 bounds; // path begin,end
@@ -87,6 +120,10 @@ struct CAPAPath {
 	uint tileRowOffset; // index to CAPATileRow
 	uint edgeOffset; // index to CAPAEdge
 	uint edgeCount; // number of CAPAEdge for this path
+	uint paintIndex; // index to CAPAGradientPaint or CAPAImagePaint, or 0 for solid color
+	uint paintType; // 0: solid, 1: gradient, 2: image
+	uint flags; // CAPA_FLAG_PAINT_OPAQUE
+	uint _pad; // padding to 16 bytes
 };
 
 struct CAPAEdge {

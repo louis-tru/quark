@@ -88,7 +88,6 @@ namespace qk {
 		, _premultipliedAlpha(false)
 		, _premulFlags(kConvert_PremulFlags)
 	{
-		// sizeof(ImageSource);
 	}
 
 	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
@@ -348,11 +347,14 @@ namespace qk {
 
 	// data: RGBA8888 像素数据
 	// count: 像素数量
-	static void premultiplyRGBA8888(uint8_t* data, uint32_t count) {
+	static bool premultiplyRGBA8888(uint8_t* data, uint32_t count) {
 		initPremulTable();
 		uint32_t i = 0;
+		bool opaque = true;
 #if Qk_ARM_NEON
 		const uint16x8_t add127 = vdupq_n_u16(127);
+		const uint8x16_t fullAlpha = vdupq_n_u8(255);
+		uint8x16_t alphaDiff = vdupq_n_u8(0);
 
 		// 每次处理 16 个像素（64 字节）
 		for (; i + 16 <= count; i += 16) {
@@ -365,6 +367,7 @@ namespace qk {
 			uint8x16_t g = rgba.val[1];
 			uint8x16_t b = rgba.val[2];
 			uint8x16_t a = rgba.val[3];
+			alphaDiff = vorrq_u8(alphaDiff, veorq_u8(a, fullAlpha));
 
 			// 拆低/高 8 像素
 			uint8x8_t r_lo = vget_low_u8(r);
@@ -406,6 +409,7 @@ namespace qk {
 			// 交织存回: [R G B A]*16 -> 连续 RGBA 像素
 			vst4q_u8(p, rgba);
 		}
+		opaque = vmaxvq_u8(alphaDiff) == 0;
 #endif
 		// 处理剩余不足 16 个的尾巴
 		for (; i < count; i++) {
@@ -419,16 +423,22 @@ namespace qk {
 				p[1] = premulTable[a][p[1]];
 				p[2] = premulTable[a][p[2]];
 			}
+			if (a != 255)
+				opaque = false;
 			// a == 255 不变
 		}
+		return opaque;
 	}
 
 	// Luminance_Alpha_88 (2 字节每像素): [L, A]
-	static void premultiplyLA88(uint8_t* data, uint32_t count) {
+	static bool premultiplyLA88(uint8_t* data, uint32_t count) {
 		initPremulTable();
 		uint32_t i = 0;
+		bool opaque = true;
 #if Qk_ARM_NEON
 		const uint16x8_t add127 = vdupq_n_u16(127);
+		const uint8x16_t fullAlpha = vdupq_n_u8(255);
+		uint8x16_t alphaDiff = vdupq_n_u8(0);
 
 		// 每次处理 16 个像素（32 字节）
 		for (; i + 16 <= count; i += 16) {
@@ -439,6 +449,7 @@ namespace qk {
 
 			uint8x16_t l = la.val[0];
 			uint8x16_t a = la.val[1];
+			alphaDiff = vorrq_u8(alphaDiff, veorq_u8(a, fullAlpha));
 
 			// 拆低/高 8 像素
 			uint8x8_t l_lo = vget_low_u8(l);
@@ -463,6 +474,7 @@ namespace qk {
 			// alpha 不变
 			vst2q_u8(p, la);
 		}
+		opaque = vmaxvq_u8(alphaDiff) == 0;
 #endif
 		// 标量处理尾部
 		for (; i < count; i++) {
@@ -473,22 +485,26 @@ namespace qk {
 			} else if (a != 255) {
 				p[0] = premulTable[a][p[0]];
 			}
+			if (a != 255)
+				opaque = false;
 			// a == 255 不变
 		}
+		return opaque;
 	}
 
 	bool ImageSource::premultipliedAlphaFromPixel(Pixel &pixel) {
 		if (pixel.alphaType() != kUnpremul_AlphaType) {
 			return false;
 		}
+		bool opaque = false;
 		if (pixel.type() == kRGBA_8888_ColorType) {
-			premultiplyRGBA8888(pixel.val(), pixel.width() * pixel.height());
+			opaque = premultiplyRGBA8888(pixel.val(), pixel.width() * pixel.height());
 		} else if (pixel.type() == kLuminance_Alpha_88_ColorType) {
-			premultiplyLA88(pixel.val(), pixel.width() * pixel.height());
+			opaque = premultiplyLA88(pixel.val(), pixel.width() * pixel.height());
 		} else {
 			return false;
 		}
-		pixel._alphaType = kPremul_AlphaType; // mark as premultiplied
+		pixel._alphaType = opaque ? kOpaque_AlphaType: kPremul_AlphaType;
 		return true;
 	}
 

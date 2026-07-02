@@ -31,6 +31,22 @@ layout(binding=5,set=0,std430) readonly buffer CAPACoverageTiles {
 	CAPACoverageTile values[];
 } coverageTiles;
 
+layout(binding=6,set=0,std430) readonly buffer CAPAGradientPaints {
+	CAPAGradientPaint values[];
+} gradientPaints;
+
+layout(binding=7,set=0,std430) readonly buffer CAPAImagePaints {
+	CAPAImagePaint values[];
+} imagePaints;
+
+layout(binding=8,set=0,std430) readonly buffer Colors {
+	vec4 values[];
+} colors;
+
+layout(binding=9,set=0,std430) readonly buffer Positions {
+	float values[];
+} positions;
+
 layout(binding=1,set=1,rgba8) uniform image2D dstImage;
 
 #define CAPA_COMPOSITE_CLEAR_DST (1u << 16)
@@ -50,6 +66,71 @@ float capa_path_tile_coverage(uint coverageIndex, uint pixelIndex) {
 	if (coverageIndex == CAPA_FULL_TILE)
 		return 1.0;
 	return capa_load_boundary_coverage(coverageIndex, pixelIndex);
+}
+
+vec2 capa_path_local_position(uint pathIndex, vec2 pixel) {
+	return vec2(
+		dot(paths.values[pathIndex].inverseMatrixX.xyz, vec3(pixel, 1.0)),
+		dot(paths.values[pathIndex].inverseMatrixY.xyz, vec3(pixel, 1.0))
+	);
+}
+
+float capa_gradient_weight(CAPAGradientPaint paint, vec2 local) {
+	if (paint.type == CAPA_GRADIENT_RADIAL) {
+		vec2 radius = max(paint.endOrRadius, vec2(eps));
+		return length((local - paint.origin) / radius);
+	}
+
+	vec2 axis = paint.endOrRadius - paint.origin;
+	float len2 = dot(axis, axis);
+	if (len2 <= eps)
+		return 0.0;
+	return dot(axis, local - paint.origin) / len2;
+}
+
+vec4 capa_sample_gradient(uint paintIndex, vec2 local) {
+	CAPAGradientPaint paint = gradientPaints.values[paintIndex];
+	uint count = paint.count;
+	if (count == 0u)
+		return vec4(0.0);
+	if (count == 1u)
+		return colors.values[paint.colors];
+
+	float weight = capa_gradient_weight(paint, local);
+	uint s = 0u;
+	uint e = count - 1u;
+	while (s + 1u < e) {
+		uint idx = (e - s) / 2u + s;
+		float pos = positions.values[paint.positions + idx];
+		if (weight > pos) {
+			s = idx;
+		} else if (weight < pos) {
+			e = idx;
+		} else {
+			s = idx;
+			e = idx + 1u;
+			break;
+		}
+	}
+
+	float p0 = positions.values[paint.positions + s];
+	float p1 = positions.values[paint.positions + e];
+	float w = (weight - p0) / (p1 - p0);
+	vec4 c0 = colors.values[paint.colors + s];
+	vec4 c1 = colors.values[paint.colors + e];
+	return mix(c0, c1, w);
+}
+
+vec4 capa_sample_path(uint pathIndex, vec2 pixel) {
+	uint paintType = paths.values[pathIndex].paintType;
+	if (paintType == CAPA_PAINT_SOLID)
+		return paths.values[pathIndex].color;
+
+	vec2 local = capa_path_local_position(pathIndex, pixel);
+	uint paintIndex = paths.values[pathIndex].paintIndex;
+	if (paintType == CAPA_PAINT_GRADIENT)
+		return capa_sample_gradient(paintIndex, local);
+	return paths.values[pathIndex].color;
 }
 
 struct CAPACoverageGroup {
@@ -167,7 +248,7 @@ void main() {
 		if (coverage <= 0.0)
 			continue;
 
-		vec4 src = paths.values[pathIndex].color;
+		vec4 src = capa_sample_path(pathIndex, vec2(pixel));
 		if (capa_group_add_layer(src, paths.values[pathIndex].blendMode, coverage))
 			break;
 	}

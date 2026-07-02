@@ -15,6 +15,8 @@
 #include "./path.h"
 
 namespace qk {
+	struct GC_ImageDrawInfo;
+	struct PaintGradient;
 	class GPUCanvas;
 
 	constexpr int kCAPATileSize = 16;
@@ -22,9 +24,25 @@ namespace qk {
 	// Short-edge tasks are bounded so one task can touch at most three tiles in
 	// the bin pass, which gives each task fixed node ownership.
 	constexpr float kCAPAShortEdgeLength = 8.0f;
+	// Paint source is guaranteed to produce alpha == 1 for every sampled point.
+	constexpr uint32_t kCAPA_FLAG_PAINT_OPAQUE = 1u << 0;
+
+	// CAPA paint types
+	enum CAPAPaintType {
+		kCAPA_PAINT_SOLID = 0u,
+		kCAPA_PAINT_GRADIENT = 1u,
+		kCAPA_PAINT_IMAGE = 2u,
+	};
+
+	enum CAPAGradientType {
+		kCAPA_GRADIENT_LINEAR = 0u,
+		kCAPA_GRADIENT_RADIAL = 1u,
+	};
 
 	typedef MSLCapaPrepare::CAPAEdge CAPAEdge;
 	typedef MSLCapaPrepare::CAPAPath CAPAPath;
+	typedef MSLCapaComposite::CAPAGradientPaint CAPAGradientPaint;
+	typedef MSLCapaComposite::CAPAImagePaint CAPAImagePaint;
 
 	struct CAPABudget {
 		// CPU budget is deliberately conservative. Shader passes cap real counts
@@ -41,7 +59,19 @@ namespace qk {
 	struct CAPADrawData {
 		Array<CAPAPath> paths;
 		Array<CAPAEdge> edges;
+		Array <CAPAGradientPaint> gradientPaints;
+		Array <CAPAImagePaint> imagePaints;
+		Array <Color4f> colors;
+		Array <float> positions;
 		CAPABudget budget;
+	};
+
+	struct CAPAPaint {
+		union {
+			const PaintGradient *gradient;
+			const GC_ImageDrawInfo *image;
+		};
+		CAPAPaintType type;
 	};
 
 	typedef const CAPADrawData cCAPADrawData;
@@ -52,16 +82,28 @@ namespace qk {
 	template<> struct ObjectTraits<CAPAPath>: ObjectTraitsBase<CAPAPath> {
 		static constexpr bool isOrdinary = true;
 	};
-	template<> struct AllocatorConfig<CAPAEdge> { static constexpr uint32_t kMinCapacity = 4; };
+	template<> struct ObjectTraits<CAPAGradientPaint>: ObjectTraitsBase<CAPAGradientPaint> {
+		static constexpr bool isOrdinary = true;
+	};
+	template<> struct ObjectTraits<CAPAImagePaint>: ObjectTraitsBase<CAPAImagePaint> {
+		static constexpr bool isOrdinary = true;
+	};
 
+	/**
+	* CAPA Builder is a batch builder for CAPA draw data.
+	* It accumulates paths and edges, computes budgets, and prepares the data for rendering.
+	*/
 	struct CAPABuilder {
 		CAPABuilder(GPUCanvas *owner);
-		bool build(const Path &path, const Color4f &color);
+		bool build(const Path &path, const Color4f& color, CAPAPaint* paint = nullptr);
+		bool buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color);
+		bool buildImage(const Path &path, const GC_ImageDrawInfo &info);
 		void commit();
 		void reset(bool clear = false);
 		cCAPADrawData& getDrawData() const { return _data; }
 		FillRule fillRule = kNonZero_FillRule;
-	private:
+private:
+		void setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat);
 		CAPADrawData _data;
 		GPUCanvas *_owner;
 		LinearAllocator _alloc;

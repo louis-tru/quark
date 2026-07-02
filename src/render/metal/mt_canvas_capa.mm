@@ -45,6 +45,18 @@ namespace qk {
 		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
 		auto coverageTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
 		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
+		auto gradientPaints = data.gradientPaints.length()
+			? makeBuffer(_cmdPack, data.gradientPaints.val(), data.gradientPaints.size())
+			: _cmdPack.buffer->alloc(0);
+		auto imagePaints = data.imagePaints.length()
+			? makeBuffer(_cmdPack, data.imagePaints.val(), data.imagePaints.size())
+			: _cmdPack.buffer->alloc(0);
+		auto colors = data.colors.length()
+			? makeBuffer(_cmdPack, data.colors.val(), data.colors.size())
+			: _cmdPack.buffer->alloc(0);
+		auto positions = data.positions.length()
+			? makeBuffer(_cmdPack, data.positions.val(), data.positions.size())
+			: _cmdPack.buffer->alloc(0);
 
 		// CAPAEnvironment stores Metal-compatible indirect dispatch structs, so
 		// each later pass can launch without CPU readback.
@@ -312,6 +324,10 @@ namespace qk {
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
 			// See capa_composite.glsl binding=5 for z-linear coverage pages.
 			[enc setBuffer:coverageTiles.val offset:coverageTiles.begin atIndex:5];
+			[enc setBuffer:gradientPaints.val offset:gradientPaints.begin atIndex:6];
+			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:7];
+			[enc setBuffer:colors.val offset:colors.begin atIndex:8];
+			[enc setBuffer:positions.val offset:positions.begin atIndex:9];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, compositePassGroups_Size16_16))
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize >> 1, kCAPATileSize >> 1, 1)];
