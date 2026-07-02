@@ -12,7 +12,7 @@ Qk_CONSTANT(
 #comp
 layout(local_size_x=32, local_size_y=1, local_size_z=1) in;
 
-layout(binding=1,set=0,std430) buffer CAPAEnvironments {
+layout(binding=1,set=0,std430) readonly buffer CAPAEnvironments {
 	CAPAEnvironment value;
 } env;
 
