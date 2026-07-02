@@ -5,6 +5,7 @@ const int CAPA_TILE_SIZE = 16;
 const uint CAPA_TILE_SIZE_U = 16u;
 const float CAPA_TILE_SIZE_F = 16.0;
 const int CAPA_TILE_SIZE_BITS = 4;
+// High sentinels keep real GPU-allocated indices starting at 0.
 const uint CAPA_NIL = 0xffffffffu;
 const uint CAPA_FULL_TILE = CAPA_NIL - 1u;
 const uint CAPA_SHORT_EDGE_CHUNK_SIZE = 4u;
@@ -38,8 +39,10 @@ const uint CAPA_BLEND_SCREEN = 17u;   //!< r = s + (1-s)*d
 const uint CAPA_BLEND_MULTIPLY = 18u; //!< r = d*s + (1-sa)*d
 
 struct CAPAEnvironment {
+	// Indirect dispatch arguments are uvec4-aligned so Metal can dispatch from
+	// the same storage without a CPU readback between CAPA passes.
 	uvec4 tilePassGroups_Size32; // number of 32-wide dispatch groups for small tile init pass
-	uvec4 orderPassGroups_Size32; // number of 32-wide dispatch groups for order pass
+	uvec4 layerPlanPassGroups_Size32; // number of 32-wide dispatch groups for layer plan pass
 	uvec4 binPassGroups_Size32; // number of 32-wide dispatch groups for bin pass
 	uvec4 backdropPassGroups_Size16_2; // number of 16x2-wide dispatch groups for backdrop pass
 	uvec4 classifyPassGroups_Size32; // number of 32-wide dispatch groups for classify pass
@@ -58,7 +61,9 @@ struct CAPAEnvironment {
 	uint boundaryTileCount; // number of CAPABoundaryTile allocated, starts at 0
 	uint realBoundaryTileCount; // number of CAPABoundaryTile allocated, non-overflow, starts at 0
 	uint boundaryDoneCount; // completed tile rows in boundary allocation pass
-	uint orderedPathTileCount; // number of CAPAPathTile nodes allocated by order pass
+	// Final CAPAPathTile span allocator. The initial path-local CAPASmallTile
+	// staging space is separate from this z-ordered global-tile list.
+	uint layerPlanPathTileCount; // number of CAPAPathTile nodes allocated by layer plan pass
 };
 
 struct CAPAGlobalTile {
@@ -67,6 +72,8 @@ struct CAPAGlobalTile {
 };
 
 struct CAPAPath {
+	// CPU uploads flattened path-space edges; prepare transforms them into
+	// surface-space CAPAEdge values and fills the tile ranges below.
 	vec4 matrixX; // 2x3 transform matrix for path coordinates
 	vec4 matrixY; // 2x3 transform matrix for path coordinates
 	vec4 clip; // clip begin,end
@@ -114,16 +121,23 @@ struct CAPAPathTileRow {
 	uint smallTileIndex; // SmallTileIndex of the first tile in this row
 	uint boundaryTileIndex; // boundaryTileIndex of the first tile in this row
 	uint boundaryTileCount; // number of boundary tiles in this row
+	// Initial row prefix for the first boundary tile in this path-tile row.
+	// This stays outside CAPABoundaryTile so coverage storage can be split out.
 	float backdrop[16]; // row initial prefix
 };
 
 struct CAPAPathTile {
 	uint pathIndex;
+	// Final composite uses this as CAPACoverageTile. During layer planning it
+	// temporarily carries the source CAPABoundaryTile until coverage slots exist.
 	uint coverageTileIndex; // index to CAPACoverageTile
 	uint color; // packed RGBA8 PMA color for preblended full tiles
 };
 
 struct CAPASmallTile {
+	// Staging value evolves through the pipeline:
+	// NIL after clear, short-edge head after bin, boundary index after boundary,
+	// FULL_TILE after classify for solid edge-free tiles.
 	uint value; // index to CAPABoundaryTile or CAPAShortEdgeNode head
 };
 
@@ -131,11 +145,14 @@ struct CAPABoundaryTile {
 	uint pathIndex; // index to CAPAPath
 	uint shortEdgeHead; // index to CAPAShortEdgeNode
 	ivec2 tileCoord;
+	// Before prefix: local row delta for this tile. After prefix: tile-left row
+	// prefix used by coverage integration.
 	float backdrop[16]; // local row delta before prefix, tile-left row prefix after prefix pass
 };
 
 struct CAPACoverageTile {
 	uint boundaryTileIndex; // index to CAPABoundaryTile
+	// Packed R8 coverage. Each uint stores 4 pixels in row-major order.
 	uint values[64]; // 16x16 coverage values, 4 pixels per value
 };
 

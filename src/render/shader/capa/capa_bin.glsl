@@ -56,7 +56,9 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, float winding, uint pat
 	ivec4 tileRect = paths.values[pathIndex].tileRect;
 	ivec2 local = tileCoord - tileRect.xy;
 
-	// check if the tileCoord is in the path tile rect, if not, ignore this edge
+	// The left side is clamped into the first path tile because left-of-row
+	// edges still affect backdrop/prefix. Other out-of-range sides are outside
+	// this path's allocated staging row and can be ignored.
 	if (local.y < 0 || local.y >= tileRect.w || local.x >= tileRect.z)
 		return;
 
@@ -73,7 +75,8 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, float winding, uint pat
 		edge.p0.y = -1.0e20;
 		edge.p1.y = -1.0e20;
 	}
-	// compute the tile index in the path tile rect
+	// Link a fully written per-task node into the small tile. Each task owns
+	// taskIndex*3 + {0,1,2}, so this avoids same-bucket append repair logic.
 	uint tileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
 	uint next = atomicExchange(smallTiles.values[tileIndex].value, shortEdgeIndex);
 	shortEdges.values[shortEdgeIndex] = CAPAShortEdgeNode(edge, next, 0u);
@@ -109,8 +112,8 @@ void main() {
 	if (minTileY > maxTileY) {
 		return;
 	}
-	// it's a vertical tile boundary,
-	// fix the tile0.x to tile1.x to avoid emitting edge twice
+	// An edge exactly on a vertical tile boundary belongs to the tile on the
+	// right. This keeps half-open tile ownership stable and avoids double links.
 	if (tile0.x > tile1.x) {
 		tile0.x = tile1.x;
 	}
@@ -124,7 +127,8 @@ void main() {
 	if (tile0 == tile1)
 		return;
 
-	// if the edge crosses a tile boundary x/y
+	// Diagonal short edges can touch one intermediate neighbor before reaching
+	// tile1. The short-edge length bound keeps this branch to at most one tile.
 	if (tile0.x != tile1.x && tile0.y != tile1.y) {
 		float dx = (tile0.x + 1) * CAPA_TILE_SIZE_F - p0.x;
 		float dy = abs((tile0.y + (p0yIsMin ? 1 : 0)) * CAPA_TILE_SIZE_F - p0.y);

@@ -40,10 +40,10 @@ void main() {
 	// update global tile bounds
 	capa_join_bounds_atomic(env.value.globalTileBounds, tileBounds);
 
-	// alloc path tiles
 	ivec2 tileSpan = tileBounds.zw - tileBounds.xy;
-	// only allocate path tiles if there are any tiles to allocate
 	if (tileSpan.x > 0 && tileSpan.y > 0) {
+		// This is path-local staging space. The composite-facing z-linear
+		// CAPAPathTile span is allocated later by capa_layer_plan.glsl.
 		uint smallTileCount = tileSpan.x * tileSpan.y;
 		uint tileOffset = atomicAdd(env.value.pathTileCount, smallTileCount);
 		if (tileOffset + smallTileCount <= pc.maxPathTileCount) {

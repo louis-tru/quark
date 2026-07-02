@@ -78,6 +78,8 @@ bool capa_clip_right_of_x(inout float y0, inout float y1, CAPAShortEdge edge, fl
 }
 
 float capa_right_width_integral(float x) {
+	// Integral of clamp(1 - x, 0, 1). Used to accumulate the area to the right
+	// of an edge segment within one pixel column.
 	if (x <= 0.0)
 		return x;
 	if (x >= 1.0)
@@ -108,7 +110,8 @@ void main() {
 	float y0 = float(tileCoord.y * CAPA_TILE_SIZE + row);
 	float y1 = y0 + 1.0;
 
-	// init local area and crossing delta for this boundary tile row
+	// localArea is the partial pixel area inside this tile; crossingDelta
+	// advances the row prefix after an edge crosses a pixel boundary.
 	float localArea[16];
 	float crossingDelta[16];
 	for (uint x = 0u; x < CAPA_TILE_SIZE_U; x++) {
@@ -143,10 +146,11 @@ void main() {
 		}
 	}
 
-	// write the coverage values for this boundary tile row
 	uint baseWord = row * 4u;
 	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 	uint fillRule = paths.values[pathIndex].fillRule;
+	// Prefix was rewritten by capa_prefix.glsl from local row delta into the
+	// tile-left winding/area state for this boundary tile.
 	float prefix = boundaryTiles.values[boundaryIndex].backdrop[row];
 	for (uint word = 0u; word < 4u; word++) {
 		uint x = word << 2u;

@@ -19,7 +19,7 @@ Current checkpoint:
   `src/render/shader/capa/`: `capa_prepare.glsl`, `capa_prepare_tiles.glsl`,
   `capa_prepare_dispatch.glsl`, `capa_tile.glsl`, `capa_bin.glsl`,
   `capa_boundary.glsl`, `capa_backdrop.glsl`, `capa_classify.glsl`,
-  `capa_prefix.glsl`, `capa_coverage.glsl`, `capa_order.glsl`, and
+  `capa_prefix.glsl`, `capa_coverage.glsl`, `capa_layer_plan.glsl`, and
   `capa_composite.glsl`.
 
 CAPA current state:
@@ -57,7 +57,7 @@ CAPA current state:
   pass-size tweaking.
 - 2026-07-02 CoverageTile locality checkpoint: packed R8 coverage was split out
   of `CAPABoundaryTile` into z-linear `CAPACoverageTile` storage allocated by the
-  order pass. This removes the old compact `visibleBoundaryTiles` indirection and
+  layer plan pass. This removes the old compact `visibleBoundaryTiles` indirection and
   makes composite consume coverage in per-global-tile layer order. In the current
   100-star capture the timing is roughly unchanged (`CAPA coverage` about 27.5%,
   `CAPA composite` about 25.4%), so treat this as a structural locality cleanup
@@ -125,10 +125,10 @@ Current CAPA caution:
 - Latest handoff note: preserve the current CAPA vNext semantics when coding:
   `capa_tile.glsl` is a 32-wide linear clear over `CAPASmallTile` records before
   binning, with one thread clearing one small tile, not a path/global-tile traversal.
-  `capa_order.glsl` runs after classify and before prefix/coverage, builds a
+  `capa_layer_plan.glsl` runs after classify and before prefix/coverage, builds a
   contiguous per-global-tile `CAPAPathTile` span from path `tileRect` hits, and
   allocates final z-linear `CAPACoverageTile` slots for retained real boundary
-  tiles. During order emission `CAPAPathTile.coverageTileIndex` temporarily holds
+  tiles. During layer-plan emission `CAPAPathTile.coverageTileIndex` temporarily holds
   the source `CAPABoundaryTile` index, then is rewritten to the allocated
   `CAPACoverageTile` index. There is no separate `visibleBoundaryTiles` table.
   `CAPASmallTile.value` values remain `CAPA_NIL` empty, `CAPA_FULL_TILE`
@@ -153,7 +153,7 @@ Current CAPA caution:
   allocates real boundary tiles from index `0`; `capa_backdrop.glsl` writes
   row initial prefixes to `CAPAPathTileRow.backdrop[16]` and per-boundary local
   deltas to `CAPABoundaryTile.backdrop[16]`; `capa_classify.glsl` marks edge-free
-  full small tiles with `CAPA_FULL_TILE`; `capa_order.glsl` allocates/fills the
+  full small tiles with `CAPA_FULL_TILE`; `capa_layer_plan.glsl` allocates/fills the
   final per-global-tile contiguous layer span and z-linear `CAPACoverageTile`
   storage; `capa_prefix.glsl` rewrites boundary backdrop to tile-left prefix
   values; `capa_coverage.glsl` writes packed R8 coverage into
@@ -324,7 +324,7 @@ CAPA GPU data-structure direction:
 - Dispatch argument direction: CAPA pass group counts in `CAPAEnvironment`
   should be stored as 16-byte-aligned `uvec4` values so they can map cleanly to
   Metal indirect dispatch arguments. Current shader fields include
-  `tilePassGroups_Size32`, `orderPassGroups_Size32`, `binPassGroups_Size32`,
+  `tilePassGroups_Size32`, `layerPlanPassGroups_Size32`, `binPassGroups_Size32`,
   `backdropPassGroups_Size16_2`, `classifyPassGroups_Size32`,
   `prefixPassGroups_Size16_2`, `coveragePassGroups_Size16_2`, and
   `compositePassGroups_Size16_16`. `coveragePassGroups_Size16_2.w` stores the
@@ -336,7 +336,7 @@ CAPA GPU data-structure direction:
   `compositePassGroups_Size16_16` for generated-ABI stability, but it no longer
   literally means one `16x16` threadgroup per tile.
   `capa_boundary.glsl` writes `backdropPassGroups_Size16_2` for the backdrop
-  pass; `capa_order.glsl` later writes `coveragePassGroups_Size16_2` after it
+  pass; `capa_layer_plan.glsl` later writes `coveragePassGroups_Size16_2` after it
   allocates retained z-linear coverage tiles.
 - 2026-06-27 executable CAPA checkpoint: the first Metal vNext path is
   now producing an image and the measured GPU time has dropped to about
@@ -379,7 +379,7 @@ CAPA GPU data-structure direction:
   around `8ms`. Xcode capture showed the composite pass dominating because the
   current pixel-pull compositor makes every pixel in a global tile traverse the
   pathTile layers. Empty bbox tiles must be removed from the final span, and
-  the early order pass can be split conceptually into pathTile initialization
+  the early layer plan pass can be split conceptually into pathTile initialization
   first and final non-empty ordering after prefix/classification. Changing the
   changing linked nodes to a compact contiguous layer list can improve memory
   behavior, but does not by itself change the `pixels * activeLayers` cost.
@@ -444,17 +444,17 @@ CAPA GPU data-structure direction:
   each small tile value to a real boundary index or `CAPA_NIL` on allocation
   failure. `capa_classify.glsl` scans the small tile row and writes
   `CAPA_FULL_TILE` for full edge-free spans, `capa_prefix.glsl` walks the
-  contiguous boundary range. `capa_order.glsl` now allocates a fresh contiguous
+  contiguous boundary range. `capa_layer_plan.glsl` now allocates a fresh contiguous
   `CAPAPathTile` span per global tile based on that tile's real layer count,
   then copies small tile boundary indices into the final ordered span only for
   tiles that composite will read.
 - 2026-06-30 CAPA ordered path-tile locality change: `capa_prepare_tiles.glsl`
   only allocates the path-local `CAPASmallTile` staging space. The final
-  `CAPAPathTile` records are allocated in `capa_order.glsl` with one atomic
+  `CAPAPathTile` records are allocated in `capa_layer_plan.glsl` with one atomic
   span allocation per global tile, so `capa_composite.glsl` can scan
   `CAPAGlobalTile.head + [0,count)` linearly instead of following path-local
   linked nodes scattered across paths.
-- 2026-06-30 CAPA ordered span simplification: the order pass no longer repeats
+- 2026-06-30 CAPA ordered span simplification: the layer plan pass no longer repeats
   full-tile composition/filtering logic while counting layers. It now counts
   only path `tileRect` hits for the current global tile, caches up to 16
   pathIndex values in a thread-local array, records the first overflow
@@ -466,18 +466,18 @@ CAPA GPU data-structure direction:
   `CAPASmallTile.value`, skips `CAPA_NIL`, and restores the previous consecutive
   SrcOver `CAPA_FULL_TILE` preblend. Allocation uses the raw hit count, while
   `CAPAGlobalTile.head/count` is adjusted to the actually emitted tail span.
-- 2026-07-01 CAPA order opacity cull: `capa_order.glsl` now scans matching paths
+- 2026-07-01 CAPA order opacity cull: `capa_layer_plan.glsl` now scans matching paths
   from front to back and writes retained nodes forward, so `CAPAGlobalTile.head`
   points at the topmost retained node. Composite also walks that span from top
   to bottom and uses `CAPABlendFront` to resolve against the unknown bottom
-  color. The order pass keeps its cull conservative: only full-tile `SrcOver`
+  color. The layer plan pass keeps its cull conservative: only full-tile `SrcOver`
   color layers are packed into a pending PMA RGBA8 preblend node, and scanning
   stops only when that pending color reaches full opacity. Other blend modes and
   real boundary tiles are retained instead of using `CAPABlendFront` to drop
   lower layers, because future image/gradient/tile-varying sources cannot be
-  safely culled at this coarse order stage.
+  safely culled at this coarse layer plan stage.
 - 2026-07-02 CAPA z-linear coverage tiles: this supersedes the short-lived
-  compact `visibleBoundaryTiles` table. Order now runs immediately after
+  compact `visibleBoundaryTiles` table. Layer plan now runs immediately after
   classify and before prefix/coverage, counts retained real boundary tiles while
   emitting each global tile span, reserves one contiguous `CAPACoverageTile`
   segment with one atomic add per global tile, writes each coverage tile's source
@@ -487,7 +487,7 @@ CAPA GPU data-structure direction:
   indirect dispatch dimensions without adding a separate environment counter.
 - 2026-06-30 CAPA ordered span capture note: the contiguous `CAPAPathTile`
   span change is not a clear win in the current 100-star pure-color scene.
-  A follow-up capture showed ordered tile span around `5.25%` while composite
+  A follow-up capture showed layer plan around `5.25%` while composite
   stayed about `33.96%`, compared with the previous ordered chain/span capture
   around `3.28%` and composite `34.34%`. This is plausible: the scene is mostly
   boundary-tile coverage reads and boundary tile access is still scattered.

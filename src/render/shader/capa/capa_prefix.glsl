@@ -38,7 +38,8 @@ void main() {
 	uint row = gl_LocalInvocationID.x;
 	float prefix = 0.0;
 
-	// tilex0 boundary tile's coverage is the prefix for this row
+	// The row record carries the prefix to the first real boundary tile. Boundary
+	// tiles themselves are then rewritten from local delta to tile-left prefix.
 	uint pathIndex = tileRows.values[tileRow].pathIndex;
 	if (boundaryTiles.values[boundaryIndex].tileCoord.x <= paths.values[pathIndex].tileRect.x) {
 		prefix = tileRows.values[tileRow].backdrop[row];

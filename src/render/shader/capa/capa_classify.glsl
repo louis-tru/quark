@@ -57,7 +57,8 @@ void main() {
 	bool is_full = false;
 
 	if (smallTiles.values[smallTileIndex].value != CAPA_NIL) {
-		// initialize prefix with the first boundary tiles backdrop for this row
+		// Start from the row prefix produced by backdrop for the first real
+		// boundary tile in this row.
 		prefix = tileRows.values[tileRow].backdrop[0];
 	}
 
@@ -68,7 +69,8 @@ void main() {
 			prefix += boundaryTiles.values[boundaryIndex].backdrop[0];
 			is_full = capa_is_full_backdrop(prefix, fillRule);
 		} else {
-			// store full backdrop as a high sentinel so real boundary index 0 remains usable
+			// Edge-free tiles inherit the current row prefix. If that prefix is
+			// inside the path, mark the tile as solid without allocating coverage.
 			if (is_full)
 				smallTiles.values[smallIndex].value = CAPA_FULL_TILE;
 		}

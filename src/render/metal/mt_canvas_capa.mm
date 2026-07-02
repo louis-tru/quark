@@ -20,6 +20,8 @@ namespace qk {
 
 		auto &budget = data.budget;
 		auto pathCount = data.paths.length();
+		// The CPU allocates conservative pools once. GPU passes publish real
+		// counts into env and then use indirect dispatch for the dependent passes.
 		auto env = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAEnvironment>(1);
 		auto envData = (MSLCapaPrepare::CAPAEnvironment*)((char*)env.val.contents + env.begin);
 		envData->globalTileBounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff);
@@ -29,25 +31,28 @@ namespace qk {
 		envData->pathTileRowCount = 0;
 		envData->boundaryTileCount = 0;
 		envData->boundaryDoneCount = 0;
-		envData->orderedPathTileCount = 0;
+		envData->layerPlanPathTileCount = 0;
 
-		// copy data to GPU buffer
+		// Upload path metadata and path-space edges. The remaining buffers are
+		// GPU-owned staging/final pools for the 12-pass CAPA pipeline.
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
 		auto shortTasks = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAShortEdgeTask>(budget.maxShortEdgeCount);
 		auto shortEdges = _cmdPack.buffer->alloc<MSLCapaBin::CAPAShortEdgeNode>(budget.maxShortEdgeCount * 3);
-		auto globalTiles = _cmdPack.buffer->alloc<MSLCapaOrder::CAPAGlobalTile>(budget.globalTileCount);
-		auto pathTiles = _cmdPack.buffer->alloc<MSLCapaOrder::CAPAPathTile>(budget.maxPathTileCount);
+		auto globalTiles = _cmdPack.buffer->alloc<MSLCapaLayerPlan::CAPAGlobalTile>(budget.globalTileCount);
+		auto pathTiles = _cmdPack.buffer->alloc<MSLCapaLayerPlan::CAPAPathTile>(budget.maxPathTileCount);
 		auto smallTiles = _cmdPack.buffer->alloc<MSLCapaTile::CAPASmallTile>(budget.maxPathTileCount);
 		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
 		auto coverageTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
 		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
 
+		// CAPAEnvironment stores Metal-compatible indirect dispatch structs, so
+		// each later pass can launch without CPU readback.
 		auto envIndirectOffset = [&](auto field) -> NSUInteger {
 			return NSUInteger(env.begin + field);
 		};
 
-#if DEBUG
+#if DEBUG && 0
 		Qk_DLog("Budget globalTileBounds: (%d, %d, %d, %d), "
 						"globalTileCount: %d, "
 						"maxShortEdgeCount: %d, "
@@ -70,7 +75,7 @@ namespace qk {
 							"pathTileCount   : %d, "
 							"pathTileRowCount   : %d, "
 							"boundaryTileCount   : %d, "
-							"orderedPathTileCount   : %d "
+							"layerPlanPathTileCount   : %d "
 				,
 				envData->globalTileBounds.x(),
 				envData->globalTileBounds.y(),
@@ -81,7 +86,7 @@ namespace qk {
 				envData->pathTileCount,
 				envData->pathTileRowCount,
 				envData->boundaryTileCount,
-				envData->orderedPathTileCount
+				envData->layerPlanPathTileCount
 			);
 		}];
 #endif
@@ -231,13 +236,13 @@ namespace qk {
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
-		{ // build ordered global-tile layer spans and z-linear coverage tiles
-			auto &shader = _shaders.capaOrder;
-			MSLCapaOrder::PcArgs pc{
+		{ // build global-tile layer plans and z-linear coverage tiles
+			auto &shader = _shaders.capaLayerPlan;
+			MSLCapaLayerPlan::PcArgs pc{
 				.pathCount=pathCount,
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
-			enc.label = @"CAPA ordered tile span";
+			enc.label = @"CAPA layer plan";
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
@@ -245,9 +250,11 @@ namespace qk {
 			[enc setBuffer:globalTiles.val offset:globalTiles.begin atIndex:shader.compute.globalTiles];
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
 			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
+			// Generated wrappers do not expose this binding yet; keep the shader
+			// binding number visible here instead of pretending it is arbitrary.
 			[enc setBuffer:coverageTiles.val offset:coverageTiles.begin atIndex:6];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
-				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, orderPassGroups_Size32))
+				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, layerPlanPassGroups_Size32))
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
 		}
@@ -303,6 +310,7 @@ namespace qk {
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:globalTiles.val offset:globalTiles.begin atIndex:shader.compute.globalTiles];
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
+			// See capa_composite.glsl binding=5 for z-linear coverage pages.
 			[enc setBuffer:coverageTiles.val offset:coverageTiles.begin atIndex:5];
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, compositePassGroups_Size16_16))

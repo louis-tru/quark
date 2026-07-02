@@ -397,7 +397,7 @@
 					'render/shader/capa/capa_prepare_tiles.glsl',
 					'render/shader/capa/capa_prepare_dispatch.glsl',
 					'render/shader/capa/capa_tile.glsl',
-					'render/shader/capa/capa_order.glsl',
+					'render/shader/capa/capa_layer_plan.glsl',
 					'render/shader/capa/capa_bin.glsl',
 					'render/shader/capa/capa_boundary.glsl',
 					'render/shader/capa/capa_backdrop.glsl',

@@ -811,12 +811,12 @@ if (pathTile.boundaryTileIndex == CAPA_NIL) {
   workgroup 处理两个 boundary tiles。
 - `capa_backdrop.glsl` 计算每个 boundaryTile 的本地 row area/backdrop：
   - `tileX < path.tileX0` 的贡献临时保存到 tileX0 的
-    `boundaryTile.coverage[row]`，作为 tileX0 的初始前缀累计值。
+    `CAPAPathTileRow.backdrop[row]`，作为 tileX0 的初始前缀累计值。
   - 每个 boundary tile 自身的 local row value 保存到
     `boundaryTile.backdrop[row]`。
   - `capa_prefix.glsl` 后，`backdrop[row]` 被改写成 coverage pass 需要的
-    tile-left row prefix；final coverage pass 会覆盖 `coverage[64]` 为
-    packed R8 coverage。
+    tile-left row prefix；final coverage pass 会把 packed R8 coverage 写入
+    独立的 `CAPACoverageTile.values[64]`。
 
 #### classify + prefix：把 boundary backdrop 转成横向前缀
 
@@ -825,7 +825,7 @@ if (pathTile.boundaryTileIndex == CAPA_NIL) {
 - `capa_prefix.glsl` 对真实 boundary tile 的每行 backdrop 做横向前缀。
   这里的“row 线程”沿 tileX 从左到右循环，不引入额外 scan。
 - `tileX0` 在 `capa_backdrop.glsl` 后已经有左侧前缀值；prefix pass 从
-  `tileX0.boundaryTile.coverage[row]` 读出初始值，然后：
+  对应的 `CAPAPathTileRow.backdrop[row]` 读出初始值，然后：
 
 ```txt
 prefix = tileX0.leftPrefix
@@ -860,9 +860,9 @@ tileX2.backdrop = prefix
 #### composite：ordered global tile color compositor
 
 - 每个 global target tile 启动 256 个线程，即一个像素一个线程。
-- 当前实现由 `capa_order.glsl` 按每个 global tile 命中的 path `tileRect`
+- 当前实现由 `capa_layer_plan.glsl` 按每个 global tile 命中的 path `tileRect`
   层数重新分配连续 `CAPAPathTile` span，`CAPAGlobalTile.head/count` 指向这段
-  连续内存。order 的 count 阶段只做 rect 命中统计；写入阶段再读
+  连续内存。layer plan 的 count 阶段只做 rect 命中统计；写入阶段再读
   `CAPASmallTile.value`、过滤 `CAPA_NIL`，并合并连续 SrcOver full tiles。
 - 每个线程按这段 global tile path.tile span 顺序遍历 layers：
   - `boundaryTileIndex == CAPA_NIL`：不入链，或 coverage = 0。

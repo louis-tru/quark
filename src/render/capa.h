@@ -19,12 +19,16 @@ namespace qk {
 
 	constexpr int kCAPATileSize = 16;
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
+	// Short-edge tasks are bounded so one task can touch at most three tiles in
+	// the bin pass, which gives each task fixed node ownership.
 	constexpr float kCAPAShortEdgeLength = 8.0f;
 
 	typedef MSLCapaPrepare::CAPAEdge CAPAEdge;
 	typedef MSLCapaPrepare::CAPAPath CAPAPath;
 
 	struct CAPABudget {
+		// CPU budget is deliberately conservative. Shader passes cap real counts
+		// against these limits and publish indirect dispatch sizes from the caps.
 		Range globalBounds{{F32::limit_max}, {F32::limit_min}};
 		IRange globalTileBounds;
 		uint32_t globalTileCount;

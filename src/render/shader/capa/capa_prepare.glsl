@@ -73,13 +73,12 @@ void main() {
 	vec2 p0 = capa_transform(pathIndex, edges.values[edgeIndex].p0);
 	vec2 p1 = capa_transform(pathIndex, edges.values[edgeIndex].p1);
 
-	// 计算边包围盒
 	vec4 bounds = capa_bounds(p0, p1);
-	// 裁剪包围盒
 	capa_clip_bounds(bounds, clip);
-	// 并集path的bounds
+	// Bounds only describe visible edge extents. Edges clipped on the left may
+	// still contribute winding/backdrop to later tiles, so validity is checked
+	// after publishing the conservative path bounds.
 	ivec4 ibounds = ivec4(floor(bounds.xy), ceil(bounds.zw));
-	// join bounds atomic
 	capa_join_bounds_atomic(paths.values[pathIndex].bounds, ibounds);
 
 	if (!capa_is_edge_valid(p0, p1, clip)) {
@@ -108,7 +107,8 @@ void main() {
 	if (edgeLength < 1e-6)
 		return;
 
-	// write short edge tasks
+	// Split long edges into short tasks. The bin pass relies on each task being
+	// short enough to touch at most three 16x16 tiles.
 	uint taskCount = uint(ceil(edgeLength / pc.shortEdgeLength));
 	float invTaskCount = 1.0 / float(taskCount);
 	uint offset = atomicAdd(env.value.taskCount, taskCount);

@@ -2,10 +2,11 @@
 // Compute per-boundary-tile row backdrop values.
 //
 // tileX0 is special:
-// - coverage[row] temporarily stores the accumulated backdrop from tiles left of tileX0.
+// - CAPAPathTileRow.backdrop[row] stores the accumulated backdrop from tiles
+//   left of tileX0.
 //
 // For tileX > tileX0:
-// - backdrop[row] stores this tile's own local row value.
+// - CAPABoundaryTile.backdrop[row] stores this tile's own local row delta.
 //
 // The prefix pass will turn backdrop[row] into row-prefix values.
 
@@ -97,7 +98,8 @@ void main() {
 	ivec2 pathCoord = paths.values[pathIndex].tileRect.xy;
 	if (tileCoord.x <= pathCoord.x) { // is tileX0
 		uint tileRowIndex = paths.values[pathIndex].tileRowOffset + tileCoord.y - pathCoord.y;
-		// save initial prefix for this row in coverage as float bits
+		// Save the initial row prefix in the row record; CAPABoundaryTile no
+		// longer has an extra slot now that coverage storage is split out.
 		tileRows.values[tileRowIndex].backdrop[row] = left;
 	}
 	boundaryTiles.values[boundaryIndex].backdrop[row] = local;

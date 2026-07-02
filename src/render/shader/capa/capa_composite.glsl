@@ -38,6 +38,7 @@ const uvec2 CAPA_COMPOSITE_SUBGROUPS = uvec2(2u, 2u);
 const float eps = 1e-6;
 
 float capa_load_boundary_coverage(uint coverageIndex, uint pixelIndex) {
+	// R8 coverage is packed as four consecutive row-major pixels per uint.
 	uint word = coverageTiles.values[coverageIndex].values[pixelIndex >> 2u];
 	uint shift = (pixelIndex & 3u) << 3u;
 	return float((word >> shift) & 255u) * (1.0 / 255.0);
@@ -54,6 +55,8 @@ float capa_path_tile_coverage(uint coverageIndex, uint pixelIndex) {
 struct CAPACoverageGroup {
 	bool hasValue;
 	uint blendMode;
+	// Coverage groups approximate neighboring layers as complementary pieces of
+	// one pixel until coverage reaches 1.0 or the blend mode changes.
 	float coverage;
 	vec4 src;
 };
@@ -67,6 +70,8 @@ CAPACoverageGroup capa_group_empty() {
 
 bool capa_front_ignores_bottom() {
 	const vec4 epsVec4 = vec4(eps);
+	// If both bottom coefficients are zero, lower layers and the destination
+	// image cannot change the resolved color for this pixel.
 	return all(lessThan(abs(front.scale), epsVec4)) && all(lessThan(abs(front.alphaTo), epsVec4));
 }
 
@@ -87,6 +92,8 @@ bool capa_group_add(vec4 src, uint blendMode, float coverage) {
 		group.coverage = coverage;
 		group.src = coveredSrc;
 	} else {
+		// Same-mode fragments inside one coverage group are converted into one
+		// weighted PMA color before entering the front-to-back blend expression.
 		group.coverage += coverage;
 		group.src += coveredSrc;
 	}
@@ -147,6 +154,8 @@ void main() {
 	for (uint i = 0u; i < count; i++) {
 		uint node = head + i;
 		if (pathTiles.values[node].color != 0u) {
+			// Packed color nodes are preblended full SrcOver runs from layer_plan;
+			// they do not need a coverage page lookup.
 			vec4 src = capa_unpack_rgba8(pathTiles.values[node].color);
 			if (capa_group_add_layer(src, CAPA_BLEND_SRC_OVER, 1.0))
 				break;
@@ -163,7 +172,8 @@ void main() {
 			break;
 	}
 
-	// If the group has a value, we need to flush it into the front before resolving the final color.
+	// The last group may be partially filled (< 1 coverage); it still contributes
+	// before resolving against the destination/clear bottom.
 	if (group.hasValue)
 		capa_blend_front_append(front, group.src, group.blendMode);
 

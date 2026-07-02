@@ -34,6 +34,8 @@ layout(binding=5,set=0,std430) buffer CAPATileRows {
 void capa_done() {
 	uint done = atomicAdd(env.value.boundaryDoneCount, 1u) + 1u;
 	if (done == env.value.realPathTileRowCount) {
+		// Last row publishes the real boundary count and the indirect backdrop
+		// dispatch size. Later passes consume only this capped range.
 		uint realBoundaryTileCount = min(env.value.boundaryTileCount, pc.maxBoundaryTileCount);
 		env.value.realBoundaryTileCount = realBoundaryTileCount;
 		env.value.backdropPassGroups_Size16_2 = uvec4((realBoundaryTileCount + 1u) / 2u, 1u, 1u, 0u);
@@ -56,6 +58,9 @@ void main() {
 	}
 
 	if (count != 0u) {
+		// Boundary tiles remain contiguous within a path-tile row. Prefix relies
+		// on this horizontal order, while layer_plan later creates the z-linear
+		// composite-facing coverage order.
 		uint rowLocalY = (tileIndex - paths.values[pathIndex].tileOffset) / tileRect.z;
 		ivec2 tileCoord = ivec2(tileRect.x, tileRect.y + rowLocalY);
 		uint base = atomicAdd(env.value.boundaryTileCount, count);

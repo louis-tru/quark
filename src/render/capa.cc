@@ -34,6 +34,8 @@ namespace qk {
 
 	uint32_t capa_maxBoundaryTileCount(float totalEdgeLen, uint32_t edgeCount) {
 		constexpr float kInvCAPATileSize = 1.0f / float(kCAPATileSize);
+		// Edge length divided by tile size overestimates boundary coverage pages
+		// without exploding to conservative bounds area for large filled shapes.
 		return uint32_t(ceilf(totalEdgeLen * kInvCAPATileSize)) + edgeCount;
 		// return uint32_t(ceilf(totalEdgeLen * kInvCAPATileSize * kCAPACoverageBudgetMultiplier));
 	}
@@ -98,6 +100,8 @@ namespace qk {
 		if (_owner->_clipState) {
 			clip = _owner->_clipState->range;
 		}
+		// CAPAPath starts with CPU metadata plus path-space edge offsets. The
+		// prepare/prepare_tiles passes fill surface bounds and tile ranges.
 		CAPAPath path {
 			.matrixX = Vec4(mat[0], mat[1], mat[2]),
 			.matrixY = Vec4(mat[3], mat[4], mat[5]),
@@ -112,7 +116,8 @@ namespace qk {
 			.tileRect = IVec4(0, 0, 0, 0),
 			.tileEnd = IVec2(0, 0),
 		};
-		// budget space for path tiles, short edges, and boundary tiles
+		// Budget space for staging small tiles, short-edge nodes, row records,
+		// boundary tiles, and final z-linear coverage pages.
 		auto edgeCount = edgeOffset + path.edgeCount;
 		auto totalEdgeLen = _totalEdgeLength + info.totalEdgeLength * capa_path_scale(path);
 		auto maxShortEdgeCount = capa_maxShortEdgeCount(totalEdgeLen, edgeCount);

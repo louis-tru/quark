@@ -1,4 +1,4 @@
-// CAPA ordered global-tile span pass.
+// CAPA layer plan pass.
 // Build each global tile's contiguous ordered path-tile layer span after
 // classification, and allocate z-linear coverage tiles for retained boundary tiles.
 
@@ -70,6 +70,8 @@ void capa_write_order_node(uint pathIndex, uint boundaryIndex, uint color) {
 void capa_flush_pending_src_over_full() {
 	if (!hasPendingSrcOverFull)
 		return;
+	// Consecutive full SrcOver color tiles can be represented by one packed
+	// PMA color node. Boundary/image/other blend modes flush this run first.
 	uint packedColor = capa_pack_rgba8(pendingSrcOverColor);
 	if (packedColor != 0u)
 		capa_write_order_node(pendingPathIndex, CAPA_FULL_TILE, packedColor);
@@ -79,18 +81,19 @@ void capa_flush_pending_src_over_full() {
 void capa_allocate_coverage_tiles() {
 	if (emittedBoundaryTileCount == 0u)
 		return;
-	uint base = atomicAdd(env.value.coveragePassGroups_Size16_2.w, emittedBoundaryTileCount);
-	uint slot = base;
+	// Allocate one z-linear coverage segment per global tile so composite walks
+	// coverage in the same order as the retained path-tile span.
+	uint cursor = atomicAdd(env.value.coveragePassGroups_Size16_2.w, emittedBoundaryTileCount);
 	for (uint i = 0u; i < emittedCount; i++) {
 		uint node = pathTileIndex + i;
 		uint boundaryIndex = pathTiles.values[node].coverageTileIndex;
 		if (boundaryIndex < CAPA_FULL_TILE) {
-			coverageTiles.values[slot].boundaryTileIndex = boundaryIndex;
-			pathTiles.values[node].coverageTileIndex = slot;
-			slot++;
+			coverageTiles.values[cursor].boundaryTileIndex = boundaryIndex;
+			pathTiles.values[node].coverageTileIndex = cursor++;
 		}
 	}
-	atomicMax(env.value.coveragePassGroups_Size16_2.x, (base + emittedBoundaryTileCount + 1u) / 2u);
+	// Coverage runs 16x2 rows per group, so two coverage tiles share one group.
+	atomicMax(env.value.coveragePassGroups_Size16_2.x, (cursor + 1u) / 2u);
 }
 
 bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
@@ -108,6 +111,8 @@ bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
 			pendingSrcOverColor = capa_blend(pendingSrcOverColor, src, CAPA_BLEND_SRC_OVER);
 		}
 		if (pendingSrcOverColor.a >= 1.0) {
+			// A fully opaque front SrcOver full tile hides all remaining lower
+			// full/boundary layers for this global tile.
 			return false;
 		}
 	} else {
@@ -125,21 +130,24 @@ void main() {
 	ivec2 globalTileSpan = env.value.globalTileSpan;
 	ivec2 tileCoord = env.value.globalTileBounds.xy +
 										ivec2(tileIndex % globalTileSpan.x, tileIndex / globalTileSpan.x);
-	uint orderPathCount = 0u;
+	uint layerPathCount = 0u;
 
-	// collect the number of paths that hit this global tile
+	// Count conservatively by path tileRect first. Some hits become NIL/full-run
+	// skips during emission, so the final globalTile.count is adjusted afterward.
 	for (uint i = 0u; i < pc.pathCount; i++) {
 		if (capa_path_hits_tile(i, tileCoord))
-			orderPathCount++;
+			layerPathCount++;
 	}
 
-	if (orderPathCount == 0u) {
+	if (layerPathCount == 0u) {
 		globalTiles.values[tileIndex] = CAPAGlobalTile(CAPA_NIL, 0u);
 		return;
 	}
 
-	pathTileIndex = atomicAdd(env.value.orderedPathTileCount, orderPathCount);
+	pathTileIndex = atomicAdd(env.value.layerPlanPathTileCount, layerPathCount);
 
+	// Emit from front to back. CAPAGlobalTile.head therefore points at the
+	// topmost retained layer, which lets composite stop when front ignores bottom.
 	for (uint i = 0u; i < pc.pathCount; i++) {
 		uint pathIndex = pc.pathCount - 1u - i;
 		if (capa_path_hits_tile(pathIndex, tileCoord)) {

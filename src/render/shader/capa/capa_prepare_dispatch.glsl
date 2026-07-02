@@ -28,10 +28,12 @@ void main() {
 		env.value.realPathTileRowCount = min(env.value.pathTileRowCount, pc.maxPathTileRowCount);
 		// compute the number of dispatch groups
 		env.value.tilePassGroups_Size32 = uvec4((env.value.realPathTileCount + 31u) / 32u, 1u, 1u, 0u);
-		env.value.orderPassGroups_Size32 = uvec4((env.value.globalTileCount + 31u) / 32u, 1u, 1u, 0u);
+		env.value.layerPlanPassGroups_Size32 = uvec4((env.value.globalTileCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.binPassGroups_Size32 = uvec4((env.value.realTaskCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.classifyPassGroups_Size32 = uvec4((env.value.realPathTileRowCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.prefixPassGroups_Size16_2 = uvec4((env.value.realPathTileRowCount + 1u) / 2u, 1u, 1u, 0u);
+		// coveragePassGroups_Size16_2.x and .w are finalized by layer_plan after
+		// it knows how many boundary tiles survived ordering/culling.
 		env.value.coveragePassGroups_Size16_2 = uvec4(0u, 1u, 1u, 0u);
 		env.value.compositePassGroups_Size16_16 = uvec4(uint(tileSpan.x) * 2u, uint(tileSpan.y) * 2u, 1u, 0u);
 	}

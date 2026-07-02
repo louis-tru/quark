@@ -33,7 +33,7 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
    - 单线程 pass。
    - 根据 `env.globalTileBounds/taskCount/pathTileRowCount` 写后续 indirect
      dispatch 参数：
-     `tilePassGroups_Size32`、`orderPassGroups_Size32`、
+     `tilePassGroups_Size32`、`layerPlanPassGroups_Size32`、
      `binPassGroups_Size32`、`classifyPassGroups_Size32`、
      `prefixPassGroups_Size16_2`、`compositePassGroups_Size16_16`。
    - 同时写 `env.globalTileSpan/globalTileCount`。
@@ -105,19 +105,19 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
 
 10. `capa_coverage.glsl`
    - 使用 `env.coveragePassGroups_Size16_2` indirect dispatch。
-   - 只处理 order 阶段保留下来的 `CAPACoverageTile`。每个 coverage tile
+   - 只处理 layer plan 阶段保留下来的 `CAPACoverageTile`。每个 coverage tile
      保存一个 source `CAPABoundaryTile` index，并拥有最终 `values[64]`
      packed R8 coverage page。
    - 开头先从 source boundary tile 的 `backdrop[row]` 读出本行 tile-left
      prefix 到私有变量，然后将 short-edge node + row prefix 积分成 16x16
      packed R8 coverage page。
 
-11. `capa_order.glsl`
-    - 使用 `env.orderPassGroups_Size32` indirect dispatch。
+11. `capa_layer_plan.glsl`
+    - 使用 `env.layerPlanPassGroups_Size32` indirect dispatch。
     - classify 后、prefix/coverage 前运行。每个 global tile 线程按 path
       `tileRect` 统计当前 tile 命中的 path-tile 层数，并从 front to back 写入
       保留的 layer span。
-    - 用 `env.orderedPathTileCount` 一次性分配连续 `CAPAPathTile` span，再从
+    - 用 `env.layerPlanPathTileCount` 一次性分配连续 `CAPAPathTile` span，再从
       `CAPASmallTile.value` 把 boundary/full tile 信息写入新的 `CAPAPathTile`；
       `CAPA_NIL` 空 tile 不写入最终 span。
     - 对真实 boundary tile，`CAPAPathTile.coverageTileIndex` 会先临时保存
