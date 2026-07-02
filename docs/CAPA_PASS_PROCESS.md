@@ -77,15 +77,14 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
    - 将 `CAPASmallTile.value` 从 short-edge head 改写为真实 boundary tile
      index；分配失败时写回 `CAPA_NIL`。
    - 最后完成的 row 线程根据 `env.boundaryTileCount` 写
-     `backdropPassGroups_Size16_2`，这个 group count 同时供 backdrop 和
-     coverage 两个 boundary-tile pass 使用。
+     `backdropPassGroups_Size16_2`，供 backdrop pass 使用。
 
 7. `capa_backdrop.glsl`
    - 使用 `env.backdropPassGroups_Size16_2` indirect dispatch。
    - `local_size_x=16, local_size_y=2`，一个 workgroup 处理两个 boundary tiles。
-   - 计算每个 boundary tile 的 per-row local backdrop。tileX0 的左侧初始
-     前缀临时借用 `coverage[row]` 保存，本 tile 的 local row 值写入
-     `backdrop[row]`。
+   - 计算每个 boundary tile 的 per-row local backdrop。tile row 的左侧
+     初始前缀保存到 `CAPAPathTileRow.backdrop[16]`，本 boundary tile 的
+     local row delta 写入 `CAPABoundaryTile.backdrop[16]`。
 
 8. `capa_classify.glsl`
    - 使用 `env.classifyPassGroups_Size32` indirect dispatch。
@@ -99,37 +98,44 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
    - 使用 `env.prefixPassGroups_Size16_2` indirect dispatch。
    - 沿 `CAPAPathTileRow.boundaryTileIndex/count` 指向的连续 boundary tile
      区间做真正 per-row prefix。
-   - 读取 `backdrop[row]` 的 local row 值，并把 `backdrop[row]` 改写成
-     coverage pass 需要的 tile-left row prefix。
+   - 从 `CAPAPathTileRow.backdrop[row]` 读取该 row 的初始前缀，累加
+     `CAPABoundaryTile.backdrop[row]` 的 local row delta，并把
+     `CAPABoundaryTile.backdrop[row]` 改写成 coverage pass 需要的 tile-left
+     row prefix。
 
 10. `capa_coverage.glsl`
-   - 使用 `env.backdropPassGroups_Size16_2` indirect dispatch。
-   - 只处理 real boundary tiles；真实 boundary tile index 从 `0` 开始。
-   - 开头先从 `backdrop[row]` 读出本行 tile-left prefix 到私有变量，然后
-     将 short-edge node + row prefix 积分成 16x16 packed R8 coverage page。
+   - 使用 `env.coveragePassGroups_Size16_2` indirect dispatch。
+   - 只处理 order 阶段保留下来的 `CAPACoverageTile`。每个 coverage tile
+     保存一个 source `CAPABoundaryTile` index，并拥有最终 `values[64]`
+     packed R8 coverage page。
+   - 开头先从 source boundary tile 的 `backdrop[row]` 读出本行 tile-left
+     prefix 到私有变量，然后将 short-edge node + row prefix 积分成 16x16
+     packed R8 coverage page。
 
 11. `capa_order.glsl`
     - 使用 `env.orderPassGroups_Size32` indirect dispatch。
-    - coverage/prefix 完成后，每个 global tile 线程只按 path `tileRect` 统计
-      当前 tile 命中的 path-tile 层数，不在统计阶段读取 coverage/small-tile
-      语义，也不做 full-tile 预混合。
-    - 常见路径先把最多 16 个 pathIndex 放入线程本地临时数组；超过临时容量时
-      记录第一个溢出 pathIndex，写入阶段从该位置继续遍历。
+    - classify 后、prefix/coverage 前运行。每个 global tile 线程按 path
+      `tileRect` 统计当前 tile 命中的 path-tile 层数，并从 front to back 写入
+      保留的 layer span。
     - 用 `env.orderedPathTileCount` 一次性分配连续 `CAPAPathTile` span，再从
-      `CAPASmallTile.value` 把 boundary tile index 写入新的 `CAPAPathTile`；
+      `CAPASmallTile.value` 把 boundary/full tile 信息写入新的 `CAPAPathTile`；
       `CAPA_NIL` 空 tile 不写入最终 span。
+    - 对真实 boundary tile，`CAPAPathTile.coverageTileIndex` 会先临时保存
+      source `CAPABoundaryTile` index；随后 order 为本 global tile 一次性分配
+      z-linear `CAPACoverageTile` 段，填入 source boundary index，并把
+      `coverageTileIndex` 回填成 final coverage tile index。
     - `CAPAGlobalTile.head/count` 表示这个 global tile 的连续 path-tile span，
       供 composite 线性访问。
     - 写入阶段会恢复连续 `SrcOver` full tile 预混合。分配使用 raw hit
-      count，实际写入可能更少；`CAPAGlobalTile.head/count` 指向分配区尾部
-      已写好的连续节点。
+      count，实际写入可能更少；`CAPAGlobalTile.head/count` 指向实际写好的
+      连续节点。
 
 12. `capa_composite.glsl`
     - 使用 `env.compositePassGroups_Size16_16` indirect dispatch。
-    - 每个 global tile 一个 16x16 workgroup，每个线程写一个 pixel。
+    - 每个 global tile 被拆成 `2x2` 个 `8x8` workgroup，每个线程写一个 pixel。
     - 按 global tile 的 ordered path-tile 连续 span 读取 coverage；`CAPA_NIL`
-      视为 0 coverage，`CAPA_FULL_TILE` 视为 1 coverage，其它值读取真实
-      boundary coverage，并在 shader 内按 `path.blendMode` 做纯色 ordered
+      视为 0 coverage，`CAPA_FULL_TILE` 视为 1 coverage，其它值读取 z-linear
+      `CAPACoverageTile.values`，并在 shader 内按 `path.blendMode` 做纯色 ordered
       composite，写入目标 texture。
 
 ## Metal Wiring Rules

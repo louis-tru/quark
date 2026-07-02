@@ -32,6 +32,7 @@ void main() {
 		env.value.binPassGroups_Size32 = uvec4((env.value.realTaskCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.classifyPassGroups_Size32 = uvec4((env.value.realPathTileRowCount + 31u) / 32u, 1u, 1u, 0u);
 		env.value.prefixPassGroups_Size16_2 = uvec4((env.value.realPathTileRowCount + 1u) / 2u, 1u, 1u, 0u);
-		env.value.compositePassGroups_Size16_16 = uvec4(tileSpan.x, tileSpan.y, 1u, 0u);
+		env.value.coveragePassGroups_Size16_2 = uvec4(0u, 1u, 1u, 0u);
+		env.value.compositePassGroups_Size16_16 = uvec4(uint(tileSpan.x) * 2u, uint(tileSpan.y) * 2u, 1u, 0u);
 	}
 }

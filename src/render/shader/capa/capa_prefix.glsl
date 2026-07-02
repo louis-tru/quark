@@ -41,7 +41,7 @@ void main() {
 	// tilex0 boundary tile's coverage is the prefix for this row
 	uint pathIndex = tileRows.values[tileRow].pathIndex;
 	if (boundaryTiles.values[boundaryIndex].tileCoord.x <= paths.values[pathIndex].tileRect.x) {
-		prefix = uintBitsToFloat(boundaryTiles.values[boundaryIndex].coverage[row]);
+		prefix = tileRows.values[tileRow].backdrop[row];
 	}
 	uint end = boundaryIndex + tileRows.values[tileRow].boundaryTileCount;
 	for (; boundaryIndex < end; boundaryIndex++) {

@@ -114,6 +114,8 @@ const informationsForTypes = {
 	mat3:  [9,'GL_FLOAT','float','MTLVertexFormatInvalid'],
 	mat4:  [16,'GL_FLOAT','float','MTLVertexFormatInvalid'],
 	sampler2D: [1,'GL_INT','int','MTLVertexFormatInt'],
+
+	bool: [1,'GL_BOOL','uint32_t','MTLVertexFormatUInt'],
 };
 
 // for example: float for float, vec4 for Vec4, int for int32_t, ivec3 for IVec3, ...
@@ -459,7 +461,11 @@ async function resolve_ast(name, stage, source_both) {
 	find_attributes(source, attributes);
 	find_uniforms_blocks(source_gl450, uniforms, uniform_blocks, storage_blocks, structs);
 
-	for (let owner of structs.concat(uniform_blocks, storage_blocks)) {
+	var linked = new Set();
+	function link_type(owner) {
+		if (linked.has(owner))
+			return;
+		linked.add(owner);
 		for (let b of owner.block) {
 			if (!b.glType) {
 				const type_struct = structs.find(s=>s.type == b.type);
@@ -471,7 +477,14 @@ async function resolve_ast(name, stage, source_both) {
 						type_struct.storage = true;
 				}
 			}
+			if (b.block) {
+				link_type(b);
+			}
 		}
+	}
+
+	for (let owner of storage_blocks.concat(uniform_blocks, structs)) {
+		link_type(owner);
 	}
 
 	for (let uniform of uniforms) {

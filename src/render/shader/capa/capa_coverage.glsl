@@ -20,12 +20,16 @@ layout(binding=2,set=0,std430) readonly buffer CAPAPaths {
 } paths;
 
 layout(binding=3,set=0,std430) readonly buffer CAPAShortEdges {
-	CAPAShortEdge values[];
+	CAPAShortEdgeNode values[];
 } shortEdges;
 
-layout(binding=4,set=0,std430) buffer CAPABoundaryTiles {
+layout(binding=4,set=0,std430) readonly buffer CAPABoundaryTiles {
 	CAPABoundaryTile values[];
 } boundaryTiles;
+
+layout(binding=5,set=0,std430) buffer CAPACoverageTiles {
+	CAPACoverageTile values[];
+} coverageTiles;
 
 float capa_area_to_coverage(float area, uint fillRule) {
 	switch (fillRule) {
@@ -48,23 +52,23 @@ uint capa_pack4(vec4 c) {
 	return b.r | (b.g << 8u) | (b.b << 16u) | (b.a << 24u);
 }
 
-float capa_edge_cross_x(float sampleY, CAPAShortEdge edge) {
-	return fma(sampleY - edge.p0.y, edge.dxdy, edge.p0.x);
+float capa_edge_cross_x(float sampleY, CAPAShortEdge edge, float dxdy) {
+	return fma(sampleY - edge.p0.y, dxdy, edge.p0.x);
 }
 
-bool capa_clip_right_of_x(inout float y0, inout float y1, CAPAShortEdge edge, float x) {
-	float x0 = capa_edge_cross_x(y0, edge);
-	float x1 = capa_edge_cross_x(y1, edge);
+bool capa_clip_right_of_x(inout float y0, inout float y1, CAPAShortEdge edge, float dxdy, float x) {
+	float x0 = capa_edge_cross_x(y0, edge, dxdy);
+	float x1 = capa_edge_cross_x(y1, edge, dxdy);
 	bool left0 = x0 <= x;
 	bool left1 = x1 <= x;
 	if (left0 && left1)
 		return false;
 	if (!left0 && !left1)
 		return true;
-	if (abs(edge.dxdy) < 1e-6)
+	if (abs(dxdy) < 1e-6)
 		return !left0;
 
-	float yCross = edge.p0.y + (x - edge.p0.x) / edge.dxdy;
+	float yCross = edge.p0.y + (x - edge.p0.x) / dxdy;
 	yCross = clamp(yCross, y0, y1);
 	if (left0)
 		y0 = yCross;
@@ -90,24 +94,21 @@ float capa_right_area_from_x(float dy, float x0, float x1, float pixelX) {
 	return dy * (capa_right_width_integral(x1) - capa_right_width_integral(x0)) / dx;
 }
 
-float capa_right_area(float y0, float y1, CAPAShortEdge edge, float pixelX) {
-	float x0 = capa_edge_cross_x(y0, edge);
-	float x1 = capa_edge_cross_x(y1, edge);
-	return capa_right_area_from_x(y1 - y0, x0, x1, pixelX);
-}
-
 void main() {
-	uint boundaryIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y;
-	if (boundaryIndex >= env.value.realBoundaryTileCount)
+	uint coverageIndex = gl_WorkGroupID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y;
+	uint coverageCount = env.value.coveragePassGroups_Size16_2.w;
+	if (coverageIndex >= coverageCount)
 		return;
+
+	uint boundaryIndex = coverageTiles.values[coverageIndex].boundaryTileIndex;
+
 	uint row = gl_LocalInvocationID.x;
 	ivec2 tileCoord = boundaryTiles.values[boundaryIndex].tileCoord;
-	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 	float originX = float(tileCoord.x * CAPA_TILE_SIZE);
 	float y0 = float(tileCoord.y * CAPA_TILE_SIZE + row);
 	float y1 = y0 + 1.0;
-	uint baseWord = row * 4u;
-	float prefix = boundaryTiles.values[boundaryIndex].backdrop[row];
+
+	// init local area and crossing delta for this boundary tile row
 	float localArea[16];
 	float crossingDelta[16];
 	for (uint x = 0u; x < CAPA_TILE_SIZE_U; x++) {
@@ -119,28 +120,34 @@ void main() {
 			head != CAPA_NIL;
 			head = shortEdges.values[head].next)
 	{
-		CAPAShortEdge edge = shortEdges.values[head];
+		CAPAShortEdge edge = shortEdges.values[head].edge;
+		float dxdy = capa_edge_dxdy(edge);
+		float winding = capa_edge_winding(edge);
 		float beginY = max(y0, min(edge.p0.y, edge.p1.y));
 		float endY = min(y1, max(edge.p0.y, edge.p1.y));
 		if (beginY >= endY)
 			continue;
-		if (!capa_clip_right_of_x(beginY, endY, edge, originX))
+		if (!capa_clip_right_of_x(beginY, endY, edge, dxdy, originX))
 			continue;
 		float dy = endY - beginY;
-		float x0 = capa_edge_cross_x(beginY, edge) - originX;
-		float x1 = capa_edge_cross_x(endY, edge) - originX;
+		float x0 = capa_edge_cross_x(beginY, edge, dxdy) - originX;
+		float x1 = capa_edge_cross_x(endY, edge, dxdy) - originX;
 		uint localBeginX = uint(clamp(floor(min(x0, x1)), 0.0, CAPA_TILE_SIZE_F));
 		uint localEndX = uint(clamp(ceil(max(x0, x1)), 0.0, CAPA_TILE_SIZE_F));
 
 		for (uint x = localBeginX; x < localEndX; x++) {
-			localArea[x] += edge.winding * capa_right_area_from_x(dy, x0, x1, float(x));
+			localArea[x] += winding * capa_right_area_from_x(dy, x0, x1, float(x));
 		}
 		if (localEndX < CAPA_TILE_SIZE) {
-			crossingDelta[localEndX] += edge.winding * dy;
+			crossingDelta[localEndX] += winding * dy;
 		}
 	}
 
+	// write the coverage values for this boundary tile row
+	uint baseWord = row * 4u;
+	uint pathIndex = boundaryTiles.values[boundaryIndex].pathIndex;
 	uint fillRule = paths.values[pathIndex].fillRule;
+	float prefix = boundaryTiles.values[boundaryIndex].backdrop[row];
 	for (uint word = 0u; word < 4u; word++) {
 		uint x = word << 2u;
 		vec4 coverage;
@@ -149,6 +156,6 @@ void main() {
 			prefix += crossingDelta[px];
 			coverage[i] = capa_area_to_coverage(prefix + localArea[px], fillRule);
 		}
-		boundaryTiles.values[boundaryIndex].coverage[baseWord + word] = capa_pack4(coverage);
+		coverageTiles.values[coverageIndex].values[baseWord + word] = capa_pack4(coverage);
 	}
 }

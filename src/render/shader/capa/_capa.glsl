@@ -44,7 +44,8 @@ struct CAPAEnvironment {
 	uvec4 backdropPassGroups_Size16_2; // number of 16x2-wide dispatch groups for backdrop pass
 	uvec4 classifyPassGroups_Size32; // number of 32-wide dispatch groups for classify pass
 	uvec4 prefixPassGroups_Size16_2; // number of 16x2-wide dispatch groups for prefix pass
-	uvec4 compositePassGroups_Size16_16; // number of 16x16-wide dispatch groups for composite pass
+	uvec4 coveragePassGroups_Size16_2; // x: 16x2 coverage groups, w: allocated CAPACoverageTile count
+	uvec4 compositePassGroups_Size16_16; // number of dispatch groups for composite pass
 	ivec4 globalTileBounds; // global tile bounds begin, end
 	ivec2 globalTileSpan; // global tile spanX, spanY
 	uint globalTileCount; // number of CAPAGlobalTile generated
@@ -69,7 +70,7 @@ struct CAPAPath {
 	vec4 matrixX; // 2x3 transform matrix for path coordinates
 	vec4 matrixY; // 2x3 transform matrix for path coordinates
 	vec4 clip; // clip begin,end
-	vec4 color; // fill color
+	vec4 color; // premultiplied fill color
 	ivec4 bounds; // path begin,end
 	ivec4 tileRect; // path tile begin, end
 	ivec2 tileEnd; // path tile end (exclusive)
@@ -93,9 +94,11 @@ struct CAPAEdge {
 struct CAPAShortEdge {
 	vec2 p0;
 	vec2 p1;
-	float dxdy;
-	float winding;
-	uint next; // index to next CAPAShortEdge
+};
+
+struct CAPAShortEdgeNode {
+	CAPAShortEdge edge;
+	uint next; // index to next CAPAShortEdgeNode
 	uint _pad;
 };
 
@@ -108,27 +111,32 @@ struct CAPAShortEdgeTask {
 
 struct CAPAPathTileRow {
 	uint pathIndex; // index to CAPAPath
-	uint pathTileIndex; // pathTileIndex of the first tile in this row
+	uint smallTileIndex; // SmallTileIndex of the first tile in this row
 	uint boundaryTileIndex; // boundaryTileIndex of the first tile in this row
 	uint boundaryTileCount; // number of boundary tiles in this row
+	float backdrop[16]; // row initial prefix
 };
 
 struct CAPAPathTile {
 	uint pathIndex;
-	uint boundaryTileIndex;
+	uint coverageTileIndex; // index to CAPACoverageTile
 	uint color; // packed RGBA8 PMA color for preblended full tiles
 };
 
 struct CAPASmallTile {
-	uint value; // index to CAPABoundaryTile or CAPAShortEdge head
+	uint value; // index to CAPABoundaryTile or CAPAShortEdgeNode head
 };
 
 struct CAPABoundaryTile {
 	uint pathIndex; // index to CAPAPath
-	uint shortEdgeHead; // index to CAPAShortEdge
+	uint shortEdgeHead; // index to CAPAShortEdgeNode
 	ivec2 tileCoord;
 	float backdrop[16]; // local row delta before prefix, tile-left row prefix after prefix pass
-	uint coverage[64];
+};
+
+struct CAPACoverageTile {
+	uint boundaryTileIndex; // index to CAPABoundaryTile
+	uint values[64]; // 16x16 coverage values, 4 pixels per value
 };
 
 #define capa_join_bounds_atomic(bounds, b) \
@@ -190,6 +198,143 @@ vec4 capa_blend(vec4 src, vec4 dst, uint mode) {
 	}
 }
 
+struct CAPABlendFront {
+	// Accumulates front-to-back blending as a function of the unknown bottom color:
+	//   result = bias + scale * bottom + alphaTo * bottom.a
+	// This lets order/coverage scan layers from front to back and still resolve the
+	// exact bottom-up blend later, once the retained bottom color is known.
+	vec4 bias;
+	vec4 scale;
+	vec4 alphaTo;
+};
+
+CAPABlendFront capa_blend_front_identity() {
+	return CAPABlendFront(vec4(0.0), vec4(1.0), vec4(0.0));
+}
+
+void capa_blend_front_append(inout CAPABlendFront blend, vec4 src, uint mode) {
+	// CAPAPath.color is already premultiplied before it reaches shaders. Do not
+	// multiply src.rgb by src.a before calling this helper. The LEGACY modes below
+	// intentionally keep capa_blend's historical straight-alpha approximation.
+	if (mode == CAPA_BLEND_SRC_OVER) {
+		blend.bias += blend.scale * src + blend.alphaTo * src.a;
+		float trans = 1.0 - src.a;
+		blend.scale *= trans;
+		blend.alphaTo *= trans;
+		return;
+	}
+
+	vec4 layerBias;
+	vec4 layerScale;
+	vec4 layerAlphaTo;
+	switch (mode) {
+		case CAPA_BLEND_CLEAR:
+			layerBias = vec4(0.0);
+			layerScale = vec4(0.0);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_SRC:
+			layerBias = src;
+			layerScale = vec4(0.0);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_DST:
+			return;
+		case CAPA_BLEND_DST_OVER:
+			layerBias = src;
+			layerScale = vec4(1.0, 1.0, 1.0, 0.0);
+			layerAlphaTo = vec4(-src.rgb, 1.0 - src.a);
+			break;
+		case CAPA_BLEND_SRC_IN:
+			layerBias = vec4(0.0);
+			layerScale = vec4(0.0);
+			layerAlphaTo = src;
+			break;
+		case CAPA_BLEND_DST_IN:
+			layerBias = vec4(0.0);
+			layerScale = vec4(src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_SRC_OUT:
+			layerBias = src;
+			layerScale = vec4(0.0);
+			layerAlphaTo = -src;
+			break;
+		case CAPA_BLEND_DST_OUT:
+			layerBias = vec4(0.0);
+			layerScale = vec4(1.0 - src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_SRC_ATOP:
+			layerBias = vec4(0.0);
+			layerScale = vec4(1.0 - src.a, 1.0 - src.a, 1.0 - src.a, 0.0);
+			layerAlphaTo = vec4(src.rgb, 1.0);
+			break;
+		case CAPA_BLEND_DST_ATOP:
+			layerBias = src;
+			layerScale = vec4(src.a, src.a, src.a, 0.0);
+			layerAlphaTo = vec4(-src.rgb, 0.0);
+			break;
+		case CAPA_BLEND_XOR:
+			layerBias = src;
+			layerScale = vec4(1.0 - src.a, 1.0 - src.a, 1.0 - src.a, 0.0);
+			layerAlphaTo = vec4(-src.rgb, 1.0 - 2.0 * src.a);
+			break;
+		case CAPA_BLEND_SRC_OVER_LEGACY:
+			layerBias = vec4(src.rgb * src.a, src.a);
+			layerScale = vec4(1.0 - src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_PLUS:
+			// PLUS is nonlinear only because capa_blend clamps after each layer.
+			// Accumulate the add linearly and clamp in resolve. This is exact for
+			// consecutive PLUS layers, but approximate if other modes are interleaved.
+			layerBias = src;
+			layerScale = vec4(1.0);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_PLUS_LEGACY:
+			// Same delayed-saturation approximation as PLUS, with legacy src alpha.
+			layerBias = vec4(src.rgb * src.a, src.a);
+			layerScale = vec4(1.0);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_MODULATE:
+			layerBias = vec4(0.0);
+			layerScale = src;
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_SCREEN:
+			layerBias = vec4(src.rgb, src.a);
+			layerScale = vec4(1.0 - src.rgb, 1.0 - src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+		case CAPA_BLEND_MULTIPLY:
+			layerBias = vec4(0.0, 0.0, 0.0, src.a);
+			layerScale = vec4(src.rgb + vec3(1.0 - src.a), 1.0 - src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+		default:
+			layerBias = src;
+			layerScale = vec4(1.0 - src.a);
+			layerAlphaTo = vec4(0.0);
+			break;
+	}
+
+	// Compose the accumulated front function with the new layer function:
+	// front(layer(bottom)). layer alpha is b.a + (s.a + a.a) * bottom.a.
+	blend.bias += blend.scale * layerBias + blend.alphaTo * layerBias.a;
+	blend.alphaTo = blend.scale * layerAlphaTo + blend.alphaTo * (layerScale.a + layerAlphaTo.a);
+	blend.scale *= layerScale;
+}
+
+vec4 capa_blend_front_resolve(CAPABlendFront blend, vec4 bottom) {
+	vec4 dst = blend.bias + blend.scale * bottom + blend.alphaTo * bottom.a;
+	// The final clamp is exact for PLUS-only chains and harmless for normalized
+	// premultiplied colors produced by the other blend modes.
+	return min(dst, vec4(1.0));
+}
+
 uint capa_pack_rgba8(vec4 c) {
 	vec4 v = clamp(c, vec4(0.0), vec4(1.0)) * 255.0 + 0.5;
 	uvec4 b = uvec4(v);
@@ -203,4 +348,13 @@ vec4 capa_unpack_rgba8(uint c) {
 		float((c >> 16u) & 255u),
 		float((c >> 24u) & 255u)
 	) * (1.0 / 255.0);
+}
+
+float capa_edge_dxdy(CAPAShortEdge edge) {
+	float dy = edge.p1.y - edge.p0.y;
+	return dy != 0.0 ? (edge.p1.x - edge.p0.x) / dy : 0.0;
+}
+
+float capa_edge_winding(CAPAShortEdge edge) {
+	return edge.p1.y > edge.p0.y ? 1.0 : edge.p1.y < edge.p0.y ? -1.0 : 0.0;
 }

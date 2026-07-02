@@ -1,10 +1,9 @@
 // CAPA ordered global-tile span pass.
 // Build each global tile's contiguous ordered path-tile layer span after
-// classification and coverage generation.
+// classification, and allocate z-linear coverage tiles for retained boundary tiles.
 
 Qk_CONSTANT(
 	uint pathCount;
-	uint maxPathTileCount;
 );
 
 #import "_capa.glsl"
@@ -32,12 +31,16 @@ layout(binding=5,set=0,std430) readonly buffer CAPASmallTiles {
 	CAPASmallTile values[];
 } smallTiles;
 
-const uint CAPA_ORDER_PATH_CACHE_SIZE = 16u;
-uint orderPathCount = 0u;
+layout(binding=6,set=0,std430) buffer CAPACoverageTiles {
+	CAPACoverageTile values[];
+} coverageTiles;
+
+uint pathTileIndex;
 uint emittedCount = 0u;
-bool hasPendingFull = false;
-uint pendingPathIndex = CAPA_NIL;
-vec4 pendingColor = vec4(0.0);
+uint emittedBoundaryTileCount = 0u;
+bool hasPendingSrcOverFull = false;
+uint pendingPathIndex;
+vec4 pendingSrcOverColor;
 
 bool capa_path_hits_tile(uint pathIndex, ivec2 tileCoord) {
 	ivec2 tileBegin = paths.values[pathIndex].tileRect.xy;
@@ -52,45 +55,66 @@ uint capa_small_tile_value(uint pathIndex, ivec2 tileCoord) {
 	return smallTiles.values[paths.values[pathIndex].tileOffset + localOffset].value;
 }
 
-void capa_write_order_node(uint node, uint pathIndex, uint boundaryIndex, uint color) {
-	pathTiles.values[node].pathIndex = pathIndex;
-	pathTiles.values[node].boundaryTileIndex = boundaryIndex;
-	pathTiles.values[node].color = color;
+void capa_write_order_node(uint pathIndex, uint boundaryIndex, uint color) {
+	uint storeIndex = pathTileIndex + emittedCount;
+	pathTiles.values[storeIndex].pathIndex = pathIndex;
+	// Temporarily stores the source CAPABoundaryTile index; after this tile's
+	// z-linear coverage slots are allocated, it is replaced with CAPACoverageTile.
+	pathTiles.values[storeIndex].coverageTileIndex = boundaryIndex;
+	pathTiles.values[storeIndex].color = color;
+	if (boundaryIndex < CAPA_FULL_TILE)
+		emittedBoundaryTileCount++;
+	emittedCount++;
 }
 
-void capa_flush_pending_full(uint base) {
-	if (!hasPendingFull)
+void capa_flush_pending_src_over_full() {
+	if (!hasPendingSrcOverFull)
 		return;
-
-	uint packedColor = capa_pack_rgba8(pendingColor);
-	if (packedColor != 0u) {
-		uint node = base + orderPathCount - emittedCount - 1u;
-		capa_write_order_node(node, pendingPathIndex, CAPA_FULL_TILE, packedColor);
-		emittedCount++;
-	}
-	hasPendingFull = false;
-	pendingPathIndex = CAPA_NIL;
-	pendingColor = vec4(0.0);
+	uint packedColor = capa_pack_rgba8(pendingSrcOverColor);
+	if (packedColor != 0u)
+		capa_write_order_node(pendingPathIndex, CAPA_FULL_TILE, packedColor);
+	hasPendingSrcOverFull = false;
 }
 
-void capa_emit_path(ivec2 tileCoord, uint base, uint pathIndex) {
+void capa_allocate_coverage_tiles() {
+	if (emittedBoundaryTileCount == 0u)
+		return;
+	uint base = atomicAdd(env.value.coveragePassGroups_Size16_2.w, emittedBoundaryTileCount);
+	uint slot = base;
+	for (uint i = 0u; i < emittedCount; i++) {
+		uint node = pathTileIndex + i;
+		uint boundaryIndex = pathTiles.values[node].coverageTileIndex;
+		if (boundaryIndex < CAPA_FULL_TILE) {
+			coverageTiles.values[slot].boundaryTileIndex = boundaryIndex;
+			pathTiles.values[node].coverageTileIndex = slot;
+			slot++;
+		}
+	}
+	atomicMax(env.value.coveragePassGroups_Size16_2.x, (base + emittedBoundaryTileCount + 1u) / 2u);
+}
+
+bool capa_emit_path(ivec2 tileCoord, uint pathIndex) {
 	uint boundaryIndex = capa_small_tile_value(pathIndex, tileCoord);
+	if (boundaryIndex == CAPA_NIL)
+		return true;
+
 	if (boundaryIndex == CAPA_FULL_TILE && paths.values[pathIndex].blendMode == CAPA_BLEND_SRC_OVER) {
 		vec4 src = paths.values[pathIndex].color;
-		src.rgb *= src.a;
-		if (!hasPendingFull) {
-			hasPendingFull = true;
+		if (!hasPendingSrcOverFull) {
+			hasPendingSrcOverFull = true;
 			pendingPathIndex = pathIndex;
-			pendingColor = src;
+			pendingSrcOverColor = src;
 		} else {
-			pendingColor = capa_blend(pendingColor, src, CAPA_BLEND_SRC_OVER);
+			pendingSrcOverColor = capa_blend(pendingSrcOverColor, src, CAPA_BLEND_SRC_OVER);
 		}
-	} else if (boundaryIndex != CAPA_NIL) {
-		capa_flush_pending_full(base);
-		uint node = base + orderPathCount - emittedCount - 1u;
-		capa_write_order_node(node, pathIndex, boundaryIndex, 0u);
-		emittedCount++;
+		if (pendingSrcOverColor.a >= 1.0) {
+			return false;
+		}
+	} else {
+		capa_flush_pending_src_over_full();
+		capa_write_order_node(pathIndex, boundaryIndex, 0u);
 	}
+	return true;
 }
 
 void main() {
@@ -101,10 +125,11 @@ void main() {
 	ivec2 globalTileSpan = env.value.globalTileSpan;
 	ivec2 tileCoord = env.value.globalTileBounds.xy +
 										ivec2(tileIndex % globalTileSpan.x, tileIndex / globalTileSpan.x);
+	uint orderPathCount = 0u;
 
 	// collect the number of paths that hit this global tile
-	for (uint pathIndex = 0u; pathIndex < pc.pathCount; pathIndex++) {
-		if (capa_path_hits_tile(pathIndex, tileCoord))
+	for (uint i = 0u; i < pc.pathCount; i++) {
+		if (capa_path_hits_tile(i, tileCoord))
 			orderPathCount++;
 	}
 
@@ -113,23 +138,23 @@ void main() {
 		return;
 	}
 
-	uint base = atomicAdd(env.value.orderedPathTileCount, orderPathCount);
-	if (base + orderPathCount > pc.maxPathTileCount) {
-		globalTiles.values[tileIndex] = CAPAGlobalTile(CAPA_NIL, 0u);
-		return;
-	}
+	pathTileIndex = atomicAdd(env.value.orderedPathTileCount, orderPathCount);
 
-	for (uint pathIndex = 0; pathIndex < pc.pathCount; pathIndex++) {
-		if (capa_path_hits_tile(pathIndex, tileCoord))
-			capa_emit_path(tileCoord, base, pathIndex);
+	for (uint i = 0u; i < pc.pathCount; i++) {
+		uint pathIndex = pc.pathCount - 1u - i;
+		if (capa_path_hits_tile(pathIndex, tileCoord)) {
+			if (!capa_emit_path(tileCoord, pathIndex))
+				break;
+		}
 	}
+	capa_flush_pending_src_over_full();
 
-	capa_flush_pending_full(base);
 	if (emittedCount == 0u) {
 		globalTiles.values[tileIndex] = CAPAGlobalTile(CAPA_NIL, 0u);
 		return;
 	}
+	capa_allocate_coverage_tiles();
 
 	// write the contiguous span for this global tile
-	globalTiles.values[tileIndex] = CAPAGlobalTile(base + orderPathCount - emittedCount, emittedCount);
+	globalTiles.values[tileIndex] = CAPAGlobalTile(pathTileIndex, emittedCount);
 }

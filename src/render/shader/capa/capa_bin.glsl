@@ -25,7 +25,7 @@ layout(binding=3,set=0,std430) readonly buffer CAPAEdges {
 } edges;
 
 layout(binding=4,set=0,std430) buffer CAPAShortEdges {
-	CAPAShortEdge values[];
+	CAPAShortEdgeNode values[];
 } shortEdges;
 
 layout(binding=5,set=0,std430) readonly buffer CAPAShortEdgeTasks {
@@ -48,15 +48,11 @@ CAPAShortEdge capa_short_edge(uint edgeIndex, float t0, float t1) {
 	vec2 p1 = edges.values[edgeIndex].p1;
 	return CAPAShortEdge(
 		mix(p0, p1, t0),
-		mix(p0, p1, t1),
-		edges.values[edgeIndex].dxdy,
-		edges.values[edgeIndex].winding,
-		CAPA_NIL,
-		0
+		mix(p0, p1, t1)
 	);
 }
 
-void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint shortEdgeIndex) {
+void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, float winding, uint pathIndex, uint shortEdgeIndex) {
 	ivec4 tileRect = paths.values[pathIndex].tileRect;
 	ivec2 local = tileCoord - tileRect.xy;
 
@@ -67,17 +63,20 @@ void capa_emit_edge(ivec2 tileCoord, CAPAShortEdge edge, uint pathIndex, uint sh
 	if (local.x < 0) {
 		local.x = 0; // clamp to the left edge of the path tile rect
 	}
-	// compute the tile index in the path tile rect
-	uint tileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
 
-	if (edge.winding == 0.0) {
+	// if the edge is almost horizontal
+	// Nearly-horizontal edges do not contribute area/backdrop after prepare
+	// clears their winding, but the touched tile still needs a boundary tile.
+	// Move the marker outside all real rows so backdrop/coverage skip it while
+	// the tile remains non-empty for boundary allocation.
+	if (winding == 0.0) {
 		edge.p0.y = -1.0e20;
 		edge.p1.y = -1.0e20;
 	}
-
+	// compute the tile index in the path tile rect
+	uint tileIndex = paths.values[pathIndex].tileOffset + local.y * tileRect.z + local.x;
 	uint next = atomicExchange(smallTiles.values[tileIndex].value, shortEdgeIndex);
-	edge.next = next;
-	shortEdges.values[shortEdgeIndex] = edge;
+	shortEdges.values[shortEdgeIndex] = CAPAShortEdgeNode(edge, next, 0u);
 }
 
 void main() {
@@ -87,6 +86,8 @@ void main() {
 
 	CAPAShortEdgeTask task = shortEdgeTasks.values[taskIndex];
 	CAPAShortEdge edge = capa_short_edge(task.edgeIndex, task.t0, task.t1);
+	float dxdy = edges.values[task.edgeIndex].dxdy;
+	float winding = edges.values[task.edgeIndex].winding;
 
 	vec2 p0 = edge.p0.x < edge.p1.x ? edge.p0: edge.p1;
 	vec2 p1 = edge.p0.x < edge.p1.x ? edge.p1: edge.p0;
@@ -118,7 +119,7 @@ void main() {
 	// each short edge task can emit at most 3 short edges to the path tile
 	uint shortEdgeIndex = taskIndex * 3;
 
-	capa_emit_edge(tile0, edge, task.pathIndex, shortEdgeIndex);
+	capa_emit_edge(tile0, edge, winding, task.pathIndex, shortEdgeIndex);
 
 	if (tile0 == tile1)
 		return;
@@ -127,14 +128,14 @@ void main() {
 	if (tile0.x != tile1.x && tile0.y != tile1.y) {
 		float dx = (tile0.x + 1) * CAPA_TILE_SIZE_F - p0.x;
 		float dy = abs((tile0.y + (p0yIsMin ? 1 : 0)) * CAPA_TILE_SIZE_F - p0.y);
-		float dy2 = abs(dx / edge.dxdy);
+		float dy2 = abs(dx / dxdy);
 
 		if (dy2 < dy) {
-			capa_emit_edge(tile0 + ivec2(1, 0), edge, task.pathIndex, shortEdgeIndex + 1);
+			capa_emit_edge(tile0 + ivec2(1, 0), edge, winding, task.pathIndex, shortEdgeIndex + 1);
 		} else if (dy2 > dy) {
-			capa_emit_edge(tile0 + ivec2(0, p0yIsMin ? 1 : -1), edge, task.pathIndex, shortEdgeIndex + 1);
+			capa_emit_edge(tile0 + ivec2(0, p0yIsMin ? 1 : -1), edge, winding, task.pathIndex, shortEdgeIndex + 1);
 		}
 	}
 
-	capa_emit_edge(tile1, edge, task.pathIndex, shortEdgeIndex + 2);
+	capa_emit_edge(tile1, edge, winding, task.pathIndex, shortEdgeIndex + 2);
 }

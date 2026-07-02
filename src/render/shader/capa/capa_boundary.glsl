@@ -46,7 +46,7 @@ void main() {
 		return;
 
 	uint pathIndex = tileRows.values[tileRow].pathIndex;
-	uint tileIndex = tileRows.values[tileRow].pathTileIndex;
+	uint tileIndex = tileRows.values[tileRow].smallTileIndex;
 	uint count = 0u;
 	ivec4 tileRect = paths.values[pathIndex].tileRect;
 
@@ -63,7 +63,7 @@ void main() {
 			tileRows.values[tileRow].boundaryTileIndex = base;
 			tileRows.values[tileRow].boundaryTileCount = min(count, pc.maxBoundaryTileCount - base);
 		} else {
-			tileRows.values[tileRow].boundaryTileCount = 0u; // no boundary tiles allocated for this row
+			tileRows.values[tileRow].boundaryTileCount = 0; // no boundary tiles allocated for this row
 		}
 
 		for (uint tileX = 0u; tileX < tileRect.z; tileX++) {

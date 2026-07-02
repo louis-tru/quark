@@ -11,7 +11,6 @@
 
 namespace qk {
 	constexpr float kCAPACoverageBudgetMultiplier = 1.2f;
-	constexpr uint32_t kCAPAMinBoundaryTileCapacity = 3;
 	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 20;
 	constexpr uint32_t kCAPACoveragePageBytes = sizeof(MSLCapaBackdrop::CAPABoundaryTile);
 
@@ -159,7 +158,6 @@ namespace qk {
 		};
 		auto tileSpan = budget.globalTileBounds.size();
 		budget.globalTileCount = tileSpan.x() * tileSpan.y();
-		budget.maxBoundaryTileCount += kCAPAMinBoundaryTileCapacity;
 		_owner->drawCAPACmd(_data);
 		reset();
 	}

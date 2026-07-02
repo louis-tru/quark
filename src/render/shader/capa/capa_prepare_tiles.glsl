@@ -52,7 +52,10 @@ void main() {
 			int rows = min(tileSpan.y, int(pc.maxPathTileRowCount) - int(offset));
 			for (int i = 0; i < rows; i++) {
 				// write the index to the first tile of this row in the path tile row
-				tileRows.values[offset+i] = CAPAPathTileRow(pathIndex, tileOffset + i * tileSpan.x, CAPA_NIL, 0u);
+				tileRows.values[offset+i].pathIndex = pathIndex;
+				tileRows.values[offset+i].smallTileIndex = tileOffset + i * tileSpan.x;
+				tileRows.values[offset+i].boundaryTileIndex = CAPA_NIL;
+				tileRows.values[offset+i].boundaryTileCount = 0u;
 			}
 			// if all rows are allocated, write the tile offset and count to the path
 			if (rows == tileSpan.y) {

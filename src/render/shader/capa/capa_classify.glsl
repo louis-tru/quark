@@ -50,24 +50,27 @@ void main() {
 		return;
 
 	uint pathIndex = tileRows.values[tileRow].pathIndex;
-	uint pathTileIndex = tileRows.values[tileRow].pathTileIndex;
+	uint smallTileIndex = tileRows.values[tileRow].smallTileIndex;
 	uint tileSpanX = paths.values[pathIndex].tileRect.z;
 	uint fillRule = paths.values[pathIndex].fillRule;
 	float prefix = 0.0;
 	bool is_full = false;
 
+	if (smallTiles.values[smallTileIndex].value != CAPA_NIL) {
+		// initialize prefix with the first boundary tiles backdrop for this row
+		prefix = tileRows.values[tileRow].backdrop[0];
+	}
+
 	for (uint tileX = 0u; tileX < tileSpanX; tileX++) {
-		uint boundaryIndex = smallTiles.values[pathTileIndex + tileX].value;
+		uint smallIndex = smallTileIndex + tileX;
+		uint boundaryIndex = smallTiles.values[smallIndex].value;
 		if (boundaryIndex != CAPA_NIL) {
-			if (tileX == 0u)
-				prefix = uintBitsToFloat(boundaryTiles.values[boundaryIndex].coverage[0]);
 			prefix += boundaryTiles.values[boundaryIndex].backdrop[0];
 			is_full = capa_is_full_backdrop(prefix, fillRule);
-		}
-		else {
+		} else {
 			// store full backdrop as a high sentinel so real boundary index 0 remains usable
 			if (is_full)
-				smallTiles.values[pathTileIndex + tileX].value = CAPA_FULL_TILE;
+				smallTiles.values[smallIndex].value = CAPA_FULL_TILE;
 		}
 	}
 }
