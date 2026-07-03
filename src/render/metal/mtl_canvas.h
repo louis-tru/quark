@@ -38,7 +38,6 @@ namespace qk {
 		~MetalCanvas() override;
 		bool swapBuffer() override;
 		Array<MTLCommandBufferID> flushBuffer(); // flush front buffer and return mtl command buffers
-		void flushSubcanvas(MetalCanvas *sub); // flush subcanvas to current canvas
 		// inline MTLTextureID outTex() { return _outTex; }
 		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
 		void vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst);
@@ -67,6 +66,7 @@ namespace qk {
 		}
 		MTLEncoder usePipeline(MSLShader& shader, const VertexData &vertex, MTLEncoder enc);
 		MTLEncoder useTexture0(const PaintImage *paint, int dstSlot, bool* isYuv = nullptr);
+		void flushSubcanvasCmd(GPUCanvas *sub) override;
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
 		void setBlendModeCmd() override;
@@ -97,7 +97,7 @@ namespace qk {
 			buildGradientBuffer(const PaintGradient *paint, const Color4f &color);
 	private:
 	// fields:
-		MetalRender *_render; // render backend
+		MetalRender *_mtlrender; // render backend
 		MTLDeviceID  _device; // Metal device
 		MTLCommandQueueID _commandQueue; // Metal command queue
 		MTL_CmdPack  _cmdPack, _cmdPackFront; // current and front command pack for render

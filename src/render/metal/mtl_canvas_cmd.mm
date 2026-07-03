@@ -130,7 +130,7 @@ namespace qk {
 			MSLColor::ClipStatBlock clipStat = { *((Vec4*)clip->range.begin.val), clip->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*clip->mask) atIndex:0];
-			[_cmdPack.enc setFragmentSamplerState:_render->_nearestSampler atIndex:0];
+			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];
 		} else {
 			[_cmdPack.enc setFragmentTexture:nil atIndex:0];
 		}
@@ -150,7 +150,7 @@ namespace qk {
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentTexture:mtl_get_texture_from(src) atIndex:cp.fragment.image];
-		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:cp.fragment.image];
+		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:cp.fragment.image];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
 	}
 
@@ -160,8 +160,8 @@ namespace qk {
 		MSLColor::PcArgs pc{ 0,0, color, offset, flags };
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
 		// draw a full-screen triangle for clear
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
@@ -240,7 +240,7 @@ namespace qk {
 		enc.label = @"CGAA Color";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
 
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
@@ -250,7 +250,7 @@ namespace qk {
 		};
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
 		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
@@ -293,7 +293,7 @@ namespace qk {
 		enc.label = @"CGAA Gradient";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
 
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
@@ -311,7 +311,7 @@ namespace qk {
 
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
 		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
 		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
@@ -334,7 +334,7 @@ namespace qk {
 		enc.label = @"CGAA Image";
 
 		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_render->_nearestSampler atIndex:shader.fragment.atlasTex];
+		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
 
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
@@ -353,7 +353,7 @@ namespace qk {
 		};
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
 		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
@@ -372,25 +372,23 @@ namespace qk {
 	MTLEncoder MetalCanvas::useTexture0(const PaintImage *paint, int dstSlot, bool* isYuv) {
 		if (paint->_isCanvas) { // flush canvas to current canvas
 			auto srcC = static_cast<MetalCanvas*>(paint->canvas);
-			if (srcC != this && srcC->isGpu()) { // now only supported gpu
-				if (srcC->_render == _render) {
-					if (srcC->_outTex) {
-						flushSubcanvas(srcC); // flush subcanvas to current canvas
-						auto enc = getEncoder();
-						set_texture_param(enc, srcC->_outTex, dstSlot, paint);
-						return enc;
-					}
-				}
-			}
-			return nil;
+			if (srcC == this || !srcC->isGpu())
+				return nil; // if the source canvas is the same as current canvas or not gpu, skip
+			if (srcC->render() != _mtlrender)
+				return nil; // if the source canvas is not from the same render, skip
+			if (srcC->_outTex == nil)
+				return nil; // if the source canvas has no output texture, skip
+			flushSubcanvasCmd(srcC); // flush subcanvas to current canvas
+			auto enc = getEncoder();
+			set_texture_param(enc, srcC->_outTex, dstSlot, paint);
+			return enc;
 		} else {
 			auto enc = getEncoder();
 			if (kYUV420P_Y_8_ColorType == paint->image->type()) { // yuv420p or yuv420sp
 				if (isYuv) *isYuv = true;
 			}
-			if (use_texture(enc, paint->image, 0, dstSlot, paint)) {
+			if (use_texture(enc, paint->image, 0, dstSlot, paint))
 				return enc;
-			}
 			return nil;
 		}
 	}
@@ -440,8 +438,8 @@ namespace qk {
 					(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-			[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.vertex.paths];
-			[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:shader.vertex.tiles];
+			[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.vertex.paths];
+			[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.vertex.tiles];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		}
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
@@ -465,8 +463,8 @@ namespace qk {
 		auto &block = buildGradientBuffer(paint, color);
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
 		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
 		[enc setFragmentBuffer:block.val offset:block.begin + colorSize atIndex:shader.fragment.positions];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
@@ -574,7 +572,7 @@ namespace qk {
 		_blendMode = kSrc_BlendMode;
 		_rootMatrix = recoverRootMat; // recover root matrix
 		// get sampler state for paint image
-		auto sampler = _render->_linearSampler;
+		auto sampler = _mtlrender->_linearSampler;
 		auto &cp = _shaders.cp;
 		// Choosing the right blur shader
 		auto blur = &_shaders.blur;
@@ -683,7 +681,7 @@ namespace qk {
 						destinationOrigin:MTLOriginMake(0, 0, 0)];
 			_cmdPack.recorded = true; // mark cmd pack as recorded after encoding commands
 		} else {
-			auto sampler = srcRect.size == dstSize ? _render->_nearestSampler : _render->_linearSampler;
+			auto sampler = srcRect.size == dstSize ? _mtlrender->_nearestSampler : _mtlrender->_linearSampler;
 			auto colorTex = _outColorTex;
 			_outColorTex = tex;
 			// load raw color if need to blend with existing color

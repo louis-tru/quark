@@ -13,17 +13,24 @@
 
 #include "./metal/mtl_shaders.h"
 #include "./path.h"
+#include "./source.h"
 
 namespace qk {
 	struct GC_ImageDrawInfo;
+	class ImageSource;
 	struct PaintGradient;
 	class GPUCanvas;
 
 	constexpr int kCAPATileSize = 16;
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
+	// Keep CAPA image sampling on the portable side: Vulkan's guaranteed
+	// sampled-image count is low, so larger image batches are split on CPU.
+	constexpr uint32_t kCAPAMaxImageTextureCount = 15;
 	// Short-edge tasks are bounded so one task can touch at most three tiles in
 	// the bin pass, which gives each task fixed node ownership.
 	constexpr float kCAPAShortEdgeLength = 8.0f;
+	// CAPA nil value.
+	constexpr uint32_t kCAPA_NIL = 0xffffffffu;
 	// Paint source is guaranteed to produce alpha == 1 for every sampled point.
 	constexpr uint32_t kCAPA_FLAG_PAINT_OPAQUE = 1u << 0;
 
@@ -33,12 +40,6 @@ namespace qk {
 		kCAPA_PAINT_GRADIENT = 1u,
 		kCAPA_PAINT_IMAGE = 2u,
 	};
-
-	enum CAPAGradientType {
-		kCAPA_GRADIENT_LINEAR = 0u,
-		kCAPA_GRADIENT_RADIAL = 1u,
-	};
-
 	typedef MSLCapaPrepare::CAPAEdge CAPAEdge;
 	typedef MSLCapaPrepare::CAPAPath CAPAPath;
 	typedef MSLCapaComposite::CAPAGradientPaint CAPAGradientPaint;
@@ -61,6 +62,8 @@ namespace qk {
 		Array<CAPAEdge> edges;
 		Array <CAPAGradientPaint> gradientPaints;
 		Array <CAPAImagePaint> imagePaints;
+		Array<Sp<ImageSource>> imageSources;
+		Array<PaintImage> imageSamplers;
 		Array <Color4f> colors;
 		Array <float> positions;
 		CAPABudget budget;
@@ -102,8 +105,13 @@ namespace qk {
 		void reset(bool clear = false);
 		cCAPADrawData& getDrawData() const { return _data; }
 		FillRule fillRule = kNonZero_FillRule;
-private:
+	private:
 		void setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat);
+		int findImageTexture(const PaintImage *paint) const;
+		int findImageSampler(const PaintImage *paint) const;
+		uint32_t addImageTexture(const PaintImage *paint);
+		uint32_t addImageSampler(const PaintImage *paint);
+		bool canAddImageTexture(const PaintImage *paint) const;
 		CAPADrawData _data;
 		GPUCanvas *_owner;
 		LinearAllocator _alloc;

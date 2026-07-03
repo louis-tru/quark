@@ -184,6 +184,18 @@ namespace qk {
 			return _capaBuilder->build(path, color);
 		}
 
+		bool fillPathCAPAImage(const Path &path, const GC_ImageDrawInfo &info, bool antiAlias) {
+			if (!_capaBuilder || !antiAlias)
+				return false;
+			auto paint = info.paint;
+			if (paint->_isCanvas || !paint->image || isSDFImage(paint->image) ||
+					paint->image->type() == kYUV420P_Y_8_ColorType) {
+				return false;
+			}
+			commitCGAABatch(false);
+			return _capaBuilder->buildImage(path, info);
+		}
+
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
 			if (_capaBuilder && aa) {
 				if (fillPathCAPA(path, color))
@@ -237,6 +249,15 @@ namespace qk {
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
+				if (paint.antiAlias && paint.fill.image) {
+					GC_ImageDrawInfo info{
+						paint.fill.image,
+						paint.fill.color,
+						kImage_DrawKind,
+					};
+					if (fillPathCAPAImage(path, info, paint.antiAlias))
+						return;
+				}
 				if (!paint.antiAlias || !fillPathCGAA(path, paint, paint.fill, false)) {
 					auto &vertex = buildVertex(path, aaRadius, paint.antiAlias);
 					fillPathAASide(vertex, paint, paint.fill);

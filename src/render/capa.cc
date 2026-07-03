@@ -6,8 +6,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./capa.h"
 #include "./gpu_canvas.h"
+#include "./capa.h"
 
 namespace qk {
 	constexpr float kCAPACoverageBudgetMultiplier = 1.2f;
@@ -81,47 +81,92 @@ namespace qk {
 		reset();
 	}
 
+	int CAPABuilder::findImageTexture(const PaintImage *paint) const {
+		for (uint32_t i = 0; i < _data.imageSources.length(); i++)
+			if (_data.imageSources[i].get() == paint->image)
+				return i;
+		return -1;
+	}
+
+	int CAPABuilder::findImageSampler(const PaintImage *paint) const {
+		for (uint32_t i = 0; i < _data.imageSamplers.length(); i++)
+			if (_data.imageSamplers[i].bitfields == paint->bitfields)
+				return i;
+		return -1;
+	}
+
+	bool CAPABuilder::canAddImageTexture(const PaintImage *paint) const {
+		if (_data.imageSources.length() == kCAPAMaxImageTextureCount)
+			if (findImageTexture(paint) == -1)
+				return false;
+		if (_data.imageSamplers.length() == kCAPAMaxImageTextureCount)
+			if (findImageSampler(paint) == -1)
+				return false;
+		return true;
+	}
+
+	uint32_t CAPABuilder::addImageTexture(const PaintImage *paint) {
+		int index = findImageTexture(paint);
+		if (index >= 0)
+			return index;
+		index = _data.imageSources.length();
+		_data.imageSources.push(paint->image);
+		return index;
+	}
+
+	uint32_t CAPABuilder::addImageSampler(const PaintImage *paint) {
+		int index = findImageSampler(paint);
+		if (index >= 0)
+			return index;
+		index = _data.imageSamplers.length();
+		_data.imageSamplers.push(*paint);
+		return index;
+	}
+
 	void CAPABuilder::setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat) {
-		uint32_t flags = color.a() >= 1.0f ? kCAPA_FLAG_PAINT_OPAQUE : 0u;
-		uint32_t paintIndex = 0;
-		uint32_t paintType = kCAPA_PAINT_SOLID;
-		if (paint) {
-			if (paint->type == kCAPA_PAINT_IMAGE) {
-				// TODO ...
-				if (paint->image->paint->image->info().alphaType() != kOpaque_AlphaType) {
-					flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
-				}
-				paintType = kCAPA_PAINT_IMAGE;
-			} else if (paint->type == kCAPA_PAINT_GRADIENT) {
-				if (flags & kCAPA_FLAG_PAINT_OPAQUE) {
-					for (int i = 0; i < paint->gradient->count; i++) {
-						if (paint->gradient->colors[i].a() < 1.0f) {
-							flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
-							break;
-						}
+		path.flags = color.a() >= 1.0f ? kCAPA_FLAG_PAINT_OPAQUE : 0u;
+		if (!paint)
+			return;
+		if (paint->type == kCAPA_PAINT_IMAGE) {
+			auto &info = *paint->image;
+			auto image = info.paint->image;
+			if (image->info().alphaType() != kOpaque_AlphaType) {
+				path.flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
+			}
+			path.paintType = kCAPA_PAINT_IMAGE;
+			path.paintIndex = _data.imagePaints.length();
+			_data.imagePaints.push(CAPAImagePaint{
+				.coord = Vec4(info.paint->coord.begin, info.paint->coord.end),
+				.strokeColor = info.strokeColor.premul_alpha(),
+				.textureIndex = addImageTexture(info.paint),
+				.samplerIndex = addImageSampler(info.paint),
+				.stroke = info.stroke,
+				.kind = info.kind,
+			});
+		} else if (paint->type == kCAPA_PAINT_GRADIENT) {
+			if (path.flags & kCAPA_FLAG_PAINT_OPAQUE) {
+				for (int i = 0; i < paint->gradient->count; i++) {
+					if (paint->gradient->colors[i].a() < 1.0f) {
+						path.flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
+						break;
 					}
 				}
-				paintType = kCAPA_PAINT_GRADIENT;
-				paintIndex = _data.gradientPaints.length();
-				_data.gradientPaints.push(CAPAGradientPaint{
-					.origin = paint->gradient->origin,
-					.endOrRadius = paint->gradient->endOrRadius,
-					.type = paint->gradient->type == PaintGradient::kRadial_Type
-						? kCAPA_GRADIENT_RADIAL
-						: kCAPA_GRADIENT_LINEAR,
-					.count = paint->gradient->count,
-					.colors = _data.colors.length(),
-					.positions = _data.positions.length(),
-				});
-				for (uint32_t i = 0; i < paint->gradient->count; i++) {
-					_data.colors.push(paint->gradient->colors[i].premul_alpha().mul(color));
-				}
-				_data.positions.write(paint->gradient->positions, paint->gradient->count);
 			}
+			path.paintType = kCAPA_PAINT_GRADIENT;
+			path.paintIndex = _data.gradientPaints.length();
+			_data.gradientPaints.push(CAPAGradientPaint{
+				.origin = paint->gradient->origin,
+				.endOrRadius = paint->gradient->endOrRadius,
+				.type = paint->gradient->type,
+				.count = paint->gradient->count,
+				.colors = _data.colors.length(),
+				.positions = _data.positions.length(),
+			});
+			for (uint32_t i = 0; i < paint->gradient->count; i++) {
+				_data.colors.push(paint->gradient->colors[i].premul_alpha().mul(color));
+			}
+			_data.positions.write(paint->gradient->positions, paint->gradient->count);
 		}
-		path.paintIndex = paintIndex;
-		path.paintType = paintType;
-		path.flags = flags;
 	}
 
 	bool CAPABuilder::build(const Path &rawPath, const Color4f& color, CAPAPaint* paint) {
@@ -164,7 +209,7 @@ namespace qk {
 			.matrixY = Vec4(mat[3], mat[4], mat[5]),
 			.clip = Vec4(clip.begin, clip.end),
 			.bounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff),
-			.color = color,
+			.color = color.premul_alpha(),
 			.edgeOffset = edgeOffset,
 			.edgeCount = info.edges.length() >> 1,
 			.blendMode = uint32_t(_owner->_blendMode),
@@ -172,6 +217,7 @@ namespace qk {
 			.tileOffset = 0,
 			.tileRect = IVec4(0, 0, 0, 0),
 			.tileEnd = IVec2(0, 0),
+			.paintType = kCAPA_PAINT_SOLID,
 		};
 		setPaint(path, color, paint, mat);
 
@@ -208,6 +254,26 @@ namespace qk {
 	}
 
 	bool CAPABuilder::buildImage(const Path &path, const GC_ImageDrawInfo &info) {
+		if (!info.paint->image)
+			return true; // Skip empty images
+		if (info.paint->_isCanvas) { // flush canvas to current canvas
+			auto sub = static_cast<GPUCanvas*>(info.paint->canvas);
+			if (sub == _owner || !sub->isGpu())
+				return false; // if the source canvas is the same as current canvas or not gpu, skip
+			if (sub->render() != _owner->render())
+				return false; // only flush subcanvas if it is from the same render
+			_owner->flushSubcanvasCmd(sub);
+		} else {
+			auto src = info.paint->image;
+			if (src->count() == 0)
+				return true; // skip empty image source
+			// mark image source as texture for this render
+			src->markAsTexture();
+			if (!src->texture(0)->ptr())
+				return true; // skip if texture is not ready
+		}
+		if (!canAddImageTexture(info.paint))
+			commit();
 		CAPAPaint paint{.image = &info, .type = kCAPA_PAINT_IMAGE};
 		return build(path, info.color, &paint);
 	}

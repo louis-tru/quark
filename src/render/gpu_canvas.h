@@ -130,6 +130,7 @@ namespace qk {
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) override;
 		Vec2 surfaceSize() { return _surfaceSize; }
 		const Render::Options& opts() const { return _opts; }
+		Render* render() { return _render; }
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
@@ -154,6 +155,7 @@ namespace qk {
 		virtual void outputImageBeginCmd(ImageSource* dst) = 0;
 		virtual void outputImageEndCmd(ImageSource* exit) = 0;
 		virtual void restoreClipCmd(GC_State::Clip* clip) = 0;
+		virtual void flushSubcanvasCmd(GPUCanvas* canvas) = 0;
 		// get texture count from pool and add ref count, limit texture size to surface size
 		// flags can be kMipmap_TextureFlags, kComputeWrite_TextureFlags, etc
 		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, 

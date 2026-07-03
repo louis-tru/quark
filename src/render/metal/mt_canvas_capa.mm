@@ -8,10 +8,22 @@
 
 #import "./mtl_canvas.h"
 #include "src/render/render.h"
+#include "src/render/source.h"
 #import "./mtl_render.h"
 
 namespace qk {
 	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length);
+	MTLTextureID mtl_get_texture(cTexStat *stat);
+
+	MTLTextureID capa_get_texture(MetalRender *render, ImageSource *source) {
+		if (!source)
+			return nil;
+		auto tex = source->texture(0);
+		if (!tex->ptr())
+			source->markAsTexture(render);
+		return tex->ptr() ? mtl_get_texture(tex) : nil;
+	}
+
 	bool MetalCanvas::drawCAPACmd(cCAPADrawData &data) {
 		auto edgeCount = data.edges.length();
 		if (!edgeCount)
@@ -45,18 +57,24 @@ namespace qk {
 		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
 		auto coverageTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
 		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
-		auto gradientPaints = data.gradientPaints.length()
-			? makeBuffer(_cmdPack, data.gradientPaints.val(), data.gradientPaints.size())
-			: _cmdPack.buffer->alloc(0);
-		auto imagePaints = data.imagePaints.length()
-			? makeBuffer(_cmdPack, data.imagePaints.val(), data.imagePaints.size())
-			: _cmdPack.buffer->alloc(0);
-		auto colors = data.colors.length()
-			? makeBuffer(_cmdPack, data.colors.val(), data.colors.size())
-			: _cmdPack.buffer->alloc(0);
-		auto positions = data.positions.length()
-			? makeBuffer(_cmdPack, data.positions.val(), data.positions.size())
-			: _cmdPack.buffer->alloc(0);
+		Array<CAPAImagePaint> imagePaintValues;
+		if (data.imagePaints.length()) {
+			imagePaintValues = data.imagePaints;
+			for (uint32_t i = 0; i < imagePaintValues.length(); i++) {
+				uint32_t textureIndex = imagePaintValues[i].textureIndex;
+				auto source = textureIndex < data.imageSources.length()
+					? const_cast<ImageSource*>(data.imageSources[textureIndex].get())
+					: nullptr;
+				if (textureIndex >= data.imageSources.length() ||
+						!capa_get_texture(_mtlrender, source)) {
+					imagePaintValues[i].textureIndex = 0xffffffffu;
+				}
+			}
+		}
+		auto gradientPaints = makeBuffer(_cmdPack, data.gradientPaints.val(), data.gradientPaints.size());
+		auto imagePaints = makeBuffer(_cmdPack, imagePaintValues.val(), imagePaintValues.size());
+		auto colors = makeBuffer(_cmdPack, data.colors.val(), data.colors.size());
+		auto positions = makeBuffer(_cmdPack, data.positions.val(), data.positions.size());
 
 		// CAPAEnvironment stores Metal-compatible indirect dispatch structs, so
 		// each later pass can launch without CPU readback.
@@ -328,6 +346,21 @@ namespace qk {
 			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:7];
 			[enc setBuffer:colors.val offset:colors.begin atIndex:8];
 			[enc setBuffer:positions.val offset:positions.begin atIndex:9];
+			for (uint32_t i = 0; i < kCAPAMaxImageTextureCount; i++) {
+				auto source = i < data.imageSources.length()
+					? const_cast<ImageSource*>(data.imageSources[i].get())
+					: nullptr;
+				MTLTextureID texture = i < data.imageSources.length()
+					? capa_get_texture(_mtlrender, source)
+					: nil;
+				if (!texture)
+					texture = _outColorTex;
+				auto sampler = i < data.imageSamplers.length()
+					? get_sampler(&data.imageSamplers[i])
+					: _mtlrender->_nearestSampler;
+				[enc setTexture:texture atIndex:1 + i];
+				[enc setSamplerState:sampler atIndex:1 + i];
+			}
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, compositePassGroups_Size16_16))
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize >> 1, kCAPATileSize >> 1, 1)];

@@ -47,7 +47,22 @@ layout(binding=9,set=0,std430) readonly buffer Positions {
 	float values[];
 } positions;
 
-layout(binding=1,set=1,rgba8) uniform image2D dstImage;
+layout(binding=0,set=1,rgba8) uniform image2D dstImage;
+layout(binding=1,set=1) uniform sampler2D image0;
+layout(binding=2,set=1) uniform sampler2D image1;
+layout(binding=3,set=1) uniform sampler2D image2;
+layout(binding=4,set=1) uniform sampler2D image3;
+layout(binding=5,set=1) uniform sampler2D image4;
+layout(binding=6,set=1) uniform sampler2D image5;
+layout(binding=7,set=1) uniform sampler2D image6;
+layout(binding=8,set=1) uniform sampler2D image7;
+layout(binding=9,set=1) uniform sampler2D image8;
+layout(binding=10,set=1) uniform sampler2D image9;
+layout(binding=11,set=1) uniform sampler2D image10;
+layout(binding=12,set=1) uniform sampler2D image11;
+layout(binding=13,set=1) uniform sampler2D image12;
+layout(binding=14,set=1) uniform sampler2D image13;
+layout(binding=15,set=1) uniform sampler2D image14;
 
 #define CAPA_COMPOSITE_CLEAR_DST (1u << 16)
 const uvec2 CAPA_COMPOSITE_SUBGROUPS = uvec2(2u, 2u);
@@ -121,6 +136,37 @@ vec4 capa_sample_gradient(uint paintIndex, vec2 local) {
 	return mix(c0, c1, w);
 }
 
+vec4 capa_texture(uint textureIndex, vec2 uv) {
+	if (textureIndex == CAPA_NIL)
+		return vec4(0.0);
+	switch (textureIndex) {
+		case 0u: return textureLod(image0, uv, 0.0);
+		case 1u: return textureLod(image1, uv, 0.0);
+		case 2u: return textureLod(image2, uv, 0.0);
+		case 3u: return textureLod(image3, uv, 0.0);
+		case 4u: return textureLod(image4, uv, 0.0);
+		case 5u: return textureLod(image5, uv, 0.0);
+		case 6u: return textureLod(image6, uv, 0.0);
+		case 7u: return textureLod(image7, uv, 0.0);
+		case 8u: return textureLod(image8, uv, 0.0);
+		case 9u: return textureLod(image9, uv, 0.0);
+		case 10u: return textureLod(image10, uv, 0.0);
+		case 11u: return textureLod(image11, uv, 0.0);
+		case 12u: return textureLod(image12, uv, 0.0);
+		case 13u: return textureLod(image13, uv, 0.0);
+		default: return textureLod(image14, uv, 0.0);
+	}
+}
+
+vec4 capa_sample_image(uint paintIndex, vec2 local, vec4 color) {
+	CAPAImagePaint paint = imagePaints.values[paintIndex];
+	vec2 uv = (paint.coord.xy + local) / paint.coord.zw;
+	vec4 texel = capa_texture(paint.textureIndex, uv);
+	if (paint.kind == CAPA_IMAGE_MASK)
+		return color * texel.a;
+	return texel * color;
+}
+
 vec4 capa_sample_path(uint pathIndex, vec2 pixel) {
 	uint paintType = paths.values[pathIndex].paintType;
 	if (paintType == CAPA_PAINT_SOLID)
@@ -130,7 +176,7 @@ vec4 capa_sample_path(uint pathIndex, vec2 pixel) {
 	uint paintIndex = paths.values[pathIndex].paintIndex;
 	if (paintType == CAPA_PAINT_GRADIENT)
 		return capa_sample_gradient(paintIndex, local);
-	return paths.values[pathIndex].color;
+	return capa_sample_image(paintIndex, local, paths.values[pathIndex].color);
 }
 
 struct CAPACoverageGroup {

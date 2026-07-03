@@ -40,16 +40,16 @@ namespace qk {
 
 	MetalCanvas::MetalCanvas(MetalRender *render, Render::Options opts)
 		: GPUCanvas(render, opts)
-		, _render(render)
+		, _mtlrender(render)
 		, _device(nil), _commandQueue(nil)
 		, _cmdPack{}, _cmdPackFront{}
 		, _outTex(nil), _outColorTex(nil)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType:
 			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
-		_device = _render->_device;
-		_commandQueue = _render->_commandQueue; // share command queue with render
-		_shaders = _render->_resource->shaders(); // copy shader cache reference for render thread use
+		_device = _mtlrender->_device;
+		_commandQueue = _mtlrender->_commandQueue; // share command queue with render
+		_shaders = _mtlrender->_resource->shaders(); // copy shader cache reference for render thread use
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
@@ -126,9 +126,9 @@ namespace qk {
 			MSLColor::ClipStatBlock clipStat = { *((Vec4*)_clipState->range.begin.val), _clipState->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*_clipState->mask) atIndex:0];
-			[_cmdPack.enc setFragmentSamplerState:_render->_nearestSampler atIndex:0];
+			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];
 		} else {
-			[_cmdPack.enc setFragmentBuffer:_render->_emptyBuffer offset:0 atIndex:3];
+			[_cmdPack.enc setFragmentBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:3];
 		}
 		[_cmdPack.enc setViewport: {0, 0, _surfaceSize.x(), _surfaceSize.y(), 0, 1}];
 		return _cmdPack.enc;
@@ -202,9 +202,12 @@ namespace qk {
 		Qk_ReturnLocal(cmds); // return command buffers for flush
 	}
 
-	void MetalCanvas::flushSubcanvas(MetalCanvas *sub) {
-		Qk_ASSERT_EQ(sub->_render, _render, "Subcanvas should belong to the same render for flush");
-		auto cmds = sub->flushBuffer(); // flush subcanvas to get command buffers
+	void MetalCanvas::flushSubcanvasCmd(GPUCanvas *sub) {
+		if (sub == this)
+			return; // only flush subcanvas if it is not the same as current canvas
+		if (sub->render() != _render)
+			return; // only flush subcanvas if it is from the same render
+		auto cmds = static_cast<MetalCanvas*>(sub)->flushBuffer(); // flush subcanvas to get command buffers
 		if (cmds.isNull())
 			return; // if no command buffers, skip
 
@@ -233,12 +236,12 @@ namespace qk {
 		setrMatrixFromEnc(enc, &_rootMatrix, _surfaceScale);
 		setvMatrixFromEnc(enc, Mat());
 		[enc setViewport: {0, 0, (float)tex.width, (float)tex.height, 0, 1}];
-		[enc setRenderPipelineState:_render->_vportCpPipeline];
-		auto sampler = _surfaceSize == Vec2(tex.width, tex.height)? _render->_nearestSampler : _render->_linearSampler;
+		[enc setRenderPipelineState:_mtlrender->_vportCpPipeline];
+		auto sampler = _surfaceSize == Vec2(tex.width, tex.height)? _mtlrender->_nearestSampler : _mtlrender->_linearSampler;
 		[enc setFragmentTexture:_outTex atIndex:cp.fragment.image];
 		[enc setFragmentSamplerState:sampler atIndex:cp.fragment.image];
-		[enc setVertexBuffer:_render->_emptyBuffer offset:0 atIndex:cp.bufferIndex];
-		[enc setFragmentBuffer:_render->_emptyBuffer offset:0 atIndex:3];
+		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:cp.bufferIndex];
+		[enc setFragmentBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:3];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
 		[enc endEncoding];
 		[cmd presentDrawable:dst];
@@ -248,13 +251,11 @@ namespace qk {
 		auto index = paint->srcIndex + srcSlot;
 		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
 		auto tex = src->texture(index);
-		if (!tex->ptr()) {
 			// mark texture for this render, and try to create texture immediately
-			src->markAsTexture(_render);
-			if (!tex->ptr()) {
-				Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
-				return false; // texture not ready
-			}
+		src->markAsTexture();
+		if (!tex->ptr()) {
+			Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
+			return false; // texture not ready
 		}
 		set_texture_param(enc, mtl_get_texture(tex), dstSlot, paint);
 		return true;
@@ -279,7 +280,7 @@ namespace qk {
 		uint32_t key = mtl_get_sampler_key(paint);
 		MTLSampler sampler;
 		if (!_texSamplers.get(key, sampler)) {
-			sampler = _render->_resource->get_sampler(paint);
+			sampler = _mtlrender->_resource->get_sampler(paint);
 			_texSamplers.set(key, sampler);
 		}
 		return sampler;
