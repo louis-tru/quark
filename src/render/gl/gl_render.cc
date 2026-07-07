@@ -648,6 +648,10 @@ namespace qk {
 
 	// --------------------------------------------------
 
+	TexStat GLRenderResource::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
+		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags);
+	}
+
 	bool GLRenderResource::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
 		return gl_new_texture_stat(pix, levels, tex, mipmap);
 	}
@@ -657,19 +661,6 @@ namespace qk {
 		tex->set_id(0);
 		if (id)
 			glDeleteTextures(1, &id);
-	}
-
-	bool GLRenderResource::uploadVertexData(VertexData::ID *id) {
-		if (!id->a)
-			gl_new_vertex_data(id);
-		// glFlush(); // commit delete texture command
-		return true;
-	}
-
-	void GLRenderResource::unloadVertexData(VertexData::ID *id) {
-		if (id->a) {
-			gl_delete_vertex_data(id);
-		}
 	}
 
 	void GLRenderResource::post_message(Cb cb) {

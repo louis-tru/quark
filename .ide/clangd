@@ -1,6 +1,10 @@
 # Common C/C++/Objective-C++ configuration.
 CompileFlags:
   CompilationDatabase: {{QK_IDE_DIR}}
+  Add:
+    - -DQk_ENABLE_METAL=1
+    - -DQk_ENABLE_GL=1
+    - -DDEBUG=1
 
 Index:
   Background: Build

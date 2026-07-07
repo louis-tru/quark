@@ -6,8 +6,9 @@ designed for building high-performance, interactive applications with a
 clear and predictable runtime model.
 
 Quark is implemented primarily in **C++**, with a custom **OpenGL-based
-rendering pipeline**, a lightweight **layout engine**, and an embedded
-**JavaScript / JSX runtime** for application logic and UI description.
+rendering pipeline**, an in-progress compute-driven **Metal rendering path**,
+a lightweight **layout engine**, and an embedded **JavaScript / JSX runtime**
+for application logic and UI description.
 
 Unlike browser-based frameworks, Quark is **not a web runtime**.
 Its architecture and APIs are designed specifically for GUI view trees,
@@ -19,6 +20,8 @@ performance characteristics.
 - **Cross-platform GUI rendering**
   - Android / iOS / macOS / Linux
   - Unified rendering and layout behavior across platforms
+  - OpenGL remains the portable baseline
+  - Metal is used for the newer compute-oriented renderer work
 
 - **C++ core with JS / JSX integration**
   - Native performance–critical logic in C++
@@ -42,6 +45,41 @@ performance characteristics.
 
 Quark is intended for developers who want **fine-grained control over UI
 structure and performance**, without sacrificing development efficiency.
+
+### Rendering System
+
+Quark has its own GPU rendering stack. It does not rely on browser DOM,
+Canvas, CSS painting, or Web compositing.
+
+The renderer is organized around a shared `GPUCanvas` layer and backend
+command implementations:
+
+```txt
+Canvas API
+  -> GPUCanvas shared state, clipping, path/image/text dispatch
+  -> OpenGL command pack or Metal command encoder
+  -> platform surface or offscreen image
+```
+
+The current renderer combines multiple antialiasing strategies instead of
+forcing every shape through a single algorithm:
+
+- **AASide** is the fast geometric edge-band path. It remains useful for
+  hairlines, text, and simple edges where a slightly wider perceptual edge
+  ramp looks better than strict area coverage.
+- **CAPA** (Coverage Area Pipeline Anti-Aliasing) is the newer Metal-class
+  compute path for filled color/image/gradient paths. It batches path draws,
+  bins edges into tiles, computes area coverage, plans ordered tile layers,
+  and composites front-to-back to avoid the background seams that appear when
+  adjacent primitives are antialiased independently.
+- **Clip, image, gradient, blend mode, render target, and readback paths**
+  remain integrated with the Canvas state model. Expensive or stateful
+  operations may flush a CAPA batch when they cannot be represented inside the
+  current compute pass.
+
+CAPA is designed for complex GUI scenes with overlapping paths, nested
+layers, and shared boundaries. AASide is intentionally kept for the cases
+where distance-band antialiasing is visually preferable or cheaper.
 
 * From here, [`Go API Index`](http://quarks.cc/doc/) takes you to the API Documentation Index.
 

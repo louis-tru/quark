@@ -60,7 +60,7 @@ namespace qk {
 		drawPath(Path::MakeCircle(center, radius), paint);
 	}
 
-	bool Canvas::isGpu() {
+	bool Canvas::isGpu() const {
 		return false;
 	}
 

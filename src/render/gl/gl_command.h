@@ -62,7 +62,7 @@ namespace qk {
 			kReadImage_CmdType,
 			kOutputImageBegin_CmdType,
 			kOutputImageEnd_CmdType,
-			kFlushCanvas_CmdType,
+			kFlushSubcanvas_CmdType,
 			kSetSurface_CmdType,
 			kDrawBuffers_CmdType,
 			kRestoreClip_CmdType,
@@ -193,11 +193,11 @@ namespace qk {
 			Sp<ImageSource> next;
 		};
 
-		struct alignas(void*) FlushCanvasCmd: Cmd {
+		struct alignas(void*) FlushSubcanvasCmd: Cmd {
 			GLCanvas        *srcC;
 			GLC_CmdPack     *srcCmdPack;
 			PipelineState   restoreState;
-			~FlushCanvasCmd();
+			~FlushSubcanvasCmd();
 		};
 
 		struct alignas(void*) SetSurfaceCmd: Cmd {

@@ -34,21 +34,37 @@
 namespace qk {
 
 	bool img_webp_test(cBuffer& data, PixelInfo *out) {
-		int width = 0, height = 0;
-		int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
-		if ( ok == VP8_STATUS_OK ) {
-			*out = PixelInfo( width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType);
+		WebPBitstreamFeatures features;
+		auto status = WebPGetFeatures((uint8_t*)data.val(), data.length(), &features);
+		if ( status == VP8_STATUS_OK ) {
+			bool hasAlpha = features.has_alpha;
+			*out = PixelInfo(
+				features.width,
+				features.height,
+				hasAlpha ? kRGBA_8888_ColorType: kRGB_888X_ColorType,
+				hasAlpha ? kUnpremul_AlphaType: kOpaque_AlphaType
+			);
 			return true;
 		}
 		return false;
 	}
 
 	bool img_webp_decode(cBuffer& data, Array<Pixel> *rv) {
+		WebPBitstreamFeatures features;
+		if (WebPGetFeatures((uint8_t*)data.val(), data.length(), &features) != VP8_STATUS_OK)
+			return false;
+
 		int width, height;
 		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
 		if (buff) {
+			bool hasAlpha = features.has_alpha;
 			auto bf = Buffer::from((char*)buff, width * height * 4);
-			rv->push( Pixel( PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), bf) );
+			rv->push( Pixel( PixelInfo(
+				width,
+				height,
+				hasAlpha ? kRGBA_8888_ColorType: kRGB_888X_ColorType,
+				hasAlpha ? kUnpremul_AlphaType: kOpaque_AlphaType
+			), bf) );
 		}
 		return rv->length();
 	}

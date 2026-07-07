@@ -302,7 +302,7 @@ void draw_char() {
 
 	// ----------------------------------------
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
+	auto win = Window::Make({.frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 	auto r = win->root();
 	auto img = r->append_new<Img>();

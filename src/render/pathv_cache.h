@@ -37,7 +37,7 @@
 
 namespace qk
 {
-	class RenderResource;
+	class RenderBackend;
 	class Canvas;
 	class PathvCache;
 
@@ -101,7 +101,7 @@ namespace qk
 		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory capacity
 		Qk_DEFINE_PROP_GET(uint32_t, maxCapacity, Const); // max memory capacity
 
-		PathvCache(uint32_t maxCapacity, RenderResource *render);
+		PathvCache(uint32_t maxCapacity, RenderBackend *render);
 		~PathvCache();
 
 		/**
@@ -168,6 +168,14 @@ namespace qk
 		*/
 		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
 
+		/**
+		* @dev get path edge info cache, including edge lines, bounds and total edge length
+		 * @param path {Path} raw path
+		 * @param precision {float} line segment precision, the larger the value, the more segments
+		 * @return {PathEdgeInfo&} cached edge info, including edge lines, bounds and total edge length
+		*/
+		const PathEdgeInfo& getEdgeInfo(const Path &path, float precision = 1.0);
+
 	protected:
 		/**
 		 * @dev set radius rect path cache from hash code
@@ -197,15 +205,16 @@ namespace qk
 		void clear(int flags = 0);
 		void clearAll(bool destroy);
 		void clearPart(uint32_t capacity);
-		RenderResource *_render; // render resource for GPU cache management
+		RenderBackend *_render; // render for GPU cache management
 		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
 		Dict<uint64_t, Path*> _normalizedPath, _strokePath; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _pathTriangles; // path hash => triangles
 		Dict<uint64_t, Wrap<VertexData>*> _aaSideTriangle; // path hash => aa side triangles
 		Dict<uint64_t, Wrap<RectPath>*> _rectPath; // rect hash => rect path
 		Dict<uint64_t, Wrap<RectOutlinePath,4>*> _rectOutlinePath; // rect hash => rect outline path
+		Dict<uint64_t, PathEdgeInfo> _edgeInfo; // path hash => edge info
 
-		friend class RenderResource;
+		friend class RenderBackend;
 	};
 
 } // namespace qk

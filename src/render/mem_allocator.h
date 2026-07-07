@@ -82,6 +82,10 @@ namespace qk {
 			_current->_next = nullptr;
 			_current->begin = _current->end = 0;
 		}
+		template <typename U>
+		const MemBlock& alloc(uint32_t count) {
+			return alloc(count * uint32_t(sizeof(U)), 0, 16);
+		}
 		const MemBlock& alloc(uint32_t size, uint32_t reserve = 0, uint32_t alignment = 16) {
 			if (reserve == 0)
 				reserve = size;

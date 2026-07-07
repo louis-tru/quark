@@ -40,7 +40,7 @@ public:
 
 Qk_TEST_Func(draw_efficiency) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
+	auto win = Window::Make({.frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
 	auto t = win->root()->append_new<TestDrawEfficiency>();

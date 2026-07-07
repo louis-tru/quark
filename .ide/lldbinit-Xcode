@@ -3,21 +3,28 @@ settings set target.inline-breakpoint-strategy always
 command script import {{QK_LLDB_PY}}
 
 type summary add qk::Vec2 --summary-string "(${var.val[0]}, ${var.val[1]})"
-type summary add "qk::Vec<float, 2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
-type summary add "qk::Vec<float,2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
 type summary add qk::Vec3 --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add qk::Vec4 --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
+type summary add "qk::Vec<float, 2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
 type summary add "qk::Vec<float, 3>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
-type summary add "qk::Vec<float,3>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
 type summary add "qk::Vec<float, 4>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
-type summary add "qk::Vec<float,4>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
 
-type summary add qk::Mat -F qk_lldb.mat_summary
-type summary add qk::Mat4 -F qk_lldb.mat4_summary
+type summary add qk::IVec2 --summary-string "(${var.val[0]}, ${var.val[1]})"
+type summary add qk::IVec3 --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add qk::IVec4 --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
+type summary add "qk::Vec<int, 2>" --summary-string "(${var.val[0]}, ${var.val[1]})"
+type summary add "qk::Vec<int, 3>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]})"
+type summary add "qk::Vec<int, 4>" --summary-string "(${var.val[0]}, ${var.val[1]}, ${var.val[2]}, ${var.val[3]})"
 
 type summary add qk::Rect --summary-string "{ origin=${var.begin}, size=${var.size} }"
 type summary add qk::Range --summary-string "{ begin=${var.begin}, end=${var.end} }"
 type summary add qk::Region --summary-string "{ begin=${var.begin}, end=${var.end}, origin=${var.origin} }"
 type summary add qk::LimitRange --summary-string "{ min=${var.min}, max=${var.max} }"
+type summary add qk::IRect --summary-string "{ begin=${var.begin}, end=${var.size} }"
+type summary add qk::IRange --summary-string "{ begin=${var.begin}, end=${var.end} }"
+
+type summary add qk::Mat -F qk_lldb.mat_summary
+type summary add qk::Mat4 -F qk_lldb.mat4_summary
 
 type summary add -x "^qk::StringImpl<.+>$" -F qk_lldb.string_summary
 type summary add -e -x "^qk::Array<.+>$" -F qk_lldb.array_summary

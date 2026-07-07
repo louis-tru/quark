@@ -46,7 +46,7 @@ public:
 
 Qk_TEST_Func(subcanvas) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	auto win = Window::Make({.frame={{0,0}, {500,500}}});
 	win->activate();
 	auto r = win->root();
 	auto t = r->append_new<TestSubcanvas>(r->window());

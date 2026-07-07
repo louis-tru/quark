@@ -58,7 +58,7 @@ void test_gui_new(Box *box) {
 		img->set_src(fs_resources("jsapi/res/cc.tga"));
 		img->set_width({320});
 		// img->set_height({250});
-		img->set_color({255,255,255,uint8_t(255*0.6)});
+		// img->set_color({255,255,255,uint8_t(255*0.6)});
 		// img->set_border_radius({60});
 		img->set_border_top_right_radius(40);
 		img->set_border_bottom_left_radius(40);
@@ -81,7 +81,7 @@ void test_gui_new(Box *box) {
 	if (1) {
 		// div sprite
 		auto div = r->append_new<Box>();
-		div->set_color({255, 255, 255, 128});
+		// div->set_color({255, 255, 255, 128});
 		div->set_background_color(Color(255, 0, 0, 180));
 		div->set_border_radius({30});
 		div->set_margin({5});
@@ -140,9 +140,9 @@ void test_gui_new(Box *box) {
 
 Qk_TEST_Func(gui) {
 	App app;
-	// auto win0 = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
+	// auto win0 = Window::Make({.frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
 	// win0->activate();
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
+	auto win = Window::Make({.frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 
 	test_gui_new(win->root());

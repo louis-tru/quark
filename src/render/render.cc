@@ -48,16 +48,25 @@ namespace qk {
 		return 1;
 	}
 
+	Sp<ImageSource> RenderResource::createTexture(Vec2 size, ColorType type, uint8_t flags) {
+		auto src = ImageSource::Make(PixelInfo{(int)size.x(), (int)size.y(), type, kPremul_AlphaType}, nullptr);
+		src->set_mipmap(flags & kMipmap_TextureFlags);
+		// create texture stat and set texture source
+		post_message(Cb([this, size, src=src.get(), type, flags](auto e) {
+			auto stat = createTextureStat(size, type, flags);
+			setTexUnsafe_SourceImage(src, &stat);
+		}, src.get())); // ref src to ensure texture stat is valid when cb is called
+		return src;
+	}
+
 	// setting and use gpu vertex data
-	bool RenderResource::useVertexData(const VertexData::ID *id) {
+	bool RenderBackend::useVertexData(const VertexData::ID *id) {
 		if (id) {
 			if (id->a) {
 				return true;
 			} else if (id->host->_render) {
 				if (id->host->_render->uploadVertexData(const_cast<VertexData::ID*>(id))) {
 					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is empty");
-					// if (clearCpuData)
-					// 	id->data->vertex.clear(); // clear memory data save memory, data already in GPU buffer
 					return true;
 				}
 			}
@@ -81,18 +90,6 @@ namespace qk {
 		// After release(), the backend becomes a passive shell: it may still receive
 		// post_message() calls, but no rendering work or resource operations are performed.
 	}
-
-	Sp<ImageSource> Render::createTexture(Vec2 size, ColorType type, uint8_t flags) {
-		auto src = ImageSource::Make(PixelInfo{(int)size.x(), (int)size.y(), type, kPremul_AlphaType}, nullptr);
-		src->set_mipmap(flags & kMipmap_TextureFlags);
-		// create texture stat and set texture source
-		post_message(Cb([this, size, src=src.get(), type, flags](auto e) {
-			auto stat = createTextureStat(size, type, flags);
-			setTexUnsafe_SourceImage(src, &stat);
-		}, src.get())); // ref src to ensure texture stat is valid when cb is called
-		return src;
-	}
-
 
 	// Resident pool for RenderBackend storage blocks.
 	// RenderBackend instances are never deleted; memory is kept for the entire

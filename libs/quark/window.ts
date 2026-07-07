@@ -50,6 +50,10 @@ export interface Options {
 	backgroundColor?: types.Color;
 	/** Is need draw navigation buttons for android. */
 	navigationColor?: types.Color;
+	/** Whether to enable CAPA for GPU rendering, default is true. */
+	enableCAPA?: boolean;
+	/** Whether to enable CAPA quantized coverage for GPU rendering, default is false. */
+	enableCAPAQuantizeCoverage?: boolean;
 };
 
 class RootViewController extends ViewController {

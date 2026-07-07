@@ -166,8 +166,8 @@ namespace qk {
 						case kOutputImageEnd_CmdType:
 							((OutputImageEndCmd*)cmd)->~OutputImageEndCmd();
 							break;
-						case kFlushCanvas_CmdType:
-							((FlushCanvasCmd*)cmd)->~FlushCanvasCmd();
+						case kFlushSubcanvas_CmdType:
+							((FlushSubcanvasCmd*)cmd)->~FlushSubcanvasCmd();
 							break;
 						case kRestoreClip_CmdType:
 							((RestoreClipCmd*)cmd)->~RestoreClipCmd();
@@ -300,10 +300,10 @@ namespace qk {
 							c->~OutputImageEndCmd();
 							break;
 						}
-						case kFlushCanvas_CmdType: {
-							auto c = (FlushCanvasCmd*)cmd;
-							flushCanvasCall(c->srcC, c->srcCmdPack, c->restoreState);
-							c->~FlushCanvasCmd();
+						case kFlushSubcanvas_CmdType: {
+							auto c = (FlushSubcanvasCmd*)cmd;
+							flushSubcanvasCall(c->srcC, c->srcCmdPack, c->restoreState);
+							c->~FlushSubcanvasCmd();
 							break;
 						}
 						case kSetSurface_CmdType: {
@@ -508,8 +508,8 @@ namespace qk {
 
 		void drawClipCall(ClipCmd *cmd) {
 			auto last = cmd->lastClip.get(), clip = cmd->clip.get();
-			auto begin = clip->range.begin,
-					 end = clip->range.end, size = end - begin;
+			auto begin = clip->bounds.begin,
+					 end = clip->bounds.end, size = end - begin;
 			auto blend = _render->_blendMode; // save current blend mode
 			// switch blend mode to src for clip drawing
 			_render->set_blend_mode(kSrc_BlendMode);
@@ -534,7 +534,7 @@ namespace qk {
 				drawClipMask(false, last);
 			} else { // if (cmd->rawOp == Canvas::kDifference_ClipOp)
 				// copy last clip color to clipTex as the clear color
-				copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size);
+				copyImage(last->mask.get(), begin - last->bounds.begin, {0,size}, size);
 				// draw clip shape to clipTex with white color if last op equal difference,
 				// or black color if last op equal intersect
 				auto black = last->op == Canvas::kIntersect_ClipOp;
@@ -552,8 +552,7 @@ namespace qk {
 			glBindSampler(0, 0);
 			if (clip) {
 				GLSLColor::ClipStatBlock clipStat = {
-					Vec4(clip->range.begin.x(), clip->range.begin.y(),
-							clip->range.end.x(), clip->range.end.y()),
+					*(Vec4*)clip->bounds.begin.val,
 					clip->op,
 				};
 				glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboClip);
@@ -808,7 +807,7 @@ namespace qk {
 			}
 		}
 
-		void flushCanvasCall(GLCanvas* srcC, GLC_CmdPack* srcCmdPack, PipelineState &restoreState) {
+		void flushSubcanvasCall(GLCanvas* srcC, GLC_CmdPack* srcCmdPack, PipelineState &restoreState) {
 			// initial pipeline state for flush
 			auto &state = srcCmdPack->_pipelineState;
 			glBindFramebuffer(GL_FRAMEBUFFER, srcC->_fbo);
@@ -837,7 +836,7 @@ namespace qk {
 			clearExec_PathvCache(srcC->_cache); // clear @clear mark
 		}
 
-		void flushCanvas(const PaintImage *paint) {
+		void flushSubcanvas(const PaintImage *paint) {
 			auto srcC = static_cast<GLCanvas*>(paint->canvas);
 			if (!paint->_isCanvas)
 				return; // return if not canvas image
@@ -853,8 +852,8 @@ namespace qk {
 			srcC->_mutex.unlock(); // unlock
 
 			if (srcCmdPack) {
-				auto cmd = new(_this->allocCmd(sizeof(FlushCanvasCmd))) FlushCanvasCmd;
-				cmd->type = kFlushCanvas_CmdType;
+				auto cmd = new(_this->allocCmd(sizeof(FlushSubcanvasCmd))) FlushSubcanvasCmd;
+				cmd->type = kFlushSubcanvas_CmdType;
 				cmd->srcC = static_cast<GLCanvas*>(paint->canvas);
 				cmd->srcCmdPack = srcCmdPack;
 				// save current state for restore after flush
@@ -893,7 +892,7 @@ namespace qk {
 		}
 	}
 
-	GLC_CmdPack::FlushCanvasCmd::~FlushCanvasCmd() {
+	GLC_CmdPack::FlushSubcanvasCmd::~FlushSubcanvasCmd() {
 		srcC->release();
 		delete srcCmdPack; // delete cmd pack
 	}
@@ -1054,7 +1053,7 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawImage(const VertexData &vertex, const GC_ImageDrawInfo &info) {
-		_this->flushCanvas(info.paint);
+		_this->flushSubcanvas(info.paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
@@ -1069,7 +1068,7 @@ namespace qk {
 	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData) {
 		if (!triangles.verts || !triangles.indices || !triangles.vertCount || !triangles.indexCount)
 			return;
-		_this->flushCanvas(paint);
+		_this->flushSubcanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
 		cmd->type = kTriangles_CmdType;
 		cmd->triangles = triangles;

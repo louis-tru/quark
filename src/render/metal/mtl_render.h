@@ -24,9 +24,8 @@ namespace qk {
 		~MetalRenderResource();
 		void post_message(Cb cb) override;
 		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
-		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadTexture(TexStat *tex) override;
-		void unloadVertexData(VertexData::ID *id) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format);
 		MTLComputePipeline getComputePipeline(MSLPipelineKind kind);
 		MTLSampler get_sampler(const PaintImage* paint);

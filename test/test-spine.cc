@@ -44,7 +44,7 @@ using namespace qk;
 
 Qk_TEST_Func(spine) {
 	App app;
-	auto w = Window::Make({.fps=0x0, .frame={{0,0}, {800,800}}, .title="Test Spine"});
+	auto w = Window::Make({.frame={{0,0}, {800,800}}, .title="Test Spine"});
 	auto r = w->root();
 	r->set_background_color(Color(180, 80, 0));
 

@@ -592,19 +592,16 @@ namespace qk { namespace js {
 		auto obj = in->cast<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));
-		auto fps = obj->get(worker, worker->newStringOneByte("fps"));
 		auto frame = obj->get(worker, worker->newStringOneByte("frame"));
 		auto title = obj->get(worker, worker->newStringOneByte("title"));
 		auto backgroundColor = obj->get(worker, worker->newStringOneByte("backgroundColor"));
 		auto navigationColor = obj->get(worker, worker->newStringOneByte("navigationColor"));
+		auto enableCAPA = obj->get(worker, worker->newStringOneByte("enableCAPA"));
+		auto enableCAPAQuantizeCoverage = obj->get(worker, worker->newStringOneByte("enableCAPAQuantizeCoverage"));
 
 		if (!colorType->isUndefined()) {
 			Js_Parse_Type(uint32_t, colorType, "Window::Options{.colorType=%s}") false;
 			// _out.colorType = ColorType(out); --- IGNORE ---
-		}
-		if (!fps->isUndefined()) {
-			Js_Parse_Type(uint32_t, fps, "Window::Options{.fps=%s}") false;
-			_out.fps = out;
 		}
 		if (!frame->isUndefined()) {
 			Js_Parse_Type(Rect, frame, "Window::Options{.frame=%s}") false;
@@ -621,6 +618,14 @@ namespace qk { namespace js {
 		if (!navigationColor->isUndefined()) {
 			Js_Parse_Type(Color, navigationColor, "Window::Options{.navigationColor=%s}") false;
 			_out.navigationColor = out;
+		}
+		if (!enableCAPA->isUndefined()) {
+			Js_Parse_Type(bool, enableCAPA, "Window::Options{.enableCAPA=%s}") false;
+			_out.enableCAPA = out;
+		}
+		if (!enableCAPAQuantizeCoverage->isUndefined()) {
+			Js_Parse_Type(bool, enableCAPAQuantizeCoverage, "Window::Options{.enableCAPAQuantizeCoverage=%s}") false;
+			_out.enableCAPAQuantizeCoverage = out;
 		}
 		return true;
 	}

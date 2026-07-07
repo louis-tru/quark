@@ -96,7 +96,7 @@ public:
 
 Qk_TEST_Func(rrect) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
+	auto win = Window::Make({.frame={{0,0}, {400,400}}});
 	win->activate();
 	auto t = win->root()->append_new<TestRRect>();
 	t->set_width({ 0, BoxSizeKind::Match });

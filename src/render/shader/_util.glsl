@@ -33,7 +33,7 @@ precision mediump sampler2D;
 layout(location=0) in      float aaSide;
 layout(location=0) out     vec4  fragColor;
 layout(binding=3, set=0, std140) uniform ClipStatBlock {
-	vec4 range; // x:left, y:top, z:right, w:bottom
+	vec4 bounds; // x:left, y:top, z:right, w:bottom
 	// Clip sampling mode used by fragment shader:
 	// 0: intersect  -> keep masked area
 	// 1: difference -> reject masked area
@@ -43,7 +43,7 @@ layout(binding=0, set=1)  uniform sampler2D clipTex; // clip texture buffer
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(vec2 offset) {
-	float coverage = texelFetch(clipTex, ivec2(gl_FragCoord.xy - clipStat.range.xy + offset), 0).r;
+	float coverage = texelFetch(clipTex, ivec2(gl_FragCoord.xy - clipStat.bounds.xy + offset), 0).r;
 	if (clipStat.op == 1)
 		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
 	return coverage;
@@ -75,6 +75,8 @@ float aaSideCoverage(const uint flags) {
 #define Qk_aaSideCoverage() fragColor *= aaSideCoverage(pc.flags)
 
 #define Qk_CLIP() \
-if ((pc.flags & Qk_FLAG_CLIP) != 0) { \
-	fragColor *= clipCoverage(vec2(0)); \
-}
+if ((pc.flags & Qk_FLAG_CLIP) != 0) \
+	fragColor *= clipCoverage(vec2(0))
+
+#comp
+precision mediump float;

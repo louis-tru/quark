@@ -25,6 +25,38 @@ Key files:
 - `src/render/paint.*`: paint/image/gradient/filter state.
 - `src/render/pathv_cache.*`: path triangulation and cached vertex data.
 
+## Current Rendering Strategy
+
+Quark now uses a hybrid GPU renderer rather than a single universal path.
+
+- **AASide** remains the GL/GLES-compatible fast path and the preferred path
+  for hairline strokes and text. Its distance/edge-band behavior often gives
+  better perceptual quality on simple straight edges than strict area coverage.
+- **CAPA** (Coverage Area Pipeline Anti-Aliasing) is the primary Metal-class
+  compute path for most AA filled paths. It batches path commands, transforms
+  edges, bins them into tiles, computes per-tile area coverage, builds ordered
+  global-tile layer spans, and composites in order to avoid multi-primitive
+  background leakage.
+- **CGAA** is no longer the active direction. Keep it only as a historical
+  reference/fallback if it remains in a branch; do not extend it unless a task
+  explicitly asks for that.
+
+CAPA is not intended to replace every simple-edge renderer. Its value is
+ordered coverage and correct composition for complex GUI scenes. If a future
+quality pass is needed, prefer renderer selection or an explicit optional mode
+over changing CAPA's area coverage semantics.
+
+The current practical default is:
+
+- most AA path fills: CAPA where available;
+- hairline strokes and text: AASide;
+- GL/GLES fallback: AASide;
+- expensive Canvas state changes such as readback, output-image transitions,
+  blur/filter passes, or unsupported clip changes may flush the CAPA batch.
+
+The current executable CAPA pass plan is documented in
+`docs/CAPA_PASS_PROCESS.md`; shader source lives in `src/render/shader/capa/`.
+
 ## Shared GPUCanvas Responsibilities
 
 `GPUCanvas` owns behavior that should not be duplicated in each backend:

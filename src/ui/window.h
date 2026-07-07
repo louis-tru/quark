@@ -74,12 +74,13 @@ namespace qk {
 
 		struct Options {
 			ColorType colorType; // init window color type
-			uint32_t  fps; // init window render fsp limit
 			Rect      frame; // init window params
 			String    title; // init window title
 			Color     backgroundColor={255,255,255}; // init window background color
-			Color     navigationColor={0,0,0,0}; // Is need draw navigation buttons for android.
-			// Not draw navigation, if settings opacity as zero
+			// Is need draw navigation buttons for android. Not draw navigation, if settings opacity as zero
+			Color     navigationColor={0,0,0,0};
+			bool      enableCAPA = true; ///< Whether to enable CAPA for GPU rendering.
+			bool      enableCAPAQuantizeCoverage = false; ///< Whether to enable CAPA quantized coverage for GPU rendering.
 		};
 
 		struct RangeSize {

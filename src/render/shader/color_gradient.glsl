@@ -1,34 +1,23 @@
-#define Qk_CONSTANT_Fields \
-	vec4 range; /* linear: origin/end, radial: center/radius */ \
-	vec4 color; \
+Qk_CONSTANT(
+	vec4 range; /* linear: origin/end, radial: center/radius */
+	vec4 color;
 	int count;
+);
 
 #define Qk_FLAG_GRADIENT_COUNT2 (1u << 16)
 #define Qk_FLAG_RADIAL_GRADIENT (1u << 17)
-
-#import "_cgaa.glsl"
 
 #vert
 layout(location=3) out vec2 gradientValue;
 
 void main() {
-	vec2 vertex = vertexIn.xy;
-#if Qk_SHADER_FLAGS_ENABLE_CGAA
-	if ((pc.flags & Qk_FLAG_CGAA) != 0) {
-		Qk_cgaaVertexSteps();
-		vertex = cgaaCanvasPosition();
-		gl_Position = rMat.noScale * vec4(cgaaPosition, 0.0, 1.0);
-	} else
-#endif
-	{
-		aaSide = aaSideIn;
-		gl_Position = matrix * vec4(vertex, 0.0, 1.0);
-	}
+	aaSide = aaSideIn;
+	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
 	if ((pc.flags & Qk_FLAG_RADIAL_GRADIENT) != 0) {
-		gradientValue = vertex;
+		gradientValue = vertexIn.xy;
 	} else {
 		vec2 axis = pc.range.zw - pc.range.xy;
-		float weight = dot(axis, vertex - pc.range.xy) / dot(axis, axis);
+		float weight = dot(axis, vertexIn.xy - pc.range.xy) / dot(axis, axis);
 		gradientValue = vec2(weight, 0.0);
 	}
 }
@@ -78,6 +67,6 @@ void main() {
 	}
 	fragColor *= pc.color;
 
-	Qk_aaCoverage();
+	Qk_aaSideCoverage();
 	Qk_CLIP();
 }

@@ -111,7 +111,7 @@ Qk_TEST_Func(https) {
 	cl->send();
 
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	auto win = Window::Make({.frame={{0,0}, {500,500}}});
 	win->activate();
 	win->root()->set_background_color(Color(255, 0, 0));
 

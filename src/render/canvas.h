@@ -286,7 +286,7 @@ namespace qk {
 		// ---------------------------------------------------------------------
 
 		/** Returns true if this canvas is backed by GPU rendering. */
-		virtual bool isGpu();
+		virtual bool isGpu() const;
 
 		/**
 		 * Swap internal draw command buffers.
@@ -326,7 +326,13 @@ namespace qk {
 		 * Returns the drawable surface size in pixels.
 		 * size = surfaceSize / surfaceScale (as set by setSurface())
 		 */
-		virtual Vec2 size() = 0;
+		virtual Vec2 size() const = 0;
+
+		/**
+		* Returns the drawable surface size in pixels.
+		* size = surfaceSize / surfaceScale (as set by setSurface())
+		*/
+		virtual Vec2 surfaceSize() const = 0;
 
 	protected:
 		Canvas() = default;

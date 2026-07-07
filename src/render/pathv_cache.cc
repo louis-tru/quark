@@ -60,7 +60,7 @@ namespace qk {
 		static_cast<PathvCacheInl*>(cache)->clearExec();
  	}
 
-	PathvCache::PathvCache(uint32_t maxCapacity, RenderResource *render)
+	PathvCache::PathvCache(uint32_t maxCapacity, Render *render)
 		: _render(render), _capacity(0), _maxCapacity(maxCapacity)
 		, _clearExecs(new Array<Cb>) {
 	}
@@ -226,6 +226,18 @@ namespace qk {
 		}
 	}
 
+	const PathEdgeInfo& PathvCache::getEdgeInfo(const Path &path, float precision) {
+		Hash hash = path.hash();
+		hash.update1f(precision);
+		auto key = hash.hashCode();
+		PathEdgeInfo const *out;
+		if (_edgeInfo.get(key, out))
+			return *out;
+		auto info = path.getEdgeInfo(precision);
+		_capacity += info.edges.size() + sizeof(info.bounds) + sizeof(info.totalEdgeLength);
+		return _edgeInfo.set(key, std::move(info));
+	}
+
 	void PathvCache::clear(int flags) {
 		if (flags == 0) {
 			if (_capacity > _maxCapacity) { // max limit clear
@@ -249,6 +261,7 @@ namespace qk {
 			it->clear();
 		}
 		_capacity = 0;
+		_edgeInfo.clear();
 
 		// If the render backend is not available, directly clear the cache data and return
 		if (!_render) {

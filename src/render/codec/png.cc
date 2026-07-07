@@ -110,8 +110,11 @@ namespace qk {
 		}
 		png_read_image(png, &row_pointers[0]);
 		png_read_end(png, info);
-		
-		rv->push( Pixel(PixelInfo(w, h, format, kUnpremul_AlphaType), buff) );
+
+		AlphaType alphaType = channel == 2 || channel == 4
+			? kUnpremul_AlphaType
+			: kOpaque_AlphaType;
+		rv->push( Pixel(PixelInfo(w, h, format, alphaType), buff) );
 
 		return true;
 	}
@@ -167,7 +170,10 @@ namespace qk {
 			default: // unknown error
 				return false;
 		}
-		*out = PixelInfo(w, h, format, kUnpremul_AlphaType);
+		AlphaType alphaType = channel == 2 || channel == 4
+			? kUnpremul_AlphaType
+			: kOpaque_AlphaType;
+		*out = PixelInfo(w, h, format, alphaType);
 
 		return true;
 	}
