@@ -48,6 +48,7 @@ namespace qk {
 		void flushBuffer(); // commit gl cmd, only can rendering thread call
 		void vportCopy(GLuint dstFBO);
 		bool readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst);
+		GLuint fbo() { return _fbo; }
 	private:
 		void checkMatrix();
 		void setBuffers(Vec2 surfaceSize);

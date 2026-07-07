@@ -207,7 +207,7 @@ class IosGLRender final: public GLRender, public RenderSurface {
 	}
 
 	- (id) init:(IosGLRender*)render {
-		self = [super initWithFrame:UIScreen.mainScreen.bounds];
+		self = [super init];
 		if (self) {
 			_isRun = true;
 			_render = render;

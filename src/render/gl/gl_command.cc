@@ -39,6 +39,9 @@
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
 
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X (1u << 18)
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y (1u << 19)
+
 namespace qk {
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 	void  gl_texture_barrier();
@@ -277,9 +280,7 @@ namespace qk {
 							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
 							glBindVertexArray(s->vao);
 							glUseProgram(s->shader);
-							glUniform1ui(s->pc_flags, c->flags);
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
-							// glDrawArrays(GL_LINE_STRIP, 0, c->vCount);
 							break;
 						}
 						case kReadImage_CmdType: {
@@ -466,9 +467,14 @@ namespace qk {
 						cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
 					glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
-					glUniform1ui(s->pc_flags, cmd->flags |
-						(cmd->kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
-						(cmd->kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0));
+					glUniform1ui(s->pc_flags, cmd->flags
+						| (cmd->kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0)
+						| (cmd->kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0)
+#ifndef GL_CLAMP_TO_BORDER
+						| (cmd->paint.tileModeX == PaintImage::kDecal_TileMode ? Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X: 0)
+						| (cmd->paint.tileModeY == PaintImage::kDecal_TileMode ? Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y: 0)
+#endif
+					);
 				}
 				glDrawArrays(GL_TRIANGLES, 0, cmd->vertex.vCount);
 			}
@@ -977,7 +983,7 @@ namespace qk {
 	void GLC_CmdPack::drawColor(const VertexData &vertex, const Color4f &color) {
 #define Qk_USE_ColorBatch (!Qk_LINUX)
 #if Qk_USE_ColorBatch
-		if ( vertex.vertex.length() == 0 || (_canvas->_flags & Qk_FLAG_AASIDE_LINE) ) {
+		if (vertex.vertex.length() == 0) {
 #endif
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 			cmd->type = kColor_CmdType;
@@ -992,7 +998,7 @@ namespace qk {
 				auto cmd = _this->getColorBatchCmd();
 				cmd->opts[cmd->subcmd] = { // setting vertex option data
 					.matrix = _canvas->_state->matrix,
-					.flags = 0,
+					.flags = _canvas->_flags,
 					._pad = 0,
 					.color = premul_alpha(color),
 				};

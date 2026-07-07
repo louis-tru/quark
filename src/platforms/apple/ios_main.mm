@@ -35,7 +35,7 @@ using namespace qk;
 
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
 	@autoreleasepool {
-		Application::runMain(argc, argv, false);
+		Application::runMain(argc, argv, true);
 	}
 	return UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));
 }

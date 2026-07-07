@@ -186,10 +186,35 @@
 					'render/gl/glsl_shaders.cc',
 				],
 				'conditions': [
+					['os=="android"', {
+						'sources': [
+							'render/gl/gl_render_linux.cc',
+						],
+						'link_settings': {
+							'libraries': [
+								'-lGLESv3', '-lEGL',
+							],
+						},
+					}],
+					['os=="linux"', {
+						'sources': [
+							'render/gl/gl_render_linux.cc',
+						],
+						'link_settings': {
+							'libraries': [
+								'-lGLESv2', '-lEGL',
+							],
+						},
+					}],
 					['os=="ios"', {
 						'sources': [
 							'render/gl/gl_render_ios.mm',
 						],
+						'link_settings': {
+							'libraries': [
+								'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+							],
+						},
 					}],
 					['os=="mac"', {
 						'sources': [
@@ -201,38 +226,7 @@
 							],
 						},
 					}],
-					['os=="linux" or os=="android"', {
-						'sources': [
-							'render/gl/gl_render_linux.cc',
-						],
-						'link_settings': {
-							'libraries': [
-								'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
-							],
-						},
-					}],
 				],
-			}],
-			['os in "mac ios" and use_gl==0', { # use metal
-				'defines': [ 'Qk_ENABLE_METAL=1' ],
-				'sources': [
-					'render/metal/mtl_canvas.h',
-					'render/metal/mtl_canvas.mm',
-					'render/metal/mtl_canvas_cmd.mm',
-					'render/metal/mt_canvas_capa.mm',
-					'render/metal/mtl_render.h',
-					'render/metal/mtl_render.mm',
-					'render/metal/mtl_shader.h',
-					'render/metal/mtl_shaders.h',
-					'render/metal/mtl_shaders.mm',
-					'render/metal/mtl_apple.mm',
-				],
-				'link_settings': {
-					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
-					],
-				},
 			}],
 			['os=="linux" or os=="android"', {
 				'sources': [
@@ -279,10 +273,7 @@
 				],
 				'link_settings': {
 					'libraries': [
-						'-lGLESv3',
-						'-lEGL',
-						'-lz',
-						'-landroid', '-llog',
+						'-lz', '-landroid', '-llog',
 					],
 				},
 			}],
@@ -300,7 +291,7 @@
 				],
 				'link_settings': {
 					'libraries': [
-						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound', '-lfontconfig',
+						'-lX11', '-lXi', '-lXcursor', '-lasound', '-lfontconfig',
 					],
 				},
 			}],
@@ -327,13 +318,34 @@
 					'platforms/apple/mac_ime_helper.mm',
 					'platforms/apple/mac_main.mm',
 					'platforms/apple/mac_window.mm',
-					# 'render/apple/mac_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
+						'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
 					]
+				},
+			}],
+			['os in "mac ios" and use_gl==0', { # use metal
+				'defines': [ 'Qk_ENABLE_METAL=1' ],
+				'sources': [
+					'render/metal/mtl_canvas.h',
+					'render/metal/mtl_canvas.mm',
+					'render/metal/mtl_canvas_cmd.mm',
+					'render/metal/mt_canvas_capa.mm',
+					'render/metal/mtl_render.h',
+					'render/metal/mtl_render.mm',
+					'render/metal/mtl_shader.h',
+					'render/metal/mtl_shaders.h',
+					'render/metal/mtl_shaders.mm',
+					'render/metal/mtl_apple.mm',
+				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+						'$(SDKROOT)/System/Library/Frameworks/MetalKit.framework',
+					],
 				},
 			}],
 			['os=="mac" or os=="ios"', { # mac ios
@@ -357,7 +369,6 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
-						'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
 					]
 				},
 			}],

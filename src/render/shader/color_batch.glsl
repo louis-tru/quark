@@ -1,8 +1,9 @@
 // Batch drawing color sets
 
+#vert
 struct Option {
 	float m0,m1,m2,m3,m4,m5; // 2d mat2x3
-	int   flags; // flags maybe used for AA, etc
+	uint  flags; // flags maybe used for AA, etc
 	int  _pad; // padding for std140
 	vec4  color; // color
 };
@@ -11,9 +12,9 @@ layout(binding=4, set=0, std140) uniform OptsBlock {
 	Option opts[256];
 };
 
-#vert
 layout(location=2) in int optidxIn; // options index form uniform optsBlock
-layout(location=1) out vec4  color;
+layout(location=1) out flat vec4  color;
+layout(location=2) out flat uint flags;
 
 #define _vmatrix mat4(\
 	opt.m0, opt.m3, 0.0, 0.0, \
@@ -26,20 +27,19 @@ void main() {
 	Option opt = opts[optidxIn];
 	aaSide = aaSideIn;
 	color = opt.color;
+	flags = opt.flags;
 	gl_Position = _matrix * vec4(vertexIn.xy, 0.0, 1.0);
 }
 
 #frag
-// flat
 // smooth
-layout(location=1) in vec4 color;
-
-Qk_CONSTANT(
-	int _;
-);
+layout(location=1) in flat vec4 color;
+layout(location=2) in flat uint flags;
 
 void main() {
 	fragColor = color;
-	fragColor *= aaSideCoverage(0);
-	Qk_CLIP(); // apply clip mask if needed
+	fragColor *= aaSideCoverage(flags);
+
+	if ((flags & Qk_FLAG_CLIP) != 0)
+		fragColor *= clipCoverage(vec2(0));
 }

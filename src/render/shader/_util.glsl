@@ -28,6 +28,7 @@ layout(location=1) in      float aaSideIn; // anti alias side
 layout(location=0) out     float aaSide;
 
 #frag
+precision highp int;
 precision mediump float; // lowp/highp
 precision mediump sampler2D;
 layout(location=0) in      float aaSide;

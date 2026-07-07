@@ -508,6 +508,17 @@ function readMSLSource(msl_out, uniforms) {
 	return source_msl;
 }
 
+function expand_pc_struct_uniform(code, pcBlock) {
+	if (!pcBlock)
+		return code;
+	const precisionOf = type=>/^(float|vec[234]|mat[234])$/.test(type) ? 'mediump ':
+		/^(int|uint|ivec[234]|uvec[234])$/.test(type) ? 'highp ': '';
+	const uniforms = pcBlock.block.map(e=>`uniform ${precisionOf(e.type)}${e.type} pc_${e.name};`).join('\n');
+	return code
+		.replace(/struct\s+PcArgs\s*\{[\s\S]*?\};\s*uniform\s+PcArgs\s+pc\s*;\s*/m, uniforms + '\n')
+		.replace(/\bpc\.([A-Za-z_][A-Za-z0-9_]*)/g, 'pc_$1');
+}
+
 async function resolve_ast(name, stage, source_both) {
 	const source_arr = [];
 	marge_source(stage, source_both[stage], source_arr, new Set());
@@ -538,7 +549,7 @@ async function resolve_ast(name, stage, source_both) {
 
 	await exec2(`${glslc} -DQk_SHADER_FLAGS_ENABLE_CGAA=1 -DQk_SHADER_FLAGS_ENABLE_CAPA=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
 	if (stage != 'comp') {
-		await exec2(`${glslc} -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
+		await exec2(`${glslc} -DQk_SHADER_FLAGS_GLES300=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
 		await exec2(`${spirv_cross} ${spv_es300_out} --es --version 300 > ${es300_out}`);
 	}
 	await exec2(`${spirv_cross} ${spv_out} --vulkan-semantics --version 450 > ${gl450_out}`);
@@ -547,7 +558,7 @@ async function resolve_ast(name, stage, source_both) {
 	await exec2(`${spirv_cross} ${spv_out} --msl ${mslOptions}`+
 		`--rename-entry-point main ${metal_entry} ${stage} --stage ${stage} > ${msl_out}`);
 
-	const source_es300 = stage == 'comp' ? '': fs.readFileSync(es300_out).toString('utf8');
+	let source_es300 = stage == 'comp' ? '': fs.readFileSync(es300_out).toString('utf8');
 	const source_gl450 = fs.readFileSync(gl450_out).toString('utf8');
 
 	find_attributes(source, attributes);
@@ -588,6 +599,11 @@ async function resolve_ast(name, stage, source_both) {
 				uniform.struct = type_struct;
 			}
 		}
+	}
+
+	if (stage != 'comp') {
+		source_es300 = expand_pc_struct_uniform(source_es300, uniform_blocks.find(e=>e.name == 'pc'));
+		fs.writeFileSync(es300_out, source_es300, 'utf8');
 	}
 
 	let ast = {
@@ -743,7 +759,7 @@ function gen_glsl_native_code(glslDocs, output_h, output_cc) {
 			'	},',
 			'	{',
 					uniforms_commom.map(e=>`		{"${e.name}",${e.glType},&${e.name},${e.nameSlot?'&'+e.nameSlot:0}},`),
-					uniforms_struct.map(e=>e.struct.block.map(it=>`		{"${e.name}.${it.name}",${it.glType},&${e.name}_${it.name},0},`)),
+					uniforms_struct.map(e=>e.struct.block.map(it=>`		{"${e.name}_${it.name}",${it.glType},&${e.name}_${it.name},0},`)),
 			'	},',
 			'	{',
 					uniform_blocks.map(e=>`		{"${e.type}",&${e.name}},`),

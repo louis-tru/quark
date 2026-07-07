@@ -54,6 +54,16 @@ The current practical default is:
 - expensive Canvas state changes such as readback, output-image transitions,
   blur/filter passes, or unsupported clip changes may flush the CAPA batch.
 
+Recent iOS validation:
+
+- GL/GLES, Metal, and CAPA have all rendered the current kace/text-heavy iOS
+  test scenes correctly and smoothly in simple smoke tests.
+- Simulator/window scaling can hide aliasing because the device framebuffer is
+  downsampled again by the host display path. Use 1:1 framebuffer inspection
+  when judging AA quality.
+- Mobile CPU cost still matters. CAPA performs well when it records large
+  batches, but frequent flushes can dominate CPU time.
+
 The current executable CAPA pass plan is documented in
 `docs/CAPA_PASS_PROCESS.md`; shader source lives in `src/render/shader/capa/`.
 
@@ -107,6 +117,20 @@ Use GL as a behavior reference for Metal, especially for:
 - read/output image semantics
 - drawTriangles data lifetime
 - mipmap generation rules
+
+GLES-specific differences:
+
+- Do not rely on core `GL_CLAMP_TO_BORDER` on GLES. ES backends should emulate
+  transparent border sampling for `PaintImage::kDecal_TileMode` in shader code
+  when needed, otherwise `GL_CLAMP_TO_EDGE` will stretch the edge texel and can
+  create visible strips.
+- ES300 shader output expands the `PcArgs` push-constant-style uniform into
+  separate ordinary uniforms such as `pc_flags` and `pc_texCoords`. This avoids
+  iOS GLES linker failures caused by struct uniform type or precision mismatch
+  across vertex/fragment stages.
+- Fragment shader integer precision should be explicit `highp` for flags and
+  bit masks. Float precision can be kept `mediump` unless a path has a specific
+  coordinate-precision need.
 
 ## Metal Backend Shape
 

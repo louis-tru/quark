@@ -8,6 +8,7 @@
 
 var fs = require('qktool/node/fs');
 var path = require('path');
+var child_process = require('child_process');
 
 var COMPILE_SOURCE_EXTENSIONS = new Set([
 	'.c', '.cc', '.cpp', '.cxx', '.m', '.mm',
@@ -97,9 +98,44 @@ function find_metal_lsp() {
 	}
 }
 
-function fill_clangd_template(content, root) {
+function apple_sdk_path(sdk) {
+	try {
+		return child_process.execFileSync('xcrun', ['--sdk', sdk, '--show-sdk-path'], {
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'ignore'],
+		}).trim();
+	} catch (err) {
+		return '';
+	}
+}
+
+function clangd_platform_flags(os) {
+	var sdk = '';
+	var define = '';
+	if (os == 'ios') {
+		sdk = apple_sdk_path('iphoneos');
+		define = '-DQk_iOS=1';
+	} else if (os == 'mac') {
+		sdk = apple_sdk_path('macosx');
+		define = '-DQk_MacOS=1';
+	}
+
+	var flags = [];
+	if (define) {
+		flags.push(define);
+	}
+	if (sdk) {
+		flags.push('-isysroot', sdk);
+	}
+	return flags.map(e => `    - ${e}`).join('\n');
+}
+
+function fill_clangd_template(content, root, opts) {
 	var metalLsp = find_metal_lsp();
 	content = content.replace(/\{\{QK_IDE_DIR\}\}/g, path.join(root, '.ide'));
+	content = content.replace(/\{\{QK_CLANGD_PLATFORM_FLAGS\}\}/g,
+		clangd_platform_flags(opts && opts.os)
+	);
 	if (metalLsp) {
 		return content
 			.replace(/\{\{METAL_LSP_COMPAT_HEADER\}\}/g, metalLsp.compatHeader)
@@ -112,7 +148,7 @@ function fill_clangd_template(content, root) {
 	);
 }
 
-function write(root) {
+function write(root, opts = {}) {
 	root = path.resolve(root);
 	var ideDir = path.join(root, '.ide');
 
@@ -128,7 +164,8 @@ function write(root) {
 	if (fs.existsSync(clangdTemplate)) {
 		var clangdContent = fill_clangd_template(
 			fs.readFileSync(clangdTemplate).toString(),
-			root
+			root,
+			opts
 		);
 		fs.writeFileSync(path.join(root, '.clangd'), clangdContent);
 	}

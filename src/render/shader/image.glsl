@@ -8,6 +8,8 @@ Qk_CONSTANT(
 
 #define Qk_FLAG_IMAGE_MASK (1u << 16)
 #define Qk_FLAG_IMAGE_SDF_MASK (1u << 17)
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X (1u << 18)
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y (1u << 19)
 
 #vert
 layout(location=3) out vec2 coords; // texture coordinates uv for fragment shader
@@ -36,6 +38,16 @@ void main() {
 	} else {
 		fragColor = texture(image, coords) * pc.color;
 	}
+#if Qk_SHADER_FLAGS_GLES300
+	if ((pc.flags & Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X) != 0) {
+		if (coords.x < 0.0 || coords.x > 1.0)
+			fragColor = vec4(0.0); // discard;
+	}
+	if ((pc.flags & Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y) != 0) {
+		if (coords.y < 0.0 || coords.y > 1.0)
+			fragColor = vec4(0.0);
+	}
+#endif
 	Qk_aaSideCoverage(); // apply anti-aliasing coverage
 	Qk_CLIP(); // apply clip mask if needed
 }

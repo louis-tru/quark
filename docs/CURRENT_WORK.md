@@ -4,8 +4,50 @@ This file is short-term memory for the current development thread. Update it whe
 
 ## Active Theme
 
-Active work has moved from the earlier AASide/CGAA closeout into **CAPA
-(Coverage Area Pipeline Anti-Aliasing)** research on branch `experiment/capa`.
+Active work has moved from broad CAPA architecture into iOS/backend validation
+and mobile CPU/performance hardening on `master`.
+
+## 2026-07-08 iOS Renderer Validation
+
+The current iOS smoke test status is good:
+
+- iOS GL/GLES renders the kace/text-heavy scene correctly and smoothly.
+- iOS Metal renders the same scene smoothly.
+- CAPA also renders the tested iOS scenes without obvious visual issues.
+- The remaining kace problems look more like JS/event/scroll-boundary behavior
+  than renderer correctness. CPU cost can still be high when JS work or CAPA
+  flush frequency increases.
+
+GLES-specific shader/backend notes:
+
+- GLES does not provide core `GL_CLAMP_TO_BORDER`; only
+  `GL_CLAMP_TO_EDGE`/`REPEAT`/`MIRRORED_REPEAT` are reliable.
+- `PaintImage::kDecal_TileMode` therefore needs a shader fallback on GLES:
+  draw code sets image flags for X/Y decal, and `image.glsl` clears fragments
+  whose sampled UV is outside `[0, 1]` on that axis. This prevents edge texels
+  from being stretched into visible black/color strips.
+- ES300 shader generation expands `uniform PcArgs pc` into independent
+  `pc_*` uniforms before building the generated AST. This avoids iOS GLES linker
+  failures from cross-stage struct-uniform type/precision mismatches. Float
+  `pc_*` uniforms are emitted with explicit `mediump`; integer/flag uniforms are
+  emitted with explicit `highp`.
+- `_util.glsl` explicitly declares fragment `precision highp int;` so flags and
+  bit masks do not depend on compiler-inserted defaults.
+
+CAPA performance note:
+
+- CAPA is not inherently CPU-heavy when it can batch a large command group; in
+  that case observed CPU cost can be close to AASide.
+- The mobile CPU risk is frequent CAPA flushing. Each flush repeats pipeline,
+  target, texture/buffer, draw/dispatch, and pass setup costs. CAPA should be
+  favored when commands can be recorded in large batches with substantial
+  overlap/ordered-composite value.
+- Long-term optimization direction is to treat CAPA/CPAP as the main compositor:
+  record most scene items into CAPA, generate special effects such as blur or
+  filters into offscreen textures when needed, and composite those textures as
+  CAPA items instead of flushing the whole CAPA pipeline around each effect.
+  Clip integration remains important because external clip textures are one of
+  the major sources of forced flushes.
 
 ## 2026-07-07 CAPA Closure Checkpoint
 

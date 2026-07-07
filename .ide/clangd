@@ -5,6 +5,7 @@ CompileFlags:
     - -DQk_ENABLE_METAL=1
     - -DQk_ENABLE_GL=1
     - -DDEBUG=1
+{{QK_CLANGD_PLATFORM_FLAGS}}
 
 Index:
   Background: Build

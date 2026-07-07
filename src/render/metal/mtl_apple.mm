@@ -359,7 +359,7 @@ private:
 	return CAMetalLayer.class;
 }
 -(Vec2)surfaceSize {
-	return Vec2FromCGSize(size) * UIScreen.mainScreen.scale;
+	return Vec2FromCGSize(self.frame.size) * UIScreen.mainScreen.scale;
 }
 - (void)layoutSubviews {
 	[super layoutSubviews];

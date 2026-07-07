@@ -1099,7 +1099,7 @@ async function configure() {
 
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
-	gen_ide_config.write(path.resolve(__dirname, '..'));
+	gen_ide_config.write(path.resolve(__dirname, '..'), { os: opts.os });
 
 	require('./touch');
 }

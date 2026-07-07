@@ -34,6 +34,12 @@ CAPA 封版判断：
   `CAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE`，默认关闭。
 - CAPA 不追求在所有单边视觉质量上超过 AASide。它解决的是有序面积
   归属、复杂重叠和背景 seam；简单边缘质量靠 renderer selection。
+- 移动端 CPU 成本需要纳入 renderer selection。CAPA 在大批量提交、
+  大量重叠、需要有序 composite/漏光修复的场景才最有优势；如果被
+  clip、image、text、blur/filter 等状态频繁打断并不断 flush，固定 pass
+  和提交成本会压过收益。后续方向应是减少 flush，把 clip 和更多合成项
+  纳入 CAPA/CPAP 主管线，或把特殊效果先离屏成 texture 后再交给 CAPA
+  合成。
 
 历史上 GPU 路径主要依赖 AASide 风格的边缘条带：
 

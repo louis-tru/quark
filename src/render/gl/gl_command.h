@@ -158,7 +158,7 @@ namespace qk {
 		struct alignas(void*) ColorBatchCmd: Cmd {
 			struct Option { // subcmd option
 				Mat          matrix; // 2d mat2x3
-				int          flags; // flags maybe used for AA, etc
+				uint32_t     flags; // flags maybe used for AA, etc
 				int          _pad; // padding for std140 alignment
 				Color4f      color;  // color
 			}; // 48b
