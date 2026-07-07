@@ -35,7 +35,6 @@
 
 #include "./render.h"
 #include "./canvas.h"
-#include "./cgaa.h"
 #include "./capa.h"
 
 #define Qk_CLIP(clip) (clip ? Qk_FLAG_CLIP: 0)
@@ -60,7 +59,8 @@ namespace qk {
 
 	struct GC_State { // gpu canvas state
 		struct Clip: Reference { // clip state
-			Range           range; // clip offset for clip path bounds
+			Range           bounds; // clip bounds for clip texture
+			Range           range; // clip the extent of external influence
 			Sp<ImageSource> mask; // clip mask texture
 			Canvas::ClipOp  op; // clip op
 		};
@@ -98,8 +98,8 @@ namespace qk {
 	public:
 		GPUCanvas(Render *render, Render::Options opts);
 		~GPUCanvas() override;
-		Vec2 size() override; // _size = surfaceSize / scale
-		bool isGpu() override;
+		Vec2 size() const override; // _size = surfaceSize / scale
+		bool isGpu() const override;
 		int  save() override;
 		void restore(uint32_t count) override;
 		int  getSaveCount() const override;
@@ -128,9 +128,12 @@ namespace qk {
 		Sp<ImageSource> outputImage(ImageSource* dst, bool mipmap) override;
 		PathvCache* getPathvCache() override;
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 surfaceScale) override;
-		Vec2 surfaceSize() { return _surfaceSize; }
+		Vec2 surfaceSize() const override;
 		const Render::Options& opts() const { return _opts; }
 		Render* render() { return _render; }
+		inline Color4f premul_alpha(const Color4f &color) const {
+			return color.premul_alpha();
+		}
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
@@ -140,11 +143,7 @@ namespace qk {
 		virtual void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) = 0;
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
-		virtual void makeCGAAAtlasCmd(cCGAADrawData &data) = 0;
-		virtual void drawCGAAColorCmd(cCGAADrawData &data) = 0;
-		virtual void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) = 0;
-		virtual void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) = 0;
-		virtual bool drawCAPACmd(cCAPADrawData &data) = 0;
+		virtual bool drawCAPACmd(CAPADrawData &data) = 0;
 		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
@@ -181,11 +180,9 @@ namespace qk {
 		// texture pool, key(w << 40 | h << 8 | colorType << 1 | mipmap),
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
-		Sp<CGAABuilder> _cgaaBuilder; // compute grid aa builder for anti-aliasing paths
-		Sp<CAPABuilder> _capaBuilder;
+		Sp<CAPABuilder> _capaBuilder; // compute shader batch builder for CAPA
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
-		friend class CGAABuilder;
 		friend class CAPABuilder;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

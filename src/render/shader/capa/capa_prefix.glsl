@@ -1,10 +1,6 @@
 // CAPA prefix pass.
 // Turn boundary-tile local row backdrop values into row-prefix backdrop.
 
-Qk_CONSTANT(
-	uint maxPathTileRowCount;
-);
-
 #import "_capa.glsl"
 
 #comp

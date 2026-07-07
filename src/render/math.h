@@ -329,6 +329,8 @@ namespace qk {
 		inline MRange clip(const MRange &clip) const;
 		// join two ranges (union)
 		inline MRange join(const MRange &b) const;
+		inline bool isEmpty() const { return begin.x() >= end.x() || begin.y() >= end.y(); }
+		inline MRange offset(T offset) const { return {begin + offset, end + offset}; }
 	};
 	template<typename T> struct MRegion {
 		// range = (origin+begin, origin+end), size = end - begin

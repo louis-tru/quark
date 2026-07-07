@@ -7,28 +7,34 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_canvas.h"
+#include "src/render/math.h"
 #include "src/render/render.h"
 #include "src/render/source.h"
 #import "./mtl_render.h"
 
 namespace qk {
-	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length);
-	MTLTextureID mtl_get_texture(cTexStat *stat);
 
-	MTLTextureID capa_get_texture(MetalRender *render, ImageSource *source) {
-		if (!source)
-			return nil;
-		auto tex = source->texture(0);
-		if (!tex->ptr())
-			source->markAsTexture(render);
-		return tex->ptr() ? mtl_get_texture(tex) : nil;
+	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t minSize = 0) {
+		minSize = Qk_Max(minSize, size);
+		auto &block = cmd.buffer->alloc(minSize);
+		Qk_ASSERT(block.end >= block.begin + minSize, "Not enough space in buffer block");
+		if (size)
+			memcpy((char*)block.val.contents + block.begin, src, size);
+		return block;
+	};
+
+	template<typename T>
+	cMTLMemBlock& makeBufferT(MTL_CmdPack &cmd, const T *src, uint32_t length) {
+		return makeBuffer(cmd, src, length * sizeof(T), sizeof(T));
 	}
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 
-	bool MetalCanvas::drawCAPACmd(cCAPADrawData &data) {
+	bool MetalCanvas::drawCAPACmd(CAPADrawData &data) {
 		auto edgeCount = data.edges.length();
 		if (!edgeCount)
 			return false;
-		endPass();
+		Color4f clearColor;
+		bool clearDst = onlyEndEncoderPass(clearColor);
 
 		auto &budget = data.budget;
 		auto pathCount = data.paths.length();
@@ -45,10 +51,26 @@ namespace qk {
 		envData->boundaryDoneCount = 0;
 		envData->layerPlanPathTileCount = 0;
 
+		if (clearDst) {
+			auto surfaceSize = _state->output ? _state->output->size() : _surfaceSize;
+			budget.globalBounds = Range{{0, 0}, surfaceSize};
+			budget.globalTileBounds = IRange{
+				capa_floor_tile_origin(budget.globalBounds.begin),
+				capa_ceil_tile_end(budget.globalBounds.end),
+			};
+			envData->globalTileBounds = *(IVec4*)budget.globalTileBounds.begin.val;
+			auto tileSpan = budget.globalTileBounds.size();
+			budget.globalTileCount = tileSpan.x() * tileSpan.y();
+		}
 		// Upload path metadata and path-space edges. The remaining buffers are
 		// GPU-owned staging/final pools for the 12-pass CAPA pipeline.
 		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
 		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
+		auto gradientPaints = makeBufferT(_cmdPack, data.gradientPaints.val(), data.gradientPaints.length());
+		auto imagePaints = makeBufferT(_cmdPack, data.imagePaints.val(), data.imagePaints.length());
+		auto colors = makeBufferT(_cmdPack, data.colors.val(), data.colors.length());
+		auto positions = makeBufferT(_cmdPack, data.positions.val(), data.positions.length());
+		// allocate budget space for the CAPA pipeline
 		auto shortTasks = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAShortEdgeTask>(budget.maxShortEdgeCount);
 		auto shortEdges = _cmdPack.buffer->alloc<MSLCapaBin::CAPAShortEdgeNode>(budget.maxShortEdgeCount * 3);
 		auto globalTiles = _cmdPack.buffer->alloc<MSLCapaLayerPlan::CAPAGlobalTile>(budget.globalTileCount);
@@ -57,24 +79,6 @@ namespace qk {
 		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
 		auto coverageTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
 		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
-		Array<CAPAImagePaint> imagePaintValues;
-		if (data.imagePaints.length()) {
-			imagePaintValues = data.imagePaints;
-			for (uint32_t i = 0; i < imagePaintValues.length(); i++) {
-				uint32_t textureIndex = imagePaintValues[i].textureIndex;
-				auto source = textureIndex < data.imageSources.length()
-					? const_cast<ImageSource*>(data.imageSources[textureIndex].get())
-					: nullptr;
-				if (textureIndex >= data.imageSources.length() ||
-						!capa_get_texture(_mtlrender, source)) {
-					imagePaintValues[i].textureIndex = 0xffffffffu;
-				}
-			}
-		}
-		auto gradientPaints = makeBuffer(_cmdPack, data.gradientPaints.val(), data.gradientPaints.size());
-		auto imagePaints = makeBuffer(_cmdPack, imagePaintValues.val(), imagePaintValues.size());
-		auto colors = makeBuffer(_cmdPack, data.colors.val(), data.colors.size());
-		auto positions = makeBuffer(_cmdPack, data.positions.val(), data.positions.size());
 
 		// CAPAEnvironment stores Metal-compatible indirect dispatch structs, so
 		// each later pass can launch without CPU readback.
@@ -154,6 +158,7 @@ namespace qk {
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
+			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:shader.compute.imagePaints];
 			[enc dispatchThreadgroups:MTLSizeMake((pathCount + 31) >> 5, 1, 1)
 				threadsPerThreadgroup:MTLSizeMake(32, 1, 1)];
 			[enc endEncoding];
@@ -191,13 +196,9 @@ namespace qk {
 		}
 		{ // bin short-edge tasks into tile-local lists
 			auto &shader = _shaders.capaBin;
-			MSLCapaBin::PcArgs pc{
-				.maxTaskCount=budget.maxShortEdgeCount,
-			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA short-edge bin";
 			[enc setComputePipelineState:shader.getComputePipeline()];
-			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:edges.val offset:edges.begin atIndex:shader.compute.edges];
@@ -230,13 +231,9 @@ namespace qk {
 		}
 		{ // compute boundary-tile row backdrop
 			auto &shader = _shaders.capaBackdrop;
-			MSLCapaBackdrop::PcArgs pc{
-				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
-			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA backdrop";
 			[enc setComputePipelineState:shader.getComputePipeline()];
-			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
@@ -249,13 +246,9 @@ namespace qk {
 		}
 		{ // classify edge-free full tiles
 			auto &shader = _shaders.capaClassify;
-			MSLCapaClassify::PcArgs pc{
-				.maxPathTileRowCount=budget.maxPathTileRowCount,
-			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA classify";
 			[enc setComputePipelineState:shader.getComputePipeline()];
-			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:smallTiles.val offset:smallTiles.begin atIndex:shader.compute.smallTiles];
@@ -290,13 +283,9 @@ namespace qk {
 		}
 		{ // compute boundary row prefix
 			auto &shader = _shaders.capaPrefix;
-			MSLCapaPrefix::PcArgs pc{
-				.maxPathTileRowCount=budget.maxPathTileRowCount,
-			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA prefix";
 			[enc setComputePipelineState:shader.getComputePipeline()];
-			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
 			[enc setBuffer:tileRows.val offset:tileRows.begin atIndex:shader.compute.tileRows];
@@ -308,13 +297,9 @@ namespace qk {
 		}
 		{ // compute retained boundary tile coverage
 			auto &shader = _shaders.capaCoverage;
-			MSLCapaCoverage::PcArgs pc{
-				.maxBoundaryTileCount=budget.maxBoundaryTileCount,
-			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA coverage";
 			[enc setComputePipelineState:shader.getComputePipeline()];
-			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:boundaryTiles.val offset:boundaryTiles.begin atIndex:shader.compute.boundaryTiles];
@@ -328,8 +313,9 @@ namespace qk {
 		{ // ordered color composite into the current target texture
 			auto &shader = _shaders.capaComposite;
 			MSLCapaComposite::PcArgs pc{
-				.clearColor=Vec4(0),
-				.surfaceOffset={},
+				.clearColor=clearColor,
+				.surfaceOffset=data.surfaceOffset,
+				.flags=_flags | (clearDst ? kCAPA_FLAG_COMPOSITE_CLEAR_DST : 0),
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA composite";
@@ -340,27 +326,45 @@ namespace qk {
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:globalTiles.val offset:globalTiles.begin atIndex:shader.compute.globalTiles];
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];
-			// See capa_composite.glsl binding=5 for z-linear coverage pages.
-			[enc setBuffer:coverageTiles.val offset:coverageTiles.begin atIndex:5];
-			[enc setBuffer:gradientPaints.val offset:gradientPaints.begin atIndex:6];
-			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:7];
-			[enc setBuffer:colors.val offset:colors.begin atIndex:8];
-			[enc setBuffer:positions.val offset:positions.begin atIndex:9];
-			for (uint32_t i = 0; i < kCAPAMaxImageTextureCount; i++) {
-				auto source = i < data.imageSources.length()
-					? const_cast<ImageSource*>(data.imageSources[i].get())
-					: nullptr;
-				MTLTextureID texture = i < data.imageSources.length()
-					? capa_get_texture(_mtlrender, source)
-					: nil;
-				if (!texture)
-					texture = _outColorTex;
-				auto sampler = i < data.imageSamplers.length()
-					? get_sampler(&data.imageSamplers[i])
-					: _mtlrender->_nearestSampler;
-				[enc setTexture:texture atIndex:1 + i];
-				[enc setSamplerState:sampler atIndex:1 + i];
+			// See capa_composite.glsl binding=7 for z-linear coverage pages.
+			[enc setBuffer:coverageTiles.val offset:coverageTiles.begin atIndex:shader.compute.coverageTiles];
+			[enc setBuffer:gradientPaints.val offset:gradientPaints.begin atIndex:shader.compute.gradientPaints];
+			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:shader.compute.imagePaints];
+			[enc setBuffer:colors.val offset:colors.begin atIndex:shader.compute.colors];
+			[enc setBuffer:positions.val offset:positions.begin atIndex:shader.compute.positions];
+			[enc setBuffer:positions.val offset:positions.begin atIndex:shader.compute.positions];
+			if (_clipState) {
+				float *v = _clipState->bounds.begin.val;
+				MSLCapaComposite::ClipStatBlock block{ IVec2(v[0], v[1]), _clipState->op };
+				auto clipStat = makeBuffer(_cmdPack, &block, sizeof(block));
+				[enc setBuffer:clipStat.val offset:clipStat.begin atIndex:shader.compute.clipStat];
+				[enc setTexture:mtl_get_texture_from(_clipState->mask.get()) atIndex:shader.compute.clipTex];
+			} else {
+				[enc setBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.compute.clipStat];
 			}
+			auto imagesEncoder = _capaCompositeSet2Encoder;
+			auto samplersEncoder = _capaCompositeSet3Encoder;
+			auto imagesBuffer = _cmdPack.buffer->alloc(
+				uint32_t(imagesEncoder.encodedLength), 0, uint32_t(imagesEncoder.alignment)
+			);
+			auto samplersBuffer = _cmdPack.buffer->alloc(
+				uint32_t(samplersEncoder.encodedLength), 0, uint32_t(samplersEncoder.alignment)
+			);
+			[imagesEncoder setArgumentBuffer:imagesBuffer.val offset:imagesBuffer.begin];
+			[samplersEncoder setArgumentBuffer:samplersBuffer.val offset:samplersBuffer.begin];
+
+			for (uint32_t i = 0; i < data.imageSources.length(); i++) {
+				auto texture = mtl_get_texture_from(data.imageSources[i].get());
+				[imagesEncoder setTexture:texture atIndex:shader.compute.set2.images.id + i];
+				[enc useResource:texture usage:MTLResourceUsageRead];
+			}
+			for (uint32_t i = 0; i < data.imageSamplers.length(); i++) {
+				auto sampler = get_sampler(&data.imageSamplers[i]);
+				[samplersEncoder setSamplerState:sampler atIndex:shader.compute.set3.samplers.id + i];
+			}
+			[enc setBuffer:imagesBuffer.val offset:imagesBuffer.begin atIndex:shader.compute.set2.bufferIndex];
+			[enc setBuffer:samplersBuffer.val offset:samplersBuffer.begin atIndex:shader.compute.set3.bufferIndex];
+
 			[enc dispatchThreadgroupsWithIndirectBuffer:env.val
 				indirectBufferOffset:envIndirectOffset(offsetof(MSLCapaPrepare::CAPAEnvironment, compositePassGroups_Size16_16))
 				threadsPerThreadgroup:MTLSizeMake(kCAPATileSize >> 1, kCAPATileSize >> 1, 1)];

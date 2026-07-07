@@ -10,10 +10,6 @@
 //
 // The prefix pass will turn backdrop[row] into row-prefix values.
 
-Qk_CONSTANT(
-	uint maxBoundaryTileCount;
-);
-
 #import "_capa.glsl"
 
 #comp

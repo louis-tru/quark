@@ -90,6 +90,33 @@ Current CAPA caution:
   cap CAPA passes at 16 textures. Metal should use argument-buffer indexed
   textures where available. A practical default target is 32 textures per CAPA
   pass, with runtime downgrade and pass flush when the table fills.
+- `tools/gen_glsl_natives.js` does not yet support shader texture/sampler
+  arrays. CAPA image paint wants the GLSL source to be able to write the table
+  as two descriptor arrays, not as many fixed `sampler2D image0/image1/...`
+  declarations:
+
+  ```glsl
+  const uint CAPA_MAX_IMAGES = 32u;
+  layout(binding=1,set=1) uniform texture2D capaImages[CAPA_MAX_IMAGES];
+  layout(binding=2,set=1) uniform sampler capaSamplers[CAPA_MAX_IMAGES];
+
+  vec4 capa_sample_image(uint textureIndex, uint samplerIndex, vec2 uv) {
+    return textureLod(
+      sampler2D(capaImages[textureIndex], capaSamplers[samplerIndex]),
+      uv,
+      0.0
+    );
+  }
+  ```
+
+  `texture2D[]` is an array of independent image resources; it is not
+  `texture2DArray`, which is one texture object with same-size/same-format
+  layers. `sampler[]` is a parallel array of sampling states (`tileMode`,
+  `filterMode`, `mipmapMode`) so paths can store `textureIndex` and
+  `samplerIndex` separately. The generator needs to parse these array uniforms,
+  expose their binding base/count to GL/Metal/Vulkan wrappers, and let the
+  backend bind resource arrays. Until that exists, CAPA image sampling can only
+  use the temporary fixed-slot path.
 - Ordered CAPA color blending should not allocate per-path-tile RGBA storage.
   Only AA/edge path-tiles need cached coverage, preferably one `16x16` R8 page
   per non-uniform coverage tile. Empty tiles and full/uniform tiles carry flags

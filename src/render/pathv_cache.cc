@@ -60,7 +60,7 @@ namespace qk {
 		static_cast<PathvCacheInl*>(cache)->clearExec();
  	}
 
-	PathvCache::PathvCache(uint32_t maxCapacity, RenderResource *render)
+	PathvCache::PathvCache(uint32_t maxCapacity, Render *render)
 		: _render(render), _capacity(0), _maxCapacity(maxCapacity)
 		, _clearExecs(new Array<Cb>) {
 	}

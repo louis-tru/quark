@@ -49,7 +49,11 @@ const uint CAPA_IMAGE_DEFAULT = 0;
 const uint CAPA_IMAGE_MASK = 1;
 const uint CAPA_IMAGE_SDF_MASK = 2;
 // Paint source is guaranteed to produce alpha == 1 for every sampled point.
-const uint CAPA_FLAG_PAINT_OPAQUE = 1u << 0;
+const uint CAPA_FLAG_PAINT_OPAQUE = 1u << 2;
+// Paint source is guaranteed to produce no mipmap filtering.
+const uint CAPA_FLAG_NONE_MIPMAP_MODE = 1u << 3;
+// Composite pass clears the destination before blending.
+const uint CAPA_FLAG_COMPOSITE_CLEAR_DST = 1u << 4;
 
 struct CAPAEnvironment {
 	// Indirect dispatch arguments are uvec4-aligned so Metal can dispatch from
@@ -91,9 +95,12 @@ struct CAPAGradientPaint {
 struct CAPAImagePaint {
 	vec4 coord; // origin/scale
 	vec4 strokeColor; // premultiplied stroke color for sdf mask
+	vec2 size; // image size
 	uint textureIndex; // index to texture array
 	uint samplerIndex; // index to sampler array
 	float stroke; // sdf stroke width
+	float lod; // explicit texture lod
+	int alphaIndex; // index to alpha channel for sdf mask
 	uint kind; // 0: image, 1: mask, 2: sdf mask
 };
 
@@ -122,7 +129,7 @@ struct CAPAPath {
 	uint edgeCount; // number of CAPAEdge for this path
 	uint paintIndex; // index to CAPAGradientPaint or CAPAImagePaint, or 0 for solid color
 	uint paintType; // 0: solid, 1: gradient, 2: image
-	uint flags; // CAPA_FLAG_PAINT_OPAQUE
+	uint flags; // CAPA_FLAG_PAINT_OPAQUE | CAPA_FLAG_NONE_MIPMAP_MODE
 	uint _pad; // padding to 16 bytes
 };
 
@@ -380,6 +387,12 @@ void capa_blend_front_append(inout CAPABlendFront blend, vec4 src, uint mode) {
 	blend.bias += blend.scale * layerBias + blend.alphaTo * layerBias.a;
 	blend.alphaTo = blend.scale * layerAlphaTo + blend.alphaTo * (layerScale.a + layerAlphaTo.a);
 	blend.scale *= layerScale;
+}
+
+void capa_blend_front_clip(inout CAPABlendFront blend, float coverage) {
+	blend.bias *= coverage;
+	blend.scale = vec4(1.0 - coverage) + blend.scale * coverage;
+	blend.alphaTo *= coverage;
 }
 
 vec4 capa_blend_front_resolve(CAPABlendFront blend, vec4 bottom) {

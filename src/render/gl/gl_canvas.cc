@@ -207,26 +207,6 @@ namespace qk {
 		_cmdPack->drawColor(vertex, color);
 	}
 
-	void GLCanvas::makeCGAAAtlasCmd(const CGAADrawData &data) {
-		// CGAA is currently connected only on Metal for direct-target testing.
-		(void)data;
-	}
-
-	void GLCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
-		(void)data;
-	}
-
-	void GLCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
-		(void)data;
-		(void)paint;
-		(void)color;
-	}
-
-	void GLCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
-		(void)data;
-		(void)info;
-	}
-
 	void GLCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		checkMatrix();
 		_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
@@ -265,5 +245,12 @@ namespace qk {
 
 	void GLCanvas::restoreClipCmd(GC_State::Clip* clip) {
 		_cmdPack->restoreClip(clip);
+	}
+
+	void GLCanvas::flushSubcanvasCmd(GPUCanvas* canvas) {
+	}
+
+	bool GLCanvas::drawCAPACmd(CAPADrawData &data) {
+		return false; // CAPA is currently connected only on Metal for direct-target testing.
 	}
 }

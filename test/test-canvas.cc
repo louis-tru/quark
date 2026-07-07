@@ -23,7 +23,7 @@ class TestCanvas0: public Box {
 	Array<TextBlob> textBlobs;
 	View* init(Window* win) override {
 		View::init(win);
-		test_gui_new(win->root());
+		// test_gui_new(win->root());
 		return this;
 	}
 
@@ -31,7 +31,7 @@ class TestCanvas0: public Box {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 
-		i+=Qk_PI_RATIO_180*0.01;
+		i+=Qk_PI_RATIO_180*0.001;
 		float c = abs(sinf(i)) * 5;
 
 		Paint paint;
@@ -40,7 +40,7 @@ class TestCanvas0: public Box {
 		canvas->save();
 
 		if (1) { // clip
-			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			// canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		if (1) { // gradient
@@ -98,7 +98,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI*0.5, 1), paint);
 		}
 
-		if (1) { // font blob
+		if (0) { // font blob
 			paint.fill.color = Color4f(255,0,255);
 			paint.stroke.color = Color4f(0,0,0);
 			paint.strokeWidth = 5;
@@ -139,7 +139,7 @@ class TestCanvas0: public Box {
 			paint.style = Paint::kStroke_Style;
 			paint.fill.color = Color4f(0, 1, 1);
 			paint.stroke.color = Color4f(0,0,0);
-			paint.strokeWidth = 0.5;
+			paint.strokeWidth = 0.1;
 			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 			paint.stroke.color = Color4f(1, 1, 0);
 			paint.style = Paint::kStroke_Style;
@@ -251,7 +251,7 @@ class TestCanvas2: public Box {
 		path.transform(Mat(0,{1.5},0,0));
 		canvas->translate(size*-0.5);
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1; i++) {
 			canvas->drawPathColor(path, paint.fill.color, paint.blendMode, true);
 		}
 		mark_rerender();

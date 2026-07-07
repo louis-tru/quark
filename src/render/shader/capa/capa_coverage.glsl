@@ -2,10 +2,6 @@
 // Integrate pathTile-local short edges with tile-left row backdrop and write R8
 // coverage pages.
 
-Qk_CONSTANT(
-	uint maxBoundaryTileCount;
-);
-
 #import "_capa.glsl"
 
 #comp

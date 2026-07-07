@@ -25,16 +25,30 @@ namespace qk {
 	MTLTextureID mtl_get_texture(cTexStat *stat);
 	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, cTexStat *tex);
-	void setvMatrixFromEnc(MTLEncoder enc, const Mat &mat);
-
-	const MemBlockAllocator<MTLBufferID>::MemBlock& makeBuffer(MTL_CmdPack &cmd, const void *bytes, uint32_t length) {
-		auto &block = cmd.buffer->alloc(length);
-		Qk_ASSERT(block.end >= block.begin + length, "Not enough space in buffer block for CGAA data");
-		memcpy((char*)block.val.contents + block.begin, bytes, length);
-		return block;
-	};
+	void setViewMatrixFromEnc(MTLEncoder enc, const Mat &mat, uint32_t index = 2);
 
 	// --------------------------------------------------------------------
+
+	cMTLMemBlock& MetalCanvas::buildGradientBuffer(const PaintGradient *paint, const Color4f &color) {
+		int count = Qk_Min(64, paint->count);
+		Array<Color4f> colors(count);
+		for (int i = 0; i < count; i++) {
+			colors[i] = premul_alpha(paint->colors[i]);
+		}
+		// align color and position data to 16 bytes for std140 packing rules
+		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
+		auto pointSize = alignUp(sizeof(float) * count, 16); // align to 16 bytes
+
+		// allocate a buffer for gradient colors and positions, and copy data to the buffer
+		auto &block = _cmdPack.buffer->alloc(
+			colorSize + pointSize, sizeof(MSLColorGradient::Colors) + sizeof(MSLColorGradient::Positions)
+		);
+		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
+		auto buff = (char*)block.val.contents + block.begin;
+		memcpy(reinterpret_cast<Color4f*>(buff), colors.val(), colorSize);
+		memcpy(reinterpret_cast<float*>((uint8_t*)buff + colorSize), paint->positions, pointSize);
+		return block;
+	}
 
 	void MetalCanvas::setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) {
 		// Convert Qk/GL surface clip convention to Metal:
@@ -70,7 +84,7 @@ namespace qk {
 	void MetalCanvas::setMatrixCmd() {
 		if (_cmdPack.enc) {
 			// set matrix bytes for current encoder if it exists, so that it can be used by subsequent draw calls
-			setvMatrixFromEnc(_cmdPack.enc, _state->matrix);
+			setViewMatrixFromEnc(_cmdPack.enc, _state->matrix);
 		}
 	}
 
@@ -79,8 +93,8 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawClipCmd(const VertexData &vertex, GC_State::Clip *last, GC_State::Clip *clip, ClipOp rawOp) {
-		auto begin = clip->range.begin,
-				 end = clip->range.end, size = end - begin;
+		auto begin = clip->bounds.begin,
+				 end = clip->bounds.end, size = end - begin;
 		auto blend = _blendMode; // save current blend mode
 		auto colorTex = _outColorTex; // save current color texture
 		// switch blend mode to src
@@ -109,7 +123,7 @@ namespace qk {
 		} else { // if (rawOp == Canvas::kDifference_ClipOp)
 			beginPass(0, false); // begin a new pass with don't load color
 			// copy last clip color to clipTex as the clear color
-			copyImage(last->mask.get(), begin - last->range.begin, {0,size}, size);
+			copyImage(last->mask.get(), begin - last->bounds.begin, {0,size}, size);
 			// draw clip shape to clipTex with white color if last op equal difference,
 			// or black color if last op equal intersect
 			auto black = last->op == Canvas::kIntersect_ClipOp;
@@ -127,7 +141,7 @@ namespace qk {
 		if (_cmdPack.enc == nil)
 			return;
 		if (clip) {
-			MSLColor::ClipStatBlock clipStat = { *((Vec4*)clip->range.begin.val), clip->op };
+			MSLColor::ClipStatBlock clipStat = { *(Vec4*)clip->bounds.begin.val, clip->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*clip->mask) atIndex:0];
 			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];
@@ -194,172 +208,6 @@ namespace qk {
 
 	void MetalCanvas::drawColorCmd(const VertexData &vertex, const Color4f &color) {
 		drawColor(vertex, premul_alpha(color), Vec4(0), _flags);
-	}
-
-	void MetalCanvas::makeCGAAAtlasCmd(cCGAADrawData &data) {
-		auto tileCount = data.tiles.length();
-		if (!tileCount)
-			return;
-		endPass(); // end current pass
-
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
-
-		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
-		auto tileEdges = makeBuffer(_cmdPack, data.tileEdges.val(), data.tileEdges.size());
-		auto tiles = makeBuffer(_cmdPack, data.tiles.val(), data.tiles.size());
-
-		auto &shader = _shaders.cgaa;
-		MSLCgaa::PcArgs pc{
-			.atlasTileCountX=uint32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.atlasTileCountY=uint32_t(data.atlas->height() >> kCGAATileSizeShift),
-			.flags=_flags,
-		};
-		auto enc = [_cmdPack.current computeCommandEncoder];
-		enc.label = @"CGAA atlas Coverage";
-		[enc setComputePipelineState:shader.getComputePipeline()];
-		[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
-		[enc setBuffer:edges.val offset:edges.begin atIndex:shader.compute.edges];
-		[enc setBuffer:tileEdges.val offset:tileEdges.begin atIndex:shader.compute.tileEdges];
-		[enc setBuffer:tiles.val offset:tiles.begin atIndex:shader.compute.tiles];
-		[enc setTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.compute.atlasTex];
-
-		[enc dispatchThreadgroups:MTLSizeMake(tileCount, 1, 1)
-			threadsPerThreadgroup:MTLSizeMake(kCGAATileSize * kCGAASampleGrid, 1, 1)];
-		[enc endEncoding];
-		_cmdPack.recorded = true;
-	}
-
-	void MetalCanvas::drawCGAAColorCmd(cCGAADrawData &data) {
-		auto tileCount = data.compositeTiles.length();
-		if (!tileCount)
-			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
-
-		auto &shader = _shaders.color;
-		auto enc = usePipeline(shader);
-		enc.label = @"CGAA Color";
-
-		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
-
-		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
-		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
-		MSLColor::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.flags=_flags | Qk_FLAG_CGAA,
-		};
-		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
-		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
-		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
-						vertexStart:0
-						vertexCount:4
-					instanceCount:tileCount];
-	}
-
-	const MemBlockAllocator<MTLBufferID>::MemBlock&
-	MetalCanvas::buildGradientBuffer(const PaintGradient *paint, const Color4f &color) {
-		int count = Qk_Min(64, paint->count);
-		Array<Color4f> colors(count);
-		for (int i = 0; i < count; i++) {
-			colors[i] = premul_alpha(paint->colors[i]);
-		}
-		// align color and position data to 16 bytes for std140 packing rules
-		auto colorSize = alignUp(sizeof(Color4f) * count, 16); // align to 16 bytes
-		auto pointSize = alignUp(sizeof(float) * count, 16); // align to 16 bytes
-
-		// allocate a buffer for gradient colors and positions, and copy data to the buffer
-		auto &block = _cmdPack.buffer->alloc(
-			colorSize + pointSize, sizeof(MSLColorGradient::Colors) + sizeof(MSLColorGradient::Positions)
-		);
-		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
-		auto buff = (char*)block.val.contents + block.begin;
-		memcpy(reinterpret_cast<Color4f*>(buff), colors.val(), colorSize);
-		memcpy(reinterpret_cast<float*>((uint8_t*)buff + colorSize), paint->positions, pointSize);
-		return block;
-	}
-
-	void MetalCanvas::drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) {
-		auto tileCount = data.compositeTiles.length();
-		if (!tileCount)
-			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
-
-		int count = Qk_Min(64, paint->count);
-		auto &shader = _shaders.colorGradient;
-		auto enc = usePipeline(shader);
-		enc.label = @"CGAA Gradient";
-
-		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
-
-		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
-		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
-		MSLColorGradient::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.range=*((Vec4*)paint->origin.val),
-			.color=premul_alpha(color),
-			.count=count,
-			.flags = _flags | Qk_FLAG_CGAA |
-				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
-				(paint->type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0),
-		};
-		auto colorSize = alignUp(sizeof(Color4f) * count, 16);
-		auto &block = buildGradientBuffer(paint, color);
-
-		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
-		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
-		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
-		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
-		[enc setFragmentBuffer:block.val offset:block.begin + colorSize atIndex:shader.fragment.positions];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
-						vertexStart:0
-						vertexCount:4
-					instanceCount:tileCount];
-	}
-
-	void MetalCanvas::drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) {
-		auto tileCount = data.compositeTiles.length();
-		if (!tileCount)
-			return;
-		Qk_ASSERT(data.atlas, "CGAA atlas texture is null");
-
-		auto &shader = _shaders.image;
-		Qk_useTexture0(info.paint, shader.fragment.image);
-		setPipeline(enc, shader);
-		enc.label = @"CGAA Image";
-
-		[enc setFragmentTexture:mtl_get_texture_from(data.atlas.get()) atIndex:shader.fragment.atlasTex];
-		[enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:shader.fragment.atlasTex];
-
-		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
-		auto tiles = makeBuffer(_cmdPack, data.compositeTiles.val(), data.compositeTiles.size());
-		auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
-		MSLImage::PcArgs pc{
-			.cgaaAtlasTiles=int32_t(data.atlas->width() >> kCGAATileSizeShift),
-			.texCoords=*((Vec4*)info.paint->coord.begin.val),
-			.color=premul_alpha(info.color),
-			.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
-			.strokeWidth=info.stroke,
-			.alphaIndex=info.kind == kMask_DrawKind ?
-				(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
-			.flags = _flags | Qk_FLAG_CGAA |
-				(info.kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
-				(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
-		};
-		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.bufferIndex];
-		[enc setVertexBuffer:paths.val offset:paths.begin atIndex:shader.vertex.paths];
-		[enc setVertexBuffer:tiles.val offset:tiles.begin atIndex:shader.vertex.tiles];
-		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
-						vertexStart:0
-						vertexCount:4
-					instanceCount:tileCount];
 	}
 
 	void MetalCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags flags) {
@@ -555,8 +403,8 @@ namespace qk {
 		*/
 	void MetalCanvas::blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
-		if (_cmdPack.enc == nil)
-			return; // if no drawing command recorded for blur filter, skip post processing
+		//if (_cmdPack.enc == nil)
+		//	return; // if no drawing command recorded for blur filter, skip post processing
 		auto texA = mtl_get_texture_from(tmpA);
 		auto texB = mtl_get_texture_from(tmpB);
 		Qk_ASSERT(texA && texB, "blurFilterEndCmd temp texture is null");

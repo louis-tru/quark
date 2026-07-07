@@ -364,6 +364,8 @@ namespace qk {
 
 	template<bool OnlyEdge>
 	PathEdgeInfo Path::getEdgeInfo(float precision, const Mat* matrix) const {
+		if (_pts.length() < 2)
+			return PathEdgeInfo();
 		Path tmp,tmp2;
 		auto self = matrix ? transformPath(&tmp, *matrix): this; // transform path
 		self = self->normalized(&tmp2, precision, false);

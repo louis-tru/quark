@@ -40,7 +40,7 @@
 using namespace qk;
 
 void test_gui_new(Box *box) {
-	box->set_background_color({0,0,255,255});
+	// box->set_background_color({0,0,255,255});
 	auto r = box->append_new<Morph>();
 	r->set_width({ 0, BoxSizeKind::Match });
 	r->set_height({ 0, BoxSizeKind::Match });
@@ -58,7 +58,7 @@ void test_gui_new(Box *box) {
 		img->set_src(fs_resources("jsapi/res/cc.tga"));
 		img->set_width({320});
 		// img->set_height({250});
-		img->set_color({255,255,255,uint8_t(255*0.6)});
+		// img->set_color({255,255,255,uint8_t(255*0.6)});
 		// img->set_border_radius({60});
 		img->set_border_top_right_radius(40);
 		img->set_border_bottom_left_radius(40);
@@ -81,7 +81,7 @@ void test_gui_new(Box *box) {
 	if (1) {
 		// div sprite
 		auto div = r->append_new<Box>();
-		div->set_color({255, 255, 255, 128});
+		// div->set_color({255, 255, 255, 128});
 		div->set_background_color(Color(255, 0, 0, 180));
 		div->set_border_radius({30});
 		div->set_margin({5});

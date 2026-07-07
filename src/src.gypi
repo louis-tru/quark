@@ -140,8 +140,6 @@
 			'render/blend.h',
 			'render/canvas.h',
 			'render/canvas.cc',
-			'render/cgaa.h',
-			'render/cgaa.cc',
 			'render/capa.h',
 			'render/capa.cc',
 			'render/gpu_canvas_filter.h',

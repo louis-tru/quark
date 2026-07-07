@@ -1,9 +1,11 @@
 // CAPA composite pass.
 // Ordered global-tile pure-color compositor.
 
+#extension GL_EXT_nonuniform_qualifier : require
+
 Qk_CONSTANT(
 	vec4 clearColor;
-	uvec2 surfaceOffset;
+	ivec2 surfaceOffset;
 );
 
 #import "_capa.glsl"
@@ -15,58 +17,58 @@ layout(binding=1,set=0,std430) readonly buffer CAPAEnvironments {
 	CAPAEnvironment value;
 } env;
 
-layout(binding=2,set=0,std430) readonly buffer CAPAPaths {
+layout(binding=4,set=0,std430) readonly buffer CAPAPaths {
 	CAPAPath values[];
 } paths;
 
-layout(binding=3,set=0,std430) readonly buffer CAPAGlobalTiles {
+layout(binding=5,set=0,std430) readonly buffer CAPAGlobalTiles {
 	CAPAGlobalTile values[];
 } globalTiles;
 
-layout(binding=4,set=0,std430) readonly buffer CAPAPathTiles {
+layout(binding=6,set=0,std430) readonly buffer CAPAPathTiles {
 	CAPAPathTile values[];
 } pathTiles;
 
-layout(binding=5,set=0,std430) readonly buffer CAPACoverageTiles {
+layout(binding=7,set=0,std430) readonly buffer CAPACoverageTiles {
 	CAPACoverageTile values[];
 } coverageTiles;
 
-layout(binding=6,set=0,std430) readonly buffer CAPAGradientPaints {
+layout(binding=8,set=0,std430) readonly buffer CAPAGradientPaints {
 	CAPAGradientPaint values[];
 } gradientPaints;
 
-layout(binding=7,set=0,std430) readonly buffer CAPAImagePaints {
+layout(binding=9,set=0,std430) readonly buffer CAPAImagePaints {
 	CAPAImagePaint values[];
 } imagePaints;
 
-layout(binding=8,set=0,std430) readonly buffer Colors {
+layout(binding=10,set=0,std430) readonly buffer Colors {
 	vec4 values[];
 } colors;
 
-layout(binding=9,set=0,std430) readonly buffer Positions {
+layout(binding=11,set=0,std430) readonly buffer Positions {
 	float values[];
 } positions;
 
-layout(binding=0,set=1,rgba8) uniform image2D dstImage;
-layout(binding=1,set=1) uniform sampler2D image0;
-layout(binding=2,set=1) uniform sampler2D image1;
-layout(binding=3,set=1) uniform sampler2D image2;
-layout(binding=4,set=1) uniform sampler2D image3;
-layout(binding=5,set=1) uniform sampler2D image4;
-layout(binding=6,set=1) uniform sampler2D image5;
-layout(binding=7,set=1) uniform sampler2D image6;
-layout(binding=8,set=1) uniform sampler2D image7;
-layout(binding=9,set=1) uniform sampler2D image8;
-layout(binding=10,set=1) uniform sampler2D image9;
-layout(binding=11,set=1) uniform sampler2D image10;
-layout(binding=12,set=1) uniform sampler2D image11;
-layout(binding=13,set=1) uniform sampler2D image12;
-layout(binding=14,set=1) uniform sampler2D image13;
-layout(binding=15,set=1) uniform sampler2D image14;
+layout(binding=12,set=0,std430) readonly buffer ClipStatBlock {
+	ivec2 begin; // x:left, y:top
+	int op;
+} clipStat;
 
-#define CAPA_COMPOSITE_CLEAR_DST (1u << 16)
+layout(binding=0,set=1,r8) uniform readonly image2D clipTex; // clip texture buffer
+layout(binding=1,set=1,rgba8) uniform image2D dstImage;
+layout(binding=0,set=2) uniform texture2D images[];
+layout(binding=0,set=3) uniform sampler samplers[];
+
 const uvec2 CAPA_COMPOSITE_SUBGROUPS = uvec2(2u, 2u);
 const float eps = 1e-6;
+
+// clipStat.op: 0 for intersect, 1 for difference
+float clipCoverage(ivec2 fragCoord) {
+	float coverage = imageLoad(clipTex, fragCoord - clipStat.begin).r;
+	if (clipStat.op == 1)
+		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
+	return coverage;
+}
 
 float capa_load_boundary_coverage(uint coverageIndex, uint pixelIndex) {
 	// R8 coverage is packed as four consecutive row-major pixels per uint.
@@ -83,7 +85,7 @@ float capa_path_tile_coverage(uint coverageIndex, uint pixelIndex) {
 	return capa_load_boundary_coverage(coverageIndex, pixelIndex);
 }
 
-vec2 capa_path_local_position(uint pathIndex, vec2 pixel) {
+vec2 capa_path_local_position(uint pathIndex, ivec2 pixel) {
 	return vec2(
 		dot(paths.values[pathIndex].inverseMatrixX.xyz, vec3(pixel, 1.0)),
 		dot(paths.values[pathIndex].inverseMatrixY.xyz, vec3(pixel, 1.0))
@@ -95,7 +97,6 @@ float capa_gradient_weight(CAPAGradientPaint paint, vec2 local) {
 		vec2 radius = max(paint.endOrRadius, vec2(eps));
 		return length((local - paint.origin) / radius);
 	}
-
 	vec2 axis = paint.endOrRadius - paint.origin;
 	float len2 = dot(axis, axis);
 	if (len2 <= eps)
@@ -136,47 +137,48 @@ vec4 capa_sample_gradient(uint paintIndex, vec2 local) {
 	return mix(c0, c1, w);
 }
 
-vec4 capa_texture(uint textureIndex, vec2 uv) {
-	if (textureIndex == CAPA_NIL)
-		return vec4(0.0);
-	switch (textureIndex) {
-		case 0u: return textureLod(image0, uv, 0.0);
-		case 1u: return textureLod(image1, uv, 0.0);
-		case 2u: return textureLod(image2, uv, 0.0);
-		case 3u: return textureLod(image3, uv, 0.0);
-		case 4u: return textureLod(image4, uv, 0.0);
-		case 5u: return textureLod(image5, uv, 0.0);
-		case 6u: return textureLod(image6, uv, 0.0);
-		case 7u: return textureLod(image7, uv, 0.0);
-		case 8u: return textureLod(image8, uv, 0.0);
-		case 9u: return textureLod(image9, uv, 0.0);
-		case 10u: return textureLod(image10, uv, 0.0);
-		case 11u: return textureLod(image11, uv, 0.0);
-		case 12u: return textureLod(image12, uv, 0.0);
-		case 13u: return textureLod(image13, uv, 0.0);
-		default: return textureLod(image14, uv, 0.0);
+float capa_sdf_width(uint pathIndex, vec2 size, vec2 coordScale) {
+	vec2 texScale = size / coordScale;
+	vec2 inverseMatrixY = paths.values[pathIndex].inverseMatrixY.xy;
+	vec2 inverseMatrixX = paths.values[pathIndex].inverseMatrixX.xy;
+	vec2 dx = vec2(inverseMatrixX.x, inverseMatrixY.x) * texScale;
+	vec2 dy = vec2(inverseMatrixX.y, inverseMatrixY.y) * texScale;
+	float fwidth = sqrt(max(dot(dx, dx), dot(dy, dy)));
+	return max(fwidth, 1e-4);
+}
+
+vec4 capa_sample_image(uint pathIndex, uint paintIndex, vec2 local, vec4 color) {
+	CAPAImagePaint paint = imagePaints.values[paintIndex];
+	vec2 uv = (paint.coord.xy + local) / paint.coord.zw;
+	vec4 tex = textureLod(
+		sampler2D(
+			images[nonuniformEXT(paint.textureIndex)],
+			samplers[nonuniformEXT(paint.samplerIndex)]
+		),
+		uv, paint.lod
+	);
+	if (paint.kind == CAPA_IMAGE_SDF_MASK) {
+		float dist = tex.r;
+		float width = capa_sdf_width(pathIndex, paint.size, paint.coord.zw);
+		float alpha = smoothstep(paint.stroke + width, paint.stroke, dist);
+		return mix(color, paint.strokeColor, dist) * alpha;
+	} else if (paint.kind == CAPA_IMAGE_MASK) {
+		return color * tex[paint.alphaIndex];
+	} else {
+		return color * tex;
 	}
 }
 
-vec4 capa_sample_image(uint paintIndex, vec2 local, vec4 color) {
-	CAPAImagePaint paint = imagePaints.values[paintIndex];
-	vec2 uv = (paint.coord.xy + local) / paint.coord.zw;
-	vec4 texel = capa_texture(paint.textureIndex, uv);
-	if (paint.kind == CAPA_IMAGE_MASK)
-		return color * texel.a;
-	return texel * color;
-}
-
-vec4 capa_sample_path(uint pathIndex, vec2 pixel) {
+vec4 capa_sample_path(uint pathIndex, ivec2 pixel) {
 	uint paintType = paths.values[pathIndex].paintType;
 	if (paintType == CAPA_PAINT_SOLID)
 		return paths.values[pathIndex].color;
-
+	// For gradient and image paints, we need to compute the local position in the path's coordinate space.
 	vec2 local = capa_path_local_position(pathIndex, pixel);
 	uint paintIndex = paths.values[pathIndex].paintIndex;
 	if (paintType == CAPA_PAINT_GRADIENT)
 		return capa_sample_gradient(paintIndex, local);
-	return capa_sample_image(paintIndex, local, paths.values[pathIndex].color);
+	return capa_sample_image(pathIndex, paintIndex, local, paths.values[pathIndex].color);
 }
 
 struct CAPACoverageGroup {
@@ -202,13 +204,12 @@ bool capa_front_ignores_bottom() {
 	return all(lessThan(abs(front.scale), epsVec4)) && all(lessThan(abs(front.alphaTo), epsVec4));
 }
 
-bool capa_group_flush() {
-	if (!group.hasValue)
-		return false;
-	// A completed same-mode group is one weighted PMA source.
-	capa_blend_front_append(front, group.src, group.blendMode);
-	group = capa_group_empty();
-	return capa_front_ignores_bottom();
+void capa_group_flush() {
+	if (group.hasValue) {
+		// A completed same-mode group is one weighted PMA source.
+		capa_blend_front_append(front, group.src, group.blendMode);
+		group = capa_group_empty();
+	}
 }
 
 bool capa_group_add(vec4 src, uint blendMode, float coverage) {
@@ -225,7 +226,8 @@ bool capa_group_add(vec4 src, uint blendMode, float coverage) {
 		group.src += coveredSrc;
 	}
 	if (group.coverage >= 1.0 - eps) {
-		return capa_group_flush();
+		capa_group_flush();
+		return capa_front_ignores_bottom();
 	}
 	return false; // return true if the front ignores the bottom, false otherwise
 }
@@ -234,10 +236,19 @@ bool capa_group_add_layer(vec4 src, uint blendMode, float coverage) {
 	if (coverage <= eps)
 		return true;
 
+	// If the coverage is already full,
+	// we can flush the current group and append the new layer directly.
+	if (coverage >= 1.0 - eps) {
+		capa_group_flush();
+		capa_blend_front_append(front, src, blendMode);
+		return capa_front_ignores_bottom();
+	}
+
 	// A blend-mode change is a hard group boundary: different modes need their
 	// own completed coverage/color before they are mixed into the front expression.
 	if (group.hasValue && group.blendMode != blendMode) {
-		if (capa_group_flush())
+		capa_group_flush();
+		if (capa_front_ignores_bottom())
 			return true;
 	}
 
@@ -260,17 +271,16 @@ void main() {
 	uint tileSpanX = gl_NumWorkGroups.x / CAPA_COMPOSITE_SUBGROUPS.x;
 	uint globalTileIndex = tileSlot.y * tileSpanX + tileSlot.x;
 	uint count = globalTiles.values[globalTileIndex].count;
-	bool clearDst = (pc.flags & CAPA_COMPOSITE_CLEAR_DST) != 0u;
+	bool clearDst = (pc.flags & CAPA_FLAG_COMPOSITE_CLEAR_DST) != 0u;
 
 	// If there are no path tiles in this global tile,
 	// and we are not clearing the destination, then we can skip this tile entirely.
 	if (count == 0u && !clearDst) {
 		return;
 	}
-
-	uvec2 tileCoord = tileSlot + uvec2(env.value.globalTileBounds.xy);
+	uvec2 tileCoord = tileSlot + env.value.globalTileBounds.xy;
 	uvec2 localPixel = subTile * gl_WorkGroupSize.xy + gl_LocalInvocationID.xy;
-	uvec2 pixel = pc.surfaceOffset + tileCoord * CAPA_TILE_SIZE_U + localPixel;
+	ivec2 pixel = ivec2(tileCoord * CAPA_TILE_SIZE_U + localPixel);
 	uint pixelIndex = localPixel.y * CAPA_TILE_SIZE_U + localPixel.x;
 
 	// define a local front and coverage group for this pixel.
@@ -294,16 +304,20 @@ void main() {
 		if (coverage <= 0.0)
 			continue;
 
-		vec4 src = capa_sample_path(pathIndex, vec2(pixel));
+		vec4 src = capa_sample_path(pathIndex, pixel);
 		if (capa_group_add_layer(src, paths.values[pathIndex].blendMode, coverage))
 			break;
 	}
 
 	// The last group may be partially filled (< 1 coverage); it still contributes
 	// before resolving against the destination/clear bottom.
-	if (group.hasValue)
+	if (group.hasValue) {
 		capa_blend_front_append(front, group.src, group.blendMode);
+	}
+	if ((pc.flags & Qk_FLAG_CLIP) != 0) {
+		capa_blend_front_clip(front, clipCoverage(pixel + pc.surfaceOffset));
+	}
 
-	vec4 bottom = clearDst ? pc.clearColor : imageLoad(dstImage, ivec2(pixel));
-	imageStore(dstImage, ivec2(pixel), capa_blend_front_resolve(front, bottom));
+	vec4 bottom = clearDst ? pc.clearColor : imageLoad(dstImage, pixel);
+	imageStore(dstImage, pixel, capa_blend_front_resolve(front, bottom));
 }

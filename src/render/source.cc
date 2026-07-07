@@ -660,7 +660,6 @@ namespace qk {
 			ImageSource::premultipliedAlphaFromPixels(pixels); // convert to premultiplied alpha
 			auto src = ImageSource::Make(std::move(pixels));
 			return set_source(src);
-			return false;
 		}
 		auto pool = imgPool();
 		if (pool) {

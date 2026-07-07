@@ -53,6 +53,7 @@ inline Vec2 Vec2FromCGSize(const CGSize &size) {
 
 namespace qk {
 	void post_message_main(Cb cb, bool sync);
+	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 }
 
 class AppleMetalRender;
@@ -149,6 +150,15 @@ public:
 		return size;
 	}
 
+	void setMainCanvasDrawable(id<CAMetalDrawable> drawable) {
+		if (!drawable)
+			return;
+		_mtlcanvas->_outTex = drawable ? drawable.texture : nil;
+		if (_mtlcanvas->_outColorTex != qk::mtl_get_texture_from(_mtlcanvas->_state->output.get())) {
+			_mtlcanvas->_outColorTex = _mtlcanvas->_outTex;
+		}
+	}
+
 	void renderDisplay(id<CAMetalDrawable> drawable = nil) {
 		if (!_isRun)
 			return;
@@ -156,24 +166,30 @@ public:
 		_threadId = thread_self_id();
 		resolvedMsg(false);
 
+		Qk_ASSERT(_metalLayer, "Metal layer is null");
+
+		// get next drawable for current frame
+		if (!drawable) {
+			// update drawable size before rendering
+			_metalLayer.drawableSize = CGSizeFromVec2(_mtlcanvas->surfaceSize());
+			drawable = _metalLayer.nextDrawable;
+		}
+
+		if (!drawable)
+			return; // if drawable is nil, skip this frame
+
+ 		// set the main canvas drawable for rendering
+		setMainCanvasDrawable(drawable);
+
 		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {
-			Qk_ASSERT(_metalLayer, "Metal layer is null");
-			// get next drawable for current frame
-			if (!drawable) {
-				// update drawable size before rendering
-				_metalLayer.drawableSize = CGSizeFromVec2(_mtlcanvas->surfaceSize());
-				drawable = _metalLayer.nextDrawable;
-			}
-			// flush command buffers and present drawable if available
-			if (drawable) {
-				auto cmds = _mtlcanvas->flushBuffer();
-				if (cmds.length()) {
-					_mtlcanvas->vportCopy(cmds.back(), drawable);
-					for (auto cmd: cmds) {
-						[cmd commit];
-					}
+			auto cmds = _mtlcanvas->flushBuffer();
+			if (cmds.length()) {
+				// _mtlcanvas->vportCopy(cmds.back(), drawable);
+				[cmds.back() presentDrawable:drawable];
+				for (auto cmd: cmds) {
+					[cmd commit];
 				}
-			} // if (drawable)
+			}
 		}
 		_threadId = qk::ThreadID();
 		unlock();
@@ -187,7 +203,7 @@ public:
 		_metalLayer.device      = _device;
 		_metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 		_metalLayer.opaque      = YES;
-		_metalLayer.framebufferOnly = YES;
+		_metalLayer.framebufferOnly = NO; // allow sampling from the drawable texture
 		_metalLayer.drawableSize = CGSizeMake(1, 1);
 		startDisplay();
 		return _view;

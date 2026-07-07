@@ -392,8 +392,8 @@ namespace qk {
 		desc.storageMode = MTLStorageModePrivate;
 
 		auto tex = [_device newTextureWithDescriptor:desc];
-		if (!tex) return false;
-
+		if (!tex)
+			return false;
 		auto cmd = [_commandQueue commandBuffer];
 		auto blit = [cmd blitCommandEncoder];
 
@@ -434,12 +434,6 @@ namespace qk {
 		}
 
 		[blit endEncoding];
-
-		// Capture stagingBuffers so ARC keeps upload buffers alive until GPU copy finishes.
-		// [cmd addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
-		// 	(void)stagingBuffers;
-		// }];
-
 		[cmd commit];
 
 		if (out->ptr()) {
@@ -455,33 +449,15 @@ namespace qk {
 		tex->set_ptr(nullptr);
 	}
 
-	bool MetalRenderResource::uploadVertexData(VertexData::ID *vid) {
-		if (vid->ptr)
-			return true;
-		auto &vertex = vid->data->vertex;
-		if (!vertex.length())
-			return false;
-		auto buf = [_device newBufferWithBytes:vertex.val()
-																		length:vertex.size()
-																		options:MTLResourceStorageModeShared];
-		if (!buf)
-			return false;
-		vid->ptr = (void*)CFBridgingRetain(buf);
-		return true;
-	}
-
-	void MetalRenderResource::unloadVertexData(VertexData::ID *vid) {
-		if (vid->ptr) {
-			// (void)(__bridge_transfer id<MTLBuffer>)vid->ptr;
-			CFBridgingRelease(vid->ptr); // release buffer for vertex data
-			vid->ptr = nullptr;
-		}
-	}
-
 	void MetalRenderResource::post_message(Cb cb) {
 		// directly execute callback for simplicity,
 		// since current implementation does not need cross-thread resource access
 		cb->resolve();
+	}
+
+	TexStat MetalRenderResource::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
+		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), flags);
+		return TexStat(CFBridgingRetain(tex));
 	}
 
 	MTLFunctionID MetalRenderResource::getShaderFunction(MSLPipelineKind kind, bool vertex) {
@@ -567,6 +543,7 @@ namespace qk {
 		MTLSampler sampler;
 		if (!_texSamplers.get(key, sampler)) {
 			auto desc = [MTLSamplerDescriptor new];
+			desc.supportArgumentBuffers = YES; // support argument buffers for Metal 2.0 and later
 			desc.sAddressMode = mtl_sampler_address_mode(paint->tileModeX);
 			desc.tAddressMode = mtl_sampler_address_mode(paint->tileModeY);
 			desc.magFilter = mtl_sampler_mag_filter(paint->filterMode);
@@ -681,10 +658,25 @@ namespace qk {
 	}
 
 	bool MetalRender::uploadVertexData(VertexData::ID *vid) {
-		return _resource->MetalRenderResource::uploadVertexData(vid);
+		if (vid->ptr)
+			return true;
+		auto &vertex = vid->data->vertex;
+		if (!vertex.length())
+			return false;
+		auto buf = [_device newBufferWithBytes:vertex.val()
+																		length:vertex.size()
+																		options:MTLResourceStorageModeShared];
+		if (!buf)
+			return false;
+		vid->ptr = (void*)CFBridgingRetain(buf);
+		return true;
 	}
 
 	void MetalRender::unloadVertexData(VertexData::ID *vid) {
-		_resource->MetalRenderResource::unloadVertexData(vid);
+		if (vid->ptr) {
+			// (void)(__bridge_transfer id<MTLBuffer>)vid->ptr;
+			CFBridgingRelease(vid->ptr); // release buffer for vertex data
+			vid->ptr = nullptr;
+		}
 	}
 } // namespace qk

@@ -37,6 +37,20 @@
 #include "./gl_canvas.h"
 
 namespace qk {
+	/**
+	 * Global render resource, not thread safe, called in the post message callback of thread
+	 */
+	class GLRenderResource: public RenderResource {
+	public:
+		void post_message(Cb cb) override;
+		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
+		void unloadTexture(TexStat *tex) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
+	protected:
+		explicit GLRenderResource(RunLoop *loop): _loop(loop) {}
+	private:
+		RunLoop *_loop;
+	};
 
 	// Not thread safe, called in the rendering thread
 	class GLRender: public RenderBackend {
@@ -71,22 +85,6 @@ namespace qk {
 		Vec2 _vportSize; // last viewport size
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
-	};
-
-	/**
-	 * Global render resource, not thread safe, called in the post message callback of thread
-	 */
-	class GLRenderResource: public RenderResource {
-	public:
-		void post_message(Cb cb) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
-		bool uploadVertexData(VertexData::ID *id) override;
-		void unloadTexture(TexStat *tex) override;
-		void unloadVertexData(VertexData::ID *id) override;
-	protected:
-		explicit GLRenderResource(RunLoop *loop): _loop(loop) {}
-	private:
-		RunLoop *_loop;
 	};
 
 }

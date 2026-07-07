@@ -25,6 +25,10 @@ layout(binding=3,set=0,std430) buffer CAPATileRows {
 	CAPAPathTileRow values[];
 } tileRows;
 
+layout(binding=4,set=0,std430) buffer CAPAImagePaints {
+	CAPAImagePaint values[];
+} imagePaints;
+
 void capa_prepare_path_inverse_matrix(uint pathIndex) {
 	vec4 mx = paths.values[pathIndex].matrixX;
 	vec4 my = paths.values[pathIndex].matrixY;
@@ -50,12 +54,30 @@ void capa_prepare_path_inverse_matrix(uint pathIndex) {
 	);
 }
 
+void capa_prepare_image_lod(uint pathIndex) {
+	if (paths.values[pathIndex].paintType != CAPA_PAINT_IMAGE)
+		return;
+	if ((paths.values[pathIndex].flags & CAPA_FLAG_NONE_MIPMAP_MODE) != 0u)
+		return;
+	uint paintIndex = paths.values[pathIndex].paintIndex;
+	vec2 size = imagePaints.values[paintIndex].size;
+	vec2 texScale = size / imagePaints.values[paintIndex].coord.zw;
+	vec2 inverseMatrixY = paths.values[pathIndex].inverseMatrixY.xy;
+	vec2 inverseMatrixX = paths.values[pathIndex].inverseMatrixX.xy;
+	vec2 dx = vec2(inverseMatrixX.x, inverseMatrixY.x) * texScale;
+	vec2 dy = vec2(inverseMatrixX.y, inverseMatrixY.y) * texScale;
+	float rho2 = max(dot(dx, dx), dot(dy, dy));
+	float lod = rho2 <= 1.0 ? 0.0 : 0.5 * log2(rho2);
+	imagePaints.values[paintIndex].lod = lod;
+}
+
 void main() {
 	uint pathIndex = gl_GlobalInvocationID.x;
 	if (pathIndex >= pc.pathCount)
 		return;
 
 	capa_prepare_path_inverse_matrix(pathIndex);
+	capa_prepare_image_lod(pathIndex);
 
 	ivec4 bounds = paths.values[pathIndex].bounds;
 	ivec4 tileBounds = ivec4(

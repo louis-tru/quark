@@ -2,10 +2,6 @@
 // Walk each path-tile row's small-tile values after backdrop and mark edge-free
 // full tiles as CAPA_FULL_TILE. Empty tiles remain CAPA_NIL.
 
-Qk_CONSTANT(
-	uint maxPathTileRowCount;
-);
-
 #import "_capa.glsl"
 
 #comp

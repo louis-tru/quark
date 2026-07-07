@@ -19,23 +19,23 @@ namespace qk {
 	void clearExec_PathvCache(PathvCache *cache);
 	uint32_t mtl_get_sampler_key(const PaintImage* paint);
 
-	void setrMatrixFromEnc(MTLEncoder enc, const Mat4 mat[2], Vec2 surfaceScale) {
+	void setRootMatrixFromEnc(MTLEncoder enc, const Mat4 mat[2], Vec2 surfaceScale, uint32_t index = 1) {
 		MSLColor::RootMatrixBlock rMat {
 			.value = mat[0].transpose(), // transpose for shader
 			.noScale = mat[1].transpose(), // transpose for shader
 			.surfaceScale = surfaceScale
 		};
-		[enc setVertexBytes:&rMat length: sizeof(rMat) atIndex:1];
+		[enc setVertexBytes:&rMat length: sizeof(rMat) atIndex:index];
 	}
 
-	void setvMatrixFromEnc(MTLEncoder enc, const Mat &mat) {
+	void setViewMatrixFromEnc(MTLEncoder enc, const Mat &mat, uint32_t index = 2) {
 		float vm4x4[16] = {
 			mat[0], mat[3], 0.0, 0.0,
 			mat[1], mat[4], 0.0, 0.0,
 			0.0,    0.0,    1.0, 0.0,
 			mat[2], mat[5], 0.0, 1.0
 		}; // transpose matrix
-		[enc setVertexBytes:vm4x4 length: sizeof(vm4x4) atIndex:2];
+		[enc setVertexBytes:vm4x4 length: sizeof(vm4x4) atIndex:index];
 	}
 
 	MetalCanvas::MetalCanvas(MetalRender *render, Render::Options opts)
@@ -44,6 +44,8 @@ namespace qk {
 		, _device(nil), _commandQueue(nil)
 		, _cmdPack{}, _cmdPackFront{}
 		, _outTex(nil), _outColorTex(nil)
+		, _capaCompositeSet2Encoder(nil)
+		, _capaCompositeSet3Encoder(nil)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType:
 			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
@@ -53,8 +55,24 @@ namespace qk {
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
-		_cgaaBuilder = new CGAABuilder(this); // create CGAA builder for anti-aliasing paths
-		_capaBuilder = new CAPABuilder(this);
+		if (opts.enableCAPA)
+			_capaBuilder = new CAPABuilder(this);
+
+		// create argument encoder for capa composite shader to bind images and samplers
+		auto &shader = _shaders.capaComposite;
+		auto imagesDesc = [MTLArgumentDescriptor argumentDescriptor];
+		imagesDesc.dataType = MTLDataTypeTexture;
+		imagesDesc.index = shader.compute.set2.images.id;
+		imagesDesc.arrayLength = kCAPAMaxImageCount;
+		imagesDesc.access = MTLBindingAccessReadOnly;
+		imagesDesc.textureType = MTLTextureType2D;
+		_capaCompositeSet2Encoder = [_device newArgumentEncoderWithArguments:@[imagesDesc]];
+		auto samplersDesc = [MTLArgumentDescriptor argumentDescriptor];
+		samplersDesc.dataType = MTLDataTypeSampler;
+		samplersDesc.index = shader.compute.set3.samplers.id;
+		samplersDesc.arrayLength = kCAPAMaxImageCount;
+		samplersDesc.access = MTLBindingAccessReadOnly;
+		_capaCompositeSet3Encoder = [_device newArgumentEncoderWithArguments:@[samplersDesc]];
 	}
 
 	MetalCanvas::~MetalCanvas() {
@@ -67,6 +85,8 @@ namespace qk {
 		_cmdPackFront = {}; // clear cmd packs
 		_outTex = nil; // Color render buffer object of texture
 		_outColorTex = nil; // Current active color render target texture
+		_capaCompositeSet2Encoder = nil;
+		_capaCompositeSet3Encoder = nil;
 		_commandQueue = nil; // Metal command queue
 		_device = nil;
 		_mutex.unlock();
@@ -110,6 +130,19 @@ namespace qk {
 		return pass;
 	}
 
+	bool MetalCanvas::onlyEndEncoderPass(Color4f &color) {
+		if (_cmdPack.beginPass && !_cmdPack.enc) {
+			if (_cmdPack.pass.colorAttachments[0].loadAction == MTLLoadActionClear) {
+				auto clr = _cmdPack.pass.colorAttachments[0].clearColor;
+				color = Color4f(clr.red, clr.green, clr.blue, clr.alpha);
+				_cmdPack.beginPass = false;
+				return true;
+			}
+		}
+		endPass();
+		return false;
+	}
+
 	MTLEncoder MetalCanvas::getEncoder() {
 		if (_cmdPack.enc)
 			return _cmdPack.enc;
@@ -118,12 +151,12 @@ namespace qk {
 		_cmdPack.enc = [_cmdPack.current renderCommandEncoderWithDescriptor:_cmdPack.pass];
 		Qk_ASSERT(_cmdPack.enc, "Failed to create render command encoder for new pass");
 		// set root matrix for new encoder
-		setrMatrixFromEnc(_cmdPack.enc, &_rootMatrix, _surfaceScale);
+		setRootMatrixFromEnc(_cmdPack.enc, &_rootMatrix, _surfaceScale);
 		// set view matrix for new encoder
-		setvMatrixFromEnc(_cmdPack.enc, _state->matrix);
+		setViewMatrixFromEnc(_cmdPack.enc, _state->matrix);
 		// set clip texture for new encoder if clip state exists
 		if (_clipState) {
-			MSLColor::ClipStatBlock clipStat = { *((Vec4*)_clipState->range.begin.val), _clipState->op };
+			MSLColor::ClipStatBlock clipStat = { *(Vec4*)_clipState->bounds.begin.val, _clipState->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*_clipState->mask) atIndex:0];
 			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];
@@ -163,9 +196,7 @@ namespace qk {
 
 	bool MetalCanvas::swapBuffer() {
 		if (_capaBuilder)
-			_capaBuilder->commit(); // commit CAPA data for current frame before swap
-		if (_cgaaBuilder)
-			_cgaaBuilder->commit(); // commit CGAA data for current frame before swap
+			_capaBuilder->flush(); // flush CAPA data for current frame before swap
 		endPass(); // end current pass to ensure all commands are encoded before swap
 		_mutex.lock();
 		bool canSwap = _cmdPackFront.current == nil;
@@ -217,6 +248,7 @@ namespace qk {
 			// add current command buffer to cmds for flush if it has recorded commands
 			_cmdPack.cmds.push(_cmdPack.current);
 		}
+		_cmdPack.recorded = true;
 		_cmdPack.current = cmds.back(); // get a command buffer from cmds for next pass
 		cmds.pop();
 		// add remaining command buffers to cmd pack for flush
@@ -233,8 +265,8 @@ namespace qk {
 		pass.colorAttachments[0].level = 0;
 		auto enc = [cmd renderCommandEncoderWithDescriptor:pass];
 		enc.label = @"Viewport Copy Pass";
-		setrMatrixFromEnc(enc, &_rootMatrix, _surfaceScale);
-		setvMatrixFromEnc(enc, Mat());
+		setRootMatrixFromEnc(enc, &_rootMatrix, _surfaceScale);
+		setViewMatrixFromEnc(enc, Mat());
 		[enc setViewport: {0, 0, (float)tex.width, (float)tex.height, 0, 1}];
 		[enc setRenderPipelineState:_mtlrender->_vportCpPipeline];
 		auto sampler = _surfaceSize == Vec2(tex.width, tex.height)? _mtlrender->_nearestSampler : _mtlrender->_linearSampler;
@@ -251,7 +283,7 @@ namespace qk {
 		auto index = paint->srcIndex + srcSlot;
 		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
 		auto tex = src->texture(index);
-			// mark texture for this render, and try to create texture immediately
+		// mark texture for this render, and try to create texture immediately
 		src->markAsTexture();
 		if (!tex->ptr()) {
 			Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);

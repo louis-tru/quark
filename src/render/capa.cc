@@ -96,10 +96,10 @@ namespace qk {
 	}
 
 	bool CAPABuilder::canAddImageTexture(const PaintImage *paint) const {
-		if (_data.imageSources.length() == kCAPAMaxImageTextureCount)
+		if (_data.imageSources.length() == kCAPAMaxImageCount)
 			if (findImageTexture(paint) == -1)
 				return false;
-		if (_data.imageSamplers.length() == kCAPAMaxImageTextureCount)
+		if (_data.imageSamplers.length() == kCAPAMaxImageCount)
 			if (findImageSampler(paint) == -1)
 				return false;
 		return true;
@@ -123,26 +123,35 @@ namespace qk {
 		return index;
 	}
 
-	void CAPABuilder::setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat) {
-		path.flags = color.a() >= 1.0f ? kCAPA_FLAG_PAINT_OPAQUE : 0u;
+	void CAPABuilder::steupPaint(CAPAPath &path, CAPAPaint* paint, const Mat& mat) {
+		path.flags = path.color.a() >= 1.0f ? kCAPA_FLAG_PAINT_OPAQUE : 0u;
 		if (!paint)
 			return;
 		if (paint->type == kCAPA_PAINT_IMAGE) {
 			auto &info = *paint->image;
 			auto image = info.paint->image;
-			if (image->info().alphaType() != kOpaque_AlphaType) {
+			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: image->type();
+			auto size = info.paint->_isCanvas ? info.paint->canvas->surfaceSize(): image->size();
+			if (info.paint->_isCanvas || image->info().alphaType() != kOpaque_AlphaType) {
 				path.flags &= ~kCAPA_FLAG_PAINT_OPAQUE;
 			}
 			path.paintType = kCAPA_PAINT_IMAGE;
 			path.paintIndex = _data.imagePaints.length();
 			_data.imagePaints.push(CAPAImagePaint{
 				.coord = Vec4(info.paint->coord.begin, info.paint->coord.end),
-				.strokeColor = info.strokeColor.premul_alpha(),
+				.strokeColor = info.stroke <= 0 ? path.color: premul_alpha(info.strokeColor),
+				.size = size,
 				.textureIndex = addImageTexture(info.paint),
 				.samplerIndex = addImageSampler(info.paint),
 				.stroke = info.stroke,
+				.lod = 0.0,
+				.alphaIndex = info.kind == kMask_DrawKind ?
+					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
 				.kind = info.kind,
 			});
+			if (info.paint->mipmapMode == PaintImage::kNone_MipmapMode) {
+				path.flags |= kCAPA_FLAG_NONE_MIPMAP_MODE;
+			}
 		} else if (paint->type == kCAPA_PAINT_GRADIENT) {
 			if (path.flags & kCAPA_FLAG_PAINT_OPAQUE) {
 				for (int i = 0; i < paint->gradient->count; i++) {
@@ -162,27 +171,29 @@ namespace qk {
 				.colors = _data.colors.length(),
 				.positions = _data.positions.length(),
 			});
-			for (uint32_t i = 0; i < paint->gradient->count; i++) {
-				_data.colors.push(paint->gradient->colors[i].premul_alpha().mul(color));
-			}
+			for (uint32_t i = 0; i < paint->gradient->count; i++)
+				_data.colors.push(premul_alpha(paint->gradient->colors[i]).mul(path.color));
 			_data.positions.write(paint->gradient->positions, paint->gradient->count);
 		}
 	}
 
 	bool CAPABuilder::build(const Path &rawPath, const Color4f& color, CAPAPaint* paint) {
 		auto &info = _owner->_cache->getEdgeInfo(rawPath, _owner->_allScaleAverage * 0.5f);
-		if (info.edges.length() < 2)
-			return true; // Skip empty paths
+		if (info.edges.length() < 4)
+			return true; // Skip empty or degenerate paths
 
 		auto &budget = _data.budget;
 		auto &matrix = _owner->_state->matrix;
 		Vec2 surfaceScale = _owner->_surfaceScale;
 		auto edgeOffset = _data.edges.length();
+		Vec2 surfaceOffset(_data.surfaceOffset.x(), _data.surfaceOffset.y());
 		Mat mat(
 			matrix[0] * surfaceScale.x(),
-			matrix[1] * surfaceScale.x(), matrix[2] * surfaceScale.x(),
+			matrix[1] * surfaceScale.x(),
+			matrix[2] * surfaceScale.x() + surfaceOffset.x(),
 			matrix[3] * surfaceScale.y(),
-			matrix[4] * surfaceScale.y(), matrix[5] * surfaceScale.y()
+			matrix[4] * surfaceScale.y(),
+			matrix[5] * surfaceScale.y() + surfaceOffset.y()
 		);
 		// Budget space for staging small tiles, short-edge nodes, row records,
 		// boundary tiles, and final z-linear coverage pages.
@@ -194,14 +205,20 @@ namespace qk {
 		if (maxBoundaryTileCount > kCAPAMaxBoundaryTileCapacity) {
 			if (budget.maxBoundaryTileCount == 0)
 				return false; // Path is too large to fit in a single CAPA draw call
-			commit(); // Flush current draw data to free up boundary tile capacity
-			return build(rawPath, color, paint); // Retry after commit
+			flush(); // Flush current draw data to free up boundary tile capacity
+			return build(rawPath, color, paint); // Retry after flush
 		}
 
-		Range clip{{0,0}, _owner->_surfaceSize};
+		Range clip{{0,0}, _owner->_state->output ?
+			_owner->_state->output->size() : _owner->_surfaceSize};
 		if (_owner->_clipState) {
-			clip = _owner->_clipState->range;
+			clip = clip.clip(_owner->_clipState->range.offset(surfaceOffset));
 		}
+		auto bounds = capa_bounds_transform(mat, info.bounds)
+			.expandToInteger()
+			.clip(clip);
+		if (bounds.isEmpty())
+			return true; // Skip empty or degenerate paths
 		// CAPAPath starts with CPU metadata plus path-space edge offsets. The
 		// prepare/prepare_tiles passes fill surface bounds and tile ranges.
 		CAPAPath path {
@@ -209,7 +226,7 @@ namespace qk {
 			.matrixY = Vec4(mat[3], mat[4], mat[5]),
 			.clip = Vec4(clip.begin, clip.end),
 			.bounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff),
-			.color = color.premul_alpha(),
+			.color = premul_alpha(color), // premultiplied color for solid fill
 			.edgeOffset = edgeOffset,
 			.edgeCount = info.edges.length() >> 1,
 			.blendMode = uint32_t(_owner->_blendMode),
@@ -219,15 +236,12 @@ namespace qk {
 			.tileEnd = IVec2(0, 0),
 			.paintType = kCAPA_PAINT_SOLID,
 		};
-		setPaint(path, color, paint, mat);
+		steupPaint(path, paint, mat);
 
 		auto pathIndex = _data.paths.length();
 		_data.paths.push(std::move(path));
 		_data.edges.reset(edgeCount);
 		_totalEdgeLength = totalEdgeLen;
-		auto bounds = capa_bounds_transform(mat, info.bounds)
-			.expandToInteger()
-			.clip(clip);
 		IRange tileBounds = IRange{
 			capa_floor_tile_origin(bounds.begin), capa_ceil_tile_end(bounds.end)
 		};
@@ -254,31 +268,41 @@ namespace qk {
 	}
 
 	bool CAPABuilder::buildImage(const Path &path, const GC_ImageDrawInfo &info) {
-		if (!info.paint->image)
+		auto paint = info.paint;
+		if (!paint->image)
 			return true; // Skip empty images
-		if (info.paint->_isCanvas) { // flush canvas to current canvas
-			auto sub = static_cast<GPUCanvas*>(info.paint->canvas);
+		if (paint->coord.end.x() <= 0.0f || paint->coord.end.y() <= 0.0f)
+			return true; // Skip images with zero size
+		if (paint->_isCanvas) { // flush canvas to current canvas
+			auto sub = static_cast<GPUCanvas*>(paint->canvas);
 			if (sub == _owner || !sub->isGpu())
-				return false; // if the source canvas is the same as current canvas or not gpu, skip
+				return true; // skip if the source canvas is the same as the owner or not a GPU canvas
 			if (sub->render() != _owner->render())
-				return false; // only flush subcanvas if it is from the same render
+				return true; // skip if the source canvas is not the same render
+			auto size = sub->surfaceSize();
+			if (size.x() <= 0 || size.y() <= 0)
+				return true; // skip if the source canvas has zero size
 			_owner->flushSubcanvasCmd(sub);
 		} else {
-			auto src = info.paint->image;
+			auto src = paint->image;
 			if (src->count() == 0)
 				return true; // skip empty image source
+			if (kYUV420P_Y_8_ColorType == src->type())
+				return false; // not support YUV420 image source for CAPA render
+			if (src->width() <= 0 || src->height() <= 0)
+				return true; // Skip images with zero size
 			// mark image source as texture for this render
 			src->markAsTexture();
 			if (!src->texture(0)->ptr())
 				return true; // skip if texture is not ready
 		}
-		if (!canAddImageTexture(info.paint))
-			commit();
-		CAPAPaint paint{.image = &info, .type = kCAPA_PAINT_IMAGE};
-		return build(path, info.color, &paint);
+		if (!canAddImageTexture(paint))
+			flush();
+		CAPAPaint capaPaint{.image = &info, .type = kCAPA_PAINT_IMAGE};
+		return build(path, info.color, &capaPaint);
 	}
 
-	void CAPABuilder::commit() {
+	void CAPABuilder::flush() {
 		if (!_data.edges.length())
 			return;
 		auto &budget = _data.budget;

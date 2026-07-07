@@ -14,6 +14,7 @@
 #include "./metal/mtl_shaders.h"
 #include "./path.h"
 #include "./source.h"
+#include "src/render/math.h"
 
 namespace qk {
 	struct GC_ImageDrawInfo;
@@ -25,14 +26,18 @@ namespace qk {
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
 	// Keep CAPA image sampling on the portable side: Vulkan's guaranteed
 	// sampled-image count is low, so larger image batches are split on CPU.
-	constexpr uint32_t kCAPAMaxImageTextureCount = 15;
+	constexpr uint32_t kCAPAMaxImageCount = 16;
 	// Short-edge tasks are bounded so one task can touch at most three tiles in
 	// the bin pass, which gives each task fixed node ownership.
 	constexpr float kCAPAShortEdgeLength = 8.0f;
 	// CAPA nil value.
 	constexpr uint32_t kCAPA_NIL = 0xffffffffu;
 	// Paint source is guaranteed to produce alpha == 1 for every sampled point.
-	constexpr uint32_t kCAPA_FLAG_PAINT_OPAQUE = 1u << 0;
+	constexpr uint32_t kCAPA_FLAG_PAINT_OPAQUE = 1u << 2;
+	// Paint source is guaranteed to produce no mipmap filtering.
+	constexpr uint32_t kCAPA_FLAG_NONE_MIPMAP_MODE = 1u << 3;
+	// Composite pass should clear the destination before drawing.
+	constexpr uint32_t kCAPA_FLAG_COMPOSITE_CLEAR_DST = 1u << 4;
 
 	// CAPA paint types
 	enum CAPAPaintType {
@@ -67,6 +72,7 @@ namespace qk {
 		Array <Color4f> colors;
 		Array <float> positions;
 		CAPABudget budget;
+		IVec2 surfaceOffset;
 	};
 
 	struct CAPAPaint {
@@ -76,8 +82,6 @@ namespace qk {
 		};
 		CAPAPaintType type;
 	};
-
-	typedef const CAPADrawData cCAPADrawData;
 
 	template<> struct ObjectTraits<CAPAEdge>: ObjectTraitsBase<CAPAEdge> {
 		static constexpr bool isOrdinary = true;
@@ -92,6 +96,9 @@ namespace qk {
 		static constexpr bool isOrdinary = true;
 	};
 
+	IVec2 capa_floor_tile_origin(Vec2 origin);
+	IVec2 capa_ceil_tile_end(Vec2 end);
+
 	/**
 	* CAPA Builder is a batch builder for CAPA draw data.
 	* It accumulates paths and edges, computes budgets, and prepares the data for rendering.
@@ -101,12 +108,16 @@ namespace qk {
 		bool build(const Path &path, const Color4f& color, CAPAPaint* paint = nullptr);
 		bool buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color);
 		bool buildImage(const Path &path, const GC_ImageDrawInfo &info);
-		void commit();
+		void flush(); // Flush the accumulated CAPA data to the GPUCanvas for rendering.
 		void reset(bool clear = false);
-		cCAPADrawData& getDrawData() const { return _data; }
+		inline Color4f premul_alpha(const Color4f &color) const {
+			return color.premul_alpha();
+		}
+		inline IVec2 surfaceOffset() const { return _data.surfaceOffset; }
+		inline void setSurfaceOffset(IVec2 offset) { _data.surfaceOffset = offset; }
 		FillRule fillRule = kNonZero_FillRule;
 	private:
-		void setPaint(CAPAPath &path, const Color4f& color, CAPAPaint* paint, const Mat& mat);
+		void steupPaint(CAPAPath &path, CAPAPaint* paint, const Mat& mat);
 		int findImageTexture(const PaintImage *paint) const;
 		int findImageSampler(const PaintImage *paint) const;
 		uint32_t addImageTexture(const PaintImage *paint);

@@ -73,31 +73,19 @@ namespace qk {
 			return img && (img->type() == kSDF_Unsigned_F32_ColorType || img->type() == kSDF_F32_ColorType);
 		}
 
-		void commitCGAABatch(bool includeCAPA = true) {
-			if (includeCAPA)
-				commitCAPABatch();
-			if (_cgaaBuilder)
-				_cgaaBuilder->commit();
+		void flushCAPABatch() {
+			if (_capaBuilder)
+				_capaBuilder->flush();
 		}
 
-		void commitCAPABatch() {
+		void resetCAPABatch() {
 			if (_capaBuilder)
-				_capaBuilder->commit();
+				_capaBuilder->reset();
 		}
 
 		const VertexData &buildVertex(const Path &path, float aaRadius, bool aa) {
 			return aa ?
 				_cache->getAASideTriangle(path, aaRadius): _cache->getPathTriangles(path);
-		}
-
-		cCGAADrawData& buildCGAAA(const Path &path, const Paint &paint, bool stroke) {
-			Qk_ASSERT(_cgaaBuilder, "CGAA builder is null");
-			_cgaaBuilder->commit();
-			_cgaaBuilder->build(stroke ?
-				_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
-			auto &data = _cgaaBuilder->endBuild();
-			makeCGAAAtlasCmd(data);
-			return data;
 		}
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
@@ -113,7 +101,7 @@ namespace qk {
 			p.mipmapMode = PaintImage::kLinear_MipmapMode;
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
-			commitCGAABatch(); // commit current AA batches
+			flushCAPABatch(); // flush current CAPA batch before draw text image
 
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
 
@@ -141,10 +129,10 @@ namespace qk {
 		void fillPathAASide(const VertexData& vertex, const Paint &paint, const PaintStyle& style) {
 			if (!vertex.vCount)
 				return;
-			commitCGAABatch(); // commit current AA batches before fill path
+			flushCAPABatch(); // flush current CAPA batch before fill path
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
-				drawImageCmd(vertex, { style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind });
+				drawImageCmd(vertex, { style.image, style.color, isSDF ? kSDFMask_DrawKind: kImage_DrawKind });
 			} else if (style.gradient) {
 				drawGradientCmd(vertex, style.gradient, style.color);
 			} else if (paint.mask) {
@@ -154,74 +142,46 @@ namespace qk {
 			}
 		}
 
-		bool fillPathCGAA(const Path &path, const Paint &paint, const PaintStyle& style, bool stroke) {
-			if (!_cgaaBuilder)
+		bool fillPathCAPA(const Path &rawPath, const Paint &paint, const PaintStyle& style, bool stroke) {
+			if (!_capaBuilder)
 				return false;
-			commitCAPABatch();
+			auto &path = stroke ?
+				_cache->getStrokePath(rawPath, paint.strokeWidth, paint.cap, paint.join, 0) : rawPath;
 			if (style.image) {
 				auto isSDF = isSDFImage(style.image->image);
-				if (!isSDF && !style.image->_isCanvas && style.image->image->type() == kYUV420P_Y_8_ColorType)
-					return false; // fallback to non-CGAA path for YUV420P image
-				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), {
-					style.image, style.color, isSDF ? kSDFMask_DrawKind : kImage_DrawKind
+				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
+					style.image, style.color, isSDF ? kSDFMask_DrawKind: kImage_DrawKind
 				});
 			} else if (style.gradient) {
-				drawCGAAGradientCmd(buildCGAAA(path, paint, stroke), style.gradient, style.color);
+				return _capaBuilder->buildGradient(path, style.gradient, style.color);
 			} else if (paint.mask) {
-				drawCGAAImageCmd(buildCGAAA(path, paint, stroke), { paint.mask, style.color, kMask_DrawKind });
-			} else { // color fill/stroke with CGAA
-				_cgaaBuilder->color = style.color;
-				_cgaaBuilder->build(stroke ?
-					_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0) : path);
-				return true;
+				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
+					paint.mask, style.color, kMask_DrawKind
+				});
+			} else { // color
+				return _capaBuilder->build(path, style.color);
 			}
-			_cgaaBuilder->reset();
-			return true;
-		}
-
-		bool fillPathCAPA(const Path &path, const Color4f &color) {
-			commitCGAABatch(false);
-			return _capaBuilder->build(path, color);
-		}
-
-		bool fillPathCAPAImage(const Path &path, const GC_ImageDrawInfo &info, bool antiAlias) {
-			if (!_capaBuilder || !antiAlias)
-				return false;
-			auto paint = info.paint;
-			if (paint->_isCanvas || !paint->image || isSDFImage(paint->image) ||
-					paint->image->type() == kYUV420P_Y_8_ColorType) {
-				return false;
-			}
-			commitCGAABatch(false);
-			return _capaBuilder->buildImage(path, info);
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			if (_capaBuilder && aa) {
-				if (fillPathCAPA(path, color))
-					return;
-			}
-			// for non-AA path with simple color fill, 
-			// we can directly use the path triangles without building CGAA data
-			if (_cgaaBuilder && aa) {
-				commitCAPABatch();
-				_cgaaBuilder->color = color;
-				_cgaaBuilder->build(path); // build CGAA data for path
-			} else {
-				commitCGAABatch();
-				drawColorCmd(buildVertex(path, aaRadius, aa), color);
-			}
+			if (_capaBuilder && _capaBuilder->build(path, color))
+				return;
+			flushCAPABatch();
+			drawColorCmd(buildVertex(path, aaRadius, aa), color);
 		}
 
 		void strokePath(const Path &path, const Paint& paint, float aaRadius) {
+			auto width = paint.strokeWidth - _1pxSize;
+			bool boldStroke = paint.strokeWidth > _1pxSize * 1.8;
+			if (boldStroke && fillPathCAPA(path, paint, paint.stroke, true))
+				return;
 			if (!paint.antiAlias) {
 				auto &stroke = _cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0);
 				auto &vertex = _cache->getPathTriangles(stroke);
 				fillPathAASide(vertex, paint, paint.stroke);
 				return;
 			}
-			auto width = paint.strokeWidth - _1pxSize;
-			if (paint.strokeWidth > _1pxSize * 1.8) {
+			if (boldStroke) {
 				// Stroke is currently implemented using aaside
 				// because CGAA doesn't work well for wireframes with small lines,
 				// but we can't rule out the possibility that future algorithm improvements
@@ -249,19 +209,9 @@ namespace qk {
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
-				if (paint.antiAlias && paint.fill.image) {
-					GC_ImageDrawInfo info{
-						paint.fill.image,
-						paint.fill.color,
-						kImage_DrawKind,
-					};
-					if (fillPathCAPAImage(path, info, paint.antiAlias))
-						return;
-				}
-				if (!paint.antiAlias || !fillPathCGAA(path, paint, paint.fill, false)) {
-					auto &vertex = buildVertex(path, aaRadius, paint.antiAlias);
-					fillPathAASide(vertex, paint, paint.fill);
-				}
+				if (fillPathCAPA(path, paint, paint.fill, false)) 
+					return;
+				fillPathAASide(buildVertex(path, aaRadius, paint.antiAlias), paint, paint.fill);
 			};
 			// gen stroke path and fill path and polygons
 			switch (paint.style) {
@@ -290,7 +240,7 @@ namespace qk {
 		, _blendMode(kInvalid_BlendMode)
 		, _clipState(nullptr)
 		, _opts(opts)
-		, _cgaaBuilder(nullptr)
+		, _capaBuilder(nullptr)
 	{
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
@@ -336,11 +286,11 @@ namespace qk {
 		return _cache;
 	}
 
-	Vec2 GPUCanvas::size() {
+	Vec2 GPUCanvas::size() const {
 		return _size;
 	}
 
-	bool GPUCanvas::isGpu() {
+	bool GPUCanvas::isGpu() const {
 		return true;
 	}
 
@@ -381,9 +331,6 @@ namespace qk {
 
 	void GPUCanvas::setBlendMode(BlendMode mode) {
 		if (_blendMode != mode) {
-			if (_cgaaBuilder) {
-				_cgaaBuilder->setBlendMode(mode); // commit current CGAA batch if blend mode changed
-			}
 			_blendMode = mode;
 			setBlendModeCmd();
 		}
@@ -403,13 +350,16 @@ namespace qk {
 		count = U32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
-			_this->commitCGAABatch(); // commit current AA batches before restore
 			do {
-				auto lastOut = _state->output; // save current output before pop
+				auto output = _state->output; // save current output before pop
+				auto stack = &_stateStack.lastAt(1);
+				if (_state->clip != stack->clip || output != stack->output) {
+					_this->flushCAPABatch(); // flush current CAPA batch before restore clip state
+				}
 				_stateStack.pop(); // exit current state
 				_state = &_stateStack.back();
-				if (lastOut != _state->output) { // restore region draw, only when output changed
-					outputImageEndCmd(lastOut.get());
+				if (output != _state->output) { // restore region draw, only when output changed
+					outputImageEndCmd(output.get());
 				}
 				count--;
 			} while (count > 0);
@@ -433,10 +383,10 @@ namespace qk {
 		}
 		const Vec2 pad = 1.0f; // 1 pixel pad for anti-aliasing
 		auto clip = new GC_State::Clip;
-		auto range = path.getBounds(&_state->matrix);
+		auto bounds = path.getBounds(&_state->matrix);
 		auto lastClip = _clipState;
 
-		if (range.begin.x() >= range.end.x() || range.begin.y() >= range.end.y()) {
+		if (bounds.isEmpty()) {
 			return; // skip empty clip
 		}
 
@@ -449,46 +399,53 @@ namespace qk {
 		// last clip state operation, default as intersect
 		auto lastOp = lastClip ? lastClip->op : kIntersect_ClipOp;
 		// last clip state range, default as surface size
-		auto lastRange = lastClip ? lastClip->range : Range{{0},_surfaceSize};
+		auto lastBounds = lastClip ? lastClip->bounds : Range{{0},_surfaceSize};
 		// apply surface scale and padding
-		range.begin = (range.begin * _surfaceScale - pad).floor();
-		range.end = (range.end * _surfaceScale + pad).ceil();
+		bounds.begin = (bounds.begin * _surfaceScale - pad).floor();
+		bounds.end = (bounds.end * _surfaceScale + pad).ceil();
 		// rawOp: requested operation for this clip command.
 		// clip->op: how the resulting mask should be interpreted by fragment shader.
 		clip->op = rawOp;
+		// range: the extent of external influence for this clip command.
+		Range range;
 
 		// combine with last clip state
 		if (rawOp == kIntersect_ClipOp) {
 			if (lastOp == kIntersect_ClipOp) {
-				range.begin = range.begin.max(lastRange.begin);
-				range.end = range.end.min(lastRange.end);
+				bounds.begin = bounds.begin.max(lastBounds.begin);
+				bounds.end = bounds.end.min(lastBounds.end);
 			} else { // if (lastOp == kDifference_ClipOp)
-				range.begin = range.begin.max(0);
-				range.end = range.end.min(_surfaceSize);
+				bounds.begin = bounds.begin.max(0);
+				bounds.end = bounds.end.min(_surfaceSize);
 			}
+			range = bounds; // clip the extent of external influence to current bounds
 		} else { // if (rawOp == kDifference_ClipOp)
 			if (!lastClip) {
 				// Difference with no previous clip means full surface minus incoming.
 				// Store only incoming bounds as the restricted mask area.
-				range.begin = range.begin.max(0);
-				range.end = range.end.min(_surfaceSize);
+				bounds.begin = bounds.begin.max(0);
+				bounds.end = bounds.end.min(_surfaceSize);
+				range = {0,_surfaceSize}; // clip the extent of external influence to full surface
 			} else if (lastOp == kDifference_ClipOp) {
 				// expand to a larger restricted area image
-				range.begin = range.begin.min(lastRange.begin).max(0);
-				range.end = range.end.max(lastRange.end).min(_surfaceSize);
+				bounds.begin = bounds.begin.min(lastBounds.begin).max(0);
+				bounds.end = bounds.end.max(lastBounds.end).min(_surfaceSize);
+				range = lastClip->range; // use last clip range for shader to do difference clipping
 			} else { // if (lastOp == kIntersect_ClipOp)
 				// difference with intersect is still intersect,
 				// but keep the larger range for shader to do difference clipping
 				clip->op = kIntersect_ClipOp;
 				// keep last clip range for shader to do difference clipping
-				range = lastRange;
+				bounds = lastClip->bounds;
+				range = lastClip->range;
 			}
 		}
-		_this->commitCGAABatch();
-		clip->mask = getTextureFromPool(range.end - range.begin, kLuminance_8_ColorType);
+		_this->flushCAPABatch(); // flush current CAPA batch before clip path
+		clip->mask = getTextureFromPool(bounds.size(), kLuminance_8_ColorType);
+		clip->bounds = bounds;
 		clip->range = range;
-		// adjust range to actual allocated texture size
-		clip->range.end = clip->range.begin + clip->mask->size();
+		// adjust bounds to actual allocated texture size
+		clip->bounds.end = clip->bounds.begin + clip->mask->size();
 		if (antiAlias) {
 			drawClipCmd(_cache->getAASideTriangle(path,_aaRadius), lastClip, clip, rawOp);
 		} else {
@@ -504,13 +461,13 @@ namespace qk {
 	}
 
 	void GPUCanvas::clearColor(const Color4f& color) {
-		_this->commitCGAABatch();
+		_this->resetCAPABatch();
 		clearColorCmd(color, _stateStack.length() == 1 ? kClearAll_ClearFlags : kOnlyColor_ClearFlags);
 	}
 
 	void GPUCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
+		_this->flushCAPABatch();
 		drawColorCmd({0,6, {
 			{0,0,0}, {_size[0],0,0}, {_size[0],_size[1],0}, // triangle 1
 			{_size[0],_size[1],0}, {0,_size[1],0}, { 0,0,0 } // triangle 2
@@ -523,7 +480,7 @@ namespace qk {
 		if (rect.size.is_zero_axis())
 			return;
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
+		_this->flushCAPABatch();
 		drawRRectBlurColorCmd(rect, radius, blur, color);
 	}
 
@@ -615,19 +572,19 @@ namespace qk {
 
 	void GPUCanvas::drawTriangles(const Triangles& triangles, const Paint &paint, bool copyData) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
-		_this->commitCGAABatch(); // commit current AA batches before triangle draw
+		_this->flushCAPABatch(); // flush current CAPA batch before draw triangles
 		drawTrianglesCmd(triangles, paint.fill.image, paint.fill.color, copyData);
 	}
 
 	Sp<ImageSource> GPUCanvas::readImage(const Rect &src, Vec2 dst, ColorType type, BlendMode mode, bool mipmap) {
 		_this->setBlendMode(mode); // switch blend mode
-		_this->commitCGAABatch();
 		auto o = src.begin;
 		auto s = Vec2{
 			F32::min(o.x()+src.size.x(), _size.x()) - o.x(),
 			F32::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dst[0] > 0 && dst[1] > 0) {
+			_this->flushCAPABatch(); // flush current CAPA batch before read image
 			type = type ? type: _opts.colorType; // default to surface color type
 			auto destImg = ImageSource::Make(PixelInfo{
 				int(Qk_Min(dst.x(),_surfaceSize.x())), // limit max read image size to surface size
@@ -649,7 +606,7 @@ namespace qk {
 		}
 		if (img == _state->output)
 			return img; // same image, no need to switch
-		_this->commitCGAABatch();
+		_this->flushCAPABatch();
 		_state->output = img;
 		img->set_mipmap(mipmap);
 		outputImageBeginCmd(img.get());
@@ -677,11 +634,15 @@ namespace qk {
 		_rootMatrixNoScale.scale_x(1.0f/surfaceScale.x());
 		_rootMatrixNoScale.scale_y(1.0f/surfaceScale.y());
 		_texPools.clear(); // clear texture pool when surface size changed
-		if (_cgaaBuilder)
-			_cgaaBuilder->reset(true);
+		// if (_capaBuilder)
+		// 	_capaBuilder->reset(true);
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
 
 		setSurfaceCmd(chSize); // set buffers
+	}
+
+	Vec2 GPUCanvas::surfaceSize() const {
+		return _surfaceSize;
 	}
 }

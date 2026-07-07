@@ -59,6 +59,7 @@ namespace qk {
 	typedef id<CAMetalDrawable> MTLDrawable;
 	typedef id<MTLBuffer> MTLBufferID;
 	typedef id<CAMetalDrawable> MTLDrawableID;
+	typedef id<MTLArgumentEncoder> MTLArgumentEncoderID;
 #else
 	typedef void* NSObjectID;
 	typedef void* MTLPipeline;
@@ -75,6 +76,7 @@ namespace qk {
 	typedef void* MTLBufferID;
 	typedef int MTLPixelFormat;
 	typedef void* MTLDrawableID;
+	typedef void* MTLArgumentEncoderID;
 #endif
 
 	struct Vec3Padding {
@@ -102,6 +104,12 @@ namespace qk {
 		uint32_t size; // glsl attribute size, for vec4 colors[8]; size = 4*8 = 32
 		uint32_t format; // MTLVertexFormat
 		uint32_t sizeOf; // for example: sizeof(float)*4 for vec4
+	};
+
+	struct MSLArgumentResource {
+		uint32_t id; // argument buffer internal [[id(binding)]]
+		uint32_t arrayCount; // 0 means runtime array or non-array
+		bool runtimeArray;
 	};
 
 	struct MSLShaders;

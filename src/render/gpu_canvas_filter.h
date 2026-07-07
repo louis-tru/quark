@@ -96,7 +96,11 @@ namespace qk {
 		}
 
 		~GC_BlurFilter() override {
-			_host->_clipState = _host->_state->clip.get(); // restore clip state for blur filter
+			if (_host->_capaBuilder) {
+				_host->_capaBuilder->flush();
+				_host->_capaBuilder->setSurfaceOffset(IVec2(0, 0));
+			}
+			_host->_flags = _flags; // restore flags before blur filter
 			_host->blurFilterEndCmd(_bounds, _rootMatrix, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);
 		}
 
@@ -121,16 +125,26 @@ namespace qk {
 			// |r|r|rrrrrr|r|r|
 			// |r|r|rrrrrr|r|r|
 			_bounds = {_bounds.begin - padding, _bounds.end + padding};
+			// expand bounds to integer values
+			_bounds = _bounds.expandToInteger();
+			// min begin to 0, to avoid bounds being out of texture range.
+			auto begin = _bounds.begin.max(0);
+			if (_host->_capaBuilder) {
+				_host->_capaBuilder->flush(); // flush current CAPA batch before blur filter
+				auto offset = begin * _host->_surfaceScale;
+				_host->_capaBuilder->setSurfaceOffset(IVec2(-offset.x(), -offset.y()));
+			}
 			// save root matrix before blur
 			_blurRootMatrix = _rootMatrix = _host->_rootMatrix;
 			// adjust root matrix for blur filter, to keep the same visual position after expanding bounds
-			_blurRootMatrix.translate(Vec3(-_bounds.begin.max(0), 0));
+			_blurRootMatrix.translate(Vec3(-begin, 0));
 			// compute texture size for blur filter, limit to surface size
-			auto texS = (_bounds.end.min(_host->_size) - _bounds.begin.max(0)) * _host->_surfaceScale;
+			auto texS = (_bounds.end.min(_host->_size) - begin) * _host->_surfaceScale;
 			_tmpA = _host->getTextureFromPool(texS, _host->_opts.colorType, 0, kMipmap_TextureFlags);
 			_tmpB = _host->getTextureFromPool(texS, _host->_opts.colorType, 0, kMipmap_TextureFlags);
 			// disable clip for blur filter, to avoid blur being cut by clip
-			_host->_clipState = nullptr;
+			_flags = _host->_flags;
+			_host->_flags &= ~Qk_FLAG_CLIP;
 			_host->blurFilterBeginCmd(_bounds, _blurRootMatrix, *_tmpA);
 		}
 		GPUCanvas *_host;
@@ -140,6 +154,7 @@ namespace qk {
 		Mat4	_rootMatrix, _blurRootMatrix; // root matrix before blur, and root matrix for blur filter
 		Sp<ImageSource> _tmpA, _tmpB; // temporary blur textures, retained for async GL commands
 		int _sample, _imageLod;
+		uint32_t _flags;
 	};
 
 	template<typename... Args>

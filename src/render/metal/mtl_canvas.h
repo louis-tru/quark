@@ -15,8 +15,12 @@
 #include "../gpu_canvas.h"
 #include "./mtl_shaders.h"
 
+class AppleMetalRender;
+
 namespace qk {
 	class MetalRender;
+	typedef MemBlockAllocator<MTLBufferID>::MemBlock MTLMemBlock;
+	typedef const MTLMemBlock cMTLMemBlock;
 
 	struct MTL_CmdPack {
 		inline bool isRecorded() const {
@@ -42,9 +46,6 @@ namespace qk {
 		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
 		void vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst);
 	private:
-		inline Color4f premul_alpha(const Color4f &color) const {
-			return color.premul_alpha();
-		}
 		bool use_texture(MTLEncoder enc, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
 		void set_texture_param(MTLEncoder enc, MTLTextureID tex, int dstSlot, const PaintImage* paint);
 		MTLSampler get_sampler(const PaintImage* paint);
@@ -76,11 +77,7 @@ namespace qk {
 		void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
 		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
-		void makeCGAAAtlasCmd(cCGAADrawData &data) override;
-		void drawCGAAColorCmd(cCGAADrawData &data) override;
-		void drawCGAAGradientCmd(cCGAADrawData &data, const PaintGradient *paint, const Color4f &color) override;
-		void drawCGAAImageCmd(cCGAADrawData &data, const GC_ImageDrawInfo &info) override;
-		bool drawCAPACmd(cCAPADrawData &data) override;
+		bool drawCAPACmd(CAPADrawData &data) override;
 		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
 		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
@@ -95,6 +92,7 @@ namespace qk {
 		void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 		const MemBlockAllocator<MTLBufferID>::MemBlock&
 			buildGradientBuffer(const PaintGradient *paint, const Color4f &color);
+		bool onlyEndEncoderPass(Color4f &color);
 	private:
 	// fields:
 		MetalRender *_mtlrender; // render backend
@@ -110,7 +108,9 @@ namespace qk {
 		// actual render passes always write into _outColorTex.
 		MTLTextureID _outColorTex; //
 		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
+		MTLArgumentEncoderID _capaCompositeSet2Encoder, _capaCompositeSet3Encoder;
 		Dict<uint32_t, MTLSampler> _texSamplers;
+		friend class ::AppleMetalRender;
 	};
 
 } // namespace qk
