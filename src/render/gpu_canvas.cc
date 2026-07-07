@@ -209,7 +209,7 @@ namespace qk {
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
-				if (fillPathCAPA(path, paint, paint.fill, false)) 
+				if (fillPathCAPA(path, paint, paint.fill, false))
 					return;
 				fillPathAASide(buildVertex(path, aaRadius, paint.antiAlias), paint, paint.fill);
 			};

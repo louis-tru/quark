@@ -178,7 +178,7 @@ public:
 		if (!drawable)
 			return; // if drawable is nil, skip this frame
 
- 		// set the main canvas drawable for rendering
+			// set the main canvas drawable for rendering
 		setMainCanvasDrawable(drawable);
 
 		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {

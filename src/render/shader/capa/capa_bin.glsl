@@ -120,7 +120,7 @@ void main() {
 	tile0.x = min(tile0.x, tile1.x);
 
 	// clamp to the left edge of the path tile rect,
-	// because the backpack/prefix of the left-of-row edges still affect the path tile, 
+	// because the backpack/prefix of the left-of-row edges still affect the path tile,
 	// even if the edge is outside the path tile rect.
 	tile0.x = max(tile0.x, ext.tileRect.x);
 	tile1.x = max(tile1.x, ext.tileRect.x);

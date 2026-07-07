@@ -106,7 +106,7 @@ namespace qk {
 		 * Create a GPU texture and return a reference-counted ImageSource wrapper.
 		 * @param flags {TextureFlags} to specify texture properties and usage.
 				- kMipmap_TextureFlags: whether mipmap levels should be generated for this texture.
-				- kComputeWrite_TextureFlags: whether the texture will be written by compute shaders, 
+				- kComputeWrite_TextureFlags: whether the texture will be written by compute shaders,
 					which may require special usage flags or memory properties on some platforms.
 		 */
 		Sp<ImageSource> createTexture(Vec2 size, ColorType type, uint8_t flags);
