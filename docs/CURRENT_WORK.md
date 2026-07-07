@@ -7,6 +7,35 @@ This file is short-term memory for the current development thread. Update it whe
 Active work has moved from the earlier AASide/CGAA closeout into **CAPA
 (Coverage Area Pipeline Anti-Aliasing)** research on branch `experiment/capa`.
 
+## 2026-07-07 CAPA Closure Checkpoint
+
+CAPA is now considered functionally complete enough to stop broad architecture
+work and move into validation/bugfix mode.
+
+- Commit `b7be06e78` (`Complete CAPA pipeline checkpoint`) was pushed to
+  `origin/experiment/capa` as the large recoverable checkpoint for the current
+  CAPA pipeline.
+- The renderer strategy is now hybrid by design:
+  - most AA color/image/gradient path fills should use CAPA where the backend
+    supports it;
+  - hairline paths and text should remain on AASide because its distance-band
+    edge behavior is visually better for those cases;
+  - GL/GLES should continue to rely on AASide as the portable baseline.
+- Do not keep trying to make CAPA's area coverage look like AASide. CAPA's
+  purpose is ordered area coverage, layer composition, and leakage repair.
+  Simple-edge perceptual quality should be handled by renderer selection if it
+  needs future tuning.
+- A discrete coverage-group experiment exists behind
+  `CAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE`. It is intentionally off by default
+  and should stay experimental unless a scene-specific need justifies enabling
+  it.
+- Clip state now distinguishes mask texture bounds from the external influence
+  range. CAPA/CGAA coarse bounds should use the influence range, while shader
+  sampling and mask copying should use the mask texture bounds.
+- Future clip work should eventually move common UI clipping into the CAPA
+  pipeline instead of repeatedly flushing to external mask textures, but that is
+  post-closure work, not part of the current stabilization pass.
+
 Current checkpoint:
 
 - Commit `7564f7a92` (`Restore CAPA prototype snapshot`) was pushed to

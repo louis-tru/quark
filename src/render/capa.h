@@ -38,6 +38,8 @@ namespace qk {
 	constexpr uint32_t kCAPA_FLAG_NONE_MIPMAP_MODE = 1u << 3;
 	// Composite pass should clear the destination before drawing.
 	constexpr uint32_t kCAPA_FLAG_COMPOSITE_CLEAR_DST = 1u << 4;
+	// Quantize completed coverage groups as a display experiment.
+	constexpr uint32_t kCAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE = 1u << 5;
 
 	// CAPA paint types
 	enum CAPAPaintType {

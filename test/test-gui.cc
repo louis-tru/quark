@@ -40,7 +40,7 @@
 using namespace qk;
 
 void test_gui_new(Box *box) {
-	// box->set_background_color({0,0,255,255});
+	box->set_background_color({0,0,255,255});
 	auto r = box->append_new<Morph>();
 	r->set_width({ 0, BoxSizeKind::Match });
 	r->set_height({ 0, BoxSizeKind::Match });
@@ -140,9 +140,9 @@ void test_gui_new(Box *box) {
 
 Qk_TEST_Func(gui) {
 	App app;
-	// auto win0 = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
+	// auto win0 = Window::Make({.frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
 	// win0->activate();
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
+	auto win = Window::Make({.frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 
 	test_gui_new(win->root());

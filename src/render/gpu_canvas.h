@@ -131,9 +131,7 @@ namespace qk {
 		Vec2 surfaceSize() const override;
 		const Render::Options& opts() const { return _opts; }
 		Render* render() { return _render; }
-		inline Color4f premul_alpha(const Color4f &color) const {
-			return color.premul_alpha();
-		}
+		inline Color4f premul_alpha(const Color4f &color) const { return color.premul_alpha(); }
 	protected:
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
@@ -157,8 +155,7 @@ namespace qk {
 		virtual void flushSubcanvasCmd(GPUCanvas* canvas) = 0;
 		// get texture count from pool and add ref count, limit texture size to surface size
 		// flags can be kMipmap_TextureFlags, kComputeWrite_TextureFlags, etc
-		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, 
-				Vec2 limit = Vec2(), uint8_t flags = 0);
+		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, Vec2 limit = Vec2(), uint8_t flags = 0);
 		void setBlendMode(BlendMode mode);
 	// fields:
 		Array<GC_State> _stateStack; // state

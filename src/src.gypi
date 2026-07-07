@@ -388,8 +388,6 @@
 					'../tools/gen_glsl_natives.js',
 					'render/shader/_util.glsl',
 					'render/shader/_blur.glsl',
-					'render/shader/_cgaa.glsl',
-					'render/shader/cgaa.glsl',
 					'render/shader/capa/_capa.glsl',
 					'render/shader/capa/capa_prepare.glsl',
 					'render/shader/capa/capa_prepare_tiles.glsl',

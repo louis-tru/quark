@@ -14,7 +14,7 @@
 
 using namespace qk;
 
-#define Qk_TEST_CANVAS(Fn) Fn(2)
+#define Qk_TEST_CANVAS(Fn) Fn(0)
 
 void test_gui_new(Box *r);
 
@@ -23,7 +23,7 @@ class TestCanvas0: public Box {
 	Array<TextBlob> textBlobs;
 	View* init(Window* win) override {
 		View::init(win);
-		// test_gui_new(win->root());
+		test_gui_new(win->root());
 		return this;
 	}
 
@@ -40,7 +40,7 @@ class TestCanvas0: public Box {
 		canvas->save();
 
 		if (1) { // clip
-			// canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		if (1) { // gradient
@@ -71,7 +71,7 @@ class TestCanvas0: public Box {
 		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
-			// canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
+			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
 
 		canvas->translate(size*-0.5);
@@ -98,7 +98,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI*0.5, 1), paint);
 		}
 
-		if (0) { // font blob
+		if (1) { // font blob
 			paint.fill.color = Color4f(255,0,255);
 			paint.stroke.color = Color4f(0,0,0);
 			paint.strokeWidth = 5;

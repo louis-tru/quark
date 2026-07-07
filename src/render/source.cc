@@ -69,6 +69,9 @@ namespace qk {
 				_res = getSharedRenderResource();
 			if (_tex != tex && _tex[0].id())
 				_res->unloadTexture(_tex);
+			if (_pixels.length() == 0) {
+				_pixels.push(PixelInfo(_info)); // if no pixel data, create a pixel info from info
+			}
 			_tex[0] = *tex;
 			_state = kSTATE_LOAD_COMPLETE;
 		}

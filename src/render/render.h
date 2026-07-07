@@ -143,6 +143,7 @@ namespace qk {
 			uint32_t  maxCapacityForPathvCache = 0; ///< Max path vertex cache size, default 128 MB.
 			bool      mipmap = false; ///< Whether some color-buffer commands should generate mipmaps.
 			bool      enableCAPA = true; ///< Whether to enable CAPA for GPU rendering.
+			bool      enableCAPAQuantizeCoverage = false; ///< Whether to enable CAPA quantized coverage for GPU rendering.
 		};
 
 		class Delegate {

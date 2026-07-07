@@ -98,7 +98,7 @@ namespace qk {
 		~GC_BlurFilter() override {
 			if (_host->_capaBuilder) {
 				_host->_capaBuilder->flush();
-				_host->_capaBuilder->setSurfaceOffset(IVec2(0, 0));
+				_host->_capaBuilder->setSurfaceOffset(0);
 			}
 			_host->_flags = _flags; // restore flags before blur filter
 			_host->blurFilterEndCmd(_bounds, _rootMatrix, _radius, _clearPad, _sample, _imageLod, *_tmpA, *_tmpB);

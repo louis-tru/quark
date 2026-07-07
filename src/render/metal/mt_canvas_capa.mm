@@ -315,7 +315,8 @@ namespace qk {
 			MSLCapaComposite::PcArgs pc{
 				.clearColor=clearColor,
 				.surfaceOffset=data.surfaceOffset,
-				.flags=_flags | (clearDst ? kCAPA_FLAG_COMPOSITE_CLEAR_DST : 0),
+				.flags=_flags | (clearDst ? kCAPA_FLAG_COMPOSITE_CLEAR_DST : 0)
+					| (_opts.enableCAPAQuantizeCoverage ? kCAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE : 0)
 			};
 			auto enc = [_cmdPack.current computeCommandEncoder];
 			enc.label = @"CAPA composite";

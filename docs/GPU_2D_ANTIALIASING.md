@@ -17,7 +17,25 @@ Quark 是 GUI 框架，不是 3D 游戏渲染器。GUI 的 2D 边缘质量要求
 
 ## 当前 Qk 状态
 
-当前 GPU 路径主要依赖 AASide 风格的边缘条带：
+当前 GPU 渲染已经进入混合策略，而不是单一 AA 算法：
+
+- CAPA 是当前 Metal-class 复杂填充路径的主线，用面积 coverage、
+  tile/layer 计划和有序 composite 修复多图元共享边界漏光。
+- AASide 保留给 hairline、文本和简单边缘。它不是严格面积 coverage，
+  但距离/边沿带的视觉效果在直线和细线场景中通常更好。
+- CGAA 不再是当前主线；除非明确要求，不应继续围绕 CGAA 做大改。
+
+CAPA 封版判断：
+
+- CAPA coverage 必须保持线性面积语义，不能在漏光修复前做
+  `f(coverage)`、gamma、smoothstep、感知滤波或邻域扩散。
+- 如果要尝试离散/感知 coverage，只能在 coverage group 完成并且不再
+  参与几何归属后作为显示实验。当前对应实验 flag 是
+  `CAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE`，默认关闭。
+- CAPA 不追求在所有单边视觉质量上超过 AASide。它解决的是有序面积
+  归属、复杂重叠和背景 seam；简单边缘质量靠 renderer selection。
+
+历史上 GPU 路径主要依赖 AASide 风格的边缘条带：
 
 - 实体区域正常绘制。
 - 边缘外生成一圈 soft band。
@@ -38,10 +56,11 @@ Quark 是 GUI 框架，不是 3D 游戏渲染器。GUI 的 2D 边缘质量要求
 目前经验判断：
 
 - AASide 对普通 UI 边缘仍然有价值，尤其是细 stroke/hairline。
-- CGAA 对复杂 fill 有潜力，但现在还不能直接替代所有路径。
+- CAPA 已经取代 CGAA 成为复杂 fill 的主要研究/实现方向。
 - 极小 stroke，尤其是物理 1px 左右的线，CGAA 视觉上容易显粗；AASide 中心线向外扩散的距离场处理反而更可控。
 - 对 stroke 来说，经过 stroke tess 后一般不会出现 fill 那种极限角度、几乎重合边、复杂 winding 问题，所以 stroke 可以优先保留 AASide 特化路径。
-- 对 fill 来说，单纯几何 AA 很难解决所有 coverage 和多轮廓问题，compute/tile 方向更值得继续。
+- 对 fill 来说，单纯几何 AA 很难解决所有 coverage 和多轮廓问题，
+  CAPA 的 compute/tile/order composite 方向已经成为当前默认复杂路径。
 
 ## 当前问题清单
 

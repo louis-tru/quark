@@ -7,8 +7,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_render.h"
-#include "test/compute_aa/mtl_compute_aa_prototype.h"
-#include "src/render/render.h"
+#include "../render.h"
 #import "./mtl_canvas.h"
 #import "./mtl_shaders.h"
 #import "../pixel.h"

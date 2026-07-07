@@ -54,6 +54,8 @@ const uint CAPA_FLAG_PAINT_OPAQUE = 1u << 2;
 const uint CAPA_FLAG_NONE_MIPMAP_MODE = 1u << 3;
 // Composite pass clears the destination before blending.
 const uint CAPA_FLAG_COMPOSITE_CLEAR_DST = 1u << 4;
+// Quantize completed coverage groups as a display experiment.
+const uint CAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE = 1u << 5;
 
 struct CAPAEnvironment {
 	// Indirect dispatch arguments are uvec4-aligned so Metal can dispatch from

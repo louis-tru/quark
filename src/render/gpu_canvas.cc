@@ -183,10 +183,10 @@ namespace qk {
 			}
 			if (boldStroke) {
 				// Stroke is currently implemented using aaside
-				// because CGAA doesn't work well for wireframes with small lines,
+				// because CAPA doesn't work well for wireframes with small lines,
 				// but we can't rule out the possibility that future algorithm improvements
-				// will allow wireframes to also be implemented using CGAA.
-				// if (fillPathCGAA(path, paint, paint.stroke, true)) return;
+				// will allow wireframes to also be implemented using CAPA.
+				// if (fillPathCAPA(path, paint, paint.stroke, true)) return;
 				auto &stroke = _cache->getStrokePath(path, width, paint.cap, paint.join,0);
 				auto &vertex = buildVertex(stroke, aaRadius, paint.antiAlias);
 				fillPathAASide(vertex, paint, paint.stroke);
@@ -634,8 +634,8 @@ namespace qk {
 		_rootMatrixNoScale.scale_x(1.0f/surfaceScale.x());
 		_rootMatrixNoScale.scale_y(1.0f/surfaceScale.y());
 		_texPools.clear(); // clear texture pool when surface size changed
-		// if (_capaBuilder)
-		// 	_capaBuilder->reset(true);
+		if (_capaBuilder)
+			_capaBuilder->reset(true);
 
 		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
 

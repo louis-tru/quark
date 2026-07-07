@@ -103,7 +103,11 @@ namespace qk {
 	{
 		Qk_CHECK(_host);
 		check_is_first_loop();
-		_render = Render::Make({ opts.colorType, opts.fps }, this);
+		_render = Render::Make({
+			.colorType=opts.colorType,
+			.enableCAPA=opts.enableCAPA,
+			.enableCAPAQuantizeCoverage=opts.enableCAPAQuantizeCoverage,
+		}, this);
 		_fspBlob = new TextBlob();
 		_dispatch = new EventDispatch(this);
 		_painter = new Painter(this);

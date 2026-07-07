@@ -171,11 +171,9 @@ namespace qk {
 	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
 		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ 0,0, color, offset, flags };
+		MSLColor::PcArgs pc{ color, offset, flags };
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
 		// draw a full-screen triangle for clear
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
@@ -286,8 +284,6 @@ namespace qk {
 					(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
-			[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.vertex.paths];
-			[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.vertex.tiles];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		}
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
@@ -298,8 +294,6 @@ namespace qk {
 		auto &shader = _shaders.colorGradient;
 		Qk_usePipeline(shader, vertex);
 		MSLColorGradient::PcArgs pc{
-			{0},
-			0,
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),
 			.count=count,
@@ -311,8 +305,6 @@ namespace qk {
 		auto &block = buildGradientBuffer(paint, color);
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length:sizeof(pc) atIndex:0];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.paths];
-		[enc setVertexBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:_shaders.color.vertex.tiles];
 		[enc setFragmentBuffer:block.val offset:block.begin atIndex:shader.fragment.colors];
 		[enc setFragmentBuffer:block.val offset:block.begin + colorSize atIndex:shader.fragment.positions];
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
@@ -403,8 +395,6 @@ namespace qk {
 		*/
 	void MetalCanvas::blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 			int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) {
-		//if (_cmdPack.enc == nil)
-		//	return; // if no drawing command recorded for blur filter, skip post processing
 		auto texA = mtl_get_texture_from(tmpA);
 		auto texB = mtl_get_texture_from(tmpB);
 		Qk_ASSERT(texA && texB, "blurFilterEndCmd temp texture is null");
@@ -536,6 +526,7 @@ namespace qk {
 			beginPass(0, _blendMode > kSrc_BlendMode ? true: false);
 			auto &cp = _shaders.cp;
 			auto enc = usePipeline(cp);
+			enc.label = @"readImageCmd";
 			float x2 = _size[0], y2 = _size[1]; // canvas size
 			float vertex[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
 			auto begin = srcRect.begin / _surfaceSize;

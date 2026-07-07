@@ -369,7 +369,7 @@ private:
 
 Qk_TEST_Func(media) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
+	auto win = Window::Make({.frame={{0,0}, {400,400}}});
 	win->activate();
 	win->root()->set_background_color({0,0,0,1});
 	auto f = win->root()->append_new<Free>();

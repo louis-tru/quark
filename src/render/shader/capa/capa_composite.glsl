@@ -61,6 +61,7 @@ layout(binding=0,set=3) uniform sampler samplers[];
 
 const uvec2 CAPA_COMPOSITE_SUBGROUPS = uvec2(2u, 2u);
 const float eps = 1e-6;
+const float CAPA_GROUP_COVERAGE_QUANTIZE_STEPS = 8.0;
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(ivec2 fragCoord) {
@@ -205,11 +206,20 @@ bool capa_front_ignores_bottom() {
 }
 
 void capa_group_flush() {
-	if (group.hasValue) {
-		// A completed same-mode group is one weighted PMA source.
-		capa_blend_front_append(front, group.src, group.blendMode);
-		group = capa_group_empty();
+	if (!group.hasValue)
+		return;
+	if ((pc.flags & CAPA_FLAG_COMPOSITE_QUANTIZE_COVERAGE) != 0) {
+		float coverage = clamp(group.coverage, 0.0, 1.0);
+		if (coverage > eps && coverage < 1.0 - eps) {
+			float displayCoverage = floor(coverage * CAPA_GROUP_COVERAGE_QUANTIZE_STEPS + 0.5) /
+				CAPA_GROUP_COVERAGE_QUANTIZE_STEPS;
+			displayCoverage = clamp(displayCoverage, 0.0, 1.0);
+			group.src *= displayCoverage / coverage;
+		}
 	}
+	// A completed same-mode group is one weighted PMA source.
+	capa_blend_front_append(front, group.src, group.blendMode);
+	group = capa_group_empty();
 }
 
 bool capa_group_add(vec4 src, uint blendMode, float coverage) {
@@ -226,7 +236,8 @@ bool capa_group_add(vec4 src, uint blendMode, float coverage) {
 		group.src += coveredSrc;
 	}
 	if (group.coverage >= 1.0 - eps) {
-		capa_group_flush();
+		capa_blend_front_append(front, group.src, group.blendMode);
+		group = capa_group_empty();
 		return capa_front_ignores_bottom();
 	}
 	return false; // return true if the front ignores the bottom, false otherwise
@@ -311,9 +322,9 @@ void main() {
 
 	// The last group may be partially filled (< 1 coverage); it still contributes
 	// before resolving against the destination/clear bottom.
-	if (group.hasValue) {
-		capa_blend_front_append(front, group.src, group.blendMode);
-	}
+	capa_group_flush();
+
+	// If the clip flag is set, we need to apply the clip coverage to the front.
 	if ((pc.flags & Qk_FLAG_CLIP) != 0) {
 		capa_blend_front_clip(front, clipCoverage(pixel + pc.surfaceOffset));
 	}
