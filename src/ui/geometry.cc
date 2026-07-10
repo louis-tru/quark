@@ -321,7 +321,7 @@ namespace qk {
 			}
 		}
 
-		float dist = std::sqrt(minDist2);
+		float dist = sqrtf(minDist2);
 		Vec2 dir = (bestB - bestA).normalized(); // A->B
 		*mtv = { dir, dist };
 	}

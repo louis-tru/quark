@@ -30,5 +30,6 @@ if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
 	done
 fi
 
-$AR  rc $PRODUCT_PATH `find $OBJS_DIR -name *.o|xargs`
-$RANLIB $PRODUCT_PATH
+$AR rcs $PRODUCT_PATH `find $OBJS_DIR -name *.o|xargs`
+# "ar ars" has already undergone the ranlib operation.
+# $RANLIB $PRODUCT_PATH

@@ -1246,16 +1246,7 @@ namespace qk {
 	}
 
 	Vec2 Input::layout_offset_inside() {
-		auto text_offset = input_text_offset();
-		Vec2 offset(
-			padding_left() + text_offset.x(),
-			padding_top() + text_offset.y()
-		);
-		_IfBorder() {
-			offset.val[0] += _border->width[3]; // left
-			offset.val[1] += _border->width[0]; // top
-		}
-		return offset;
+		return Box::layout_offset_inside() + input_text_offset();
 	}
 
 	Vec2 Input::input_text_offset() {

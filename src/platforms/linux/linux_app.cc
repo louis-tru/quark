@@ -304,6 +304,9 @@ namespace qk
 		}
 	}
 
+	void AppInl::initPlatform() {
+	}
+
 	// Open URL using xdg-open
 	void Application::openURL(cString& url) {
 		if (vfork() == 0) {

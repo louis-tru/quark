@@ -9,6 +9,8 @@
 var fs = require('qktool/node/fs');
 var path = require('path');
 var child_process = require('child_process');
+var host_os = process.platform == 'darwin' ? 'mac': process.platform;
+var android_api_level = 28; // android-9.0
 
 var COMPILE_SOURCE_EXTENSIONS = new Set([
 	'.c', '.cc', '.cpp', '.cxx', '.m', '.mm',
@@ -40,7 +42,36 @@ function collect_compile_sources(root, dir, out) {
 	}
 }
 
-function write_compile_commands(root, ideDir) {
+function get_host_tag_or_die() {
+	// Return the host tag for this platform. Die if not supported.
+	if (host_os == 'linux')
+		return 'linux-x86_64';
+	else if (host_os == 'mac')
+		return 'darwin-x86_64';
+	else if (host_os == 'win32' || host_os == 'cygwin')
+		return 'windows-x86_64';
+	throw Error('Unsupported platform: ' + host_os);
+}
+
+function android_ndk_root() {
+	return path.resolve(__dirname, 'ndk');
+}
+
+function android_toolchain_dir() {
+	return path.join(android_ndk_root(), 'toolchains/llvm/prebuilt', get_host_tag_or_die());
+}
+
+function android_target_triple() {
+	return `aarch64-linux-android${android_api_level}`;
+}
+
+function clangd_compiler(os) {
+	if (os == 'android')
+		return path.join(android_toolchain_dir(), 'bin', `${android_target_triple()}-clang++`);
+	return 'clang++';
+}
+
+function write_compile_commands(root, ideDir, opts = {}) {
 	var flagsFile = path.join(ideDir, 'compile_flags.txt');
 	if (!fs.existsSync(flagsFile)) {
 		return;
@@ -56,7 +87,7 @@ function write_compile_commands(root, ideDir) {
 	var commands = sources.map(file => ({
 		directory: ideDir,
 		file,
-		arguments: ['clang++'].concat(flags, ['-c', file]),
+		arguments: [clangd_compiler(opts.os)].concat(flags, ['-c', file]),
 	}));
 	fs.writeFileSync(
 		path.join(ideDir, 'compile_commands.json'),
@@ -111,20 +142,31 @@ function apple_sdk_path(sdk) {
 
 function clangd_platform_flags(os) {
 	var sdk = '';
-	var define = '';
+	var define = [];
 	if (os == 'ios') {
 		sdk = apple_sdk_path('iphoneos');
-		define = '-DQk_iOS=1';
+		define = ['-D__APPLE__', '-DQk_ENABLE_METAL=1', '-DQk_iOS=1'];
 	} else if (os == 'mac') {
 		sdk = apple_sdk_path('macosx');
-		define = '-DQk_MacOS=1';
+		define = ['-D__APPLE__', '-DQk_ENABLE_METAL=1', '-DQk_MacOS=1'];
+	} else if (os == 'android') {
+		sdk = path.join(android_toolchain_dir(), 'sysroot');
+		define = [
+			`--target=${android_target_triple()}`,
+			`--sysroot=${sdk}`,
+			`-D__ANDROID_API__=${android_api_level}`,
+			'-D__ANDROID__', '-DANDROID', '-DQk_ENABLE_VULKAN=1', '-DQk_ANDROID=1',
+		];
+	} else if (os == 'linux') {
+		sdk = path.resolve(__dirname, 'linux');
+		define = ['-D__linux__', '-DQk_ENABLE_VULKAN=1', '-DQk_LINUX=1'];
 	}
 
 	var flags = [];
 	if (define) {
-		flags.push(define);
+		flags.push(...define);
 	}
-	if (sdk) {
+	if (sdk && os != 'android') {
 		flags.push('-isysroot', sdk);
 	}
 	return flags.map(e => `    - ${e}`).join('\n');
@@ -170,7 +212,8 @@ function write(root, opts = {}) {
 		fs.writeFileSync(path.join(root, '.clangd'), clangdContent);
 	}
 
-	write_compile_commands(root, ideDir);
+	write_compile_commands(root, ideDir, opts);
 }
 
+exports.get_host_tag_or_die = get_host_tag_or_die;
 exports.write = write;

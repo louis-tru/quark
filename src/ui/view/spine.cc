@@ -217,7 +217,7 @@ namespace qk {
 
 	constexpr float SAFE_SPINE_LIMIT = 1000000.0f;
 	inline float safe_spine_float(float v, float def = 0.0f) {
-		if (!std::isfinite(v) || std::fabs(v) > SAFE_SPINE_LIMIT)
+		if (!isfinite(v) || fabsf(v) > SAFE_SPINE_LIMIT)
 				return def;
 		return v;
 	}

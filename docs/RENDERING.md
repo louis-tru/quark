@@ -63,6 +63,10 @@ Recent iOS validation:
   when judging AA quality.
 - Mobile CPU cost still matters. CAPA performs well when it records large
   batches, but frequent flushes can dominate CPU time.
+- Android GL/GLES profiling shows that dynamic R8 text/image texture upload can
+  dominate CPU time on midrange devices. Treat GL as the correctness/fallback
+  path there; Vulkan is the next likely performance path if upload/driver cost
+  remains the limiter.
 
 The current executable CAPA pass plan is documented in
 `docs/CAPA_PASS_PROCESS.md`; shader source lives in `src/render/shader/capa/`.
@@ -104,6 +108,9 @@ Important GL notes after the refactor:
 
 - `gl_command.*` replaces the old `gl_cmd.*` files.
 - Matrix and blend changes are recorded through backend command hooks from `GPUCanvas`.
+- Ordinary view position should not require a canvas matrix update. The painter
+  can express simple positions in draw coordinates and reserve matrix changes
+  for transform boundaries such as scroll/morph.
 - Deferred commands must respect data lifetime. `drawTriangles(copyData=true)` is the explicit signal to copy transient vertex/index buffers.
 - See `docs/TROUBLESHOOTING.md` for rendering failure modes, especially the
   requirement that persistent UBO/VBO objects have storage allocated before any
@@ -128,9 +135,17 @@ GLES-specific differences:
   separate ordinary uniforms such as `pc_flags` and `pc_texCoords`. This avoids
   iOS GLES linker failures caused by struct uniform type or precision mismatch
   across vertex/fragment stages.
+- ES300 expansion must preserve per-member precision. Coordinates, matrices,
+  surface offsets, and image `texCoords` should be `highp`; colors, coverage,
+  alpha values, and most sampler math can be `mediump`.
 - Fragment shader integer precision should be explicit `highp` for flags and
-  bit masks. Float precision can be kept `mediump` unless a path has a specific
-  coordinate-precision need.
+  bit masks.
+- Do not rely on implicit precision defaults for uniforms or blocks shared
+  across vertex and fragment stages. Same-name uniforms/blocks need matching
+  type and precision after generation. Varying precision can differ by stage,
+  but the effective precision is constrained by the lower-precision side, so UV
+  or coordinate varyings should be high precision end to end when large scroll
+  offsets are involved.
 
 ## Metal Backend Shape
 

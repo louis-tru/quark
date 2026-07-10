@@ -15,3 +15,4 @@
 -I../deps/v8/include
 -I../deps/spine/spine-cpp/include
 -I../deps/ffmpeg
+-I../deps/libexpat/expat/lib

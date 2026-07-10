@@ -14,25 +14,29 @@
 } pc
 
 #vert
+precision highp int;
+precision mediump float;
+
 layout(binding=1, set=0, std140) uniform RootMatrixBlock {
-	mat4 value;
-	mat4 noScale; // for non-scaling
-	vec2 surfaceScale;
-	vec2 _pad; // pad to 16-byte alignment
+	highp mat4 value;
+	highp mat4 noScale; // for non-scaling
+	highp vec2 surfaceScale;
+	highp vec2 _pad; // pad to 16-byte alignment
 } rMat;
 layout(binding=2, set=0, std140) uniform ViewMatrixBlock {
-	mat4 value;
+	highp mat4 value;
 } vMat;
-layout(location=0) in      vec2  vertexIn;
-layout(location=1) in      float aaSideIn; // anti alias side
-layout(location=0) out     float aaSide;
+layout(location=0) in highp vec2  vertexIn;
+layout(location=1) in highp float aaSideIn; // anti alias side
+layout(location=0) out mediump float aaSide;
 
 #frag
 precision highp int;
 precision mediump float; // lowp/highp
 precision mediump sampler2D;
-layout(location=0) in      float aaSide;
-layout(location=0) out     vec4  fragColor;
+
+layout(location=0) in  mediump float aaSide;
+layout(location=0) out mediump vec4  fragColor;
 layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	vec4 bounds; // x:left, y:top, z:right, w:bottom
 	// Clip sampling mode used by fragment shader:
@@ -78,6 +82,3 @@ float aaSideCoverage(const uint flags) {
 #define Qk_CLIP() \
 if ((pc.flags & Qk_FLAG_CLIP) != 0) \
 	fragColor *= clipCoverage(vec2(0))
-
-#comp
-precision mediump float;

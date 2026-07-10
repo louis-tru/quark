@@ -782,7 +782,7 @@ async function configure() {
 		// check android ndk toolchain
 		var api = android_api_level;
 		var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
-		var toolchain_llvm = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
+		var toolchain_llvm = `${ndk_path}/toolchains/llvm/prebuilt/${gen_ide_config.get_host_tag_or_die()}`;
 		var test = `${toolchain_llvm}/bin/armv7a-linux-androideabi${api}-clang`;
 		// check ndk
 		util.assert(fs.existsSync(test), `Don't found command of ${test}`);
@@ -864,9 +864,9 @@ async function configure() {
 			cross_prefix = fs.existsSync(`${toolchain_dir}/bin/llvm-as`) ? 'llvm-': '';
 		}
 		variables.as = `${cross_prefix}as`;
-		variables.ar = `${cross_prefix}ar`;
-		variables.ranlib = `${cross_prefix}ranlib`;
-		variables.strip = `${cross_prefix}strip`;
+		variables.ar = 'llvm-ar';
+		variables.ranlib = 'llvm-ranlib';
+		variables.strip = 'llvm-strip';
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
 

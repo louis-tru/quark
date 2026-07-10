@@ -864,12 +864,23 @@ namespace qk {
 		}, new Args({value,duration,curve}));
 	}
 
-	void ScrollView::solve(uint32_t mark) {
+	void ScrollView::solve(const Mat &mat, View *parent, uint32_t mark) {
 		if ( mark & View::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
+				// fix scroll position and catch position and trigger event
 				_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll(_scroll));
 			}
 			_host->unmark(View::kScroll);
+		}
+
+		if (mark & View::kTransform) {
+			auto v = parent->layout_offset_inside();
+			v += _host->layout_offset();
+			v += Vec2(_host->margin_left(), _host->margin_top());
+			v -= Vec2(scroll_left(), scroll_top());
+			auto scrollPos =
+				mat.mul_vec2_no_translate(v) + parent->position();
+			_scrollMatrix = Mat(mat).set_translate(scrollPos);
 		}
 	}
 
@@ -892,7 +903,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------
 
-	Scroll::Scroll(): Box(), ScrollView(this)
+	Scroll::Scroll(): ScrollView(this)
 	{
 	}
 
@@ -904,16 +915,7 @@ namespace qk {
 	}
 
 	Vec2 Scroll::layout_offset_inside() {
-		Vec2 offset(
-			padding_left() - scroll_left(),
-			padding_top() - scroll_top()
-		);
-		auto _border = this->_border.load();
-		if (_border) {
-			offset.val[0] += _border->width[3]; // left
-			offset.val[1] += _border->width[0]; // top
-		}
-		return offset;
+		return Box::layout_offset_inside() - Vec2(scroll_left(), scroll_top());
 	}
 
 	void Scroll::layout_reverse(uint32_t mark) {
@@ -923,9 +925,8 @@ namespace qk {
 	}
 
 	void Scroll::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
-		ScrollView::solve(mark);
+		ScrollView::solve(mat, parent, mark);
 		Box::solve_marks(mat, parent, mark);
-		//Qk_DLog("Scroll::_position, %f, %f", _position.x(), _position.y());
 	}
 
 	ScrollView* Scroll::asScrollView() {

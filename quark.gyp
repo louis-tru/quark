@@ -100,6 +100,7 @@
 			['os not in "mac ios"', {
 				'type': 'shared_library',
 				'ldflags': [
+					'-s',
 					'-Wl,--version-script,<(source)/tools/v_small.ver'
 				],
 			}]
@@ -110,16 +111,6 @@
 	'conditions': [
 		['use_js==1', {
 			'includes': ['src/js/js.gypi'],
-		},{
-			'targets': [{
-				'target_name': 'quark-js',
-				'type': 'none',
-			}],
-		}],
-		['os not in "mac ios" or style=="xcode"', {
-			'includes': [ 'test/test.gypi' ],
-		}],
-		['use_js==1', {
 			'targets+': [{
 				'target_name': 'quark-exec',
 				'product_name': 'quark', # output name quark
@@ -142,6 +133,14 @@
 					'OTHER_LDFLAGS': ['-arch <(arch_name)'],
 				},
 			}],
-		}]
+		},{
+			'targets+': [{
+				'target_name': 'quark-js',
+				'type': 'none',
+			}],
+		}], # use_js==1
+		['os not in "mac ios" or style=="xcode"', {
+			'includes': [ 'test/test.gypi' ],
+		}],
 	],
 }

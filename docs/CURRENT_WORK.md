@@ -7,6 +7,64 @@ This file is short-term memory for the current development thread. Update it whe
 Active work has moved from broad CAPA architecture into iOS/backend validation
 and mobile CPU/performance hardening on `master`.
 
+## 2026-07-10 Android/iOS Mobile Hardening
+
+Current mobile validation status:
+
+- iOS GL/GLES, Metal, and CAPA have all passed simple kace/text-heavy smoke
+  tests.
+- Android GL/GLES is working and can approach smooth scrolling with optimized
+  code, but CPU time is tight on midrange devices. Profiling shows JS/layout is
+  not the main cost after optimization; dynamic text/image texture upload,
+  especially R8 `glTexImage2D()` for text blobs, remains the dominant GL cost.
+- Android main-thread startup must not block waiting for the native host/window.
+  `Application::runMain()` can be started without waiting for platform init, and
+  `AppInl::initPlatform()` lets each backend attach platform state when the host
+  is ready. This avoids Android focus-change ANR timeouts.
+
+Android tooling/build notes:
+
+- Android clangd config should use the NDK target clang plus `--target` and
+  `--sysroot`; do not repair Android indexing by manually adding many sysroot
+  subdirectories.
+- Android archive tools should use LLVM binutils from the same NDK toolchain
+  (`llvm-ar`, `llvm-ranlib`, `llvm-strip`) where possible.
+- The Android Studio CMake test project is for debugging source locations too,
+  not only for building the test wrapper. Keep Quark source files visible to the
+  IDE unless a better debug-symbol workflow replaces it.
+
+Renderer precision/performance notes:
+
+- Ordinary view positions are now intended to stay in draw coordinates instead
+  of forcing a canvas matrix update for every view. Matrix changes should be
+  reserved for real transform boundaries such as scroll/morph.
+- Text/image quad vertices can be cached through `PathvCache::getPathTriangles`
+  instead of rebuilding the same six-vertex rect data every draw.
+- `Scroll::draw()` currently applies scroll through `scrollMatrix()`. If scroll
+  offsets grow very large, for example millions of pixels, shader precision can
+  suffer. A future fix can clamp `scrollMatrix.translate` to a coarse range such
+  as `100k` and let child draw coordinates compensate for the truncated part.
+  That keeps matrix values bounded and only forces path cache refreshes when the
+  coarse origin changes.
+- GLES shader precision must be explicit for coordinate-sensitive values. Default
+  float precision can remain `mediump`, but vertex positions, matrices, surface
+  offsets, and image `texCoords` must be `highp`.
+- ES300 expansion of `PcArgs` must preserve member precision. The earlier
+  all-`mediump` uniform expansion can break image/text UVs during large scrolls
+  because `coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw` performs
+  large-number cancellation.
+- Same-name uniforms and uniform blocks used by multiple shader stages must keep
+  matching types and precision after generation. Avoid relying on compiler
+  defaults, because vertex and fragment defaults can differ and iOS GLES reports
+  precision mismatches at link time.
+
+Android touch/event notes:
+
+- HarmonyOS/Android touch streams have been observed to emit duplicate touch
+  starts or unmatched touch ends under stress. The event layer should tolerate
+  duplicate starts and missing ends with warnings instead of asserting, while
+  still relying on the platform/hardware to eventually retire live touch IDs.
+
 ## 2026-07-08 iOS Renderer Validation
 
 The current iOS smoke test status is good:
@@ -28,9 +86,10 @@ GLES-specific shader/backend notes:
   from being stretched into visible black/color strips.
 - ES300 shader generation expands `uniform PcArgs pc` into independent
   `pc_*` uniforms before building the generated AST. This avoids iOS GLES linker
-  failures from cross-stage struct-uniform type/precision mismatches. Float
-  `pc_*` uniforms are emitted with explicit `mediump`; integer/flag uniforms are
-  emitted with explicit `highp`.
+  failures from cross-stage struct-uniform type/precision mismatches. Expanded
+  uniforms must preserve member precision: coordinate-sensitive values such as
+  image `texCoords`, matrices, and offsets are `highp`, while color/coverage
+  values can stay `mediump`.
 - `_util.glsl` explicitly declares fragment `precision highp int;` so flags and
   bit masks do not depend on compiler-inserted defaults.
 

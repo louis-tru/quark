@@ -56,13 +56,15 @@ namespace qk {
 	typedef std::remove_pointer_t<EGLDisplay> EGLDisplayType;
 
 	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
+	static void retainEGLDisplay(EGLDisplay dpy) {}
 
-	typedef Sp<EGLDisplayType, ObjectTraitsFrom<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
+	typedef Sp<EGLDisplayType, ObjectTraitsFrom<EGLDisplayType, closeEGLDisplay, retainEGLDisplay>> EGLDisplayAuto;
 
 #ifndef Qk_ANDROID
 	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
+	static void retainXDisplay(Display* dpy){}
 
-	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay>> XDisplayAuto;
+	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay, retainXDisplay>> XDisplayAuto;
 
 	Display* openXDisplay() {
 		static XDisplayAuto xdpy([]() {
@@ -329,7 +331,7 @@ namespace qk {
 			Qk_ASSERT_EQ(thread_self_id(), _threadId);
 		}
 
-		void renderLoopRun() {
+		void renderLoopRun() override {
 			if (_threadId != ThreadID())
 				return;
 
@@ -350,7 +352,7 @@ namespace qk {
 			}, "linux_render_Thread");
 		}
 
-		void renderLoopStop() {
+		void renderLoopStop() override {
 			if (_threadId != ThreadID()) {
 				thread_try_abort(_threadId);
 				thread_join_for(_threadId);

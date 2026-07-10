@@ -178,7 +178,7 @@
 				'target_name': 'quark_deps_test',
 				'type': 'shared_library',
 				'dependencies': [
-					'deps/bptree/bptree.gyp:bptree',
+					'deps/lmdb/lmdb.gyp:lmdb',
 					'deps/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
 					'deps/freetype/freetype.gyp:freetype',
 					'deps/http_parser/http_parser.gyp:http_parser',
@@ -192,9 +192,10 @@
 					'deps/openssl/openssl.gyp:openssl',
 					'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
 					'deps/zlib/minizip.gyp:minizip',
+					'deps/spine/spine.gyp:spine',
 				],
 				'sources': [
-					'../tools/useless.c',
+					'../tools/empty.c',
 				],
 				'link_settings': {
 					'libraries': [ '-lz' ],

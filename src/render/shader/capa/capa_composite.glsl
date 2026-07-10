@@ -326,7 +326,7 @@ void main() {
 
 	// If the clip flag is set, we need to apply the clip coverage to the front.
 	if ((pc.flags & Qk_FLAG_CLIP) != 0) {
-		capa_blend_front_clip(front, clipCoverage(pixel + pc.surfaceOffset));
+		capa_blend_front_clip(front, clipCoverage(pixel - pc.surfaceOffset));
 	}
 
 	vec4 bottom = clearDst ? pc.clearColor : imageLoad(dstImage, pixel);

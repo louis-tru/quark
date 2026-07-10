@@ -30,6 +30,7 @@
 
 #include "./util.h"
 #include "../version.h"
+#include "./fs.h"
 #include <vector>
 
 #if Qk_WIN
@@ -216,5 +217,29 @@ namespace qk {
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		return int64_t(ts.tv_sec) * 1e6 + ts.tv_nsec / 1e3;
 #endif
+	}
+
+	int parseArgv(String &args, Array<char*>& argv) {
+		auto prefix = fs_executable();
+		Array<uint32_t> argvIdx = {prefix.length()};
+		Array<String> arr = args.split(' ');
+		args = prefix;
+
+		for (auto& arg: arr) {
+			arg = arg.trim();
+			if (!arg.isEmpty()) {
+				args.append(' ');
+				args.append(arg);
+				argvIdx.push(args.length());
+			}
+		}
+		char* arg = const_cast<char*>(*args);
+
+		for (auto idx: argvIdx) {
+			argv.push(arg);
+			arg = const_cast<char*>(*args + idx + 1);
+			arg[-1] = '\0';
+		}
+		return argv.length();
 	}
 }

@@ -35,7 +35,7 @@
 #include <cstdio>
 
 #if Qk_ANDROID
-#include "../util/jni.h"
+#include "../jni.h"
 #endif
 
 #ifndef Qk_ATEXIT_WAIT_TIMEOUT
@@ -129,20 +129,23 @@ namespace qk {
 		return tid;
 	}
 
-	static void SetThreadName(cString &name) {
-#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-		pthread_set_name_np(pthread_self(), *name);
-#elif defined(__NetBSD__)
-		Qk_ASSERT(name.length() <= PTHREAD_MAX_NAMELEN_NP);
-		pthread_setname_np(pthread_self(), "%s", *name);
-#elif Qk_APPLE
+	static void SetThreadName(cString& name) {
+		// Android/Linux thread name: 16 bytes including '\0'
+		auto n = std::min(name.length(), 15u); // get last 15 bytes of name
+		auto src = *name + name.length() - n; // get last n bytes of name
+#if Qk_APPLE
 		// Mac OS X does not expose the length limit of the name, so hardcode it.
-		Qk_ASSERT(name.length() <= 63);
+		Qk_ASSERT(name.length() <= 63, "thread name too long");
 		pthread_setname_np(*name);
+#elif Qk_ANDROID || Qk_LINUX
+		pthread_setname_np(pthread_self(), src);
+#elif defined(__NetBSD__)
+		Qk_ASSERT(name.length() <= PTHREAD_MAX_NAMELEN_NP, "thread name too long");
+		pthread_setname_np(pthread_self(), "%s", *name);
+#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+		pthread_set_name_np(pthread_self(), *name);
 #elif defined(PR_SET_NAME)
-		prctl(PR_SET_NAME,
-					reinterpret_cast<unsigned long>(*name), // NOLINT
-					0, 0, 0);
+		prctl(PR_SET_NAME, (unsigned long)(src), 0, 0, 0);
 #endif
 	}
 

@@ -366,7 +366,7 @@ namespace qk {
 			}; // transpose matrix
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubovMat);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
-			// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, m4x4); // for sync
+			// glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, m4x4); // for sync
 		}
 
 		void switchStateCall(GLenum id, bool isEnable) {

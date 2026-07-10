@@ -37,6 +37,7 @@
 #include <ft2build.h>
 #include <freetype/ftadvanc.h>
 #include <freetype/ftbitmap.h>
+#include <type_traits>
 #ifdef FT_COLOR_H  // 2.10.0
 # include <freetype/ftcolor.h>
 #endif
@@ -73,24 +74,27 @@
 typedef QkTypeface_FreeType::Scanner Scanner;
 typedef QkTypeface_FreeType::FaceRec FaceRec;
 
-template <>
-void ObjectTraits<std::remove_pointer_t<FT_Face>>::Release(FT_Face obj) {
-	FT_Done_Face(obj);
-}
+template<class T>
+static void Noop(T* obj) {}
 
-template <>
-void ObjectTraits<std::remove_pointer_t<FT_Size>>::Release(FT_Size obj) {
+template<typename T, void (*Dtor)(T*) = ObjectTraits<T>::Release>
+using SpFT = Sp<T, ObjectTraitsFrom<T, Dtor, Noop<T>>>;
+
+void QkFT_Done_Size(FT_Size obj) {
 	FT_Done_Size(obj);
 }
 
-using SpFTFace = Sp<std::remove_pointer_t<FT_Face>>;
+void QkFT_Done_Face(FT_Face obj) {
+	FT_Done_Face(obj);
+}
+
+using SpFT_Size = SpFT<std::remove_pointer_t<FT_Size>, QkFT_Done_Size>;
+using SpFT_Face = SpFT<std::remove_pointer_t<FT_Face>, QkFT_Done_Face>;
 
 using FT_Alloc_size_t = QkCallableTraits<FT_Alloc_Func>::argument<1>::type;
 
 static_assert(std::is_same<FT_Alloc_size_t, long>::value ||
 			std::is_same<FT_Alloc_size_t, size_t>::value, "");
-
-using QkAutoFree = Sp<void>;
 
 static void* qk_ft_alloc(FT_Memory mem, FT_Alloc_size_t size) {
 	return ::malloc(size); // qk_malloc_throw(size);
@@ -219,6 +223,13 @@ private:
 	// RHEL 8             2.9.1
 };
 
+static void SpFT_Done_MM_Var(FT_MM_Var* obj) {
+	// FT_Done_MM_Var(gFTLibrary->library(), obj);
+	gFTMemory.free(&gFTMemory, obj);
+}
+
+using SpFT_MM_Var = SpFT<FT_MM_Var, SpFT_Done_MM_Var>;
+
 static QkMutex& f_t_mutex() {
 	static QkMutex& mutex = *(new QkMutex);
 	return mutex;
@@ -287,7 +298,7 @@ bool Scanner::recognizedFont(QkStream* stream, int* numFaces) const {
 	QkAutoMutexExclusive libraryLock(fLibraryMutex);
 
 	FT_StreamRec streamRec;
-	SpFTFace face(this->openFace(stream, -1, &streamRec));
+	SpFT_Face face(this->openFace(stream, -1, &streamRec));
 	if (!face) {
 		return false;
 	}
@@ -303,7 +314,7 @@ bool Scanner::scanFont(
 	QkAutoMutexExclusive libraryLock(fLibraryMutex);
 
 	FT_StreamRec streamRec;
-	SpFTFace face(this->openFace(stream, ttcIndex, &streamRec));
+	SpFT_Face face(this->openFace(stream, ttcIndex, &streamRec));
 	if (!face) {
 		return false;
 	}
@@ -391,7 +402,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 					 face->family_name);
 			return false;
 		}
-		QkAutoFree autoFreeVariations(variations);
+		SpFT_MM_Var autoFreeVariations(variations);
 
 		axes->reset(variations->num_axis);
 		for (FT_UInt i = 0; i < variations->num_axis; ++i) {
@@ -485,7 +496,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 
 class QkTypeface_FreeType::FaceRec {
 public:
-	SpFTFace fFace;
+	SpFT_Face fFace;
 	FT_StreamRec fFTStream;
 	Sp<QkStream> fStream;
 
@@ -574,7 +585,7 @@ private:
 						rec->fFace->family_name);
 				return;
 			}
-			QkAutoFree autoFreeVariations(variations);
+			SpFT_MM_Var autoFreeVariations(variations);
 
 			if (static_cast<FT_UInt>(data.getAxisCount()) != variations->num_axis) {
 				LOG_INFO("INFO: font %s has %d variations, but %d were specified.\n",

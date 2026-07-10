@@ -123,6 +123,11 @@ namespace qk {
 		return _aaSideTriangle.set(key, gb)->base;
 	}
 
+	const VertexData& PathvCache::getPathTriangles(const Rect &rect) {
+		// For rectangles, we generate a path and then get its triangles from the cache.
+		return getPathTriangles(getRectPath(rect));
+	}
+
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
 		auto gb = new Wrap<RectPath>{std::move(rect),{{this,0,0,0}}};
 		_capacity += gb->base.sizeOf();

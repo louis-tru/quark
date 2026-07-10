@@ -260,6 +260,7 @@
 					'platforms/android/android_window.cc',
 					'platforms/android/android.cc',
 					'platforms/android/android.h',
+					'platforms/android/android_clipboard.cc',
 					# render
 					'render/font/android/android_font_parser.cpp',
 					'render/font/android/android_font_parser.h',

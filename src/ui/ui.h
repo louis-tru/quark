@@ -53,6 +53,7 @@ namespace qk {
 		void triggerOrientation();
 		void add_delay_task(Cb cb); // add delay task
 		void resolve_delay_tasks(bool all); // resolve delay tasks
+		void initPlatform(); // call platform code
 	};
 
 	typedef Application::Inl AppInl;

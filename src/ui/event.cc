@@ -38,6 +38,7 @@
 #include "./view/button.h"
 #include "./action/action.h"
 #include "./view/entity.h"
+#include "src/util/macros.h"
 
 namespace qk {
 
@@ -421,9 +422,14 @@ namespace qk {
 						}
 					}
 					if (out) {
-						Qk_ASSERT_EQ(out->has(touch.id), false, "TouchPoint id conflict");
-						out->operator[](touch.id) = touch;
-						touches.push(touch);
+						// Qk_DLog("TouchStart id confirm: %d", touch.id);
+						// Qk_ASSERT_EQ(out->has(touch.id), false, "TouchPoint id conflict");
+						if (!out->has(touch.id)) {
+							out->operator[](touch.id) = touch;
+							touches.push(touch);
+						} else {
+							Qk_Warn("TouchStart id conflict: %d", touch.id);
+						}
 						in.erase(i++);
 					} else {
 						i++;
@@ -543,11 +549,15 @@ namespace qk {
 					change_touches[touch.view].push(touch);
 					origin.second->del(touch.id); // del touch point
 					count++;
+					// Qk_DLog("TouchEnd id confirm: %d", touch.id);
 					break;
 				}
 			}
 		}
-		Qk_ASSERT_EQ(in.length(), count, "Some touch points not found in origin touches");
+		// Qk_ASSERT_EQ(in.length(), count, "Some touch points not found in origin touches");
+		if (in.length() != count) {
+			Qk_Warn("Some touch points not found in origin touches, id: %d, c: %d", in.front().id, in.length());
+		}
 
 		for ( auto& i : change_touches ) { // views
 			auto& touchs = i.second;
@@ -604,9 +614,8 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
-		auto id = list.front().id;
-		auto pos = list.front().position;
-		// Qk_DLog("onTouchstart id: %d, x: %f, y: %f, c: %d", id, pos.x(), pos.y(), list.length());
+		// auto pos = list.front().position;
+		// Qk_DLog("onTouchstart id: %d, x: %f, y: %f, c: %d", list.front().id, pos.x(), pos.y(), list.length());
 		UILock lock(_window);
 		auto r = _window->root();
 		if (r) {
@@ -615,23 +624,22 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
-		auto id = list.front().id;
-		auto loc = list.front().position;
-		// Qk_DLog("onTouchmove id: %d, x: %f, y: %f, c: %d", id, loc.x(), loc.y(), list.length());
+		// auto loc = list.front().position;
+		// Qk_DLog("onTouchmove id: %d, x: %f, y: %f, c: %d", list.front().id, loc.x(), loc.y(), list.length());
 		UILock lock(_window);
 		touchmove(list);
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
-		auto pos = list.front().position;
-		// Qk_DLog("onTouchend x: %f, y: %f, c: %d", pos.x(), pos.y(), list.length());
+		// auto pos = list.front().position;
+		// Qk_DLog("onTouchend id: %d, x: %f, y: %f, c: %d", list.front().id, pos.x(), pos.y(), list.length());
 		UILock lock(_window);
 		touchend(list, false);
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
-		auto pos = list.front().position;
-		// Qk_DLog("onTouchcancel x: %f, y: %f", pos.x(), pos.y());
+		// auto pos = list.front().position;
+		// Qk_DLog("onTouchcancel id: %d, x: %f, y: %f, c: %d", list.front().id, pos.x(), pos.y(), list.length());
 		UILock lock(_window);
 		touchend(list, true);
 	}

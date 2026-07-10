@@ -104,16 +104,7 @@ namespace qk {
 			flushCAPABatch(); // flush current CAPA batch before draw text image
 
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
-
-			Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
-			Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
-			Vec2 right_bottom(dst_start + dst_size); // right bottom
-			VertexData vertex{0,6,{
-				dst_start,
-				top_right, left_bottom, // triangle 0 |/
-				top_right,
-				right_bottom, left_bottom, // triangle 1 /|
-			}};
+			auto &vertex = _cache->getPathTriangles(rect);
 
 			if (isSDFImage(img.image.get())) { // SDF text
 				auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;

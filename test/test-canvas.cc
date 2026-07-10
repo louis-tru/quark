@@ -23,7 +23,7 @@ class TestCanvas0: public Box {
 	Array<TextBlob> textBlobs;
 	View* init(Window* win) override {
 		View::init(win);
-		test_gui_new(win->root());
+		// test_gui_new(win->root());
 		return this;
 	}
 

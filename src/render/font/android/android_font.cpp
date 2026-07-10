@@ -296,7 +296,7 @@ protected:
 			}
 			QkTypeface_AndroidSystem* face(families->matchStyle(style));
 
-			if (!langTag.is_empty() &&
+			if (!langTag.isEmpty() &&
 				std::none_of(face->fLang.begin(), face->fLang.end(), [&](QkLanguage lang) {
 					return lang.getTag().startsWith(langTag);
 				}))
@@ -333,7 +333,7 @@ protected:
 			for (int elegant = 2; elegant-- > 0;) {
 				for (int bcp47Index = bcp47Count; bcp47Index-- > 0;) {
 					QkLanguage lang(bcp47[bcp47Index]);
-					while (!lang.getTag().is_empty()) {
+					while (!lang.getTag().isEmpty()) {
 						auto matchingTypeface =
 							find_families_style_character(familyName, fFallbackNameToFamilyMap,
 														style, QkToBool(elegant),

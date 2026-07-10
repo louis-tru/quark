@@ -47,7 +47,7 @@ namespace qk {
 	 * - On iOS, reading the clipboard may trigger the system privacy notice
 	 *   when the content originates from another app.
 	 */
-	Qk_EXPORT class Clipboard: public Object {
+	class Qk_EXPORT Clipboard: public Object {
 	public:
 		/**
 		 * @brief Read current text from the system clipboard.

@@ -28,37 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__util__util__
-#define __quark__util__util__
-
-#if !defined(__cplusplus)
-# error "Please use the c++ compiler"
-#endif
-
-#if __cplusplus < 201103L
-# error "The compiler does not support c++ 11"
-#endif
-
-#include "./object.h"
-#include "./hash.h"
-#include "./log.h"
-#include "./numbers.h"
-#include "./string.h"
+#import "../../ui/clipboard.h"
 
 namespace qk {
 
-	Qk_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	Qk_EXPORT int fix_random(uint32_t a, ...); // Must end with 0
-	Qk_EXPORT uint64_t getId();
-	Qk_EXPORT uint32_t getId32();
-	Qk_EXPORT int64_t  parse_time(cString& str);
-	Qk_EXPORT String gmt_time_string(int64_t second);
-	Qk_EXPORT int64_t time_microsecond();
-	Qk_EXPORT int64_t time_millisecond();
-	Qk_EXPORT int64_t time_second();
-	Qk_EXPORT int64_t time_monotonic();
-	Qk_EXPORT String platform();
-	Qk_EXPORT String version();
-	Qk_EXPORT int parseArgv(String &args, Array<char*>& argv);
+	String Clipboard::get_text() {
+		return String();
+	}
+
+	void Clipboard::set_text(cString& text) {
+	}
+
+	bool Clipboard::has_text() {
+		return false;
+	}
+
+	void Clipboard::clear() {
+	}
 }
-#endif

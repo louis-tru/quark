@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../ui/ui.h"
-#include "../../render/linux/linux_render.h"
+#include "../../render/plotforms.h"
 #include "../../render/canvas.h"
 #include "./android.h"
 
@@ -56,6 +56,8 @@ namespace qk {
 		List<Cb> _msg;
 		Mutex _msgMutex;
 		Window *_active = nullptr;
+		String _args;
+		Array<char*> _argv;
 	public:
 		Qk_DEFINE_PROP_GET(Range, displayRange);
 
@@ -69,7 +71,7 @@ namespace qk {
 
 		void addMsg(Cb& cb) {
 			_msgMutex.lock();
-			_msg.push_back(cb);
+			_msg.pushBack(cb);
 			_msgMutex.unlock();
 			Android_resolve_msg_onmain();
 		}
@@ -155,13 +157,16 @@ namespace qk {
 			return nullptr;
 		}
 
+		void initPlatform(AppInl* host) {
+			_host = host;
+			_host->triggerLoad();
+		}
+
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
 			if (!swm) {
 				new SharedWindowManager();
-				Application::runMain(0, nullptr, false); // run gui application
-				Qk_ASSERT_NE(shared_app(), nullptr);
-				swm->_host = Inl_Application(shared_app());
-				swm->_host->triggerLoad(); // trigger load event
+				swm->_args = Android_startup_argv();
+				Application::runMain(parseArgv(swm->_args, swm->_argv), swm->_argv.val(), false);
 			}
 			Qk_ASSERT_EQ(swm->_activity, nullptr);
 			// ANativeActivity_setWindowFlags(activity, 0x00000400, 0);
@@ -296,7 +301,7 @@ namespace qk {
 		float h_x = AMotionEvent_getHistoricalX(motionEvent, pointerIndex, 0);
 		float h_y = AMotionEvent_getHistoricalY(motionEvent, pointerIndex, 0);
 		*out = {
-			uint32_t(id + 20170820),
+			uint32_t(id + 100),
 			{0, 0},
 			{x / scale.x(),
 			y / scale.y()},
@@ -315,11 +320,11 @@ namespace qk {
 		for (int i = 0; i < count; i++) {
 			if ( filter ) {
 				if ( convertToTouch(motionEvent, i, &touch) ) {
-					rv.push_back(touch);
+					rv.pushBack(touch);
 				}
 			} else {
 				convertToTouch(motionEvent, i, &touch);
-				rv.push_back(touch);
+				rv.pushBack(touch);
 			}
 		}
 		Qk_ReturnLocal(rv);
@@ -365,7 +370,8 @@ namespace qk {
 		}
 		else { // AINPUT_EVENT_TYPE_MOTION
 			int action = AMotionEvent_getAction(event);
-			int pointerIndex = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			int pointerIndex = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
+				AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
 			List<TouchPoint> touchs;
 			TouchPoint touch;
@@ -374,19 +380,18 @@ namespace qk {
 				case AMOTION_EVENT_ACTION_DOWN:
 				case AMOTION_EVENT_ACTION_POINTER_DOWN:
 					convertToTouch(event, pointerIndex, &touch);
-					touchs.push_back(touch);
+					touchs.pushBack(touch);
 					dispatch->onTouchstart( std::move(touchs) );
 					break;
 				case AMOTION_EVENT_ACTION_UP:
 				case AMOTION_EVENT_ACTION_POINTER_UP:
 					convertToTouch(event, pointerIndex, &touch);
-					touchs.push_back(touch);
+					touchs.pushBack(touch);
 					dispatch->onTouchend( std::move(touchs) );
 					break;
 				case AMOTION_EVENT_ACTION_MOVE:
 					touchs = convertToTouchList(event, true);
 					if ( touchs.length() ) {
-						// Qk_DLog("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 						dispatch->onTouchmove( std::move(touchs) );
 					}
 					break;
@@ -395,6 +400,10 @@ namespace qk {
 					break;
 			}
 		}
+	}
+
+	void AppInl::initPlatform() {
+		swm->initPlatform(this);
 	}
 
 	void Window::openImpl(Options &opts) {

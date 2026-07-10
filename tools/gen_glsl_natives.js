@@ -309,11 +309,13 @@ function parse_block(blockStr) {
 	let mat = reg.exec(blockStr);
 
 	while (mat) {
+		const precision = mat[2] || '';
 		const type = mat[3];
 		const name = mat[4];
 		const arr = mat[6]; // vec4 colors[256]; arr = 256
 		const runtimeArray = mat[5] && !arr;
 		const info = {
+			precision,
 			...parse_type_info(type, name, runtimeArray ? 1: arr, '', ''),
 			runtimeArray,
 		};
@@ -511,9 +513,15 @@ function readMSLSource(msl_out, uniforms) {
 function expand_pc_struct_uniform(code, pcBlock) {
 	if (!pcBlock)
 		return code;
-	const precisionOf = type=>/^(float|vec[234]|mat[234])$/.test(type) ? 'mediump ':
-		/^(int|uint|ivec[234]|uvec[234])$/.test(type) ? 'highp ': '';
-	const uniforms = pcBlock.block.map(e=>`uniform ${precisionOf(e.type)}${e.type} pc_${e.name};`).join('\n');
+	const precisionOf = (info)=>{
+		if (info.precision)
+			return info.precision + ' ';
+		return /^(float|vec[234]|mat[234])$/.test(info.type) ? 'highp ':
+			/^(int|uint|ivec[234]|uvec[234])$/.test(info.type) ? 'highp ': '';
+	};
+	const uniforms = pcBlock.block.map(e=>
+		`uniform ${precisionOf(e)}${e.type} pc_${e.name};`
+	).join('\n');
 	return code
 		.replace(/struct\s+PcArgs\s*\{[\s\S]*?\};\s*uniform\s+PcArgs\s+pc\s*;\s*/m, uniforms + '\n')
 		.replace(/\bpc\.([A-Za-z_][A-Za-z0-9_]*)/g, 'pc_$1');
@@ -548,15 +556,17 @@ async function resolve_ast(name, stage, source_both) {
 	fs.writeFileSync(glsl_out, source, 'utf8');
 
 	await exec2(`${glslc} -DQk_SHADER_FLAGS_ENABLE_CGAA=1 -DQk_SHADER_FLAGS_ENABLE_CAPA=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_out}`);
-	if (stage != 'comp') {
-		await exec2(`${glslc} -DQk_SHADER_FLAGS_GLES300=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
-		await exec2(`${spirv_cross} ${spv_es300_out} --es --version 300 > ${es300_out}`);
-	}
 	await exec2(`${spirv_cross} ${spv_out} --vulkan-semantics --version 450 > ${gl450_out}`);
+
 	const metal_entry = `${name}_${stage}`;
 	let mslOptions = `--msl-version 23000 --msl-decoration-binding ${mslArgumentBufferOptions}`;
 	await exec2(`${spirv_cross} ${spv_out} --msl ${mslOptions}`+
 		`--rename-entry-point main ${metal_entry} ${stage} --stage ${stage} > ${msl_out}`);
+
+	if (stage != 'comp') {
+		await exec2(`${glslc} -DQk_SHADER_FLAGS_GLES300=1 -fshader-stage=${stage} ${glsl_out} -o ${spv_es300_out}`);
+		await exec2(`${spirv_cross} ${spv_es300_out} --es --version 300 > ${es300_out}`);
+	}
 
 	let source_es300 = stage == 'comp' ? '': fs.readFileSync(es300_out).toString('utf8');
 	const source_gl450 = fs.readFileSync(gl450_out).toString('utf8');

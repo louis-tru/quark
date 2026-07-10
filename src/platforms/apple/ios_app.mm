@@ -62,13 +62,18 @@ QkWindowDelegate* getWindowDelegate() {
 		}
 	}
 
+	-(void) initPlatform:(AppInl*)host {
+		if (!_host && host) {
+			_host = host;
+			host->triggerLoad();
+		}
+	}
+
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_ASSERT(!qkappdelegate);
-		Qk_ASSERT(Application::shared());
 		qkappdelegate = self;
-		_host = Application::shared();
 		_app = app;
-		Inl_Application(_host)->triggerLoad();
+		[self initPlatform:Inl_Application(shared_app())];
 		return YES;
 	}
 
@@ -128,6 +133,11 @@ QkWindowDelegate* getWindowDelegate() {
 @end
 
 // ***************** A p p l i c a t i o n *****************
+
+void AppInl::initPlatform() {
+	if (qkappdelegate)
+		[qkappdelegate initPlatform:this];
+}
 
 static NSArray<NSString*>* toNSArray(cString& str) {
 	auto arr = [NSMutableArray<NSString*> new];

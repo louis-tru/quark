@@ -37,8 +37,8 @@
 #include "./css/css.h"
 
 namespace qk {
+	int (*__qk_run_main0__)(int, char**) = nullptr;
 	int (*__qk_run_main__)(int, char**) = nullptr;
-	int (*__qk_run_main1__)(int, char**) = nullptr;
 
 	// thread helper
 	static auto _run_main_wait = new CondMutex;
@@ -76,6 +76,8 @@ namespace qk {
 		_imgPool = shared_imgPool();
 		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
 		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
+
+		Inl_Application(this)->initPlatform();
 
 		static uint32_t ticks = 0;
 		struct Func {
@@ -134,7 +136,7 @@ namespace qk {
 	}
 
 	void Application::setMain(int (*main)(int, char**)) {
-		__qk_run_main1__ = main;
+		__qk_run_main__ = main;
 	}
 
 	void Application::runMain(int argc, char* argv[], bool waitNewApp) {
@@ -143,8 +145,7 @@ namespace qk {
 		thread_new([](auto t, auto arg) {
 			int rc = 0;
 			auto args = (Args*)arg;
-			auto main = __qk_run_main1__ ? __qk_run_main1__: __qk_run_main__;
-			// Qk_CHECK(main, "Not found the Main function, Use Qk_Main() define");
+			auto main = __qk_run_main__ ? __qk_run_main__: __qk_run_main0__;
 			if (main)
 				rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");

@@ -200,12 +200,21 @@ namespace qk {
 		 */
 		void wheel(Vec2 delta);
 
+		/**
+		 * Get the current scroll transformation matrix.
+		 *
+		 * @return Reference to the scroll matrix
+		 */
+		const Mat& scrollMatrix() {
+			return _scrollMatrix;
+		}
+
 	protected:
 		ScrollView(Box *host);
 		~ScrollView();
 
 		/** Layout solve entry (render thread) */
-		void solve(uint32_t mark); // @thread Rt
+		void solve(const Mat &mat, View *parent, uint32_t mark); // @thread Rt
 
 		/** Update scrollable size (render thread) */
 		void set_scroll_size_rt(Vec2 size); // @thread Rt
@@ -217,6 +226,9 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 		friend class Painter;
+
+		/** Scroll offset transformation matrix, self matrix + scroll offset */
+		Mat _scrollMatrix;
 
 		/** Active animation/momentum tasks */
 		List<Task*> _tasks;

@@ -212,7 +212,8 @@ namespace lmpParser {
 			// 'style' ("normal", "italic") [default "auto"]
 			// 'index' (non-negative integer) [default 0]
 			// The character data should be a filename.
-			FontFileInfo& file = self->fCurrentFamily->fFonts.push({});
+			self->fCurrentFamily->fFonts.push({});
+			FontFileInfo& file = self->fCurrentFamily->fFonts.back();
 			self->fCurrentFontInfo = &file;
 			String fallbackFor;
 			for (size_t i = 0; ATTS_NON_NULL(attributes, i); i += 2) {
@@ -239,7 +240,7 @@ namespace lmpParser {
 					fallbackFor = value;
 				}
 			}
-			if (!fallbackFor.is_empty()) {
+			if (!fallbackFor.isEmpty()) {
 				Sp<FontFamily> *fallbackFamily;
 				if (!self->fCurrentFamily->fallbackFamilies.get(fallbackFor, fallbackFamily)) {
 					fallbackFamily =
@@ -250,7 +251,8 @@ namespace lmpParser {
 					(*fallbackFamily)->fOrder = self->fCurrentFamily->fOrder;
 					(*fallbackFamily)->fFallbackFor = fallbackFor;
 				}
-				self->fCurrentFontInfo = &(*fallbackFamily)->fFonts.push(std::move(file));
+				(*fallbackFamily)->fFonts.push(std::move(file));
+				self->fCurrentFontInfo = &(*fallbackFamily)->fFonts.back();
 				self->fCurrentFamily->fFonts.pop();
 			}
 		},
@@ -410,7 +412,8 @@ namespace jbParser {
 			// 'index' (non-negative integer) [default 0]
 			// The character data should be a filename.
 			auto& currentFamily = **self->fCurrentFamily;
-			auto& newFileInfo = currentFamily.fFonts.push({});
+			currentFamily.fFonts.push({});
+			auto& newFileInfo = currentFamily.fFonts.back();
 			if (attributes) {
 				for (size_t i = 0; ATTS_NON_NULL(attributes, i); i += 2) {
 					cChar* name = attributes[i];
@@ -740,7 +743,8 @@ static void append_fallback_font_families_for_locale(Array<FontFamily*>& fallbac
 		parse_config_file(absoluteFilename.c_str(), langSpecificFonts, basePath, true);
 
 		for (auto families: langSpecificFonts) {
-			fallbackFonts.push(families)->fLanguages.push(locale);
+			fallbackFonts.push(families);
+			families->fLanguages.push(locale);
 		}
 	}
 }
@@ -817,7 +821,7 @@ void GetCustomFontFamilies(Array<FontFamily*>& fontFamilies,
 }
 
 QkLanguage QkLanguage::getParent() const {
-	Qk_ASSERT(!fTag.is_empty());
+	Qk_ASSERT(!fTag.isEmpty(), "Cannot get parent of empty language tag");
 	cChar* tag = fTag.c_str();
 
 	// strip off the rightmost "-.*"

@@ -39,7 +39,7 @@
 #endif
 
 namespace qk {
-	extern int (*__qk_run_main__)(int, char**);
+	extern int (*__qk_run_main0__)(int, char**);
 	bool is_exit();
 namespace js {
 	std::atomic_int workers_count(0);
@@ -551,35 +551,17 @@ namespace js {
 		e.return_value = rc;
 	}
 
-	int Start(cString &cmd, cArray<String>& argv_in) {
-		static String argv_s;
-		argv_s = fs_executable();
-		Array<uint32_t> argv_idx = {argv_s.length()};
-		ArrayString args = cmd.split(' ');
-
-		for (auto& arg: args.concat(argv_in)) {
-			if (!arg.isEmpty()) {
-				argv_s.append(' ');
-				argv_s.append(arg);
-				argv_idx.push(argv_s.length());
-			}
-		}
-		char* arg = const_cast<char*>(*argv_s);
+	int Start(cString &args, cArray<String>& args1) {
+		String str = args + ' ' + args1.join(' ');
 		Array<char*> argv;
-
-		for (auto idx: argv_idx) {
-			argv.push(arg);
-			arg = const_cast<char*>(*argv_s + idx + 1);
-			arg[-1] = '\0';
-		}
-
-		return Start(argv.length(), *argv);
+		auto argc = parseArgv(str, argv);
+		return Start(argc, argv.val());
 	}
 
 	Arguments *arguments = nullptr;
 
 	int Start(int argc, char** argv) {
-		Qk_ASSERT(!arguments);
+		Qk_ASSERT(!arguments, "Start() can only be called once.");
 		String lastKey;
 		Arguments args = { argc, argv };
 
@@ -620,7 +602,7 @@ namespace js {
 					putkv(lastKey, arg);
 					lastKey = String();
 				} else if (args.options.has("__main__")) {
-					putkv(String("__unknown__"), arg);
+					putkv("__plus__", arg);
 				} else {
 					args.options.set("__main__", arg);
 					args.options.set("__mainIdx__", i);
@@ -720,33 +702,8 @@ namespace js {
 
 	// Default main function
 	Qk_Init_Func(set_default_main) {
-		__qk_run_main__ = [](int argc, char** argv) -> int {
-			String start;
-
-#if Qk_ANDROID
-			start = JNI::jvm() ? Android_startup_argv(): String();
-			if (start.is_empty())
-#endif
-			{
-				auto index = fs_resources("index");
-				if (fs_reader()->exists_sync(index)) {
-					for (auto s: String(fs_reader()->read_file_sync(index)).split('\n')) {
-						s = s.trim();
-						if ( s[0] != '#' ) {
-							start = s;
-							break;
-						}
-					}
-				}
-			}
-	
-			if (!start.isEmpty()) {
-				return js::Start(start);
-			} else if (argc > 0) {
-				return js::Start(argc, argv);
-			} else {
-				return 0;
-			}
+		__qk_run_main0__ = [](int argc, char** argv) {
+			return argc > 1 ? Start(argc, argv): 0;
 		};
 	};
 } }

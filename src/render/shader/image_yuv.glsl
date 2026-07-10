@@ -1,5 +1,5 @@
 Qk_CONSTANT(
-	vec4  texCoords; /*offset,scale*/
+	highp vec4  texCoords; /*offset,scale*/
 	vec4  color; /* color */
 	int   format; /* 0: YUV420SP, 1: YUV420P*/
 );

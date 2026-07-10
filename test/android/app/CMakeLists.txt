@@ -1,5 +1,3 @@
-
-# cmake_minimum_required(VERSION 3.4.1)
 cmake_minimum_required(VERSION 3.22.1)
 project("quark")
 
@@ -16,11 +14,14 @@ include_directories(../../../deps/libpng)
 include_directories(../../../deps/libtess2/Include)
 include_directories(../../../deps/libuv/include)
 include_directories(../../../deps/libwebp/src)
+include_directories(../../../deps/lmdb/libraries/liblmdb)
 include_directories(../../../deps/openssl/openssl/include)
 include_directories(../../../deps/rapidjson/include)
 include_directories(../../../deps/reachability)
+include_directories(../../../deps/spine/spine-cpp/include)
 include_directories(../../../deps/tinyxml2)
 include_directories(../../../deps/v8/include)
+include_directories(../../../deps/zlib)
 include_directories(../../../deps/zlib/contrib/minizip)
 
 link_directories(src/main/jniLibs/${ANDROID_ABI})
@@ -40,55 +41,47 @@ add_definitions(
 #set(CMAKE_SHARED_LINKER_FLAGS "-stdlib=libc++")
 #set(ANDROID_STL "c++_shared")
 
-# set(TARGET "bplus")
-# set(TOOLSET "target")
-# add_library(bplus STATIC
-# 	../../../deps/bplus/bplus.c
-# 	../../../deps/bplus/pages.c
-# 	../../../deps/bplus/utils.c
-# 	../../../deps/bplus/values.c
-# 	../../../deps/bplus/writer.c
-# )
-# set_target_properties(bplus PROPERTIES COMPILE_DEFINITIONS 
-# 	"_LARGEFILE_SOURCE;_FILE_OFFSET_BITS=64;_XOPEN_SOURCE=500;_DARWIN_C_SOURCE;NDEBUG")
-# set_target_properties(bplus PROPERTIES COMPILE_FLAGS "-std=c99 -pedantic -pthread -O3")
-# unset(TOOLSET)
-# unset(TARGET)
-
+#add_compile_options(-O2)
 add_definitions(-DDEBUG)
 add_definitions(-DUSE_JS)
 
 add_library(quark SHARED
+	../../../src/util/allocator.cc
 	../../../src/util/array.cc
 	../../../src/util/cb.cc
 	../../../src/util/codec.cc
 	../../../src/util/dict.cc
 	../../../src/util/error.cc
 	../../../src/util/event.cc
-	../../../src/util/fs.cc
-	../../../src/util/fs_async.cc
-	../../../src/util/fs_path.cc
-	../../../src/util/fs_reader.cc
-	../../../src/util/fs_sync.cc
+	../../../src/util/fs/fs.cc
+	../../../src/util/fs/fs_async.cc
+	../../../src/util/fs/fs_path.cc
+	../../../src/util/fs/fs_reader.cc
+	../../../src/util/fs/fs_sync.cc
 	../../../src/util/hash.cc
-	../../../src/util/http.cc
-	../../../src/util/http_cookie.cc
-	../../../src/util/http_helper.cc
-	../../../src/util/http_uri.cc
+	../../../src/util/http/http.cc
+	../../../src/util/http/http_cache_rd.cc
+	../../../src/util/http/http_cache_wr.cc
+	../../../src/util/http/http_cookie.cc
+	../../../src/util/http/http_handler.cc
+	../../../src/util/http/http_helper.cc
+	../../../src/util/http/http_uri.cc
 	../../../src/util/jni.cc
 	../../../src/util/json.cc
+	../../../src/util/lmdb.cc
 	../../../src/util/log.cc
-	../../../src/util/loop.cc
-	../../../src/util/mutex.cc
-	../../../src/util/net.cc
+	../../../src/util/net/bio_data.cc
+	../../../src/util/net/socket.cc
+	../../../src/util/net/socket_ssl.cc
 	../../../src/util/numbers.cc
 	../../../src/util/object.cc
-	../../../src/util/semaphore.cc
-	../../../src/util/ssl.cc
 	../../../src/util/storage.cc
 	../../../src/util/string.cc
-	../../../src/util/thread.cc
-	../../../src/util/threads.cc
+	../../../src/util/thread/loop.cc
+	../../../src/util/thread/mutex.cc
+	../../../src/util/thread/semaphore.cc
+	../../../src/util/thread/thread.cc
+	../../../src/util/thread/threads.cc
 	../../../src/util/time.cc
 	../../../src/util/util.cc
 	../../../src/util/uv.cc
@@ -108,14 +101,18 @@ add_library(quark SHARED
 	../../../src/platforms/android/android_pcm_player.cc
 	../../../src/platforms/android/android_screen.cc
 	../../../src/platforms/android/android_window.cc
+	../../../src/platforms/android/android_clipboard.cc
 	../../../src/render/bezier.cc
 	../../../src/render/canvas.cc
+	../../../src/render/capa.cc
+	../../../src/render/gpu_canvas.cc
 	../../../src/render/math.cc
 	../../../src/render/paint.cc
 	../../../src/render/path.cc
 	../../../src/render/pathv_cache.cc
 	../../../src/render/pixel.cc
 	../../../src/render/render.cc
+	../../../src/render/sdf.cc
 	../../../src/render/source.cc
 	../../../src/render/stroke.cc
 	../../../src/render/codec/codec.cc
@@ -137,11 +134,10 @@ add_library(quark SHARED
 	../../../src/render/font/freetype/ft_common.cc
 	../../../src/render/font/freetype/ft_glyph_cache.cc
 	../../../src/render/font/freetype/ft_typeface.cc
-	../../../src/render/linux/linux_render.cc
-	../../../src/render/linux/linux_vulkan.cc
 	../../../src/render/gl/gl_canvas.cc
-	../../../src/render/gl/gl_cmd.cc
+	../../../src/render/gl/gl_command.cc
 	../../../src/render/gl/gl_render.cc
+	../../../src/render/gl/gl_render_linux.cc
 	../../../src/render/gl/gl_shader.cc
 	../../../src/render/gl/glsl_shaders.cc
 	../../../src/ui/app.cc
@@ -150,13 +146,14 @@ add_library(quark SHARED
 	../../../src/ui/pre_render.cc
 	../../../src/ui/window.cc
 	../../../src/ui/keyboard.cc
-	../../../src/ui/view_prop.cc
+	../../../src/ui/geometry.cc
 	../../../src/ui/filter.cc
 	../../../src/ui/layer.cc
-	../../../src/ui/draw.cc
+	../../../src/ui/painter.cc
 	../../../src/ui/css/css_sheets.cc
 	../../../src/ui/css/css_class.cc
-	../../../src/ui/css/css_prop.cc
+	../../../src/ui/css/css_props.cc
+	../../../src/ui/css/css_sheets_prop.cc
 	../../../src/ui/action/action.cc
 	../../../src/ui/action/center.cc
 	../../../src/ui/action/group.cc
@@ -165,20 +162,29 @@ add_library(quark SHARED
 	../../../src/ui/text/text_lines.cc
 	../../../src/ui/text/text_opts.cc
 	../../../src/ui/view/box.cc
-	../../../src/ui/view/free.cc
+	../../../src/ui/view/box_part.cc
+	../../../src/ui/view/button.cc
+	../../../src/ui/view/entity.cc
 	../../../src/ui/view/flex.cc
 	../../../src/ui/view/flow.cc
 	../../../src/ui/view/image.cc
 	../../../src/ui/view/input.cc
-	../../../src/ui/view/textarea.cc
+	../../../src/ui/view/input_sink.cc
 	../../../src/ui/view/label.cc
+	../../../src/ui/view/morph.cc
 	../../../src/ui/view/root.cc
 	../../../src/ui/view/scroll.cc
+	../../../src/ui/view/spine.cc
+	../../../src/ui/view/spine_data.cc
+	../../../src/ui/view/spine_render.cc
+	../../../src/ui/view/sprite.cc
 	../../../src/ui/view/text.cc
-	../../../src/ui/view/button.cc
-	../../../src/ui/view/view.cc
-	../../../src/ui/view/matrix.cc
+	../../../src/ui/view/textarea.cc
 	../../../src/ui/view/video.cc
+	../../../src/ui/view/view.cc
+	../../../src/ui/view/world.cc
+	../../../out/native-font.cc
+	../../../tools/ndk/sources/android/cpufeatures/cpu-features.c
 	# js
 	../../../src/js/cb.cc
 	../../../src/js/init.cc
@@ -194,17 +200,22 @@ add_library(quark SHARED
 	../../../src/js/api/filter.cc
 	../../../src/js/api/fs.cc
 	../../../src/js/api/http.cc
+	../../../src/js/api/net.cc
 	../../../src/js/api/os.cc
 	../../../src/js/api/player.cc
 	../../../src/js/api/screen.cc
 	../../../src/js/api/scroll.cc
 	../../../src/js/api/storage.cc
+	../../../src/js/api/sprite.cc
+	../../../src/js/api/spine.cc
 	../../../src/js/api/text.cc
-	../../../src/js/api/matrix.cc
+	../../../src/js/api/morph.cc
 	../../../src/js/api/types.cc
 	../../../src/js/api/ui.cc
 	../../../src/js/api/view.cc
 	../../../src/js/api/window.cc
+	../../../src/js/api/path.cc
+	../../../src/js/api/lmdb.cc
 	../../../src/js/v8/inspector_agent.cc
 	../../../src/js/v8/inspector_io.cc
 	../../../src/js/v8/inspector_socket_server.cc
@@ -245,6 +256,7 @@ add_library(test SHARED
 	../../util/test-uv.cc
 	../../util/test-zlib.cc
 	../../util/test-atomic.cc
+	../../util/test-hash.cc
 	../../test-freetype.cc
 	../../test-gui.cc
 	../../test-alsa-ff.cc
@@ -265,6 +277,9 @@ add_library(test SHARED
 	../../test-jsx.cc
 	../../test-v8.cc
 	../../test-jsc.cc
+	../../test-spine.cc
+	../../test-little_border.cc
+	../../test-mtv.cc
 	../../test-jsapi.cc
 	../../test.cc
 )

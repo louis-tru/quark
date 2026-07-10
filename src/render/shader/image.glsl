@@ -1,5 +1,5 @@
 Qk_CONSTANT(
-	vec4 texCoords; /* offset, scale */
+	highp vec4 texCoords; /* offset, scale */
 	vec4 color;
 	vec4 strokeColor;
 	float strokeWidth;

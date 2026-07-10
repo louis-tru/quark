@@ -632,7 +632,7 @@ namespace qk { namespace js {
 		template <class S> JSObject* newValue(cArray<S>& val); // Access Denied
 	};
 
-	Qk_EXPORT int Start(cString &cmd, cArray<String> &argv = {});
+	Qk_EXPORT int Start(cString &args, cArray<String> &args1 = {});
 	Qk_EXPORT int Start(int argc, char** argv);
 
 	// **********************************************************************

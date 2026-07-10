@@ -64,7 +64,6 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin
 		Qk_DEFINE_PROP_GET(Color4f, color); // current color
 		Painter(Window *window);
-		void set_origin_reverse(Vec2 origin);
 		Rect getRect(Box* v);
 		void getInsideRectPath(Box *v);
 		void getOutsideRectPath(Box *v);
@@ -84,8 +83,8 @@ namespace qk {
 		);
 		void visitView(View* v);
 		void visitView(View* v, cMat *mat);
-		void visitBox(Box *v);
-		void visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v));
+		void visitBox(Box *v, cMat *mat = nullptr);
+		void visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v), cMat *mat = nullptr);
 		void flushDelayDrawCommands();
 		inline void resetBoxData() {
 			_boxData = BoxData(); // reset box data
@@ -95,6 +94,14 @@ namespace qk {
 		}
 		inline View::Container& reuseContainer() {
 			return _reuseContainer;
+		}
+		inline Vec2 getTranslate() {
+			return Vec2(_matrix->val[2], _matrix->val[5]);
+		}
+		inline void setOriginFromPos(Vec2 pos) {
+			// set origin from position, because the matrix may have been translated,
+			// so we need to subtract the translation value
+			set_origin(pos - getTranslate());
 		}
 	private:
 		Render     *_render;

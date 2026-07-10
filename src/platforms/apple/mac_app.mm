@@ -108,6 +108,9 @@ QkApplicationDelegate* qkappdelegate = nil;
 
 // ***************** A p p l i c a t i o n *****************
 
+void AppInl::initPlatform() {
+}
+
 void Application::openURL(cString& url) {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:*url]]];
 }

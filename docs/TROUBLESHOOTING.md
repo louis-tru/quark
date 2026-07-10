@@ -8,6 +8,56 @@ coming back.
 General decision rules, including the requirement to ground advice in Quark's
 actual engineering environment, live in `docs/ENGINEERING_RULES.md`.
 
+## GLES: Text/Image UV Breaks After Large Scroll
+
+Symptom:
+
+- On iOS GLES, text/image textures started sampling from visibly wrong
+  positions after scrolling far down a large text scene.
+- Vertex positions still looked correct, and the same scene did not show the
+  issue on macOS.
+- Repeating the texture made the problem easier to see: geometry stayed in the
+  expected place while UVs drifted or snapped.
+
+Misleading clues:
+
+- It looked like `glUniform4fv()` or Metal `setVertexBytes()` might be
+  truncating the uploaded values.
+- The vertex shader also used large coordinates for position, so it was easy to
+  assume UV math should have the same precision behavior.
+
+Root cause:
+
+- The generated ES300 shader had ordinary `pc_*` uniforms expanded from
+  `PcArgs`, but float members were emitted as `mediump`.
+- Image UVs use:
+
+  ```glsl
+  coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw;
+  ```
+
+- During large scrolls, `pc.texCoords.xy` and `vertexIn.xy` can be large values
+  with opposite signs. The useful result is the small residual after
+  cancellation. `mediump` can quantize the large offset enough that the residual
+  becomes wrong, even when the final screen position still looks correct.
+
+Final fix:
+
+- Preserve precision on `PcArgs` members during ES300 expansion.
+- Keep coordinate-sensitive values `highp`: vertex positions, matrices, surface
+  offsets, and image `texCoords`.
+- Keep color/coverage values `mediump` where appropriate.
+
+Prevention rule:
+
+- Do not rely on shader compiler default precision for generated ES uniforms or
+  uniform blocks.
+- Same-name uniforms/blocks shared across stages must have matching type and
+  precision after generation, otherwise iOS GLES can fail link with precision
+  mismatch errors.
+- Any shader expression that subtracts/cancels large scroll-space coordinates
+  must keep the whole coordinate path high precision.
+
 ## GL: Strange Gradient Or Black Output With Complete FBOs
 
 Symptom:

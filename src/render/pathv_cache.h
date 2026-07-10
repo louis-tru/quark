@@ -117,6 +117,13 @@ namespace qk
 		);
 
 		/**
+		 * @dev get path triangles cache for a rectangle
+		 * @param rect {Rect} rectangle
+		 * @return {VertexData&} cached triangle vertices for the rectangle
+		*/
+		const VertexData& getPathTriangles(const Rect &rect);
+
+		/**
 		 * @dev get path triangles cache
 		*/
 		const VertexData& getPathTriangles(const Path &path);

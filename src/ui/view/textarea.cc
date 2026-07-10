@@ -70,7 +70,7 @@ namespace qk {
 			unmark(kInput_Status);
 			solve_cursor_offset(); // text cursor status
 
-			ScrollView::solve(mark);
+			ScrollView::solve(mat, parent, mark);
 			Box::solve_marks(mat, parent, mark);
 
 			if (_editing) {
@@ -78,7 +78,7 @@ namespace qk {
 				window()->dispatch()->setImeKeyboardSpotRect(input_spot_rect());
 			}
 		} else {
-			ScrollView::solve(mark);
+			ScrollView::solve(mat, parent, mark);
 			Box::solve_marks(mat, parent, mark);
 		}
 	}

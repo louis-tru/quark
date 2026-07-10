@@ -43,6 +43,8 @@
 			</intent-filter>
 		</activity>
 
+		<profileable android:shell="true" />
+
 		<!-- <meta-data
 				android:name="whisperplay"
 				android:resource="@xml/whisperplay" /> -->

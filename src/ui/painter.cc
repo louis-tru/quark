@@ -76,10 +76,6 @@ namespace qk {
 	}
 
 	void Painter::set_origin(Vec2 origin) {
-		_origin = -origin;
-	}
-
-	void Painter::set_origin_reverse(Vec2 origin) {
 		_origin = origin;
 	}
 
@@ -461,7 +457,6 @@ namespace qk {
 			auto b = v->host();
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
-			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().mul_alpha_only(v->_scrollbar_opacity).mul(_color);
 			auto _border = b->_border.load();
@@ -469,8 +464,8 @@ namespace qk {
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
 				float radius[] = {width,width,width,width};
 				Rect rect = {
-					{v->_scrollbar_position_h[0], size[1] - width - margin},
-					{v->_scrollbar_position_h[1], width}
+					Vec2{v->_scrollbar_position_h[0], size[1] - width - margin} + _origin,
+					Vec2{v->_scrollbar_position_h[1], width}
 				};
 				if (_border) {
 					rect.begin += {_border->width[3], -_border->width[0]};
@@ -481,8 +476,8 @@ namespace qk {
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
 				float radius[] = {width,width,width,width};
 				Rect rect = {
-					{size[0] - width - margin, v->_scrollbar_position_v[0]},
-					{width,                    v->_scrollbar_position_v[1]}
+					Vec2{size[0] - width - margin, v->_scrollbar_position_v[0]} + _origin,
+					Vec2{width,                    v->_scrollbar_position_v[1]}
 				};
 				if (_border) {
 					rect.begin += {-_border->width[3], _border->width[0]};
@@ -499,10 +494,12 @@ namespace qk {
 			return;
 		auto size = v->font_size().value;
 		auto shadow = v->text_shadow().value;
+		inOffset += _origin;
 
 		// draw text  background
 		if (v->text_background_color().value.a()) {
 			auto color = v->text_background_color().value.mul_color4f(_color);
+			// auto color = Color4f(1.0,0.0,0.0,0.1);
 			for (auto i: blob_visible) {
 				auto &blob = blobs[i];
 				auto &line = lines->line(blob.line);
@@ -608,16 +605,20 @@ namespace qk {
 
 	void Painter::visitView(View* v, cMat* mat) {
 		if (v->_first_rt) {
-			auto lastMatrix = _matrix;
-			set_matrix(mat);
-			visitView(v);
-			set_matrix(lastMatrix);
+			if (mat) {
+				auto lastMatrix = _matrix;
+				set_matrix(mat);
+				visitView(v);
+				set_matrix(lastMatrix);
+			} else {
+				visitView(v);
+			}
 		}
 	}
 
 	typedef void (*DrawCallback)(Painter *drawer, Box *v);
 
-	void Painter::visitAndClipBox(Box *v, DrawCallback cb) {
+	void Painter::visitAndClipBox(Box *v, DrawCallback cb, cMat *mat) {
 		getInsideRectPath(v);
 		_canvas->save();
 		_canvas->clipPath(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
@@ -628,7 +629,7 @@ namespace qk {
 		_delayCmds = &_delayCmdsStack.back(); // set current cmds
 		if (cb)
 			cb(this, v);
-		visitView(v); // draw children views
+		visitView(v, mat);
 		flushDelayDrawCommands(); // flush delay cmds
 		_delayCmdsStack.pop_back(); // pop current cmds
 		_delayCmds = &_delayCmdsStack.back(); // restore parent cmds
@@ -636,12 +637,12 @@ namespace qk {
 		_canvas->restore(); // restore state
 	}
 
-	void Painter::visitBox(Box *v) {
+	void Painter::visitBox(Box *v, cMat *mat) {
 		if (v->_clip) {
 			if (v->_first_rt)
-				visitAndClipBox(v, nullptr);
+				visitAndClipBox(v, nullptr, mat);
 		} else {
-			visitView(v);
+			visitView(v, mat);
 		}
 	}
 
@@ -676,14 +677,14 @@ namespace qk {
 
 	void Box::draw(Painter *draw) {
 		draw->resetBoxData(); // reset box data
-		draw->canvas()->setTranslate(position());
+		draw->setOriginFromPos(_position);
 		draw->drawBoxBasic(this);
 		draw->visitBox(this);
 	}
 
 	void Image::draw(Painter *draw) {
 		draw->resetBoxData();
-		draw->canvas()->setTranslate(position());
+		draw->setOriginFromPos(_position);
 		draw->drawBoxBasic(this);
 
 		auto src = source();
@@ -705,14 +706,24 @@ namespace qk {
 	}
 
 	void Scroll::draw(Painter *draw) {
-		Box::draw(draw);
-		draw->canvas()->setTranslate(position());
+		draw->resetBoxData(); // reset box data
+		draw->setOriginFromPos(_position);
+		draw->drawBoxBasic(this);
+		// Scroll keeps ordinary child positions out of the canvas matrix and only
+		// applies the scroll transform at this boundary. If scroll offsets grow to
+		// very large values, e.g. millions of pixels, shader precision can suffer.
+		// A future fix can clamp scrollMatrix.translate to a coarse range such as
+		// 100k and let child draw coordinates compensate for the truncated part.
+		// That keeps matrix values bounded while only forcing path cache updates
+		// when the coarse origin changes.
+		draw->visitBox(this, &scrollMatrix());
+		draw->setOriginFromPos(_position);
 		draw->drawScrollBar(this);
 	}
 
 	void Text::draw(Painter *painter) {
 		painter->resetBoxData(); // reset box data
-		painter->canvas()->setTranslate(position());
+		painter->setOriginFromPos(_position);
 		painter->drawBoxBasic(this);
 
 		struct Fn {
@@ -745,11 +756,11 @@ namespace qk {
 	void Input::draw(Painter *draw) {
 		draw->resetBoxData();
 		auto canvas = draw->canvas();
-		canvas->setTranslate(position());
+		draw->setOriginFromPos(_position);
 		draw->drawBoxBasic(this);
 
 		auto lines = *_lines;
-		auto offset = input_text_offset() + Vec2(padding_left(), padding_top());
+		auto offset = input_text_offset() + Vec2(padding_left(), padding_top()) + draw->origin();
 		auto twinkle = _editing && _cursor_twinkle_status;
 		auto visible = _blob_visible.length();
 		auto clip = this->clip() && (visible || twinkle);
@@ -845,7 +856,7 @@ namespace qk {
 
 	void Label::draw(Painter *painter) {
 		if (_blob_visible.length()) {
-			painter->canvas()->setTranslate(position()); // set position in matrix
+			painter->setOriginFromPos(_position);
 			painter->drawTextBlob(this, {}, *_lines, _blob, _blob_visible);
 		}
 		painter->visitView(this);
@@ -854,13 +865,11 @@ namespace qk {
 	void Morph::draw(Painter *painter) {
 		painter->resetBoxData();
 		auto lastMatrix = painter->matrix();
-		auto lastOrigin = painter->origin();
 		painter->set_matrix(&matrix());
-		painter->set_origin(_origin_value);
+		painter->set_origin(-_origin_value);
 		painter->drawBoxBasic(this);
 		if (clip())
 			painter->getInsideRectPath(this);
-		painter->set_origin_reverse(lastOrigin); // restore origin
 		painter->visitBox(this); // clip box
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
@@ -880,13 +889,12 @@ namespace qk {
 				painter->_delayCmdsAllocator.reset(); // reset delay cmds allocator
 				painter->resetBoxData();
 				painter->_color = color().to_color4f();
-				painter->set_origin(origin_value());
+				painter->set_origin(-origin_value());
 				painter->set_matrix(&matrix());
 				// The root background is not pre-multiplied, the color is drawn directly.
 				canvas->clearColor(background_color().mul_color4f(painter->_color));
 				painter->drawBoxFill(this);
 				painter->drawBoxBorder(this);
-				painter->set_origin({}); // reset origin
 				painter->visitView(this);
 				painter->flushDelayDrawCommands(); // flush delay draw commands
 			} else {
