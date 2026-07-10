@@ -7,6 +7,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_canvas.h"
+#include <cstdint>
 #import "./mtl_render.h"
 #import "../source.h"
 #import "../pixel.h"
@@ -18,6 +19,19 @@ namespace qk {
 	void clear_PathvCache(PathvCache *cache, int flags);
 	void clearExec_PathvCache(PathvCache *cache);
 	uint32_t mtl_get_sampler_key(const PaintImage* paint);
+
+	static uint32_t mtl_capa_max_image_count(MTLDeviceID device) {
+		uint32_t count = 128;
+	#if Qk_iOS
+		uint32_t maxSamplerCount = 256;
+	#else
+		uint32_t maxSamplerCount = 512;
+	#endif
+		if (@available(macOS 10.14, iOS 12.0, *)) {
+			count = U32::min((uint32_t)device.maxArgumentBufferSamplerCount, maxSamplerCount);
+		}
+		return count;
+	}
 
 	void setRootMatrixFromEnc(MTLEncoder enc, const Mat4 mat[2], Vec2 surfaceScale, uint32_t index = 1) {
 		MSLColor::RootMatrixBlock rMat {
@@ -52,6 +66,7 @@ namespace qk {
 		_device = _mtlrender->_device;
 		_commandQueue = _mtlrender->_commandQueue; // share command queue with render
 		_shaders = _mtlrender->_resource->shaders(); // copy shader cache reference for render thread use
+		setCAPAMaxImageCount(mtl_capa_max_image_count(_device));
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
@@ -63,14 +78,14 @@ namespace qk {
 		auto imagesDesc = [MTLArgumentDescriptor argumentDescriptor];
 		imagesDesc.dataType = MTLDataTypeTexture;
 		imagesDesc.index = shader.compute.set2.images.id;
-		imagesDesc.arrayLength = kCAPAMaxImageCount;
+		imagesDesc.arrayLength = _capaMaxImageCount;
 		imagesDesc.access = MTLBindingAccessReadOnly;
 		imagesDesc.textureType = MTLTextureType2D;
 		_capaCompositeSet2Encoder = [_device newArgumentEncoderWithArguments:@[imagesDesc]];
 		auto samplersDesc = [MTLArgumentDescriptor argumentDescriptor];
 		samplersDesc.dataType = MTLDataTypeSampler;
 		samplersDesc.index = shader.compute.set3.samplers.id;
-		samplersDesc.arrayLength = kCAPAMaxImageCount;
+		samplersDesc.arrayLength = _capaMaxImageCount;
 		samplersDesc.access = MTLBindingAccessReadOnly;
 		_capaCompositeSet3Encoder = [_device newArgumentEncoderWithArguments:@[samplersDesc]];
 	}

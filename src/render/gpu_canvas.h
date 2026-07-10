@@ -131,8 +131,10 @@ namespace qk {
 		Vec2 surfaceSize() const override;
 		const Render::Options& opts() const { return _opts; }
 		Render* render() { return _render; }
+		uint32_t capaMaxImageCount() const { return _capaMaxImageCount; }
 		inline Color4f premul_alpha(const Color4f &color) const { return color.premul_alpha(); }
 	protected:
+		void setCAPAMaxImageCount(uint32_t count);
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
@@ -171,6 +173,7 @@ namespace qk {
 		Mat4   _rootMatrix, _rootMatrixNoScale; // root matrix and root matrix with scale removed
 		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
 		BlendMode _blendMode; // blend mode state
+		uint32_t _capaMaxImageCount; // backend CAPA image/sampler table size
 		GC_State::Clip  *_clipState; // clip state
 		Render::Options _opts;
 		Mutex _mutex; // submit swap mutex

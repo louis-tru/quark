@@ -96,10 +96,11 @@ namespace qk {
 	}
 
 	bool CAPABuilder::canAddImageTexture(const PaintImage *paint) const {
-		if (_data.imageSources.length() == kCAPAMaxImageCount)
+		auto limit = _owner->capaMaxImageCount();
+		if (_data.imageSources.length() >= limit)
 			if (findImageTexture(paint) == -1)
 				return false;
-		if (_data.imageSamplers.length() == kCAPAMaxImageCount)
+		if (_data.imageSamplers.length() >= limit)
 			if (findImageSampler(paint) == -1)
 				return false;
 		return true;

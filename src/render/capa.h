@@ -24,9 +24,9 @@ namespace qk {
 
 	constexpr int kCAPATileSize = 16;
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
-	// Keep CAPA image sampling on the portable side: Vulkan's guaranteed
-	// sampled-image count is low, so larger image batches are split on CPU.
-	constexpr uint32_t kCAPAMaxImageCount = 16;
+	// Conservative fallback for backends that do not publish a larger CAPA
+	// image/sampler table.
+	constexpr uint32_t kCAPADefaultMaxImageCount = 16;
 	// Short-edge tasks are bounded so one task can touch at most three tiles in
 	// the bin pass, which gives each task fixed node ownership.
 	constexpr float kCAPAShortEdgeLength = 8.0f;

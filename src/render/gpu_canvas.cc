@@ -101,19 +101,19 @@ namespace qk {
 			p.mipmapMode = PaintImage::kLinear_MipmapMode;
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
-			flushCAPABatch(); // flush current CAPA batch before draw text image
-
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
-			auto &vertex = _cache->getPathTriangles(rect);
+			GC_ImageDrawInfo info{ &p, paint.fill.color, kMask_DrawKind};
 
 			if (isSDFImage(img.image.get())) { // SDF text
 				auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;
 				auto strokeWidth = paint.style == Paint::kFill_Style ? 0.0f: paint.strokeWidth;
-				drawImageCmd(vertex, { &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale});
-			} else {
-				drawImageCmd(vertex, { &p, paint.fill.color, kMask_DrawKind});
+				info = { &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale};
 			}
 
+			if (filter || !_capaBuilder || !_capaBuilder->buildImage(_cache->getRectPath(rect), info)) {
+				flushCAPABatch(); // flush current CAPA batch before draw text image
+				drawImageCmd(_cache->getPathTriangles(rect), info);
+			}
 			return scale_1;
 		}
 
@@ -229,6 +229,7 @@ namespace qk {
 		, _rootMatrix()
 		, _flags(0)
 		, _blendMode(kInvalid_BlendMode)
+		, _capaMaxImageCount(kCAPADefaultMaxImageCount)
 		, _clipState(nullptr)
 		, _opts(opts)
 		, _capaBuilder(nullptr)
@@ -244,6 +245,10 @@ namespace qk {
 	GPUCanvas::~GPUCanvas() {
 		_texPools.clear();
 		Releasep(_cache);
+	}
+
+	void GPUCanvas::setCAPAMaxImageCount(uint32_t count) {
+		_capaMaxImageCount = count ? count : 1;
 	}
 
 	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, Vec2 limit, uint8_t flags) {
