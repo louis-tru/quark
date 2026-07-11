@@ -1,6 +1,6 @@
 // @private head
-#ifndef __vk_shader_natives_1783738449534
-#define __vk_shader_natives_1783738449534
+#ifndef __vk_shader_natives_1783794452675
+#define __vk_shader_natives_1783794452675
 #include <cstdint>
 namespace qk {
 	struct VKShaderCode {

@@ -30,6 +30,7 @@
 
 // ------------------- Metal ------------------
 
+#include "src/util/macros.h"
 #if Qk_ENABLE_METAL
 #import "../plotforms.h"
 #import "../metal/mtl_render.h"

@@ -60,7 +60,7 @@ namespace qk {
 			};
 			envData->globalTileBounds = *(IVec4*)budget.globalTileBounds.begin.val;
 			auto tileSpan = budget.globalTileBounds.size();
-			budget.globalTileCount = tileSpan.x() * tileSpan.y();
+			budget.globalTileCount = tileSpan.x() * tileSpan.y() * kCAPABudgetMultiplier;
 		}
 		// Upload path metadata and path-space edges. The remaining buffers are
 		// GPU-owned staging/final pools for the 12-pass CAPA pipeline.

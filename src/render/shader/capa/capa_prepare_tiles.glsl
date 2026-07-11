@@ -81,10 +81,8 @@ void main() {
 
 	ivec4 bounds = paths.values[pathIndex].bounds;
 	ivec4 tileBounds = ivec4(
-		bounds.x / CAPA_TILE_SIZE,
-		bounds.y / CAPA_TILE_SIZE,
-		(bounds.z + CAPA_TILE_SIZE - 1) / CAPA_TILE_SIZE,
-		(bounds.w + CAPA_TILE_SIZE - 1) / CAPA_TILE_SIZE
+		bounds.xy / CAPA_TILE_SIZE,
+		(bounds.zw + CAPA_TILE_SIZE - 1) / CAPA_TILE_SIZE
 	);
 	// update global tile bounds
 	capa_join_bounds_atomic(env.value.globalTileBounds, tileBounds);

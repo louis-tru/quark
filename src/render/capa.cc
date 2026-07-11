@@ -10,13 +10,15 @@
 #include "./capa.h"
 
 namespace qk {
-	constexpr float kCAPACoverageBudgetMultiplier = 1.2f;
 	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 16;
 	constexpr uint32_t kCAPACoveragePageBytes = sizeof(MSLCapaBackdrop::CAPABoundaryTile);
 
 	IVec2 capa_floor_tile_origin(Vec2 origin) {
 		Qk_ASSERT(origin.x() >= 0.0f && origin.y() >= 0.0f, "capa_floor_tile_origin: origin must be non-negative");
-		return IVec2(int(floorf(origin.x())) >> kCAPATileSizeShift, int(floorf(origin.y())) >> kCAPATileSizeShift);
+		return IVec2(
+			int(floorf(origin.x())) >> kCAPATileSizeShift,
+			int(floorf(origin.y())) >> kCAPATileSizeShift
+		);
 	}
 
 	IVec2 capa_ceil_tile_end(Vec2 end) {
@@ -218,8 +220,9 @@ namespace qk {
 		auto bounds = capa_bounds_transform(mat, info.bounds)
 			.expandToInteger()
 			.clip(clip);
-		if (bounds.isEmpty())
+		if (bounds.isEmpty()) {
 			return true; // Skip empty or degenerate paths
+		}
 		// CAPAPath starts with CPU metadata plus path-space edge offsets. The
 		// prepare/prepare_tiles passes fill surface bounds and tile ranges.
 		CAPAPath path {
@@ -312,7 +315,9 @@ namespace qk {
 			capa_ceil_tile_end(budget.globalBounds.end),
 		};
 		auto tileSpan = budget.globalTileBounds.size();
-		budget.globalTileCount = tileSpan.x() * tileSpan.y();
+		budget.globalTileCount = tileSpan.x() * tileSpan.y() * kCAPABudgetMultiplier;
+		budget.maxPathTileCount *= kCAPABudgetMultiplier;
+		budget.maxPathTileRowCount *= kCAPABudgetMultiplier;
 		_owner->drawCAPACmd(_data);
 		reset();
 	}

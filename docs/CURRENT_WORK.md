@@ -41,6 +41,28 @@ the bounds. This preserves velocity through the transition and removes the old
 stop-then-ease-back rebound. Frame integration is capped at 1/30 second so a
 slow frame cannot produce a large physics jump.
 
+Deferred iOS issue: direct finger-driven scrolling has a small intermittent
+stutter on both Metal AASide and Metal CAPA, while the same Scroll code is very
+smooth on iOS GL and render-task-driven inertia is smooth on Metal. This makes
+Scroll physics, CAPA workload, and ordinary mark/layout cost unlikely primary
+causes. Temporarily clearing the Metal front command pack without waiting for
+the command-buffer completion handler did not improve it, and changing the
+iOS Metal `CADisplayLink` from `NSDefaultRunLoopMode` to common modes also made
+no visible difference (GL uses default mode too). Revisit Metal versus GL event
+consumption/frame scheduling only after the Vulkan/Windows/backend work is
+complete; do not block current milestones on this polish issue.
+
+Important reproduction clue: the stutter is visible in an extremely simple
+Scroll test, but not in the much heavier kace view on the same Metal backend.
+This argues against raw scene/GPU cost and against a universal touch-dispatch
+delay. A likely distinction is render cadence: kace may keep producing frames
+or other invalidations, while the simple test is mostly event-driven and only
+wakes rendering for TouchMove updates. When this issue is revisited, compare
+continuous-redraw versus on-demand-redraw behavior first, including frame mark
+arrival time, display-link phase, whether a frame is skipped when no command
+pack is ready, and whether forcing the simple test to redraw continuously makes
+the stutter disappear.
+
 ## 2026-07-10 Android/iOS Mobile Hardening
 
 Current mobile validation status:

@@ -24,6 +24,8 @@ namespace qk {
 
 	constexpr int kCAPATileSize = 16;
 	constexpr int kCAPATileSizeShift = __builtin_ctz(kCAPATileSize);
+	// add 5% margin for tile count and path tile count
+	constexpr float kCAPABudgetMultiplier = 1.05f;
 	// Conservative fallback for backends that do not publish a larger CAPA
 	// image/sampler table.
 	constexpr uint32_t kCAPADefaultMaxImageCount = 16;

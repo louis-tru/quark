@@ -101,6 +101,18 @@ void layout_scroll(Window* win) {
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 
+	auto g = v->append_new<Box>();
+	g->set_margin_top(10);
+	g->set_width({ 0, BoxSizeKind::Match });
+	g->set_height({ 100 });
+	g->set_background_color(Color(255,0,128));
+
+	auto h = v->append_new<Box>();
+	h->set_margin_top(10);
+	h->set_width({ 0, BoxSizeKind::Match });
+	h->set_height({ 100 });
+	h->set_background_color(Color(128,0,255));
+
 	for (int i = 0; i < 10; i++) {
 		auto g = v->append_new<Box>();
 		g->set_margin_top(10);

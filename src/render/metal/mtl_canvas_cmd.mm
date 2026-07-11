@@ -66,7 +66,7 @@ namespace qk {
 	void MetalCanvas::setSurfaceCmd(bool changeSize) {
 		if (changeSize) {
 			_outTex = mtl_new_texture(
-				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), 0);
+				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), kComputeWrite_TextureFlags);
 		}
 		_outColorTex = _outTex; // set to main texture by default
 
