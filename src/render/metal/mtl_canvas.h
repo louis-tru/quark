@@ -107,6 +107,7 @@ namespace qk {
 		//   tmpA / tmpB           : temporary ping-pong render targets
 		// actual render passes always write into _outColorTex.
 		MTLTextureID _outColorTex; //
+		bool _supportsSamplerClampToZero; // whether device supports sampler clamp to zero.
 		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
 		MTLArgumentEncoderID _capaCompositeSet2Encoder, _capaCompositeSet3Encoder;
 		Dict<uint32_t, MTLSampler> _texSamplers;

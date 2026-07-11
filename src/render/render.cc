@@ -140,7 +140,7 @@ namespace qk {
 		Render* r = nullptr;
 
 #if Qk_ENABLE_VULKAN
-		if (!r) r = make_vulkan_render();
+		if (!r) r = make_vulkan_render(opts);
 #endif
 #if Qk_ENABLE_METAL
 		if (!r) r = make_metal_render(opts);

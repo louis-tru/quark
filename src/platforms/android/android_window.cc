@@ -308,6 +308,7 @@ namespace qk {
 			pressure,
 			false,
 			nullptr,
+			uint64_t(AMotionEvent_getEventTime(motionEvent) / 1000),
 		};
 		return x != h_x || y != h_y;
 	}

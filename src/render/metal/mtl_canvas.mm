@@ -19,9 +19,10 @@ namespace qk {
 	void clear_PathvCache(PathvCache *cache, int flags);
 	void clearExec_PathvCache(PathvCache *cache);
 	uint32_t mtl_get_sampler_key(const PaintImage* paint);
+	bool mtl_supports_sampler_clamp_to_zero(MTLDeviceID device);
 
 	static uint32_t mtl_capa_max_image_count(MTLDeviceID device) {
-		uint32_t count = 128;
+		uint32_t count = 64;
 	#if Qk_iOS
 		uint32_t maxSamplerCount = 256;
 	#else
@@ -31,6 +32,12 @@ namespace qk {
 			count = U32::min((uint32_t)device.maxArgumentBufferSamplerCount, maxSamplerCount);
 		}
 		return count;
+	}
+
+	static bool mtl_capa_supported(MTLDeviceID device) {
+		if (@available(macOS 10.13, iOS 11.0, *))
+			return device.argumentBuffersSupport == MTLArgumentBuffersTier2;
+		return false;
 	}
 
 	void setRootMatrixFromEnc(MTLEncoder enc, const Mat4 mat[2], Vec2 surfaceScale, uint32_t index = 1) {
@@ -58,36 +65,41 @@ namespace qk {
 		, _device(nil), _commandQueue(nil)
 		, _cmdPack{}, _cmdPackFront{}
 		, _outTex(nil), _outColorTex(nil)
+		, _supportsSamplerClampToZero(false)
 		, _capaCompositeSet2Encoder(nil)
 		, _capaCompositeSet3Encoder(nil)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType:
 			kBGRA_8888_ColorType; // metal prefers BGRA format, use it as default for better performance
 		_device = _mtlrender->_device;
+		_supportsSamplerClampToZero = mtl_supports_sampler_clamp_to_zero(_device);
 		_commandQueue = _mtlrender->_commandQueue; // share command queue with render
 		_shaders = _mtlrender->_resource->shaders(); // copy shader cache reference for render thread use
 		setCAPAMaxImageCount(mtl_capa_max_image_count(_device));
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
-		if (opts.enableCAPA)
+
+		if (opts.enableCAPA && mtl_capa_supported(_device))
 			_capaBuilder = new CAPABuilder(this);
 
-		// create argument encoder for capa composite shader to bind images and samplers
-		auto &shader = _shaders.capaComposite;
-		auto imagesDesc = [MTLArgumentDescriptor argumentDescriptor];
-		imagesDesc.dataType = MTLDataTypeTexture;
-		imagesDesc.index = shader.compute.set2.images.id;
-		imagesDesc.arrayLength = _capaMaxImageCount;
-		imagesDesc.access = MTLBindingAccessReadOnly;
-		imagesDesc.textureType = MTLTextureType2D;
-		_capaCompositeSet2Encoder = [_device newArgumentEncoderWithArguments:@[imagesDesc]];
-		auto samplersDesc = [MTLArgumentDescriptor argumentDescriptor];
-		samplersDesc.dataType = MTLDataTypeSampler;
-		samplersDesc.index = shader.compute.set3.samplers.id;
-		samplersDesc.arrayLength = _capaMaxImageCount;
-		samplersDesc.access = MTLBindingAccessReadOnly;
-		_capaCompositeSet3Encoder = [_device newArgumentEncoderWithArguments:@[samplersDesc]];
+		if (_capaBuilder) {
+			// create argument encoder for capa composite shader to bind images and samplers
+			auto &shader = _shaders.capaComposite;
+			auto imagesDesc = [MTLArgumentDescriptor argumentDescriptor];
+			imagesDesc.dataType = MTLDataTypeTexture;
+			imagesDesc.index = shader.compute.set2.images.id;
+			imagesDesc.arrayLength = _capaMaxImageCount;
+			imagesDesc.access = MTLBindingAccessReadOnly;
+			imagesDesc.textureType = MTLTextureType2D;
+			_capaCompositeSet2Encoder = [_device newArgumentEncoderWithArguments:@[imagesDesc]];
+			auto samplersDesc = [MTLArgumentDescriptor argumentDescriptor];
+			samplersDesc.dataType = MTLDataTypeSampler;
+			samplersDesc.index = shader.compute.set3.samplers.id;
+			samplersDesc.arrayLength = _capaMaxImageCount;
+			samplersDesc.access = MTLBindingAccessReadOnly;
+			_capaCompositeSet3Encoder = [_device newArgumentEncoderWithArguments:@[samplersDesc]];
+		}
 	}
 
 	MetalCanvas::~MetalCanvas() {

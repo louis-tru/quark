@@ -224,6 +224,18 @@ namespace qk {
 		}
 	}
 
+	bool mtl_supports_sampler_clamp_to_zero(MTLDeviceID device) {
+#if Qk_iOS
+		if (@available(iOS 13.0, *))
+			return [device supportsFamily:MTLGPUFamilyApple7];
+#else
+		if (@available(macOS 10.15, *))
+			return [device supportsFamily:MTLGPUFamilyApple7] ||
+				[device supportsFamily:MTLGPUFamilyMac2];
+#endif
+		return false;
+	}
+
 	MTLSamplerAddressMode mtl_sampler_address_mode(PaintImage::TileMode mode) {
 		switch (mode) {
 			case PaintImage::kClamp_TileMode:
@@ -233,11 +245,7 @@ namespace qk {
 			case PaintImage::kMirror_TileMode:
 				return MTLSamplerAddressModeMirrorRepeat;
 			case PaintImage::kDecal_TileMode:
-				if (@available(macOS 11.0, iOS 14.0, *)) {
-					return MTLSamplerAddressModeClampToZero;
-				} else {
-					return MTLSamplerAddressModeClampToEdge;
-				}
+				return MTLSamplerAddressModeClampToZero;
 		}
 	}
 

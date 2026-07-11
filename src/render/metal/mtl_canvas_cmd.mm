@@ -281,7 +281,11 @@ namespace qk {
 					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
 				.flags = _flags |
 					(info.kind == kMask_DrawKind ? Qk_FLAG_IMAGE_MASK: 0) |
-					(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0),
+					(info.kind == kSDFMask_DrawKind ? Qk_FLAG_IMAGE_SDF_MASK: 0) |
+					(!_supportsSamplerClampToZero && info.paint->tileModeX == PaintImage::kDecal_TileMode ?
+						Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X: 0) |
+					(!_supportsSamplerClampToZero && info.paint->tileModeY == PaintImage::kDecal_TileMode ?
+						Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y: 0),
 			};
 			[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];

@@ -44,6 +44,19 @@ namespace qk {
 	static const Curve ease_in_out(Vec2{0.3f, 0.3f}, Vec2{0.3f, 1.0f});
 	static const Curve ease_out(Vec2{0.0f, 0.0f}, Vec2{0.58f, 1.0f});
 
+	constexpr float kScrollBaseDeceleration = 2.6f; // exponential decay rate per second
+	constexpr float kScrollBaseRubberBandCoefficient = 0.55f;
+	constexpr float kScrollBaseSpringStiffness = 180.0f;
+	constexpr float kScrollBaseSpringDamping = 24.0f;
+	constexpr float kScrollBaseMaxVelocity = 3500.0f; // logical pixels per second
+	constexpr float kScrollMinimumPhysicsScale = 0.1f;
+	constexpr float kScrollPhysicsMaxDelta = 1.0f / 30.0f;
+	constexpr float kScrollSettleVelocity = 3.0f;
+	constexpr float kScrollSettleDistance = 0.25f;
+	constexpr uint64_t kScrollVelocitySampleWindow = 120000; // microseconds
+	constexpr uint64_t kScrollVelocityMinDuration = 8000; // microseconds
+	constexpr uint64_t kScrollPhysicsRecoveryDuration = 200000; // microseconds
+
 	constexpr uint32_t kScrollMark = View::kScroll | View::kTransform;
 
 	Vec2 free_typesetting(View* view, const View::Container &container);
@@ -114,11 +127,6 @@ namespace qk {
 		#define _this _inl(this)
 		#define _inl(self) static_cast<ScrollView::Inl*>(static_cast<ScrollView*>(self))
 
-		struct Momentum {
-			float dist;
-			uint64_t time;
-		};
-
 		class ScrollMotionTask: public ScrollView::Task {
 		public:
 			ScrollMotionTask(ScrollView* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
@@ -144,6 +152,75 @@ namespace qk {
 		private:
 			Vec2  m_from;
 			Vec2  m_to;
+		};
+
+		class ScrollPhysicsTask: public ScrollView::Task {
+		public:
+			ScrollPhysicsTask(ScrollView *host, Vec2 velocity)
+				: Task(host, 0), _position(host->_scroll.load()), _velocity(velocity) {}
+
+			bool run_task(int64_t time, int64_t deltaTime) override {
+				if (m_immediate_end_flag) {
+					immediate_end();
+					return true;
+				}
+				float dt = F32::clamp(float(deltaTime) * 1e-6f, 0.0f, kScrollPhysicsMaxDelta);
+				if (dt == 0.0f)
+					return true;
+				bool settledX = update_axis(_position[0], _velocity[0], m_host->_scroll_max[0], dt);
+				bool settledY = update_axis(_position[1], _velocity[1], m_host->_scroll_max[1], dt);
+				_inl(m_host)->set_scroll_and_trigger_event(_position);
+
+				if (settledX && settledY) {
+					_inl(m_host)->termination_recovery(kScrollPhysicsRecoveryDuration, ease_in_out);
+				}
+				return true;
+			}
+
+			void run(float) override {}
+			void end() override { immediate_end(); }
+			void immediate_end() override {
+				_inl(m_host)->set_scroll_and_trigger_event(
+					_inl(m_host)->get_valid_scroll(m_host->_scroll.load().x(), m_host->_scroll.load().y())
+				);
+				_inl(m_host)->termination_recovery(0);
+			}
+
+		private:
+			bool update_axis(float &position, float &velocity, float min, float dt) {
+				float bound = position > 0.0f ? 0.0f : position < min ? min : position;
+				bool outside = bound != position;
+				if (outside) {
+					// Damped spring preserving release velocity across the boundary.
+					velocity += ((bound - position) * kScrollBaseSpringStiffness * m_host->_bounce_stiffness -
+						velocity * kScrollBaseSpringDamping * m_host->_bounce_damping) * dt;
+				} else {
+					// Frame-rate independent inertial decay.
+					velocity *= expf(-kScrollBaseDeceleration * m_host->_resistance * dt);
+				}
+				position += velocity * dt;
+				if (!m_host->_bounce) {
+					if (position > 0.0f) {
+						position = 0.0f;
+						velocity = 0.0f;
+					} else if (position < min) {
+						position = min;
+						velocity = 0.0f;
+					}
+				}
+
+				bound = position > 0.0f ? 0.0f : position < min ? min : position;
+				if (fabsf(velocity) < kScrollSettleVelocity &&
+					fabsf(position - bound) < kScrollSettleDistance) {
+					position = bound;
+					velocity = 0.0f;
+					return true;
+				}
+				return false;
+			}
+
+			Vec2 _position; // continuous position, independent of display pixel snapping
+			Vec2 _velocity; // pixels per second
 		};
 
 		class ScrollBarTask: public ScrollView::Task {
@@ -249,30 +326,22 @@ namespace qk {
 		// scroll
 		// ------------------------------------------------------------------------
 
-		Momentum get_momentum(uint64_t time, float dist, float max_dist_upper, float max_dist_lower, float size) {
-			float deceleration = 0.001 * _resistance;
-			float speed = fabsf(dist) / float(time) * 1000.0;
-			float new_dist = (speed * speed) / (2 * deceleration);
-			float outside_dist = 0;
+		float rubber_band(float distance, float dimension) {
+			if (dimension <= 0.0f)
+				return 0.0f;
+			float coefficient = kScrollBaseRubberBandCoefficient / _bounce_resistance;
+			return distance * coefficient * dimension /
+				(dimension + coefficient * distance);
+		}
 
-			// Proportinally reduce speed if we are outside of the boundaries
-			if (dist > 0 && new_dist > max_dist_upper) {
-				outside_dist = size / (6 / (new_dist / speed * deceleration));
-				max_dist_upper = max_dist_upper + outside_dist;
-				speed = speed * max_dist_upper / new_dist;
-				new_dist = max_dist_upper;
-			}
-			else if (dist < 0 && new_dist > max_dist_lower) {
-				outside_dist = size / (6 / (new_dist / speed * deceleration));
-				max_dist_lower = max_dist_lower + outside_dist;
-				speed = speed * max_dist_lower / new_dist;
-				new_dist = max_dist_lower;
-			}
-			
-			new_dist = new_dist * (dist < 0 ? -1 : 1);
-			uint64_t new_time = speed / deceleration * 1000;
-			
-			return { new_dist, new_time };
+		float drag_axis(float value, float min, float dimension) {
+			if (!_bounce)
+				return value > 0.0f ? 0.0f : value < min ? min : value;
+			if (value > 0.0f)
+				return rubber_band(value, dimension);
+			if (value < min)
+				return min - rubber_band(min - value, dimension);
+			return value;
 		}
 
 		Vec2 get_catch_value() {
@@ -442,34 +511,13 @@ namespace qk {
 			_moved = false;
 			_move_dist = Vec2();
 			_move_point = point;
-			_move_start_time = time_monotonic();
-			_move_start_scroll = _scroll;
+			_move_raw_scroll = _scroll.load();
 		}
 
 		void move(Vec2 point) {
 			float delta_x = point.x() - _move_point.x();
 			float delta_y = point.y() - _move_point.y();
-			Vec2 _scroll = this->_scroll.load();
-			float new_x = _scroll.x() + delta_x;
-			float new_y = _scroll.y() + delta_y;
-
 			_move_point = point;
-
-			// Slow down if outside of the boundaries
-			if ( new_x > 0 || new_x < _scroll_max.x() ) {
-				if ( _bounce ) {
-					new_x = _scroll.x() + (delta_x / 2);
-				} else {
-					new_x = (new_x >= 0 || _scroll_max.x() >= 0 ? 0 : _scroll_max.x());
-				}
-			}
-			if ( new_y > 0 || new_y < _scroll_max.y() ) {
-				if ( _bounce ) {
-					new_y = _scroll.y() + delta_y / 2;
-				} else {
-					new_y = (new_y >= 0 || _scroll_max.y() >= 0 ? 0 : _scroll_max.y());
-				}
-			}
 
 			_move_dist.set_x( _move_dist.x() + delta_x );
 			_move_dist.set_y( _move_dist.y() + delta_y );
@@ -478,7 +526,7 @@ namespace qk {
 			float dist_y = fabsf(_move_dist.y());
 
 			if ( !_moved ) {
-				if ( dist_x < 3 && dist_y < 3 ) { // 距离小余3不处理
+				if ( dist_x < 0.5 && dist_y < 0.5 ) { // 小于阈值的移动距离不处理
 					return;
 				}
 				if ( _scrollbar_opacity != 1 ) {
@@ -490,10 +538,8 @@ namespace qk {
 			// Lock direction
 			if ( _lock_direction ) {
 				if ( _lock_v ) {
-					new_y = _scroll.y();
 					delta_y = 0;
 				} else if( _lock_h ) {
-					new_x = _scroll.x();
 					delta_x = 0;
 				}
 				else {
@@ -505,95 +551,34 @@ namespace qk {
 				}
 			}
 
-			uint64_t time = time_monotonic();
-
-			if (int64_t(time) - _move_start_time > 3e5) {
-				_move_start_time = time;
-				_move_start_scroll = _scroll;
-			}
-
-			set_scroll_and_trigger_event(Vec2(new_x, new_y));
+			_move_raw_scroll += Vec2(delta_x, delta_y);
+			auto size = _host->content_size();
+			set_scroll_and_trigger_event({
+				drag_axis(_move_raw_scroll.x(), _scroll_max.x(), size.x()),
+				drag_axis(_move_raw_scroll.y(), _scroll_max.y(), size.y()),
+			});
 		}
 
-		void move_end(Vec2 point) {
-			uint64_t time = time_monotonic();
-
-			Momentum momentum_x = { 0,0 };
-			Momentum momentum_y = { 0,0 };
-
-			uint64_t duration = int64_t(time) - _move_start_time;
-			Vec2 _scroll = this->_scroll;
-			float new_x = _scroll.x();
-			float new_y = _scroll.y();
-
+		void move_end(Vec2 velocity) {
+			if (_lock_h)
+				velocity.set_x(0);
+			if (_lock_v)
+				velocity.set_y(0);
 			_lock_h = false;
 			_lock_v = false;
-
-			// Calculate inertia
-			if ( duration < 3e5 ) {
-				if ( _momentum ) {
-					auto size = _host->content_size();
-					if ( new_x ) {
-						momentum_x = get_momentum(duration, new_x - _move_start_scroll.x(),
-																			-_scroll.x(), _scroll.x() - _scroll_max.x(),
-																			_bounce ? size.x() / 2.0 : 0);
-					}
-					if ( new_y ) {
-						momentum_y = get_momentum(duration, new_y - _move_start_scroll.y(),
-																			-_scroll.y(), _scroll.y() - _scroll_max.y(),
-																			_bounce ? size.y() / 2.0 : 0);
-					}
-					new_x = _scroll.x() + momentum_x.dist;
-					new_y = _scroll.y() + momentum_y.dist;
-
-					if ((_scroll.x() > 0 && new_x > 0) ||
-							(_scroll.x() < _scroll_max.x() && new_x < _scroll_max.x())) {
-						momentum_x = { 0, 0 };
-					}
-					if ((_scroll.y() > 0 && new_y > 0) ||
-							(_scroll.y() < _scroll_max.y() && new_y < _scroll_max.y())) {
-						momentum_y = { 0, 0 };
-					}
-				}
-
-				Vec2 Catch = get_catch_value(); // Capture position
-
-				float mod_x = int(roundf(new_x)) % uint32_t(Catch.x());
-				float mod_y = int(roundf(new_y)) % uint32_t(Catch.y());
-				float dist_x, dist_y;
-
-				if ( new_x < 0 && new_x > _scroll_max.x() && mod_x != 0 ) {
-					if ( _scroll.x() - _move_start_scroll.x() < 0 ) {
-						dist_x = Catch.x() + mod_x;
-					} else {
-						dist_x = mod_x;
-					}
-					new_x -= dist_x;
-					dist_x = fabsf(dist_x) * 1e4;
-
-					momentum_x.time = Qk_Max(Qk_Min(dist_x, 3e5), momentum_x.time);
-				}
-
-				if ( new_y < 0 && new_y > _scroll_max.y() && mod_y != 0 ) {
-					if (_scroll.y() - _move_start_scroll.y() < 0) {
-						dist_y = Catch.y() + mod_y;
-					} else {
-						dist_y = mod_y;
-					}
-					new_y -= dist_y;
-					dist_y = fabsf(dist_y) * 1e4;
-
-					momentum_y.time = Qk_Max(Qk_Min(dist_y, 3e5), momentum_y.time);
-				}
-			}
-
 			_moved = false;
+			if (!_momentum)
+				velocity = Vec2();
+			if (!_scroll_h)
+				velocity.set_x(0);
+			if (!_scroll_v)
+				velocity.set_y(0);
 
-			//****************************************************************
-
-			if ( momentum_x.time || momentum_y.time ) {
-				uint64_t duration = Qk_Max(Qk_Max(momentum_x.time, momentum_y.time), 1e4);
-				scroll_to_valid_scroll(Vec2(new_x, new_y), duration);
+			auto scroll = _scroll.load();
+			bool outside = scroll.x() > 0 || scroll.x() < _scroll_max.x() ||
+				scroll.y() > 0 || scroll.y() < _scroll_max.y();
+			if (outside || velocity != Vec2()) {
+				register_task(new ScrollPhysicsTask(this, velocity));
 			} else {
 				termination_recovery(3e5, ease_in_out);
 			}
@@ -606,7 +591,7 @@ namespace qk {
 			if ( !_action_id ) {
 				auto& pos = static_cast<TouchEvent*>(&e)->changed_touches()[0];
 				_action_id = pos.id;
-				begin_drag(pos.position);
+				begin_drag(pos.position, pos.time);
 			}
 		}
 
@@ -614,7 +599,7 @@ namespace qk {
 			if (_action_id && e.is_default()) {
 				for (auto &i : static_cast<TouchEvent*>(&e)->changed_touches()) {
 					if (i.id == _action_id) {
-						drag(i.position);
+						drag(i.position, i.time);
 						break;
 					}
 				}
@@ -626,7 +611,7 @@ namespace qk {
 				for ( auto &i: static_cast<TouchEvent*>(&e)->changed_touches() ) {
 					if (i.id == _action_id) {
 						_action_id = 0;
-						end_drag(i.position);
+						end_drag(i.position, i.time);
 						break;
 					}
 				}
@@ -669,6 +654,10 @@ namespace qk {
 		, _scrollbar_h(false)
 		, _scrollbar_v(false)
 		, _resistance(1)
+		, _bounce_resistance(1)
+		, _bounce_stiffness(1)
+		, _bounce_damping(1)
+		, _momentum_velocity(1)
 		, _catch_position_x(1)
 		, _catch_position_y(1)
 		, _scrollbar_color(140, 140, 140, 200)
@@ -677,7 +666,7 @@ namespace qk {
 		, _scroll_duration(0)
 		, _host(host)
 		, _scroll(Vec2())
-		, _move_start_time(0)
+		, _dragSampleCount(0)
 		, _action_id(0)
 		, _scrollbar_opacity(0)
 		, _default_curve_Wt(ease_out)
@@ -701,22 +690,67 @@ namespace qk {
 		_this->termination_all_task_rt();
 	}
 
-	void ScrollView::begin_drag(Vec2 pos) {
+	void ScrollView::add_drag_sample(Vec2 position, uint64_t time) {
+		if (!time)
+			time = time_monotonic();
+		if (_dragSampleCount && time < _dragSamples[_dragSampleCount - 1].time)
+			_dragSampleCount = 0;
+		if (_dragSampleCount == sizeof(_dragSamples) / sizeof(_dragSamples[0])) {
+			for (uint32_t i = 1; i < _dragSampleCount; i++)
+				_dragSamples[i - 1] = _dragSamples[i];
+			_dragSampleCount--;
+		}
+		if (_dragSampleCount && time == _dragSamples[_dragSampleCount - 1].time) {
+			_dragSamples[_dragSampleCount - 1].position = position;
+		} else {
+			_dragSamples[_dragSampleCount++] = { position, time };
+		}
+	}
+
+	Vec2 ScrollView::drag_velocity() const {
+		if (_dragSampleCount < 2)
+			return {};
+		auto &last = _dragSamples[_dragSampleCount - 1];
+		uint32_t first = _dragSampleCount - 1;
+		for (uint32_t i = _dragSampleCount - 1; i > 0; i--) {
+			auto age = last.time - _dragSamples[i - 1].time;
+			if (age > kScrollVelocitySampleWindow)
+				break;
+			first = i - 1;
+		}
+		auto duration = last.time - _dragSamples[first].time;
+		if (duration < kScrollVelocityMinDuration)
+			return {};
+		Vec2 velocity = (last.position - _dragSamples[first].position) *
+			(1e6f / float(duration));
+		float maxVelocity = kScrollBaseMaxVelocity * _momentum_velocity;
+		velocity.set_x(F32::max(-maxVelocity, F32::min(maxVelocity, velocity.x())));
+		velocity.set_y(F32::max(-maxVelocity, F32::min(maxVelocity, velocity.y())));
+		return velocity;
+	}
+
+	void ScrollView::begin_drag(Vec2 pos, uint64_t time) {
+		_dragSampleCount = 0;
+		add_drag_sample(pos, time);
 		_async_call({
 			self->move_start(arg);
 		}, pos);
 	}
 
-	void ScrollView::drag(Vec2 pos) {
+	void ScrollView::drag(Vec2 pos, uint64_t time) {
+		add_drag_sample(pos, time);
 		_async_call({
 			self->move(arg);
 		}, pos);
 	}
 
-	void ScrollView::end_drag(Vec2 pos) {
+	void ScrollView::end_drag(Vec2 pos, uint64_t time) {
+		add_drag_sample(pos, time);
+		auto velocity = drag_velocity();
+		_dragSampleCount = 0;
 		_async_call({
 			self->move_end(arg);
-		}, pos);
+		}, velocity);
 	}
 
 	void ScrollView::wheel(Vec2 delta) {
@@ -736,7 +770,23 @@ namespace qk {
 	}
 
 	void ScrollView::set_resistance(float value) {
-		_resistance = Qk_Max(0.5, value);
+		_resistance = Qk_Max(kScrollMinimumPhysicsScale, value);
+	}
+
+	void ScrollView::set_bounce_resistance(float value) {
+		_bounce_resistance = Qk_Max(kScrollMinimumPhysicsScale, value);
+	}
+
+	void ScrollView::set_bounce_stiffness(float value) {
+		_bounce_stiffness = Qk_Max(kScrollMinimumPhysicsScale, value);
+	}
+
+	void ScrollView::set_bounce_damping(float value) {
+		_bounce_damping = Qk_Max(kScrollMinimumPhysicsScale, value);
+	}
+
+	void ScrollView::set_momentum_velocity(float value) {
+		_momentum_velocity = Qk_Max(kScrollMinimumPhysicsScale, value);
 	}
 
 	void ScrollView::set_bounce(bool value) {

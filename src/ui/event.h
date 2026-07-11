@@ -210,6 +210,7 @@ namespace qk {
 			float  force; // touch force
 			bool   click_valid; // is valid for click
 			View   *view; // init view when touchstart
+			uint64_t time = 0; // platform event time in microseconds
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
 		cArray<TouchPoint>& changed_touches() const {

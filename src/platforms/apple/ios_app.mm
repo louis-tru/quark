@@ -73,6 +73,7 @@ QkWindowDelegate* getWindowDelegate() {
 		Qk_ASSERT(!qkappdelegate);
 		qkappdelegate = self;
 		_app = app;
+		_host = nil;
 		[self initPlatform:Inl_Application(shared_app())];
 		return YES;
 	}

@@ -215,10 +215,11 @@ namespace qk
 				uint32_t(xev->detail),
 				{0, 0},
 				{float(xev->event_x) / impl->win()->scale(),
-				float(xev->event_y) / impl->win()->scale()},
+					float(xev->event_y) / impl->win()->scale()},
 				0,
 				false,
 				nullptr,
+				uint64_t(xev->time) * 1000,
 			}};
 			switch(cookie->evtype) {
 				case XI_TouchBegin:

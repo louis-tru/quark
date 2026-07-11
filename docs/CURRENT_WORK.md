@@ -7,6 +7,40 @@ This file is short-term memory for the current development thread. Update it whe
 Active work has moved from broad CAPA architecture into iOS/backend validation
 and mobile CPU/performance hardening on `master`.
 
+## 2026-07-10 Android Vulkan Foundation
+
+The Android Vulkan backend is being rebuilt from its previous empty shell.
+
+- Android builds with `use_gl=0` now select `Qk_ENABLE_VULKAN`, compile the
+  Vulkan backend, and link `libvulkan`.
+- The first backend layer creates the Vulkan instance, Android surface,
+  graphics/present device queue, swapchain, image views, render pass,
+  framebuffers, command buffers, and two-frame fence/semaphore synchronization.
+- The initial command path can clear and present a swapchain image. Ordinary
+  color/image/AASide graphics pipelines and Vulkan texture/vertex upload are
+  the next implementation layer; current draw hooks are placeholders and must
+  not be treated as completed rendering support.
+- CAPA is deliberately disabled in `VulkanRender` for this stage.
+- `gen_glsl_natives.js` now emits embedded SPIR-V tables in
+  `vk_shaders.h/.cc`, providing the shader-module input for the upcoming basic
+  graphics pipelines.
+
+## 2026-07-11 Scroll Physics Refresh
+
+The old scroll momentum path amplified render-thread stalls because it measured
+touch velocity from asynchronous callback execution time and squared that
+velocity to predict a destination. Touch points now retain platform event time
+(Android `AMotionEvent`, iOS `UITouch`, and Linux XInput time), and `ScrollView`
+estimates release velocity from a bounded recent sample window with an explicit
+velocity cap.
+
+Scroll interaction now uses a viewport-relative nonlinear rubber band outside
+the bounds. Release motion uses one frame-rate-independent physics task:
+exponential inertial decay inside the bounds and a damped spring after crossing
+the bounds. This preserves velocity through the transition and removes the old
+stop-then-ease-back rebound. Frame integration is capped at 1/30 second so a
+slow frame cannot produce a large physics jump.
+
 ## 2026-07-10 Android/iOS Mobile Hardening
 
 Current mobile validation status:

@@ -623,6 +623,7 @@ async function resolve_ast(name, stage, source_both) {
 		source_es300,
 		source_gl450,
 		source_msl: readMSLSource(msl_out, uniforms),
+		source_spv: fs.readFileSync(spv_out),
 		metal_entry,
 		structs,
 		if_flags,
@@ -949,7 +950,63 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 }
 
 function gen_vk_native_code(glslDocs, output_h, output_cc) {
-	// TODO ...
+	const hpp = fs.openSync(output_h, 'w');
+	const cpp = fs.openSync(output_cc, 'w');
+	const now = Date.now();
+	write(hpp,
+		'// @private head',
+		`#ifndef __vk_shader_natives_${now}`,
+		`#define __vk_shader_natives_${now}`,
+		'#include <cstdint>',
+		'namespace qk {',
+		'\tstruct VKShaderCode {',
+		'\t\tconst uint32_t *words;',
+		'\t\tuint32_t size;',
+		'\t};',
+		'\tstruct VKShaderSource {',
+		'\t\tconst char *name;',
+		'\t\tVKShaderCode vertex;',
+		'\t\tVKShaderCode fragment;',
+		'\t\tVKShaderCode compute;',
+		'\t};',
+		'\textern const VKShaderSource vkShaderSources[];',
+		'\textern const uint32_t vkShaderSourceCount;',
+		'}',
+		'#endif',
+	);
+	write(cpp,
+		`#include "./${path.basename(output_h)}"`,
+		'namespace qk {',
+	);
+
+	function write_spv(doc, ast) {
+		if (!ast)
+			return null;
+		const name = `vk_${doc.name}_${ast.stage}`;
+		const words = [];
+		for (let i = 0; i < ast.source_spv.length; i += 4)
+			words.push(`0x${ast.source_spv.readUInt32LE(i).toString(16)}u`);
+		write(cpp, `\tstatic const uint32_t ${name}[] = {`,
+			words.map((word, i)=>`${i % 8 == 0 ? '\t\t': ''}${word}${i + 1 == words.length ? '': ','}${i + 1 == words.length ? '': i % 8 == 7 ? '\n': ' '}`).join(''),
+		'\t};');
+		return `{${name},sizeof(${name})}`;
+	}
+
+	const sources = glslDocs.map(doc=>({
+		doc,
+		vert: write_spv(doc, doc.vert_ast),
+		frag: write_spv(doc, doc.frag_ast),
+		comp: write_spv(doc, doc.comp_ast),
+	}));
+	write(cpp,
+		'\tconst VKShaderSource vkShaderSources[] = {',
+		sources.map(e=>`\t\t{"${e.doc.name}",${e.vert||'{nullptr,0}'},${e.frag||'{nullptr,0}'},${e.comp||'{nullptr,0}'}},`),
+		'\t};',
+		'\tconst uint32_t vkShaderSourceCount = sizeof(vkShaderSources) / sizeof(vkShaderSources[0]);',
+		'}',
+	);
+	fs.closeSync(hpp);
+	fs.closeSync(cpp);
 }
 
 async function main(output_gl_h,output_gl_cc) {
@@ -981,9 +1038,9 @@ async function main(output_gl_h,output_gl_cc) {
 		gen_mtl_native_code(glslDocs, output_mtl_h, output_mtl_mm);
 	}
 	if (output_vk_h && output_vk_cc) {
-		// gen_vk_native_code(glslDocs, output_vk_h, output_vk_cc);
+		gen_vk_native_code(glslDocs, output_vk_h, output_vk_cc);
 	}
 }
 
-main(output_gl_h||`${__dirname}/../src/render/gl/glsl_shaders.h`,
-	output_gl_cc||`${__dirname}/../src/render/gl/glsl_shaders.cc`);
+main(output_gl_h || (!outputs.length ? `${__dirname}/../src/render/gl/glsl_shaders.h`: undefined),
+	output_gl_cc || (!outputs.length ? `${__dirname}/../src/render/gl/glsl_shaders.cc`: undefined));

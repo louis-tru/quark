@@ -4,54 +4,90 @@
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Louis.chu nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  * ***** END LICENSE BLOCK ***** */
 
 // @private head
 
-#ifndef __quark_render_vulkan_vulkanrender__
-#define __quark_render_vulkan_vulkanrender__
+#ifndef __quark_render_vulkan_vk_render__
+#define __quark_render_vulkan_vk_render__
 
+#if Qk_ANDROID && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+# define VK_USE_PLATFORM_ANDROID_KHR 1
+#endif
+
+#include <vulkan/vulkan.h>
+#include <vector>
 #include "../render.h"
+#include "../plotforms.h"
+#include "./vk_canvas.h"
 
 namespace qk {
 
-	class VulkanRender: public RenderBackend {
+	class VulkanRender final: public RenderBackend, public RenderSurface {
 	public:
-		virtual ~VulkanRender();
-		virtual void reload() override;
-		virtual Canvas* createCanvas(Options opts) override;
-		virtual bool createTexture(cPixel *pix, int levels, TexStat *&out, bool mipmap) override;
-		virtual bool createVertexData(VertexData::ID *id) override;
-		virtual void deleteTexture(TexStat *tex) override;
-		virtual void deleteVertexData(VertexData::ID *id) override;
-		virtual void lock(); // lock render
-		virtual void unlock(); // unlock render
-		virtual void release() override;
-	protected:
-		VulkanRender(Options opts);
+		~VulkanRender() override;
+		void release() override;
+		void reload() override;
+		Canvas* createCanvas(Options opts) override;
+		RenderSurface* surface() override { return this; }
+		void post_message(Cb cb) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
+		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
+		void unloadTexture(TexStat *tex) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadVertexData(VertexData::ID *id) override;
+		void lock();
+		void unlock();
+
+		void makeSurface(EGLNativeWindowType win) override;
+		void deleteSurface() override;
+		void renderDisplay() override;
+		void renderLoopRun() override;
+		void renderLoopStop() override;
+		Vec2 getSurfaceSize() override;
+
+		VkDevice device() const { return _device; }
+		VkPhysicalDevice physicalDevice() const { return _physicalDevice; }
+		VkQueue queue() const { return _queue; }
+		uint32_t queueFamily() const { return _queueFamily; }
+	private:
+		explicit VulkanRender(Options opts);
+		bool createDevice();
+		bool createSwapchain();
+		void destroySwapchain();
+		void destroyDevice();
+		void drawFrame(const Color4f &clearColor);
+		VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats) const;
+		VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR> &modes) const;
+		VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR &caps) const;
+	private:
+		VkInstance _instance;
+		VkPhysicalDevice _physicalDevice;
+		VkDevice _device;
+		VkQueue _queue;
+		uint32_t _queueFamily;
+		VkSurfaceKHR _surface;
+		VkSwapchainKHR _swapchain;
+		VkFormat _swapchainFormat;
+		VkExtent2D _swapchainExtent;
+		std::vector<VkImage> _swapchainImages;
+		std::vector<VkImageView> _swapchainViews;
+		std::vector<VkFramebuffer> _framebuffers;
+		VkRenderPass _renderPass;
+		VkCommandPool _commandPool;
+		std::vector<VkCommandBuffer> _commandBuffers;
+		VkSemaphore _imageAvailable[2];
+		VkSemaphore _renderFinished[2];
+		VkFence _inFlight[2];
+		uint32_t _frameIndex;
+		EGLNativeWindowType _window;
+		VulkanCanvas *_vkCanvas;
+		RecursiveMutex _mutex;
+		ThreadID _threadId;
+		ThreadID _loopThreadId;
+		friend Render* make_vulkan_render(Render::Options opts);
 	};
+
 }
 
-#endif // __quark_render_vulkan_vulkanrender__
+#endif

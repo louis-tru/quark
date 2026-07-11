@@ -196,6 +196,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 			float(touch.force),
 			false,
 			nullptr,
+			uint64_t(touch.timestamp * 1000000.0),
 		});
 	}
 	return rv;

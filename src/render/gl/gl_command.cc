@@ -39,9 +39,6 @@
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
 
-#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X (1u << 18)
-#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y (1u << 19)
-
 namespace qk {
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 	void  gl_texture_barrier();

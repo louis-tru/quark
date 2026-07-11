@@ -93,11 +93,26 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Vec2, scroll_size, Const);
 
 		/**
-		 * Drag resistance factor.
-		 * Higher values make movement feel "heavier".
+		 * Inertial deceleration multiplier.
+		 * Higher values stop released scrolling sooner.
 		 * Default = 1.
 		 */
 		Qk_DEFINE_PROPERTY(float, resistance, Const);
+
+		/**
+		 * Overscroll drag resistance multiplier. Default = 1.
+		 * Values above 1 make the rubber band harder to stretch.
+		 */
+		Qk_DEFINE_PROPERTY(float, bounce_resistance, Const);
+
+		/** Spring stiffness multiplier used while returning from overscroll. Default = 1. */
+		Qk_DEFINE_PROPERTY(float, bounce_stiffness, Const);
+
+		/** Spring damping multiplier used while returning from overscroll. Default = 1. */
+		Qk_DEFINE_PROPERTY(float, bounce_damping, Const);
+
+		/** Maximum release velocity multiplier. Default = 1. */
+		Qk_DEFINE_PROPERTY(float, momentum_velocity, Const);
 
 		/**
 		 * Snap step on X axis when scrolling stops.
@@ -179,19 +194,19 @@ namespace qk {
 		 * Begin drag interaction at given absolute position.
 		 * Starts tracking movement and prepares velocity calculation.
 		 */
-		void begin_drag(Vec2 pos);
+		void begin_drag(Vec2 pos, uint64_t time = 0);
 
 		/**
 		 * Continue drag movement.
 		 * Position should be continuous absolute coordinates.
 		 */
-		void drag(Vec2 pos);
+		void drag(Vec2 pos, uint64_t time = 0);
 
 		/**
 		 * End drag interaction.
 		 * Velocity will be calculated and momentum may start.
 		 */
-		void end_drag(Vec2 pos);
+		void end_drag(Vec2 pos, uint64_t time = 0);
 
 		/**
 		 * Wheel / trackpad scroll input.
@@ -223,6 +238,14 @@ namespace qk {
 		void set_scroll_rt(Vec2 value); // @thread Rt
 
 	private:
+		void add_drag_sample(Vec2 position, uint64_t time);
+		Vec2 drag_velocity() const;
+
+		struct DragSample {
+			Vec2 position;
+			uint64_t time;
+		};
+
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 		friend class Painter;
@@ -240,13 +263,12 @@ namespace qk {
 		Vec2 _scroll_max;
 
 		/** Drag start state */
-		Vec2 _move_start_scroll, _move_point, _move_dist;
+		Vec2 _move_point, _move_dist, _move_raw_scroll;
+		DragSample _dragSamples[8];
+		uint32_t _dragSampleCount;
 
 		/** Scrollbar visual positions */
 		Vec2 _scrollbar_position_h, _scrollbar_position_v;
-
-		/** Drag start timestamp */
-		uint64_t _move_start_time;
 
 		/** Current animation/action id */
 		uint32_t _action_id;

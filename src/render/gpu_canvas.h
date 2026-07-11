@@ -52,6 +52,8 @@
 // image shader
 #define Qk_FLAG_IMAGE_MASK (1u << 16)
 #define Qk_FLAG_IMAGE_SDF_MASK (1u << 17)
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_X (1u << 18)
+#define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y (1u << 19)
 // triangles shader
 #define Qk_FLAGS_DARK_COLOR (1u << 16)
 

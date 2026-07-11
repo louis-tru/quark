@@ -228,6 +228,20 @@
 					}],
 				],
 			}],
+			['os=="android" and use_gl==0', { # use vulkan
+				'defines': [ 'Qk_ENABLE_VULKAN=1' ],
+				'sources': [
+					'render/vulkan/vk_canvas.h',
+					'render/vulkan/vk_canvas.cc',
+					'render/vulkan/vk_render.h',
+					'render/vulkan/vk_render.cc',
+					'render/vulkan/vk_shaders.h',
+					'render/vulkan/vk_shaders.cc',
+				],
+				'link_settings': {
+					'libraries': [ '-lvulkan' ],
+				},
+			}],
 			['os=="linux" or os=="android"', {
 				'sources': [
 					'render/font/priv/arguments.h', ### priv

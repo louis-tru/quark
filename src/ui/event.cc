@@ -505,6 +505,7 @@ namespace qk {
 				if ( origin.second->has(in_touch.id) ) {
 					auto& touch = (*origin.second)[in_touch.id];
 					touch.position = in_touch.position;
+					touch.time = in_touch.time;
 					touch.force = in_touch.force;
 					if (touch.click_valid) {
 						float d = (touch.start_position - touch.position).lengthSq() *
@@ -543,6 +544,7 @@ namespace qk {
 				if ( origin.second->has(in_touch.id) ) {
 					TouchPoint& touch = (*origin.second)[in_touch.id];
 					touch.position = in_touch.position;
+					touch.time = in_touch.time;
 					touch.force = in_touch.force;
 					if (touch.click_valid)
 						origin.second->set_click_valid_count(-1);

@@ -1622,6 +1622,14 @@ export interface ScrollView extends Box {
 
 	/** Scroll resistance factor. */
 	resistance: number;
+	/** Overscroll drag resistance multiplier. */
+	bounceResistance: number;
+	/** Overscroll spring stiffness multiplier. */
+	bounceStiffness: number;
+	/** Overscroll spring damping multiplier. */
+	bounceDamping: number;
+	/** Maximum release velocity multiplier. */
+	momentumVelocity: number;
 
 	/** Sticky "catch" position X (e.g. snap zones). */
 	catchPositionX: number;
@@ -1739,6 +1747,10 @@ export declare class Textarea extends Input implements ScrollView {
 	scrollTop: number;
 	scroll: Vec2;
 	resistance: number;
+	bounceResistance: number;
+	bounceStiffness: number;
+	bounceDamping: number;
+	momentumVelocity: number;
 	catchPositionX: number;
 	catchPositionY: number;
 	scrollbarColor: types.Color;
@@ -1779,6 +1791,10 @@ export declare class Scroll extends Box implements ScrollView {
 	scrollTop: number;
 	scroll: Vec2;
 	resistance: number;
+	bounceResistance: number;
+	bounceStiffness: number;
+	bounceDamping: number;
+	momentumVelocity: number;
 	catchPositionX: number;
 	catchPositionY: number;
 	scrollbarColor: types.Color;
@@ -2159,6 +2175,10 @@ declare global {
 			scrollTop?: number;
 			scroll?: Vec2In;
 			resistance?: number;
+			bounceResistance?: number;
+			bounceStiffness?: number;
+			bounceDamping?: number;
+			momentumVelocity?: number;
 			catchPositionX?: number;
 			catchPositionY?: number;
 			scrollbarColor?: types.ColorIn;
