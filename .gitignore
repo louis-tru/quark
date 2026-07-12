@@ -19,6 +19,8 @@ src/render/gl/glsl_shaders.h
 src/render/gl/glsl_shaders.cc
 src/render/metal/mtl_shaders.h
 src/render/metal/mtl_shaders.mm
+src/render/vulkan/vk_shaders.h
+src/render/vulkan/vk_shaders.cc
 build
 quark.*
 .kdev4/quark.kdev4 
