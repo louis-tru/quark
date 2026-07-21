@@ -90,6 +90,7 @@ namespace qk {
 		, _atomPixel(1)
 		, _defaultScale(0)
 		, _fsp(0)
+		, _delayTaskMark(0xffffffff)
 		, _fspTick(0)
 		, _fspTime(0)
 		, _beginTime(0)
@@ -248,6 +249,14 @@ namespace qk {
 		}
 	}
 
+	void Window::delayTaskMark() {
+		// mark delay task
+		_delayTaskMark.store(
+			_host->_delayTaskMark.load(std::memory_order_relaxed),
+			std::memory_order_relaxed
+		);
+	}
+
 	void Window::set_size(Vec2 size) {
 		float w = size.x(), h = size.y();
 		if (w >= 0.0 && h >= 0.0) {
@@ -357,6 +366,7 @@ namespace qk {
 
 		if (!_preRender.solve(time, deltaTime)) {
 			solveNextFrame();
+			delayTaskMark();
 			return false;
 		}
 
@@ -393,7 +403,9 @@ namespace qk {
 
 		solveNextFrame(); // solve frame
 
-		_render->getCanvas()->swapBuffer();
+		if (_render->getCanvas()->swapBuffer()) {
+			delayTaskMark();
+		}
 
 #if PRINT_RENDER_FRAME_TIME
 		int64_t st2 = time_microsecond();

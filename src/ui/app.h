@@ -154,6 +154,8 @@ namespace qk {
 		Mutex          _mutex, _delayTasksMutex;
 		uint32_t       _tick, _timer; // tick check id and delay tasks timer id
 		List<Pair<Cb, int>> _delayTasks; // delay tasks
+		std::atomic_uint32_t _delayTaskMark; // mark delay task
+		bool _resolvingDelayTasks; // resolving delay tasks
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class UILock;

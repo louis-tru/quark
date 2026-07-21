@@ -33,37 +33,20 @@
 
 namespace qk {
 
+	void add_delay_task_for_app(Cb cb, bool recursion);
+
 	inline static bool is_not_Zero(const float radius[4]) {
 		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
 			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
 	}
 
-	struct PathvCacheInl: PathvCache {
-		void clear(int flags) {
-			PathvCache::clear(flags);
-		}
-		void clearExec() {
-			if (!_clearExecs || _clearExecs->length() == 0)
-				return;
-			for (auto &i: *_clearExecs) {
-				i->resolve();
-			}
-			_clearExecs->reset(0);
-		}
-	};
-
 	void clear_PathvCache(PathvCache *cache, int flags) {
-		static_cast<PathvCacheInl*>(cache)->clear(flags);
+		cache->clear(flags);
 	}
-
-	void clearExec_PathvCache(PathvCache *cache) {
-		static_cast<PathvCacheInl*>(cache)->clearExec();
- 	}
 
 	PathvCache::PathvCache(uint32_t maxCapacity, Render *render)
 		: _render(render), _capacity(0), _maxCapacity(maxCapacity)
-		, _clearExecs(new Array<Cb>) {
-	}
+	{}
 
 	PathvCache::~PathvCache() {
 		clearAll(true);
@@ -101,7 +84,7 @@ namespace qk {
 		Wrap<VertexData> *const*out;
 		if (_pathTriangles.get(hash, out))
 			return (*out)->base;
-		auto gb = new Wrap<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getTriangles(1),{{this,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
@@ -116,7 +99,7 @@ namespace qk {
 		Wrap<VertexData> *const *out;
 		if (_aaSideTriangle.get(key, out))
 			return (*out)->base;
-		auto gb = new Wrap<VertexData>{path.getAASideTriangle(radius, 1, onlyAASide),{{this,0,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getAASideTriangle(radius, 1, onlyAASide),{{this,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
@@ -129,7 +112,7 @@ namespace qk {
 	}
 
 	const RectPath& PathvCache::setRRectPathFromHash(uint64_t hash, RectPath&& rect) {
-		auto gb = new Wrap<RectPath>{std::move(rect),{{this,0,0,0}}};
+		auto gb = new Wrap<RectPath>{std::move(rect),{{this,0,0}}};
 		_capacity += gb->base.sizeOf();
 		return _rectPath.set(hash, gb)->base;
 	}
@@ -197,7 +180,7 @@ namespace qk {
 	}
 
 	const RectOutlinePath& PathvCache::setRRectOutlinePathFromHash(uint64_t hash, RectOutlinePath&& outline) {
-		auto gb = new Wrap<RectOutlinePath,4>{std::move(outline),{{this,0,0,0},{this,0,0,0},{this,0,0,0},{this,0,0,0}}};
+		auto gb = new Wrap<RectOutlinePath,4>{std::move(outline),{{this,0,0},{this,0,0},{this,0,0},{this,0,0}}};
 		_capacity +=
 			gb->base.top.sizeOf() +
 			gb->base.right.sizeOf() +
@@ -321,20 +304,10 @@ namespace qk {
 			Releasep(c);
 		});
 
-		Qk_ASSERT(_clearExecs, "clear callback is null");
-
 		if (destroy) {
-			_render->post_message(Cb([execs=_clearExecs,exec](auto e) {
-				for (auto &i: *execs)
-					i->resolve(); // execute clear callback
-				exec->resolve(); // execute clear callback
-				Release(execs); // release array
-			}));
-			_clearExecs = nullptr;
+			exec->resolve(); // execute clear callback
 		} else {
-			_render->post_message(Cb([execs=_clearExecs,exec](auto e) {
-				execs->push(exec); // add to render thread queue
-			}));
+			add_delay_task_for_app(exec, false);
 		}
 
 		Qk_CHECK(_normalizedPath.length() == 0);

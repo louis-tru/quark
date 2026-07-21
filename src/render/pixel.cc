@@ -125,7 +125,8 @@ namespace qk {
 			case kDXT4_ColorType:
 			case kDXT5_ColorType:
 			case kBC5_ColorType:
-			case kBC6_ColorType:
+			case kBC6_UFloat_ColorType:
+			case kBC6_SFloat_ColorType:
 			case kBC7_ColorType:
 			case kEAC_RG11_ColorType:
 				return {4, 4, 16};

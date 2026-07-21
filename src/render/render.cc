@@ -28,10 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <math.h>
+// #include <math.h>
 #include "../util/thread.h"
 #include "./render.h"
-#include "./gl/gl_render.h"
+#include "./source.h"
+#include "./pathv_cache.h"
 
 namespace qk {
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
@@ -51,22 +52,19 @@ namespace qk {
 	Sp<ImageSource> RenderResource::createTexture(Vec2 size, ColorType type, uint8_t flags) {
 		auto src = ImageSource::Make(PixelInfo{(int)size.x(), (int)size.y(), type, kPremul_AlphaType}, nullptr);
 		src->set_mipmap(flags & kMipmap_TextureFlags);
-		// create texture stat and set texture source
-		post_message(Cb([this, size, src=src.get(), type, flags](auto e) {
-			auto stat = createTextureStat(size, type, flags);
-			setTexUnsafe_SourceImage(src, &stat);
-		}, src.get())); // ref src to ensure texture stat is valid when cb is called
+		auto stat = createTextureStat(size, type, flags);
+		setTexUnsafe_SourceImage(src.get(), &stat);
 		return src;
 	}
 
 	// setting and use gpu vertex data
 	bool RenderBackend::useVertexData(const VertexData::ID *id) {
 		if (id) {
-			if (id->a) {
+			if (id->ptr) {
 				return true;
 			} else if (id->host->_render) {
 				if (id->host->_render->uploadVertexData(const_cast<VertexData::ID*>(id))) {
-					Qk_ASSERT_NE(id->a, 0, "create vertex data failed, gpu buffer id is empty");
+					Qk_ASSERT_NE(id->ptr, nullptr, "create vertex data failed, gpu buffer id is empty");
 					return true;
 				}
 			}

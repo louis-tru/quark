@@ -22,8 +22,7 @@ namespace qk {
 	class MetalRenderResource: public RenderResource {
 	public:
 		~MetalRenderResource();
-		void post_message(Cb cb) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
+		bool uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
 		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 		MTLPipeline getPipeline(MSLPipelineKind kind, BlendMode mode, MTLPixelFormat format);
@@ -53,15 +52,12 @@ namespace qk {
 	public:
 		~MetalRender() override;
 		void release() override;
-		void reload() override;
 		Canvas* createCanvas(Options opts) override;
 		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
-		bool uploadVertexData(VertexData::ID *id) override;
+		bool uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
+		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadVertexData(VertexData::ID *id) override;
-		virtual void lock(); // lock render
-		virtual void unlock(); // unlock render
 	protected:
 		explicit MetalRender(Options opts);
 	// fields:

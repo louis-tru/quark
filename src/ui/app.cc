@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "src/ui/app.h"
 #include "./ui.h"
 #include "../render/font/pool.h"
 #include "../render/source.h"
@@ -64,6 +65,8 @@ namespace qk {
 		, _activeWindow(nullptr)
 		, _clipboard(nullptr)
 		, _tick(0), _timer(0)
+		, _delayTaskMark(0)
+		, _resolvingDelayTasks(false)
 	{
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
 		check_is_first_loop();
@@ -100,7 +103,7 @@ namespace qk {
 		// start tick check
 		_tick = _loop->tick_prepare(Cb(&Func::tick, this), -1); // every loop tick
 		// start delay tasks timer
-		_timer = _loop->timer(Cb(&Func::timer, this), 5e3, -1); // 5 second timer
+		_timer = _loop->timer(Cb(&Func::timer, this), 1e3, -1); // 1 second timer
 	}
 
 	Application::~Application() {
@@ -273,34 +276,50 @@ namespace qk {
 		_activeWindow = win;
 	}
 
-	void AppInl::add_delay_task(Cb cb) {
+	void AppInl::add_delay_task(Cb cb, bool recursion) {
+		if (_resolvingDelayTasks && !recursion) {
+			cb->resolve(); // If currently resolving delay tasks, then execute the callback directly
+		} else {
 		_delayTasksMutex.lock();
 		_delayTasks.pushBack({cb,2});
 		_delayTasksMutex.unlock();
+		}
+	}
+
+	void add_delay_task_for_app(Cb cb, bool recursion) {
+		Inl_Application(shared_app())->add_delay_task(cb, recursion);
 	}
 
 	void AppInl::resolve_delay_tasks(bool all) {
 		if (_delayTasks.length() == 0)
 			return;
+		auto mark = _delayTaskMark.load(std::memory_order_relaxed);
+		for (auto win :_windows) {
+			if (win->_delayTaskMark.load(std::memory_order_relaxed) != mark)
+				return; // wait for at least one frame to be rendered
+		}
 		_delayTasksMutex.lock();
 		auto tasks = std::move(_delayTasks);
 		_delayTasksMutex.unlock();
+		_resolvingDelayTasks = true;
 		if (all) {
 			for (auto t: tasks)
 				t.first->resolve();
-			return;
-		}
-		for (auto begin = tasks.begin(); begin != tasks.end();) {
-			auto t = begin++;
-			if (--t->second == 0) {
-				t->first->resolve();
-				tasks.erase(t);
+		} else {
+			for (auto begin = tasks.begin(); begin != tasks.end();) {
+				auto t = begin++;
+				if (--t->second == 0) {
+					t->first->resolve();
+					tasks.erase(t);
+				}
+			}
+			if (tasks.length()) {
+				_delayTasksMutex.lock();
+				_delayTasks.splice(_delayTasks.begin(), tasks); // put back
+				_delayTasksMutex.unlock();
 			}
 		}
-		if (tasks.length()) {
-			_delayTasksMutex.lock();
-			_delayTasks.splice(_delayTasks.begin(), tasks); // put back
-			_delayTasksMutex.unlock();
-		}
+		_delayTaskMark.fetch_add(1, std::memory_order_relaxed); // mark delay task
+		_resolvingDelayTasks = false;
 	}
 }

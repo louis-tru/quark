@@ -37,13 +37,39 @@
 #include "./gl_canvas.h"
 
 namespace qk {
+
+	struct GLTexture {
+		GLuint id = 0;
+	};
+
+	struct GLVertexBuffer {
+		GLuint vbo = 0;
+		GLuint vao = 0;
+	};
+
+	inline GLuint gl_get_vertex_vao(void *ptr) {
+		return static_cast<GLVertexBuffer*>(ptr)->vao;
+	}
+
+	inline GLuint gl_get_vertex_vbo(void *ptr) {
+		return static_cast<GLVertexBuffer*>(ptr)->vbo;
+	}
+
+	inline GLuint gl_get_texture(const ImageSource* src, uint32_t index = 0) {
+		return static_cast<GLTexture*>(src->texture(index)->ptr())->id;
+	}
+
+	inline GLuint gl_get_texture_from(const ImageSource* src, GLuint _else) {
+		return src ? static_cast<GLTexture*>(src->texture(0)->ptr())->id : _else;
+	}
+
 	/**
 	 * Global render resource, not thread safe, called in the post message callback of thread
 	 */
-	class GLRenderResource: public RenderResource {
+	class GLRenderResource: public RenderResource, public PostMessage {
 	public:
 		void post_message(Cb cb) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
+		bool uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
 		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 	protected:
@@ -53,15 +79,16 @@ namespace qk {
 	};
 
 	// Not thread safe, called in the rendering thread
-	class GLRender: public RenderBackend {
+	class GLRender: public RenderBackend, public PostMessage {
 	public:
 		~GLRender() override;
 		void release() override;
 		void reload() override;
 		Canvas* createCanvas(Options opts) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) override;
-		bool uploadVertexData(VertexData::ID *id) override;
+		bool uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
+		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render thread
 		virtual void unlock(); // unlock render
@@ -71,7 +98,6 @@ namespace qk {
 		bool use_texture(ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint); // temp tex
 		void set_texture_param(GLuint tex, int dstSlot, const PaintImage* paint);
 		GLuint get_tex_sampler(const PaintImage* paint);
-		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 	protected:
 		explicit GLRender(Options opts);
 		// define props

@@ -50,7 +50,6 @@ namespace qk {
 	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
 	GLuint gl_new_texid();
-	void clearExec_PathvCache(PathvCache *cache);
 
 	constexpr float whiteColor[] = {1.0f,1.0f,1.0f,1.0f};
 	constexpr float emptyColor[] = {0.0f,0.0f,0.0f,0.0f};
@@ -333,13 +332,13 @@ namespace qk {
 
 		void setColorBuffer(ImageSource *target) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-				target ? target->texture(0)->id() : _canvas->_outTex, 0
+				gl_get_texture_from(target, _canvas->_outTex), 0
 			);
 		}
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
 			if (Render::useVertexData(vertex.id)) {
-				glBindVertexArray(vertex.id->a); // use vao
+				glBindVertexArray(gl_get_vertex_vao(vertex.id->ptr)); // use vao
 				glUseProgram(shader->shader); // use shader program
 			} else /*if (vertex.vertex.length())*/ {
 				// copy vertex data to gpu and use shader
@@ -560,7 +559,7 @@ namespace qk {
 				};
 				glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboClip);
 				glBufferData(GL_UNIFORM_BUFFER, sizeof(clipStat), &clipStat, GL_DYNAMIC_DRAW);
-				glBindTexture(GL_TEXTURE_2D, clip->mask.get()->texture(0)->id());
+				glBindTexture(GL_TEXTURE_2D, gl_get_texture(clip->mask.get()));
 			} else {
 				glBindTexture(GL_TEXTURE_2D, 0); // unbind texture if no clip
 			}
@@ -575,7 +574,7 @@ namespace qk {
 			auto offset = (srcOffset - dst.begin) / src->size();
 			glActiveTexture(GL_TEXTURE0 + cp.imageSlot);
 			glBindSampler(cp.imageSlot, 0);
-			glBindTexture(GL_TEXTURE_2D, src->texture(0)->id());
+			glBindTexture(GL_TEXTURE_2D, gl_get_texture(src));
 			cp.use(sizeof(float) * 12, vertex);
 			glUniform2fv(cp.pc_iResolution, 1, resolution.val);
 			glUniform2fv(cp.pc_oResolution, 1, resolution.val);
@@ -607,7 +606,7 @@ namespace qk {
 		}
 
 		void blurFilterBeginCall(BlurFilterBeginCmd* cmd) {
-			auto texA = cmd->tmpA->texture(0)->id();
+			auto texA = gl_get_texture(cmd->tmpA.get());
 			Qk_ASSERT(texA, "blurFilterBeginCall tmpA texture is null");
 			// output to texture buffer then do post processing
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texA, 0);
@@ -630,8 +629,8 @@ namespace qk {
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
 		void blurFilterEndCall(BlurFilterEndCmd *cmd) {
-			auto texA = cmd->tmpA->texture(0)->id();
-			auto texB = cmd->tmpB->texture(0)->id();
+			auto texA = gl_get_texture(cmd->tmpA.get());
+			auto texB = gl_get_texture(cmd->tmpB.get());
 			Qk_ASSERT(texA && texB, "blurFilterEndCall temp texture is null");
 			auto offset = cmd->bounds.begin.max(0);
 			auto begin = cmd->bounds.begin, end = cmd->bounds.end;
@@ -720,23 +719,23 @@ namespace qk {
 			auto dst = cmd->dest.get();
 			float w = dst->width(), h = dst->height();
 			auto dstSize = Vec2(w, h);
-			auto srcTex = cmd->src ? cmd->src->texture(0)->id(): _canvas->_outTex;
+			auto srcTex = gl_get_texture_from(cmd->src.get(), _canvas->_outTex);
 			Qk_ASSERT(srcTex, "readImageCall src texture is null");
 
-			auto texStat = dst->texture(0);
 			TexStat storeStat;
-			GLuint tex = texStat->id();
-			if (!tex) {
+			auto texStat = dst->texture(0);
+			auto ptr = static_cast<GLTexture*>(texStat->ptr());
+			if (!ptr) {
 				texStat = &storeStat;
-				tex = gl_new_texid();
-				storeStat.set_id(tex);
+				storeStat.set_ptr(ptr = new GLTexture{gl_new_texid()});
 			}
+			auto id = ptr->id;
 			auto &cp = _render->_shaders.cp;
 			auto iformat = gl_get_texture_internalformat(dst->type());
 			auto format = gl_get_texture_format(dst->type());
 			auto type = gl_get_texture_data_type(dst->type());
 			glActiveTexture(GL_TEXTURE0 + cp.imageSlot);
-			glBindTexture(GL_TEXTURE_2D, tex); // bind texture to allocate storage
+			glBindTexture(GL_TEXTURE_2D, id); // bind texture to allocate storage
 			glBindSampler(cp.imageSlot, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
@@ -746,7 +745,7 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
 
 			// use shader and set vertex data to draw a rect
 			float x2 = cmd->canvasSize[0], y2 = cmd->canvasSize[1];
@@ -763,7 +762,7 @@ namespace qk {
 
 			// generate mipmap if needed
 			if (dst->mipmap()) {
-				glBindTexture(GL_TEXTURE_2D, tex);
+				glBindTexture(GL_TEXTURE_2D, id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
@@ -772,19 +771,19 @@ namespace qk {
 
 		void outputImageBeginCall(ImageSource* dst) {
 			auto s = _canvas->_surfaceSize; // surface size
-			auto tex = dst->texture(0);
-			GLuint id = tex->id();
-			TexStat newTex;
-			if (id) {
+			TexStat storeStat;
+			auto texStat = dst->texture(0);
+			auto ptr = static_cast<GLTexture*>(texStat->ptr());
+			if (ptr) {
 				if (s == dst->info().size()) {
-					glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+					glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ptr->id, 0);
 					return; // already allocated with right size, just return
 				}
 			} else {
-				tex = &newTex;
-				id = gl_new_texid();
-				newTex.set_id(id);
+				texStat = &storeStat;
+				storeStat.set_ptr(ptr = new GLTexture{gl_new_texid()});
 			}
+			auto id = ptr->id;
 			auto iformat = gl_get_texture_internalformat(dst->type());
 			auto format = gl_get_texture_format(dst->type());
 			auto type = gl_get_texture_data_type(dst->type());
@@ -794,16 +793,16 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, s[0], s[1], 0, format, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
-			setTex_SourceImage(dst, {int(s[0]),int(s[1]),dst->type(),dst->info().alphaType()}, tex);
+			setTex_SourceImage(dst, {int(s[0]),int(s[1]),dst->type(),dst->info().alphaType()}, texStat);
 		}
 
 		void outputImageEndCall(ImageSource* exit, ImageSource* next) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-				next ? next->texture(0)->id(): _canvas->_outTex, 0);
+				gl_get_texture_from(next, _canvas->_outTex), 0);
 			Qk_ASSERT(exit, "outputImageEndCall exit image is null");
 			if (exit->mipmap()) {
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, exit->texture(0)->id());
+				glBindTexture(GL_TEXTURE_2D, gl_get_texture(exit));
 				glBindSampler(1, 0);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -836,7 +835,6 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			clearExec_PathvCache(srcC->_cache); // clear @clear mark
 		}
 
 		void flushSubcanvas(const PaintImage *paint) {
@@ -956,6 +954,11 @@ namespace qk {
 	void GLC_CmdPack::flush() {
 		if (!isEmpty())
 			_this->callCmds();
+	}
+
+	void GLC_CmdPack::clear() {
+		if (!isEmpty())
+			_this->clearCmds();
 	}
 
 	void GLC_CmdPack::setMatrix() {

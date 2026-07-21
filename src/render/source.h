@@ -31,8 +31,6 @@
 #ifndef __quark_render_source__
 #define __quark_render_source__
 
-#include "../util/util.h"
-#include "../util/string.h"
 #include "../util/event.h"
 #include "./pixel.h"
 #include "../util/thread.h"
@@ -51,14 +49,8 @@ namespace qk {
 	 */
 	struct TexStat {
 		std::atomic<uintptr_t> handle; //!< Atomic handle to support concurrent access and updates.
-		uint32_t id() const { //!< Generic texture identifier (e.g., OpenGL texture ID).
-			return uint32_t(handle.load(std::memory_order_acquire));
-		}
 		void* ptr() const { //!< Generic pointer for backends that use pointer-based texture handles.
 			return reinterpret_cast<void*>(handle.load(std::memory_order_acquire));
-		}
-		void set_id(uint32_t v) {
-			handle.store(uintptr_t(v), std::memory_order_release);
 		}
 		void set_ptr(const void* p) {
 			handle.store(reinterpret_cast<uintptr_t>(p), std::memory_order_release);
@@ -68,7 +60,6 @@ namespace qk {
 			return *this;
 		}
 		explicit TexStat(const void *h): handle(reinterpret_cast<uintptr_t>(h)) {}
-		explicit TexStat(uint32_t id): handle(id) {}
 		explicit TexStat(): handle(0) {}
 		TexStat(const TexStat& other): handle(other.handle.load(std::memory_order_acquire)) {}
 	};

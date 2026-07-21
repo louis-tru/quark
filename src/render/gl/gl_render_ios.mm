@@ -112,6 +112,7 @@ class IosGLRender final: public GLRender, public RenderSurface {
 
 	void post_message(Cb cb) override {
 		Qk_ASSERT(_ctx, "Render context is null. Cannot post message.");
+		if (!_ctx) return;
 		// Send it directly to the main thread,
 		// because iOS renders everything on the main thread.
 		post_message_main(cb, false);

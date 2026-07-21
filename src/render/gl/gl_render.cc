@@ -30,6 +30,7 @@
 
 #include "./gl_render.h"
 #include "./gl_command.h"
+#include "src/util/thread.h"
 
 #ifndef GL_APPLE_texture_format_BGRA8888
 #define GL_APPLE_texture_format_BGRA8888 1
@@ -375,78 +376,100 @@ namespace qk {
 		// glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-	bool gl_new_texture_stat(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
+	bool gl_upload_texture(Pixel *pix, int levels, TexStat *tex, bool mipmap, PostMessage *msg) {
 		Qk_ASSERT_GT(levels, 0, "Levels must be greater than 0");
-		if ( !pix || pix->length() == 0 ) {
+		if ( !pix || pix->length() == 0 )
 			return false;
-		}
 
-		ColorType type = pix->type();
-		GLint iformat = gl_get_texture_internalformat(type);
+		GLint iformat = gl_get_texture_internalformat(pix->type());
 		if (!iformat)
 			return false;
 
-		GLuint id = tex->id();
-		if (!id) { // new texture
-			id = gl_new_texid();
-			tex->set_id(id);
+		auto ptr = static_cast<GLTexture*>(tex->ptr());
+		if (!ptr) { // new texture
+			ptr = new GLTexture{0};
+			tex->set_ptr(ptr);
 		}
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, id);
+
+		Array<Pixel> tmp(levels);
+		for (int i = 0; i < levels; i++) {
+			tmp[i] = std::move(pix[i]);
+		}
+		msg->post_message(Cb([pix=std::move(tmp),levels,mipmap,ptr,iformat](auto e) {
+			auto type = pix[0].type();
+			auto id = ptr->id;
+			if (!id) {
+				ptr->id = id = gl_new_texid();
+			}
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, id);
 
 #if defined(GL_EXT_texture_filter_anisotropic)
-		//  GLfloat largest;
-		//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
-		//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
+			//  GLfloat largest;
+			//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
+			//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
 #endif
+			// Use tightly packed pixel rows without alignment padding.
+			// This avoids row misalignment issues for formats like RGB888 or odd texture widths.
+			// GL default unpack alignment is 4 bytes.
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Pixel::bytes_per_pixel(type)
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		// Use tightly packed pixel rows without alignment padding.
-		// This avoids row misalignment issues for formats like RGB888 or odd texture widths.
-		// GL default unpack alignment is 4 bytes.
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Pixel::bytes_per_pixel(type)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-		if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
-			for (int i = 0; i < levels; i++) {
-				auto it = pix + i;
-				glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
-															it->width(),
-															it->height(), 0/*border*/, it->buffer().length(), it->val());
-			}
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
-		} else {
-			GLint format = gl_get_texture_format(type);
-			GLint dtype = gl_get_texture_data_type(type);
-			for (int i = 0; i < levels; i++) {
-				auto it = pix + i;
-				glTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
-										it->width(),
-										it->height(), 0/*border*/, format, dtype, it->val());
-			}
-			if (levels == 1 && mipmap) { // levels == 1 && mipmap
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64); // allow auto mipmap generation
-				glGenerateMipmap(GL_TEXTURE_2D);
+			if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
+				for (int i = 0; i < levels; i++) {
+					auto it = pix.val() + i;
+					glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
+																it->width(),
+																it->height(), 0/*border*/, it->buffer().length(), it->val());
+				}
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
 			} else {
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1); // 0 => levels - 1
+				GLint format = gl_get_texture_format(type);
+				GLint dtype = gl_get_texture_data_type(type);
+				for (int i = 0; i < levels; i++) {
+					auto it = pix.val() + i;
+					glTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
+											it->width(),
+											it->height(), 0/*border*/, format, dtype, it->val());
+				}
+				if (levels == 1 && mipmap) { // levels == 1 && mipmap
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64); // allow auto mipmap generation
+					glGenerateMipmap(GL_TEXTURE_2D);
+				} else {
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1); // 0 => levels - 1
+				}
 			}
-		}
+		}));
 
 		return true;
 	}
 
-	TexStat gl_new_texture_stat_with(int width, int height, ColorType type, bool mipmap) {
-		auto id = gl_new_texid();
-		gl_tex_image2D_null(id, width, height, type, 0, mipmap);
-		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
-		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		return TexStat(id);
+	void gl_unload_texture(TexStat *tex, PostMessage *msg) {
+		auto ptr = static_cast<GLTexture*>(tex->ptr());
+		if (!ptr) return;
+		msg->post_message(Cb([](auto e, auto ptr) {
+			glDeleteTextures(1, &ptr->id);
+			delete ptr;
+		}, ptr));
+		tex->set_ptr(nullptr);
+	}
+
+	TexStat gl_new_texture_stat_with(int width, int height, ColorType type, bool mipmap, PostMessage *msg) {
+		auto ptr = new GLTexture{0};
+		msg->post_message(Cb([ptr,width,height,type,mipmap](auto e) {
+			ptr->id = gl_new_texid();
+			gl_tex_image2D_null(ptr->id, width, height, type, 0, mipmap);
+			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
+			gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		}));
+		return TexStat(ptr);
 	}
 
 	void gl_set_framebuffer_renderbuffer(GLuint rbo, Vec2 size, GLenum iformat, GLenum attachment) {
@@ -466,27 +489,29 @@ namespace qk {
 		}
 	}
 
-	void gl_new_vertex_data(VertexData::ID *id) {
-		auto &vertex = id->data->vertex;
-		glGenVertexArrays(1, &id->a);
-		glGenBuffers(1, &id->b);
-		glBindVertexArray(id->a);
-		glBindBuffer(GL_ARRAY_BUFFER, id->b);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
-		glEnableVertexAttribArray(1);
-		glBufferData(GL_ARRAY_BUFFER, vertex.size(), vertex.val(), GL_STREAM_DRAW);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLRenderResource* getSharedRenderGLResource() {
+		return static_cast<GLRenderResource*>(getSharedRenderResource());
 	}
 
-	void gl_delete_vertex_data(VertexData::ID *id) {
-		glDeleteVertexArrays(1, &id->a);
-		glDeleteBuffers(1, &id->b);
-		id->a = 0;
-		id->b = 0;
+	// --------------------------------------------------
+
+	TexStat GLRenderResource::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
+		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags, this);
 	}
+
+	bool GLRenderResource::uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) {
+		return gl_upload_texture(pix, levels, tex, mipmap, this);
+	}
+
+	void GLRenderResource::unloadTexture(TexStat *tex) {
+		gl_unload_texture(tex, this);
+	}
+
+	void GLRenderResource::post_message(Cb cb) {
+		_loop->post(cb);
+	}
+
+	// --------------------------------------------------
 
 	GLRender::GLRender(Options opts)
 		: Render(opts), _glcanvas(nullptr), _blendMode(kInvalid_BlendMode)
@@ -538,11 +563,6 @@ namespace qk {
 		_canvas = nullptr;
 	}
 
-	void GLRender::lock() {
-	}
-	void GLRender::unlock() {
-	}
-
 	void GLRender::reload() {
 		lock(); // safe reload, avoid render thread is calling onRenderBackendDisplay while reload
 		_surfaceSize = getSurfaceSize();
@@ -568,15 +588,15 @@ namespace qk {
 		auto index = paint->srcIndex + srcSlot;
 		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
 		auto tex = src->texture(index);
-		if (!tex->id()) {
+		if (!tex->ptr()) {
 			// mark texture for this render, and try to create texture immediately
 			src->markAsTexture(this);
-			if (!tex->id()) {
+			if (!tex->ptr()) {
 				Qk_DLog("GL texture is not ready for source: %p, srcIndex: %d, slot: %d", src, paint->srcIndex, srcSlot);
 				return false; // texture is not ready, caller should try again later
 			}
 		}
-		set_texture_param(tex->id(), dstSlot, paint);
+		set_texture_param(static_cast<GLTexture*>(tex->ptr())->id, dstSlot, paint);
 		return true;
 	}
 
@@ -613,57 +633,64 @@ namespace qk {
 	}
 
 	TexStat GLRender::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
-		if (isReleased())
-			return TexStat(); // Render is release, do not create new texture
-		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags);
+		if (!_canvas)
+			return TexStat();
+		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags, this);
 	}
 
-	bool GLRender::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
-		if (isReleased()) return false; // Render is release, do not create new texture
-		return gl_new_texture_stat(pix, levels, tex, mipmap);
+	bool GLRender::uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) {
+		if (!_canvas)
+			return false;
+		return gl_upload_texture(pix, levels, tex, mipmap, this);
 	}
 
 	void GLRender::unloadTexture(TexStat *tex) {
-		if (isReleased()) return;
-		// Render is not release, delete texture
-		GLuint id = tex->id();
-		tex->set_id(0);
-		if (id)
-			glDeleteTextures(1, &id);
+		if (_canvas) {
+			gl_unload_texture(tex, this);
+		} else {
+			// if render is release, we can unload texture from shared render resource
+			getSharedRenderResource()->unloadTexture(tex);
+		}
 	}
 
 	bool GLRender::uploadVertexData(VertexData::ID *id) {
-		if (isReleased()) return false;
-		if (!id->a)
-			gl_new_vertex_data(id);
+		if (id->ptr)
+			return true;
+		if (!_canvas)
+			return false;
+		auto vertex = new GLVertexBuffer{0,0};
+		id->ptr = vertex;
+		post_message(Cb([vertex,data=id->data->vertex](auto &e) {
+			glGenVertexArrays(1, &vertex->vao);
+			glGenBuffers(1, &vertex->vbo);
+			glBindVertexArray(vertex->vao);
+			glBindBuffer(GL_ARRAY_BUFFER, vertex->vbo);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vec3), (const GLvoid*)sizeof(Vec2));
+			glEnableVertexAttribArray(1);
+			glBufferData(GL_ARRAY_BUFFER, data.size(), data.val(), GL_STREAM_DRAW);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}));
 		return true;
 	}
 
 	void GLRender::unloadVertexData(VertexData::ID *id) {
-		if (isReleased()) return;
-		if (id->a) {
-			gl_delete_vertex_data(id);
+		if (!id->ptr) return;
+		auto vertex = static_cast<GLVertexBuffer*>(id->ptr);
+		if (_canvas) {
+			post_message(Cb([](auto e, auto vertex) {
+				glDeleteVertexArrays(1, &vertex->vao);
+				glDeleteBuffers(1, &vertex->vbo);
+				delete vertex;
+			}, vertex));
+		} else {
+			getSharedRenderGLResource()->post_message(Cb([](auto e, auto vertex) {
+				glDeleteBuffers(1, &vertex->vbo);
+				delete vertex;
+			}, vertex));
 		}
-	}
-
-	// --------------------------------------------------
-
-	TexStat GLRenderResource::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
-		return gl_new_texture_stat_with(size[0], size[1], type, flags & kMipmap_TextureFlags);
-	}
-
-	bool GLRenderResource::uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) {
-		return gl_new_texture_stat(pix, levels, tex, mipmap);
-	}
-
-	void GLRenderResource::unloadTexture(TexStat *tex) {
-		GLuint id = tex->id();
-		tex->set_id(0);
-		if (id)
-			glDeleteTextures(1, &id);
-	}
-
-	void GLRenderResource::post_message(Cb cb) {
-		_loop->post(cb);
+		id->ptr = nullptr;
 	}
 }

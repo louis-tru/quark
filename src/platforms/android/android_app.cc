@@ -101,10 +101,4 @@ extern "C" {
 		shared_app()->activeWindow()->dispatch()->keyboard()->
 			dispatch(keycode, ascii, down, false, repeat, device, source);
 	}
-
-	Qk_EXPORT int main(int argc, char* argv[]) {
-		// TODO: Maybe it will be useful
-		Application::runMain(argc, argv, true);
-		return 0;
-	}
 }

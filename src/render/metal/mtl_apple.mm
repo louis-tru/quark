@@ -82,7 +82,6 @@ public:
 		stopDisplay();
 		unlock();
 		MetalRender::release();
-		resolvedMsg(true);
 		_view       = nil;
 		_metalLayer = nil;
 		Object::release();
@@ -96,53 +95,12 @@ public:
 		return this;
 	}
 
-	void lock() override {
+	void lock() {
 		_mutex.lock();
 	}
 
-	void unlock() override {
+	void unlock() {
 		_mutex.unlock();
-	}
-
-	void post_message(Cb cb) override {
-#if Qk_iOS
-		// on iOS, we can post message to main thread directly,
-		// since CADisplayLink will callback on main thread
-		post_message_main(cb, false);
-#else
-		if (_view && isRenderThread()) {
-			cb->resolve(); // immediately resolve
-		} else if (!_isRun) { // is not running
-			if (_mutexMsg.try_lock()) { // releaseing render, try to lock msg mutex
-				_msg.push(cb);
-				_mutexMsg.unlock();
-			} else {
-				cb->resolve(); // if failed to lock, immediately resolve the message
-			}
-		} else {
-			_mutexMsg.lock();
-			_msg.push(cb);
-			_mutexMsg.unlock();
-		}
-#endif
-	}
-
-	void resolvedMsg(bool destroy) {
-		if (destroy) {
-			_mutexMsg.lock();
-			if (_msg.length()) {
-				lock();
-				for (auto &i : _msg) i->resolve();
-				_msg.clear();
-				unlock();
-			}
-			_mutexMsg.unlock();
-		} else if (_msg.length()) {
-			_mutexMsg.lock();
-			auto msg(std::move(_msg));
-			_mutexMsg.unlock();
-			for ( auto &i : msg ) i->resolve();
-		}
 	}
 
 	Vec2 getSurfaceSize() override {
@@ -165,7 +123,6 @@ public:
 			return;
 		lock();
 		_threadId = thread_self_id();
-		resolvedMsg(false);
 
 		Qk_ASSERT(_metalLayer, "Metal layer is null");
 
@@ -211,8 +168,11 @@ public:
 	}
 
 	void reload() override {
-		_metalLayer.drawableSize = CGSizeFromVec2(getSurfaceSize());
-		MetalRender::reload();
+		lock();
+		_surfaceSize = getSurfaceSize();
+		_metalLayer.drawableSize = CGSizeFromVec2(_surfaceSize);
+		_delegate->onRenderBackendReload(_surfaceSize);
+		unlock();
 	}
 
 #if Qk_MacOS
@@ -335,8 +295,6 @@ private:
 //fields:
 	MTLSurfaceView *_view;
 	CAMetalLayer   *_metalLayer;
-	Array<Cb>       _msg;
-	Mutex           _mutexMsg;
 	Mutex           _mutex;
 	qk::ThreadID    _threadId;
 	bool            _isRun;

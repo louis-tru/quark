@@ -226,6 +226,7 @@ namespace qk {
 		Range getDisplayRange(Vec2 size); // get surface display range
 		void afterDisplay();
 		bool tryClose(); // destroy window and protform window
+		void delayTaskMark();
 		static void flushAsyncCall(); // flush all asynchronous calls for all windows, used when app destroyed
 
 		/**
@@ -240,6 +241,7 @@ namespace qk {
 		Painter        *_painter;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
+		std::atomic_uint32_t _delayTaskMark; // delay task mark
 		uint32_t       _fspTick;
 		int64_t        _fspTime;
 		int64_t        _beginTime;

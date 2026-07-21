@@ -219,6 +219,7 @@ namespace qk {
 		~GLC_CmdPack();
 		bool isEmpty();
 		void flush();
+		void clear();
 		void setMatrix();
 		void setBlendMode();
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable

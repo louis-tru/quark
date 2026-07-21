@@ -25,6 +25,44 @@ The Android Vulkan backend is being rebuilt from its previous empty shell.
   `vk_shaders.h/.cc`, providing the shader-module input for the upcoming basic
   graphics pipelines.
 
+## 2026-07-21 Vulkan Shared Resource Upload
+
+The Vulkan backend now has a platform-independent shared resource foundation.
+
+- `vk_device.cc` owns instance/device selection and prefers a capable graphics
+  device without requiring a platform surface during shared-resource startup.
+- `VulkanRenderResource` owns one application-wide graphics command queue.
+  Windows may record through independent command pools, while submit/present
+  operations on the shared queue must use the common commit mutex.
+- Texture creation covers the current Qk color/compressed formats, allocates
+  device-local images, uploads through host-visible staging buffers, records
+  image layout transitions, and can generate mipmaps through
+  `VulkanTexture::generateMipmaps()`.
+- Cached vertex data now uses a device-local Vulkan vertex buffer and the same
+  shared staging/command submission path.
+- Upload submissions use pooled fences and non-blocking status checks to release
+  staging buffers, staging memory, and one-time command buffers. Long-lived
+  texture and vertex resources use Qk's existing frame-aware App delay tasks for
+  deferred destruction.
+- The shared upload path is intentionally serialized with a coarse resource
+  mutex. Resource upload frequency is not expected to make this a bottleneck.
+  If profiling later shows allocation pressure, optimize `VkDeviceMemory` with
+  per-memory-type suballocation; do not add a second upload architecture first.
+
+Rendering pipelines, descriptor binding, Vulkan Canvas drawing, and
+platform-specific surface/swapchain integration remain incomplete.
+
+## 2026-07-17 Minimal Vulkan Starting Point
+
+`test/android/vk/` is the preferred readable starting point for Vulkan work and
+is included as a test module by the existing Android test project. It is an
+Android NativeActivity test and does not use the `src/render/vulkan` backend.
+The first version deliberately implements only instance/surface/device
+creation, a FIFO swapchain, a clear-only render pass, command submission, and
+presentation. It uses `vkQueueWaitIdle()` to keep synchronization obvious; add
+proper frame fences only when evolving this test beyond the initial
+learning/validation stage.
+
 ## 2026-07-11 Scroll Physics Refresh
 
 The old scroll momentum path amplified render-thread stalls because it measured

@@ -51,7 +51,7 @@ namespace qk {
 		void triggerForeground(Window *win);
 		void setActiveWindow(Window *win);
 		void triggerOrientation();
-		void add_delay_task(Cb cb); // add delay task
+		void add_delay_task(Cb cb, bool recursion = true); // add delay task
 		void resolve_delay_tasks(bool all); // resolve delay tasks
 		void initPlatform(); // call platform code
 	};

@@ -55,8 +55,6 @@ namespace qk {
 			res->unloadTexture(tex+i);
 	}
 
-	RenderResource* getSharedRenderResource();
-
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
 		void setTex(cPixelInfo &info, const TexStat *tex) {
@@ -67,7 +65,7 @@ namespace qk {
 		void setTexUnsafe(const TexStat *tex) {
 			if (!_res)
 				_res = getSharedRenderResource();
-			if (_tex != tex && _tex[0].id())
+			if (_tex != tex && _tex[0].ptr())
 				_res->unloadTexture(_tex);
 			if (_pixels.length() == 0) {
 				_pixels.push(PixelInfo(_info)); // if no pixel data, create a pixel info from info
@@ -245,45 +243,35 @@ namespace qk {
 	}
 
 	void ImageSource::reloadTexture(RenderResource *res) {
-		// set gpu texture, Must be processed in the rendering thread
-		struct Running: Cb::Core {
-			Running(ImageSource* s, RenderResource* r): source(s), res(r) {
+		AutoSharedMutexExclusive ame(_onState);
+		auto self = this;
+		auto &pixels = self->_pixels;
+		if (!pixels.length() || !pixels[0].length())
+			return;
+		int levels = 1; // 默认每个pixel做为一个独立纹理层并自动动生成mipmap，
+		// 如果满足条件则使用 pixels 中的多层数据作为 mipmap levels 数据
+		int texLen = I32::min(pixels.length(), 8);
+		if (texLen > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
+			if (pixels[0].width() >> 1 == pixels[1].width()) {
+				levels = texLen; // mipmap levels
+				texLen = 1; // 使用第一层作为主纹理，其他层作为 mipmap 数据，并且只创建一个纹理对象
 			}
-			void call(Data& evt) override {
-				AutoSharedMutexExclusive ame(source->_onState);
-				auto self = source.get();
-				auto &pixels = self->_pixels;
-				if (!pixels.length() || !pixels[0].length())
-					return;
-				int levels = 1; // 默认每个pixel做为一个独立纹理层并自动动生成mipmap，
-				// 如果满足条件则使用 pixels 中的多层数据作为 mipmap levels 数据
-				int texLen = I32::min(pixels.length(), 8);
-				if (texLen > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
-					if (pixels[0].width() >> 1 == pixels[1].width()) {
-						levels = texLen; // mipmap levels
-						texLen = 1; // 使用第一层作为主纹理，其他层作为 mipmap 数据，并且只创建一个纹理对象
-					}
-				}
+		}
 
-				int i = 0;
-				// create texture for each pixel, and delete old texture if exist
-				while (i < texLen) {
-					auto tex = self->_tex + i;
-					res->uploadTexture(pixels.val() + i, levels, tex, self->_mipmap);
-					i++;
-				}
+		int i = 0;
+		// create texture for each pixel, and delete old texture if exist
+		while (i < texLen) {
+			auto tex = self->_tex + i;
+			res->uploadTexture(pixels.val() + i, levels, tex, self->_mipmap);
+			i++;
+		}
 
-				while(texLen < 8) {
-					if (!self->_tex[texLen].id())
-						break; // no more texture
-					res->unloadTexture(self->_tex + (texLen++));
-				}
-				self->_pixels = copyInfo(self->_pixels); // delete pixels data as save memory space
-			}
-			Sp<ImageSource> source;
-			RenderResource *res;
-		};
-		res->post_message(Cb(new Running(this, res)));
+		while(texLen < 8) {
+			if (!self->_tex[texLen].ptr())
+				break; // no more texture
+			res->unloadTexture(self->_tex + (texLen++));
+		}
+		self->_pixels = copyInfo(self->_pixels); // delete pixels data as save memory space
 	}
 
 	void ImageSource::unload() {
@@ -312,22 +300,15 @@ namespace qk {
 			// as texture, Must be processed in the rendering thread
 
 			if (destroy) {
-				TexStat tex[8];
-				memcpy(tex, _tex, sizeof(_tex));
+				unloadTextures(_res, _tex);
 				memset(_tex, 0, sizeof(_tex)); // clear texture state
-				_res->post_message(Cb([res=_res,tex](auto e) mutable { // to call from Rt
-					unloadTextures(res, tex);
-				}));
-				// Qk_DLog("ImageSource is destroyed, unload texture later, src: %p", this);
 			}
 		}
 
 		// avoiding deadlock
 		if (!destroy) {
-			_res->post_message(Cb([this](auto e) { // to call from Rt
-				AutoSharedMutexExclusive ame(_onState);
-				unloadTextures(_res, _tex);
-			}, this));
+			AutoSharedMutexExclusive ame(_onState);
+			unloadTextures(_res, _tex);
 		}
 	}
 

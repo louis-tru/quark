@@ -11,83 +11,91 @@
 #ifndef __quark_render_vulkan_vk_render__
 #define __quark_render_vulkan_vk_render__
 
-#if Qk_ANDROID && !defined(VK_USE_PLATFORM_ANDROID_KHR)
-# define VK_USE_PLATFORM_ANDROID_KHR 1
-#endif
-
 #include <vulkan/vulkan.h>
-#include <vector>
 #include "../render.h"
-#include "../plotforms.h"
 #include "./vk_canvas.h"
 
 namespace qk {
+	struct VkTexture {
+		VkImage image = VK_NULL_HANDLE;
+		VkImageView view = VK_NULL_HANDLE;
+		VkDeviceMemory memory = VK_NULL_HANDLE;
+		VkFormat format;
+		VkExtent2D extent;
+		uint32_t mipLevels;
+		VkImageUsageFlags usage;
+		void generateMipmaps(VkCommandBuffer cmd) const;
+	};
 
-	class VulkanRender final: public RenderBackend, public RenderSurface {
+	struct VkVertexBuffer {
+		VkBuffer buffer = VK_NULL_HANDLE;
+		VkDeviceMemory memory = VK_NULL_HANDLE;
+		VkDeviceSize size = 0;
+	};
+
+	// Global render resource,
+	// used for texture/vertex data creation, shader function and pipeline state caching
+	class VulkanRenderResource: public RenderResource {
 	public:
-		~VulkanRender() override;
-		void release() override;
-		void reload() override;
-		Canvas* createCanvas(Options opts) override;
-		RenderSurface* surface() override { return this; }
-		void post_message(Cb cb) override;
-		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
-		bool uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) override;
+		~VulkanRenderResource();
+		bool uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
-		bool uploadVertexData(VertexData::ID *id) override;
-		void unloadVertexData(VertexData::ID *id) override;
-		void lock();
-		void unlock();
-
-		void makeSurface(EGLNativeWindowType win) override;
-		void deleteSurface() override;
-		void renderDisplay() override;
-		void renderLoopRun() override;
-		void renderLoopStop() override;
-		Vec2 getSurfaceSize() override;
-
-		VkDevice device() const { return _device; }
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
+		bool uploadVertexData(VertexData::ID *id);
+		void unloadVertexData(VertexData::ID *id);
+		VkInstance instance() const { return _instance; }
 		VkPhysicalDevice physicalDevice() const { return _physicalDevice; }
-		VkQueue queue() const { return _queue; }
-		uint32_t queueFamily() const { return _queueFamily; }
+		VkDevice device() const { return _device; }
+		bool computeSupport() const { return _computeSupport; }
+		bool pvrtcSupport() const { return _pvrtcSupport; }
+		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags);
+		VkVertexBuffer* newVertexBuffer(uint32_t size);
+		VkResult submitCommand(const VkSubmitInfo* submit, VkFence fence = VK_NULL_HANDLE);
+		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
 	private:
-		explicit VulkanRender(Options opts);
-		bool createDevice();
-		bool createSwapchain();
-		void destroySwapchain();
-		void destroyDevice();
-		void drawFrame(const Color4f &clearColor);
-		VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats) const;
-		VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR> &modes) const;
-		VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR &caps) const;
-	private:
+		explicit VulkanRenderResource();
+		void createDevice();
+		void checkAsyncWaitTasks(Array<Cb> *out);
+	// fields:
+		struct AsyncWaitTask { VkFence fence; Cb cb; };
+		Mutex _mutex, _commitMutex;
 		VkInstance _instance;
 		VkPhysicalDevice _physicalDevice;
 		VkDevice _device;
-		VkQueue _queue;
+		VkQueue _commandQueue;
 		uint32_t _queueFamily;
-		VkSurfaceKHR _surface;
-		VkSwapchainKHR _swapchain;
-		VkFormat _swapchainFormat;
-		VkExtent2D _swapchainExtent;
-		std::vector<VkImage> _swapchainImages;
-		std::vector<VkImageView> _swapchainViews;
-		std::vector<VkFramebuffer> _framebuffers;
-		VkRenderPass _renderPass;
+		bool _computeSupport, _pvrtcSupport;
+		VkPipelineCache _pipelineCache;
+		Dict<uint32_t, VkPipeline> _pipelines;
+		Dict<uint32_t, VkSampler> _samplers;
+		List<AsyncWaitTask> _asyncWaitTasksPool, _asyncWaitTasks;
+		int64_t _nextAsyncWaitCheckTime;
 		VkCommandPool _commandPool;
-		std::vector<VkCommandBuffer> _commandBuffers;
-		VkSemaphore _imageAvailable[2];
-		VkSemaphore _renderFinished[2];
-		VkFence _inFlight[2];
-		uint32_t _frameIndex;
-		EGLNativeWindowType _window;
-		VulkanCanvas *_vkCanvas;
-		RecursiveMutex _mutex;
-		ThreadID _threadId;
-		ThreadID _loopThreadId;
-		friend Render* make_vulkan_render(Render::Options opts);
+		friend VulkanRenderResource* getSharedRenderVulkanResource();
+		friend class VulkanRender;
 	};
 
-}
+	// Vulkan render backend implementation for Android and Linux and Windows
+	class VulkanRender: public RenderBackend {
+	public:
+		~VulkanRender() override;
+		void release() override;
+		Canvas* createCanvas(Options opts) override;
+		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
+		bool uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) override;
+		void unloadTexture(TexStat *tex) override;
+		bool uploadVertexData(VertexData::ID *id) override;
+		void unloadVertexData(VertexData::ID *id) override;
+	protected:
+		explicit VulkanRender(Options opts);
+	// fields:
+		VulkanRenderResource* _resource;
+		VkDevice _device;
+		VulkanCanvas *_vkCanvas;
+	};
+
+	VulkanRenderResource* getSharedRenderVulkanResource();
+
+} // namespace qk
 
 #endif

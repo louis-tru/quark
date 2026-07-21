@@ -40,7 +40,6 @@ namespace qk {
 	void  gl_set_color_renderbuffer(GLuint rbo, GLuint orTex, ColorType type, Vec2 size);
 	GLuint gl_new_texid();
 	void clear_PathvCache(PathvCache *cache, int flags);
-	void clearExec_PathvCache(PathvCache *cache);
 	GLint gl_get_texture_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 
@@ -109,6 +108,7 @@ namespace qk {
 			_cmdPack->savePipelineState(); // save initial pipeline state
 			clear_PathvCache(_cache, 0); // tag: clear mark
 		}
+		_cmdPack->clear(); // clear cmd buffer for next frame
 		_mutex.unlock();
 		return canSwap;
 	}
@@ -117,7 +117,7 @@ namespace qk {
 		_mutex.lock();
 		_cmdPackFront->flush(); // commit gl cmd
 		_mutex.unlock();
-		clearExec_PathvCache(_cache); // clear @clear mark
+		// clearExec_PathvCache(_cache); // clear @clear mark
 	}
 
 	void GLCanvas::vportCopy(GLuint dstFBO) {

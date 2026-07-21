@@ -373,7 +373,7 @@ namespace qk {
 		_commandQueue = nil;
 	}
 
-	bool MetalRenderResource::uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) {
+	bool MetalRenderResource::uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) {
 		Qk_ASSERT_GT(levels, 0, "Levels must be greater than 0");
 		if (!pix || pix->length() == 0) {
 			return false;
@@ -442,9 +442,7 @@ namespace qk {
 		[blit endEncoding];
 		[cmd commit];
 
-		if (out->ptr()) {
-			CFBridgingRelease(out->ptr()); // release old texture if exists
-		}
+		MetalRenderResource::unloadTexture(out); // unload old texture if exists
 		out->set_ptr((void*)CFBridgingRetain(tex)); // retain new texture for TexStat
 
 		return true;
@@ -453,12 +451,6 @@ namespace qk {
 	void MetalRenderResource::unloadTexture(TexStat *tex) {
 		CFBridgingRelease(tex->ptr()); // release texture
 		tex->set_ptr(nullptr);
-	}
-
-	void MetalRenderResource::post_message(Cb cb) {
-		// directly execute callback for simplicity,
-		// since current implementation does not need cross-thread resource access
-		cb->resolve();
 	}
 
 	TexStat MetalRenderResource::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
@@ -609,7 +601,6 @@ namespace qk {
 		_mtlcanvas = NewRetain<MetalCanvas>(this, _opts); // new and retain canvas for render backend
 		_opts.colorType = _mtlcanvas->opts().colorType; // sync color type
 		_canvas = _mtlcanvas; // set default canvas
-		// _shaders = _resource->_shaders; // copy shader cache reference for render thread use
 
 		_emptyBuffer = [_device newBufferWithLength:128 options:MTLResourceStorageModeShared];
 		// pre-create sampler for nearest filter mode, which is commonly used for non-scaling image rendering
@@ -634,28 +625,15 @@ namespace qk {
 		_device = nil; // release device reference
 	}
 
-	void MetalRender::lock() {
-	}
-	void MetalRender::unlock() {
-	}
-
-	void MetalRender::reload() {
-		lock();
-		_surfaceSize = getSurfaceSize();
-		_delegate->onRenderBackendReload(_surfaceSize);
-		unlock();
-	}
-
 	Canvas* MetalRender::createCanvas(Options opts) {
 		return new MetalCanvas(this, opts);
 	}
 
 	TexStat MetalRender::createTextureStat(Vec2 size, ColorType type, uint8_t flags) {
-		auto tex = mtl_new_texture(_device, size, mtl_pixel_format(type), flags);
-		return TexStat(CFBridgingRetain(tex));
+		return _resource->MetalRenderResource::createTextureStat(size, type, flags);
 	}
 
-	bool MetalRender::uploadTexture(cPixel *pix, int levels, TexStat *out, bool mipmap) {
+	bool MetalRender::uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) {
 		return _resource->MetalRenderResource::uploadTexture(pix, levels, out, mipmap);
 	}
 

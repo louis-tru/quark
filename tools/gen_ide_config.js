@@ -156,6 +156,7 @@ function clangd_platform_flags(os) {
 			`--sysroot=${sdk}`,
 			`-D__ANDROID_API__=${android_api_level}`,
 			'-D__ANDROID__', '-DANDROID', '-DQk_ENABLE_VULKAN=1', '-DQk_ANDROID=1',
+			`-I${path.join(android_ndk_root(), 'sources/android/native_app_glue')}`,
 		];
 	} else if (os == 'linux') {
 		sdk = path.resolve(__dirname, 'linux');

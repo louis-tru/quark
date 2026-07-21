@@ -87,6 +87,7 @@ class MacGLRender final: public GLRender, public RenderSurface {
 
 	void post_message(Cb cb) override {
 		Qk_ASSERT(_ctx, "Render context is null. Cannot post message.");
+		if (!_ctx) return;
 		if (_view && isRenderThread()) {
 			cb->resolve(); // immediately resolve
 		} else if (!_isRun) { // is not running

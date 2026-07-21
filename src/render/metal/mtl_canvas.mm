@@ -17,7 +17,6 @@ namespace qk {
 	MTLTextureID mtl_get_texture(cTexStat *stat);
 	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 	void clear_PathvCache(PathvCache *cache, int flags);
-	void clearExec_PathvCache(PathvCache *cache);
 	uint32_t mtl_get_sampler_key(const PaintImage* paint);
 	bool mtl_supports_sampler_clamp_to_zero(MTLDeviceID device);
 
@@ -256,7 +255,6 @@ namespace qk {
 			_cmdPackFront.current = nil;
 		}];
 		_mutex.unlock();
-		clearExec_PathvCache(_cache); // clear @clear marked cache after flush
 		Qk_ReturnLocal(cmds); // return command buffers for flush
 	}
 

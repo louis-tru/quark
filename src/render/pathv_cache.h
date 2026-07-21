@@ -56,15 +56,7 @@ namespace qk
 	struct VertexData::ID {
 		PathvCache  *host; ///< Host cache that owns this id.
 		VertexData  *data; ///< Referenced cached vertex data.
-
-		union {
-			struct {
-				uint32_t a,b; ///< Numeric GPU ids, for example VAO/VBO.
-			};
-			struct {
-				void* ptr; ///< Pointer-like backend handle.
-			};
-		};
+		void* ptr; ///< Render backend-local pointer or handle, such as a GLVertexBuffer*.
 	};
 
 	/**
@@ -213,7 +205,6 @@ namespace qk
 		void clearAll(bool destroy);
 		void clearPart(uint32_t capacity);
 		RenderBackend *_render; // render for GPU cache management
-		Array<Cb>*     _clearExecs; // @Rt clear callback for render thread
 		Dict<uint64_t, Path*> _normalizedPath, _strokePath; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _pathTriangles; // path hash => triangles
 		Dict<uint64_t, Wrap<VertexData>*> _aaSideTriangle; // path hash => aa side triangles
@@ -222,6 +213,7 @@ namespace qk
 		Dict<uint64_t, PathEdgeInfo> _edgeInfo; // path hash => edge info
 
 		friend class RenderBackend;
+		friend void clear_PathvCache(PathvCache *cache, int flags);
 	};
 
 } // namespace qk

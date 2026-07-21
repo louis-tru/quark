@@ -231,8 +231,8 @@ namespace qk {
 		}
 
 		void post_message(Cb cb) override {
-			// if (!_context) return; // Render is release, do not post message
 			Qk_ASSERT(_context, "Render context is null. Cannot post message.");
+			if (!_context) return; // Render is release, do not post message
 			if (isRenderThread()) {
 				lock();
 				cb->resolve();

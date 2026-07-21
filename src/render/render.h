@@ -31,7 +31,7 @@
 #ifndef __quark__render_render__
 #define __quark__render_render__
 
-#include "../util/thread.h"
+#include "../util/handle.h"
 #include "./path.h"
 #include "./pixel.h"
 #include "src/util/object.h"
@@ -60,7 +60,7 @@ namespace qk {
 	 *
 	 * @thread Rt
 	 */
-	class RenderResource: public PostMessage {
+	class RenderResource {
 	public:
 
 		/**
@@ -83,7 +83,7 @@ namespace qk {
 		 *
 		 * @thread Rt
 		 */
-		virtual bool uploadTexture(cPixel *pix, int levels, TexStat *tex, bool mipmap) = 0;
+		virtual bool uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) = 0;
 
 		/**
 		 * Release backend-local GPU texture resources.
@@ -207,11 +207,6 @@ namespace qk {
 		virtual Canvas* createCanvas(Options opts) = 0;
 
 		/**
-		 * Whether the backend has already released its canvas/resources.
-		 */
-		inline bool isReleased() const { return !_canvas; }
-
-		/**
 		 * Return platform render surface object.
 		 */
 		virtual RenderSurface* surface() = 0;
@@ -298,5 +293,8 @@ namespace qk {
 	};
 
 	typedef RenderBackend Render;
+
+	/** Return the process-wide resource object for the active GPU backend. */
+	RenderResource* getSharedRenderResource();
 }
 #endif
