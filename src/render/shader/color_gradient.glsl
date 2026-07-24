@@ -25,10 +25,10 @@ void main() {
 #frag
 layout(location=3) in vec2 gradientValue;
 
-layout(binding=4, set=0, std140) uniform Colors {
+layout(binding=4, set=1, std140) uniform Colors {
 	vec4 colors[64];
 };
-layout(binding=5, set=0, std140) uniform Positions {
+layout(binding=5, set=1, std140) uniform Positions {
 	vec4 positions[16]; // 16 * 4 = 64 floats, enough for 64 stops
 };
 

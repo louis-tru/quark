@@ -37,6 +37,7 @@ precision mediump sampler2D;
 
 layout(location=0) in  mediump float aaSide;
 layout(location=0) out mediump vec4  fragColor;
+layout(binding=0, set=0) uniform sampler2D clipTex; // clip texture buffer
 layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	vec4 bounds; // x:left, y:top, z:right, w:bottom
 	// Clip sampling mode used by fragment shader:
@@ -44,7 +45,6 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 	// 1: difference -> reject masked area
 	int op;
 } clipStat;
-layout(binding=0, set=1)  uniform sampler2D clipTex; // clip texture buffer
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(vec2 offset) {

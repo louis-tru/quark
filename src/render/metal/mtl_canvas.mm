@@ -76,8 +76,8 @@ namespace qk {
 		_shaders = _mtlrender->_resource->shaders(); // copy shader cache reference for render thread use
 		setCAPAMaxImageCount(mtl_capa_max_image_count(_device));
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
-		_cmdPack.buffer = new MemBlockAllocator<MTLBufferID>();
-		_cmdPackFront.buffer = new MemBlockAllocator<MTLBufferID>();
+		_cmdPack.allocator = new MemBlockAllocator<MTLBufferID>();
+		_cmdPackFront.allocator = new MemBlockAllocator<MTLBufferID>();
 
 		if (opts.enableCAPA && mtl_capa_supported(_device))
 			_capaBuilder = new CAPABuilder(this);
@@ -233,10 +233,10 @@ namespace qk {
 		clear_PathvCache(_cache, 0); // tag: clear mark
 		// reset cmd pack for next frame
 		_cmdPack = {
-			.buffer = std::move(_cmdPack.buffer), // move buffer allocator to new cmd pack
+			.allocator = std::move(_cmdPack.allocator), // move buffer allocator to new cmd pack
 			.current = [_commandQueue commandBuffer], // create new command buffer for next frame
 		};
-		_cmdPack.buffer->reset(); // reset buffer allocator for new frame
+		_cmdPack.allocator->reset(); // reset buffer allocator for new frame
 		_mutex.unlock();
 		return canSwap;
 	}

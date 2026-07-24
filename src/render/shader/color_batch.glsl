@@ -8,7 +8,7 @@ struct Option {
 	vec4  color; // color
 };
 
-layout(binding=4, set=0, std140) uniform OptsBlock {
+layout(binding=4, set=1, std140) uniform OptsBlock {
 	Option opts[256];
 };
 

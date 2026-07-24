@@ -15,9 +15,8 @@
 namespace qk {
 
 	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t minSize = 0) {
-		minSize = Qk_Max(minSize, size);
-		auto &block = cmd.buffer->alloc(minSize);
-		Qk_ASSERT(block.end >= block.begin + minSize, "Not enough space in buffer block");
+		auto &block = cmd.allocator->alloc(size, minSize);
+		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val.contents + block.begin, src, size);
 		return block;
@@ -40,7 +39,7 @@ namespace qk {
 		auto pathCount = data.paths.length();
 		// The CPU allocates conservative pools once. GPU passes publish real
 		// counts into env and then use indirect dispatch for the dependent passes.
-		auto env = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAEnvironment>(1);
+		auto env = _cmdPack.allocator->alloc<MSLCapaPrepare::CAPAEnvironment>(1);
 		auto envData = (MSLCapaPrepare::CAPAEnvironment*)((char*)env.val.contents + env.begin);
 		envData->globalTileBounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff);
 		envData->globalTileCount = 0;
@@ -71,14 +70,14 @@ namespace qk {
 		auto colors = makeBufferT(_cmdPack, data.colors.val(), data.colors.length());
 		auto positions = makeBufferT(_cmdPack, data.positions.val(), data.positions.length());
 		// allocate budget space for the CAPA pipeline
-		auto shortTasks = _cmdPack.buffer->alloc<MSLCapaPrepare::CAPAShortEdgeTask>(budget.maxShortEdgeCount);
-		auto shortEdges = _cmdPack.buffer->alloc<MSLCapaBin::CAPAShortEdgeNode>(budget.maxShortEdgeCount * 3);
-		auto globalTiles = _cmdPack.buffer->alloc<MSLCapaLayerPlan::CAPAGlobalTile>(budget.globalTileCount);
-		auto pathTiles = _cmdPack.buffer->alloc<MSLCapaLayerPlan::CAPAPathTile>(budget.maxPathTileCount);
-		auto smallTiles = _cmdPack.buffer->alloc<MSLCapaTile::CAPASmallTile>(budget.maxPathTileCount);
-		auto boundaryTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
-		auto coverageTiles = _cmdPack.buffer->alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
-		auto tileRows = _cmdPack.buffer->alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
+		auto shortTasks = _cmdPack.alloc<MSLCapaPrepare::CAPAShortEdgeTask>(budget.maxShortEdgeCount);
+		auto shortEdges = _cmdPack.alloc<MSLCapaBin::CAPAShortEdgeNode>(budget.maxShortEdgeCount * 3);
+		auto globalTiles = _cmdPack.alloc<MSLCapaLayerPlan::CAPAGlobalTile>(budget.globalTileCount);
+		auto pathTiles = _cmdPack.alloc<MSLCapaLayerPlan::CAPAPathTile>(budget.maxPathTileCount);
+		auto smallTiles = _cmdPack.alloc<MSLCapaTile::CAPASmallTile>(budget.maxPathTileCount);
+		auto boundaryTiles = _cmdPack.alloc<MSLCapaCoverage::CAPABoundaryTile>(budget.maxBoundaryTileCount);
+		auto coverageTiles = _cmdPack.alloc<MSLCapaCoverage::CAPACoverageTile>(budget.maxBoundaryTileCount);
+		auto tileRows = _cmdPack.alloc<MSLCapaPrepareTiles::CAPAPathTileRow>(budget.maxPathTileRowCount);
 
 		// CAPAEnvironment stores Metal-compatible indirect dispatch structs, so
 		// each later pass can launch without CPU readback.
@@ -345,10 +344,10 @@ namespace qk {
 			}
 			auto imagesEncoder = _capaCompositeSet2Encoder;
 			auto samplersEncoder = _capaCompositeSet3Encoder;
-			auto imagesBuffer = _cmdPack.buffer->alloc(
+			auto imagesBuffer = _cmdPack.allocator->alloc(
 				uint32_t(imagesEncoder.encodedLength), 0, uint32_t(imagesEncoder.alignment)
 			);
-			auto samplersBuffer = _cmdPack.buffer->alloc(
+			auto samplersBuffer = _cmdPack.allocator->alloc(
 				uint32_t(samplersEncoder.encodedLength), 0, uint32_t(samplersEncoder.alignment)
 			);
 			[imagesEncoder setArgumentBuffer:imagesBuffer.val offset:imagesBuffer.begin];

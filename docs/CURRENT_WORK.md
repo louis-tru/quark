@@ -40,6 +40,24 @@ The Vulkan backend now has a platform-independent shared resource foundation.
   `VulkanTexture::generateMipmaps()`.
 - Cached vertex data now uses a device-local Vulkan vertex buffer and the same
   shared staging/command submission path.
+- `VulkanCanvas` now has Metal-style current/front command packs, a per-canvas
+  command pool, and a canvas-local shader reflection/pipeline handle cache.
+  The initial color path caches compatible render passes, creates framebuffers
+  for the selected render target/mipmap level, and records pipeline, vertex,
+  push-constant, and draw commands.
+- Ordinary graphics shaders share descriptor set 0: clip texture at binding 0,
+  followed by dynamic root/view/clip uniform buffers at bindings 1-3. Uniform
+  data is linearly allocated per command pack; changing only its offset reuses
+  the descriptor set, while changing the underlying buffer allocates and
+  updates a new set. Descriptor pools grow on exhaustion and reset with their
+  command pack.
+- Descriptor set 0 is rebound with the active shader's pipeline layout whenever
+  the pipeline or a dynamic offset changes. This is required because Vulkan
+  pipeline-layout compatibility also includes push-constant ranges; do not
+  assume one shader's layout can remain bound across arbitrary shader changes.
+- Framebuffer-owned mip-level image views are destroyed with the framebuffer;
+  the base view owned by `VulkanTexture` is only borrowed. Frame submission and
+  the remaining drawing commands are still incomplete.
 - Upload submissions use pooled fences and non-blocking status checks to release
   staging buffers, staging memory, and one-time command buffers. Long-lived
   texture and vertex resources use Qk's existing frame-aware App delay tasks for

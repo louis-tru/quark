@@ -233,11 +233,17 @@
 				'sources': [
 					'render/vulkan/vk_canvas.h',
 					'render/vulkan/vk_canvas.cc',
+					'render/vulkan/vk_canvas_cmd.cc',
 					'render/vulkan/vk_device.cc',
 					'render/vulkan/vk_render.h',
 					'render/vulkan/vk_render.cc',
+					'render/vulkan/vk_resource.cc',
+					'render/vulkan/vk_shader.h',
+					'render/vulkan/vk_shader.cc',
 					'render/vulkan/vk_shaders.h',
 					'render/vulkan/vk_shaders.cc',
+					'render/vulkan/vk_util.h',
+					'render/vulkan/vk_util.cc',
 				],
 				'link_settings': {
 					'libraries': [ '-lvulkan' ],

@@ -350,7 +350,7 @@ namespace qk {
 		return block;
 	}
 	template<> 
-	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block) {
+	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block, uint32_t flags) {
 		block->val = nil;
 		delete block;
 	}
@@ -569,7 +569,7 @@ namespace qk {
 		if (_pipelines.get(key, pip))
 			return (MTLPipeline)pip;
 		// get pipeline from render resource by pipeline kind
-		pip = ((MetalRenderResource*)getSharedRenderResource())->
+		pip = getSharedRenderMetalResource()->
 			getPipeline(source.kind, mode, format);
 		_pipelines[key] = pip;
 		return (MTLPipeline)pip;
@@ -579,7 +579,7 @@ namespace qk {
 		NSObjectID pip;
 		if (_pipelines.get(0, pip))
 			return (MTLComputePipeline)pip;
-		pip = ((MetalRenderResource*)getSharedRenderResource())->getComputePipeline(source.kind);
+		pip = getSharedRenderMetalResource()->getComputePipeline(source.kind);
 		_pipelines[0] = pip;
 		return (MTLComputePipeline)pip;
 	}

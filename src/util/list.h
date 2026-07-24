@@ -102,6 +102,11 @@ namespace qk {
 		Iterator      end();
 		uint32_t      length() const;
 
+		/**
+		 * @method isNull() Is null data available?
+		*/
+		bool isNull() const { return _length == 0; }
+
 	private:
 		void reset_();
 		void fill_(Node* first, Node* last, uint32_t len);

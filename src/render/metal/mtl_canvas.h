@@ -19,14 +19,19 @@ class AppleMetalRender;
 
 namespace qk {
 	class MetalRender;
-	typedef MemBlockAllocator<MTLBufferID>::MemBlock MTLMemBlock;
+	typedef MemBlockAllocator<MTLBufferID> MTLMemBufferAllocator;
+	typedef MTLMemBufferAllocator::MemBlock MTLMemBlock;
 	typedef const MTLMemBlock cMTLMemBlock;
 
 	struct MTL_CmdPack {
 		inline bool isRecorded() const {
 			return recorded || cmds.length();
 		}
-		Sp<MemBlockAllocator<MTLBufferID>> buffer = nullptr; // vertex/index buffers allocator
+		template <typename U>
+		inline cMTLMemBlock alloc(uint32_t size) {
+			return allocator->alloc<U>(size);
+		}
+		Sp<MTLMemBufferAllocator> allocator = nullptr; // buffers allocator
 		Array<MTLCommandBufferID> cmds; // command buffers
 		MTLCommandBufferID current = nullptr; // current command buffer for render pass
 		MTLPassDesc pass = nullptr; // current render pass descriptor for enc
@@ -42,7 +47,6 @@ namespace qk {
 		~MetalCanvas() override;
 		bool swapBuffer() override;
 		Array<MTLCommandBufferID> flushBuffer(); // flush front buffer and return mtl command buffers
-		// inline MTLTextureID outTex() { return _outTex; }
 		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
 		void vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst);
 	private:

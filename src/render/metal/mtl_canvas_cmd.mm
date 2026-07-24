@@ -40,7 +40,7 @@ namespace qk {
 		auto pointSize = alignUp(sizeof(float) * count, 16); // align to 16 bytes
 
 		// allocate a buffer for gradient colors and positions, and copy data to the buffer
-		auto &block = _cmdPack.buffer->alloc(
+		auto &block = _cmdPack.allocator->alloc(
 			colorSize + pointSize, sizeof(MSLColorGradient::Colors) + sizeof(MSLColorGradient::Positions)
 		);
 		// copy colors and positions to the buffer, colors first then positions, and set them to fragment shader
@@ -64,21 +64,22 @@ namespace qk {
 	}
 
 	void MetalCanvas::setSurfaceCmd(bool changeSize) {
+		endPass(); // end old pass if exist
+
 		if (changeSize) {
 			_outTex = mtl_new_texture(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), kComputeWrite_TextureFlags);
 		}
 		_outColorTex = _outTex; // set to main texture by default
 
-		endPass(); // end old pass if exist
 		// start a new pass with new buffers
-		auto pass = beginPass();
-		pass.colorAttachments[0].loadAction = MTLLoadActionClear;
-		pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
+		// auto pass = beginPass();
+		// pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+		// pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
 
 		// clear buffer allocators for new frame
-		_cmdPack.buffer->clear();
-		_cmdPackFront.buffer->clear();
+		_cmdPack.allocator->clear();
+		_cmdPackFront.allocator->clear();
 	}
 
 	void MetalCanvas::setMatrixCmd() {

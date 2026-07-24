@@ -349,6 +349,9 @@ namespace qk {
 	typedef MRect<IVec2>      IRect;
 	typedef MRange<IVec2>     IRange;
 
+	struct Vec3Padding { Vec3 value; float padding; };
+	struct IVec3Padding { IVec3 value; int32_t padding; };
+
 	template<>
 	inline Range Range::expandToInteger() const {
 		return {begin.floor(), end.ceil()};

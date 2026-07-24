@@ -46,20 +46,6 @@ const output_vk_cc = outputs.find(e=>/vk_shaders\.cc$/i.test(e));
 const glslc = argument.options.glslc || 'glslc';
 const spirv_cross = argument.options.spirv_cross || 'spirv-cross';
 
-const round = `
-float qk_round(float num) {
-	float r = floor(num);
-	if ( num - r >= 0.5 ) {
-		return r + 1.0;
-	} else {
-		return r;
-	}
-}
-vec2 qk_round(vec2 num) {
-	return vec2(qk_round(num.x), qk_round(num.y));
-}
-`;
-
 async function exec2(cmd) {
 	var r = await exec(cmd, {
 		stdout: process.stdout,
@@ -93,29 +79,29 @@ function readcode(input) {
 }
 
 const informationsForTypes = {
-	float: [1,'GL_FLOAT','float','MTLVertexFormatFloat'],
-	vec2:  [2,'GL_FLOAT','float','MTLVertexFormatFloat2'],
-	vec3:  [3,'GL_FLOAT','float','MTLVertexFormatFloat3'],
-	vec4:  [4,'GL_FLOAT','float','MTLVertexFormatFloat4'],
+	float: [1,'GL_FLOAT','float','MTLVertexFormatFloat','VK_FORMAT_R32_SFLOAT'],
+	vec2:  [2,'GL_FLOAT','float','MTLVertexFormatFloat2','VK_FORMAT_R32G32_SFLOAT'],
+	vec3:  [3,'GL_FLOAT','float','MTLVertexFormatFloat3','VK_FORMAT_R32G32B32_SFLOAT'],
+	vec4:  [4,'GL_FLOAT','float','MTLVertexFormatFloat4','VK_FORMAT_R32G32B32A32_SFLOAT'],
 
-	int:   [1,'GL_INT','int','MTLVertexFormatInt'],
-	ivec2: [2,'GL_INT','int32_t','MTLVertexFormatInt2'],
-	ivec3: [3,'GL_INT','int32_t','MTLVertexFormatInt3'],
-	ivec4: [4,'GL_INT','int32_t','MTLVertexFormatInt4'],
-	int16_t: [1,'GL_SHORT','int16_t','MTLVertexFormatShort'],
+	int:   [1,'GL_INT','int','MTLVertexFormatInt','VK_FORMAT_R32_SINT'],
+	ivec2: [2,'GL_INT','int32_t','MTLVertexFormatInt2','VK_FORMAT_R32G32_SINT'],
+	ivec3: [3,'GL_INT','int32_t','MTLVertexFormatInt3','VK_FORMAT_R32G32B32_SINT'],
+	ivec4: [4,'GL_INT','int32_t','MTLVertexFormatInt4','VK_FORMAT_R32G32B32A32_SINT'],
+	int16_t: [1,'GL_SHORT','int16_t','MTLVertexFormatShort','VK_FORMAT_R16_SINT'],
 
-	uint:  [1,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt'],
-	uvec2: [2,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt2'],
-	uvec3: [3,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt3'],
-	uvec4: [4,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt4'],
-	uint16_t: [1,'GL_UNSIGNED_SHORT','uint16_t','MTLVertexFormatUShort'],
+	uint:  [1,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt','VK_FORMAT_R32_UINT'],
+	uvec2: [2,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt2','VK_FORMAT_R32G32_UINT'],
+	uvec3: [3,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt3','VK_FORMAT_R32G32B32_UINT'],
+	uvec4: [4,'GL_UNSIGNED_INT','uint32_t','MTLVertexFormatUInt4','VK_FORMAT_R32G32B32A32_UINT'],
+	uint16_t: [1,'GL_UNSIGNED_SHORT','uint16_t','MTLVertexFormatUShort','VK_FORMAT_R16_UINT'],
 
-	mat2:  [4,'GL_FLOAT','float','MTLVertexFormatFloat4'], // 2*2 = 4
-	mat3:  [9,'GL_FLOAT','float','MTLVertexFormatInvalid'],
-	mat4:  [16,'GL_FLOAT','float','MTLVertexFormatInvalid'],
-	sampler2D: [1,'GL_INT','int','MTLVertexFormatInt'],
+	mat2:  [4,'GL_FLOAT','float','MTLVertexFormatFloat4','VK_FORMAT_R32G32B32A32_SFLOAT'], // 2*2 = 4
+	mat3:  [9,'GL_FLOAT','float','MTLVertexFormatInvalid','VK_FORMAT_UNDEFINED'],
+	mat4:  [16,'GL_FLOAT','float','MTLVertexFormatInvalid','VK_FORMAT_UNDEFINED'],
+	sampler2D: [1,'GL_INT','int','MTLVertexFormatInt','VK_FORMAT_R32_SINT'],
 
-	bool: [1,'GL_BOOL','uint32_t','MTLVertexFormatUInt'],
+	bool: [1,'GL_BOOL','uint32_t','MTLVertexFormatUInt','VK_FORMAT_R32_UINT'],
 };
 
 // for example: float for float, vec4 for Vec4, int for int32_t, ivec3 for IVec3, ...
@@ -142,19 +128,26 @@ const typesForGLSL_Vec = {
 
 const normalizedForTypes = {
 	GL_BYTE: {cc: 'int8_t', msl: ['MTLVertexFormatCharNormalized',
-		'MTLVertexFormatChar2Normalized', 'MTLVertexFormatChar3Normalized', 'MTLVertexFormatChar4Normalized']},
+		'MTLVertexFormatChar2Normalized', 'MTLVertexFormatChar3Normalized', 'MTLVertexFormatChar4Normalized'],
+		vk: ['VK_FORMAT_R8_SNORM', 'VK_FORMAT_R8G8_SNORM', 'VK_FORMAT_R8G8B8_SNORM', 'VK_FORMAT_R8G8B8A8_SNORM']},
 	GL_UNSIGNED_BYTE: {cc: 'uint8_t', msl: ['MTLVertexFormatUCharNormalized', 
-		'MTLVertexFormatUChar2Normalized', 'MTLVertexFormatUChar3Normalized', 'MTLVertexFormatUChar4Normalized']},
+		'MTLVertexFormatUChar2Normalized', 'MTLVertexFormatUChar3Normalized', 'MTLVertexFormatUChar4Normalized'],
+		vk: ['VK_FORMAT_R8_UNORM', 'VK_FORMAT_R8G8_UNORM', 'VK_FORMAT_R8G8B8_UNORM', 'VK_FORMAT_R8G8B8A8_UNORM']},
 	GL_SHORT: {cc: 'int16_t', msl: ['MTLVertexFormatShortNormalized', 
-		'MTLVertexFormatShort2Normalized', 'MTLVertexFormatShort3Normalized', 'MTLVertexFormatShort4Normalized']},
+		'MTLVertexFormatShort2Normalized', 'MTLVertexFormatShort3Normalized', 'MTLVertexFormatShort4Normalized'],
+		vk: ['VK_FORMAT_R16_SNORM', 'VK_FORMAT_R16G16_SNORM', 'VK_FORMAT_R16G16B16_SNORM', 'VK_FORMAT_R16G16B16A16_SNORM']},
 	GL_UNSIGNED_SHORT: {cc: 'uint16_t', msl: ['MTLVertexFormatUShortNormalized', 
-		'MTLVertexFormatUShort2Normalized', 'MTLVertexFormatUShort3Normalized', 'MTLVertexFormatUShort4Normalized']},
+		'MTLVertexFormatUShort2Normalized', 'MTLVertexFormatUShort3Normalized', 'MTLVertexFormatUShort4Normalized'],
+		vk: ['VK_FORMAT_R16_UNORM', 'VK_FORMAT_R16G16_UNORM', 'VK_FORMAT_R16G16B16_UNORM', 'VK_FORMAT_R16G16B16A16_UNORM']},
 	GL_INT: {cc: 'int32_t', msl: ['MTLVertexFormatInt',
-		'MTLVertexFormatInt2', 'MTLVertexFormatInt3', 'MTLVertexFormatInt4']},
+		'MTLVertexFormatInt2', 'MTLVertexFormatInt3', 'MTLVertexFormatInt4'],
+		vk: ['VK_FORMAT_R32_SINT', 'VK_FORMAT_R32G32_SINT', 'VK_FORMAT_R32G32B32_SINT', 'VK_FORMAT_R32G32B32A32_SINT']},
 	GL_UNSIGNED_INT: {cc: 'uint32_t', msl: ['MTLVertexFormatUInt',
-		'MTLVertexFormatUInt2', 'MTLVertexFormatUInt3', 'MTLVertexFormatUInt4']},
+		'MTLVertexFormatUInt2', 'MTLVertexFormatUInt3', 'MTLVertexFormatUInt4'],
+		vk: ['VK_FORMAT_R32_UINT', 'VK_FORMAT_R32G32_UINT', 'VK_FORMAT_R32G32B32_UINT', 'VK_FORMAT_R32G32B32A32_UINT']},
 	GL_FLOAT: {cc: 'float', msl: ['MTLVertexFormatFloat',
-		'MTLVertexFormatFloat2', 'MTLVertexFormatFloat3', 'MTLVertexFormatFloat4']},
+		'MTLVertexFormatFloat2', 'MTLVertexFormatFloat3', 'MTLVertexFormatFloat4'],
+		vk: ['VK_FORMAT_R32_SFLOAT', 'VK_FORMAT_R32G32_SFLOAT', 'VK_FORMAT_R32G32B32_SFLOAT', 'VK_FORMAT_R32G32B32A32_SFLOAT']},
 };
 
 function parse_type_info(type, name, arr, location, glTNormalized) {
@@ -166,7 +159,7 @@ function parse_type_info(type, name, arr, location, glTNormalized) {
 			type,
 			arr: arrN>1?arrN:0,
 		};
-	let [items,glType,ccType,mslType] = info;
+	let [items,glType,ccType,mslType,vkFormat] = info;
 	let size = items*arrN;
 	// if exist glTMap, means the attribute is normalized, and the real gl type is GL_UNSIGNED_BYTE or GL_BYTE or ...
 	// for example: in vec4 lightColorIn; //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
@@ -175,10 +168,11 @@ function parse_type_info(type, name, arr, location, glTNormalized) {
 
 	if (glTNormalized && glTNormalized != glType) {
 		glType = glTNormalized;
-		const normalizedType = normalizedForTypes[glType]
+		const normalizedType = normalizedForTypes[glType];
 		if (normalizedType) {
 			ccType = normalizedType.cc;
 			mslType = normalizedType.msl[items-1] || 'MTLVertexFormatInvalid';
+			vkFormat = normalizedType.vk[items-1] || 'VK_FORMAT_UNDEFINED';
 		}
 		normalized = 'GL_TRUE';
 	}
@@ -191,6 +185,7 @@ function parse_type_info(type, name, arr, location, glTNormalized) {
 		glType: glType, // for example: GL_FLOAT
 		ccType: ccType, // for example: float or int32_t
 		mslType: mslType, // for example: MTLVertexFormatFloat4
+		vkFormat: vkFormat, // for example: VK_FORMAT_R32G32B32A32_SFLOAT
 		sizeOf: `sizeof(${ccType})*${size}`, // for example: sizeof(float)*1024
 		normalized,
 		...(location ? {location: Number(location)||0}: {})
@@ -336,6 +331,7 @@ function find_uniforms(code, uniforms, uniform_blocks, storage_blocks, structs) 
 		const stdMatch = layout.match(/\bstd(\d+)/);
 		let binding = parse_layout_binding(layout);
 		let set = parse_layout_set(layout);
+		let pushConstant = /\bpush_constant\b/.test(layout);
 		let std = stdMatch ? stdMatch[1]: '';
 		let key = mat[3]; // uniform, buffer or struct
 		let access = mat[4] || mat[2] || '';
@@ -357,6 +353,7 @@ function find_uniforms(code, uniforms, uniform_blocks, storage_blocks, structs) 
 					set,
 					std,
 					access,
+					pushConstant,
 					block: parse_block(block),
 				});
 			} else if (glTypesForTextures[type]) { // uniform sampler2D or uniform texture2D
@@ -872,6 +869,10 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 		);
 	}
 
+	function stage_types(ast) {
+		return ast ? ast.uniforms.concat(ast.uniform_blocks, ast.storage_blocks): [];
+	}
+
 	for (let doc of glslDocs) {
 		if (doc.vert_ast)
 			write_cpp(doc.vert_ast, cpp);
@@ -880,10 +881,11 @@ function gen_mtl_native_code(glslDocs, output_h, output_mm) {
 		if (doc.comp_ast)
 			write_cpp(doc.comp_ast, cpp);
 
-		const blocks = doc.metal_structs.concat(doc.metal_uniform_blocks, doc.metal_storage_blocks);
-		const vertex = doc.vert_ast ? doc.vert_ast.uniforms.concat(doc.vert_ast.uniform_blocks, doc.vert_ast.storage_blocks): [];
-		const fragment = doc.frag_ast ? doc.frag_ast.uniforms.concat(doc.frag_ast.uniform_blocks, doc.frag_ast.storage_blocks): [];
-		const compute = doc.comp_ast ? doc.comp_ast.uniforms.concat(doc.comp_ast.uniform_blocks, doc.comp_ast.storage_blocks): [];
+		const blocks = doc.metal_structs
+			.concat(doc.metal_uniform_blocks, doc.metal_storage_blocks);
+		const vertex = stage_types(doc.vert_ast);
+		const fragment = stage_types(doc.frag_ast);
+		const compute = stage_types(doc.comp_ast);
 
 		let vertexBufferIndex = 0; // vertex buffer index
 		for (let v of vertex) {
@@ -957,22 +959,12 @@ function gen_vk_native_code(glslDocs, output_h, output_cc) {
 		'// @private head',
 		`#ifndef __vk_shader_natives_${now}`,
 		`#define __vk_shader_natives_${now}`,
-		'#include <cstdint>',
+		'#include "./vk_shader.h"',
 		'namespace qk {',
-		'\tstruct VKShaderCode {',
-		'\t\tconst uint32_t *words;',
-		'\t\tuint32_t size;',
+		'\tenum VkPipelineKind: uint8_t {',
+			glslDocs.map(doc=>`\t\tkVk${doc.className}_Pipeline,`),
+		'\t\tkVkPipelineCount',
 		'\t};',
-		'\tstruct VKShaderSource {',
-		'\t\tconst char *name;',
-		'\t\tVKShaderCode vertex;',
-		'\t\tVKShaderCode fragment;',
-		'\t\tVKShaderCode compute;',
-		'\t};',
-		'\textern const VKShaderSource vkShaderSources[];',
-		'\textern const uint32_t vkShaderSourceCount;',
-		'}',
-		'#endif',
 	);
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
@@ -987,24 +979,114 @@ function gen_vk_native_code(glslDocs, output_h, output_cc) {
 		for (let i = 0; i < ast.source_spv.length; i += 4)
 			words.push(`0x${ast.source_spv.readUInt32LE(i).toString(16)}u`);
 		write(cpp, `\tstatic const uint32_t ${name}[] = {`,
-			words.map((word, i)=>`${i % 8 == 0 ? '\t\t': ''}${word}${i + 1 == words.length ? '': ','}${i + 1 == words.length ? '': i % 8 == 7 ? '\n': ' '}`).join(''),
+			words.map((word, i)=>`${i % 8 == 0 ? '\t\t': ''}${word}${i + 1 == words.length ? '': ','}`+
+				`${i + 1 == words.length ? '': i % 8 == 7 ? '\n': ' '}`
+			).join(''),
 		'\t};');
 		return `{${name},sizeof(${name})}`;
 	}
 
-	const sources = glslDocs.map(doc=>({
-		doc,
-		vert: write_spv(doc, doc.vert_ast),
-		frag: write_spv(doc, doc.frag_ast),
-		comp: write_spv(doc, doc.comp_ast),
-	}));
-	write(cpp,
-		'\tconst VKShaderSource vkShaderSources[] = {',
-		sources.map(e=>`\t\t{"${e.doc.name}",${e.vert||'{nullptr,0}'},${e.frag||'{nullptr,0}'},${e.comp||'{nullptr,0}'}},`),
+	function descriptor_type(e) {
+		if (e.pushConstant)
+			return 'VK_DESCRIPTOR_TYPE_MAX_ENUM';
+		if (e.storage)
+			return 'VK_DESCRIPTOR_TYPE_STORAGE_BUFFER';
+			// return 'VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC';
+		if (e.block)
+			// return 'VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER';
+			return 'VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC';
+		return {
+			sampler2D: 'VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER',
+			texture2D: 'VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE',
+			sampler: 'VK_DESCRIPTOR_TYPE_SAMPLER',
+			image2D: 'VK_DESCRIPTOR_TYPE_STORAGE_IMAGE',
+		}[e.type] || 'VK_DESCRIPTOR_TYPE_MAX_ENUM';
+	}
+
+	function binding_value(e, stages) {
+		return `{${e.pushConstant ? 'UINT32_MAX': e.set},${e.binding},${descriptor_type(e)},${stages},`+
+			`${e.arrayCount || 0},`+
+			`${e.pushConstant ? `sizeof(${e.type})`: 0},`+
+			`${e.runtimeArray ? 'true': 'false'}}`;
+	}
+
+	function merge_bindings(stage, ast, bindings) {
+		if (!ast)
+			return;
+		for (const e of [ast.uniforms, ast.uniform_blocks, ast.storage_blocks]) {
+			for (const u of e) {
+				const binding = bindings[u.name];
+				if (binding) {
+					binding.stages.push(`VK_SHADER_STAGE_${stage}_BIT`);
+				} else {
+					bindings[u.name] = {stages: [`VK_SHADER_STAGE_${stage}_BIT`], resource: u};
+				}
+			}
+		}
+	}
+
+	for (let doc of glslDocs) {
+		const codes = {
+			vert: write_spv(doc, doc.vert_ast),
+			frag: write_spv(doc, doc.frag_ast),
+			comp: write_spv(doc, doc.comp_ast),
+		};
+		const bindingObj = {};
+		merge_bindings('VERTEX', doc.vert_ast, bindingObj);
+		merge_bindings('FRAGMENT', doc.frag_ast, bindingObj);
+		merge_bindings('COMPUTE', doc.comp_ast, bindingObj);
+		const bindings = Object.values(bindingObj);
+		const blocks = doc.metal_structs
+			.concat(doc.metal_uniform_blocks, doc.metal_storage_blocks);
+
+		write(hpp, `\tstruct Spv${doc.className}: VkShader {`,
+			blocks.map(s=>[
+				`\t\tstruct ${s.storage ? '': 'alignas(16) '}${s.type} {`,
+					s.block.map(b=>
+						(typesForMSL_Vec[b.type] ?
+						`\t\t\t${typesForMSL_Vec[b.type]} ${b.name}${b.arr?`[${b.arr}]`:''};` :
+						`\t\t\t${b.ccType} ${b.name}${b.items>1?`[${b.items}]`:''}${b.arr?`[${b.arr}]`:''};`) +
+						` // ${b.type}${b.runtimeArray?'[]':b.arr?`[${b.arr}]`:''} ${b.name}`
+					),
+				'\t\t};',
+			]),
+			bindings.length ? `\t\tVkShaderBinding ${bindings.map(e=>`${e.resource.name}/*${e.resource.type}*/`).join(',\n\t\t\t')};`: '',
+			'\t\tvoid build();',
+		'\t};');
+
+		let offset = '0';
+		write(cpp, `\tvoid Spv${doc.className}::build() {`,
+			`\t\tsource = {"${doc.name}",kVk${doc.className}_Pipeline,${codes.vert||'{nullptr,0}'},`+
+				`${codes.frag||'{nullptr,0}'},${codes.comp||'{nullptr,0}'}};`,
+			'\t\tattributes = {',
+				doc.attributes.map(e=>{
+					const value = `\t\t\t{${e.location},${e.vkFormat},${offset},${e.sizeOf}},`;
+					offset += `+${e.sizeOf}`;
+					return value;
+				}),
+			'\t\t};',
+			`\t\tvertexStride = ${doc.attributes.map(e=>e.sizeOf).join('+') || 0};`,
+			bindings.map(e=>`\t\t${e.resource.name} = ${binding_value(e.resource, e.stages.join('|'))};`),
+			bindings.length ? `\t\tbindings = {${bindings.map(e=>`&${e.resource.name}`).join(',')}};`: '',
+		'\t}');
+	}
+
+	write(hpp, '\tstruct VkShaders {');
+	write(cpp, '\tvoid VkShaders::buildAll() {');
+	for (let doc of glslDocs) {
+		write(hpp, `\t\tSpv${doc.className} ${doc.name};`);
+		write(cpp, `\t\t${doc.name}.build();`);
+		write(cpp, `\t\tallShaders[kVk${doc.className}_Pipeline] = &${doc.name};`);
+	}
+	write(hpp,
+		'\t\tVkShader* allShaders[kVkPipelineCount];',
+		'\t\tvoid buildAll();',
 		'\t};',
-		'\tconst uint32_t vkShaderSourceCount = sizeof(vkShaderSources) / sizeof(vkShaderSources[0]);',
 		'}',
-	);
+		'#endif');
+	write(cpp,
+		'\t}',
+		'}');
 	fs.closeSync(hpp);
 	fs.closeSync(cpp);
 }

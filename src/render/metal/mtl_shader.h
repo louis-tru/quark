@@ -79,16 +79,6 @@ namespace qk {
 	typedef void* MTLArgumentEncoderID;
 #endif
 
-	struct Vec3Padding {
-		Vec3 value;
-		float padding;
-	};
-
-	struct IVec3Padding {
-		IVec3 value;
-		int32_t padding;
-	};
-
 	enum MSLPipelineKind: uint8_t;
 
 	struct MSLShaderSource {

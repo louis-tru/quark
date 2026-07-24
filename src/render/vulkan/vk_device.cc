@@ -348,4 +348,43 @@ namespace qk {
 		return result == VK_SUCCESS;
 	}
 
+	void VulkanRenderResource::createDevice() {
+		uint32_t familyCount = 0;
+		Array<VkQueueFamilyProperties> families(_queueFamily + 1);
+		vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount, families.val());
+		Qk_ASSERT(_queueFamily < familyCount, "Invalid graphics queue family index");
+
+		uint32_t queueCount = std::min(families[_queueFamily].queueCount, 1u);
+		Qk_ASSERT(queueCount > 0, "No queues available in graphics queue family");
+
+		float priorities[] = { 1.0f, 1.0f };
+		VkDeviceQueueCreateInfo queueInfo = {};
+		queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueInfo.queueFamilyIndex = _queueFamily;
+		queueInfo.queueCount = queueCount;
+		queueInfo.pQueuePriorities = priorities;
+
+		VkPhysicalDeviceFeatures supportedFeatures = {};
+		vkGetPhysicalDeviceFeatures(_physicalDevice, &supportedFeatures);
+		VkPhysicalDeviceFeatures enabledFeatures = {};
+		enabledFeatures.textureCompressionETC2 = supportedFeatures.textureCompressionETC2;
+		enabledFeatures.textureCompressionBC = supportedFeatures.textureCompressionBC;
+
+		const char *extensions[] = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, // PVRTC support
+		};
+		_pvrtcSupport = vk_supportsDeviceExtension(_physicalDevice, extensions[1]);
+		uint32_t extensionCount = _pvrtcSupport ? 2 : 1;
+		VkDeviceCreateInfo deviceInfo = {};
+		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		deviceInfo.queueCreateInfoCount = 1;
+		deviceInfo.pQueueCreateInfos = &queueInfo;
+		deviceInfo.enabledExtensionCount = extensionCount;
+		deviceInfo.ppEnabledExtensionNames = extensions;
+		deviceInfo.pEnabledFeatures = &enabledFeatures;
+		vk_check("vkCreateDevice", vkCreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device));
+
+		vkGetDeviceQueue(_device, _queueFamily, 0, &_commandQueue);
+	}
 }

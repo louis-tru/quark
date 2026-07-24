@@ -24,7 +24,7 @@ void main() {
 }
 
 #frag
-layout(binding=2,set=1) uniform sampler2D image;
+layout(binding=1,set=1) uniform sampler2D image;
 layout(location=3) in vec2 coords;
 
 void main() {

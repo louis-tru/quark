@@ -58,7 +58,8 @@ namespace qk {
 			MemBlock *_next;
 			friend class MemBlockAllocator;
 		};
-		MemBlockAllocator(uint32_t initialSize = 4096): _blocks(1), _capacity(initialSize) {
+		MemBlockAllocator(uint32_t initialSize = 4096, uint32_t flags = 0)
+			: _blocks(1), _capacity(initialSize), _flags(flags) {
 			Qk_ASSERT(isAlignUp(initialSize), "Block capacity must be aligned.");
 			_head = createBlock(initialSize);
 			_current = _head;
@@ -66,7 +67,7 @@ namespace qk {
 		~MemBlockAllocator() {
 			auto block = _head;
 			do {
-				block = deleteBlock_(block);
+				block = deleteBlock_(block, 0);
 			} while(block);
 		}
 		void reset() {
@@ -74,17 +75,17 @@ namespace qk {
 			_current->begin = _current->end = 0;
 		}
 		// release all blocks except the first one, and reset the first block for reuse.
-		void clear() {
+		void clear(uint32_t flags = 0) {
 			auto block = _head->_next;
 			while (block)
-				block = deleteBlock_(block);
+				block = deleteBlock_(block, flags);
 			_current = _head;
 			_current->_next = nullptr;
 			_current->begin = _current->end = 0;
 		}
 		template <typename U>
-		const MemBlock& alloc(uint32_t count) {
-			return alloc(count * uint32_t(sizeof(U)), 0, 16);
+		const MemBlock& alloc(uint32_t count, uint32_t alignment = 16) {
+			return alloc(count * uint32_t(sizeof(U)), 0, alignment);
 		}
 		const MemBlock& alloc(uint32_t size, uint32_t reserve = 0, uint32_t alignment = 16) {
 			if (reserve == 0)
@@ -99,7 +100,7 @@ namespace qk {
 					if (block->capacity >= reserve)
 						break;
 					// delete blocks that are too small to satisfy the reserve
-					block = deleteBlock_(block);
+					block = deleteBlock_(block, 0);
 				}
 				if (!block) {
 					uint32_t capacity = std::max(_current->capacity << 1, reserve);
@@ -119,18 +120,19 @@ namespace qk {
 		}
 		Qk_DISABLE_COPY(MemBlockAllocator);
 		MemBlock* createBlock(uint32_t capacity);
-		void deleteBlock(MemBlock *block);
+		void deleteBlock(MemBlock *block, uint32_t flags);
 		// delete block return next block, or nullptr if no next block
-		MemBlock* deleteBlock_(MemBlock *block) {
+		MemBlock* deleteBlock_(MemBlock *block, uint32_t flags) {
 			_blocks--;
 			_capacity -= block->capacity;
 			auto next = block->_next;
-			return deleteBlock(block), next;
+			return deleteBlock(block, flags), next;
 		}
 		MemBlock *_head;
 		MemBlock *_current; // current block for alloc
 		uint32_t _blocks;  ///< Total number of blocks allocated.
 		uint32_t _capacity; ///< Total capacity across all blocks in bytes.
+		uint32_t _flags; ///< Backend-specific block creation flags.
 	};
 }
 #endif
