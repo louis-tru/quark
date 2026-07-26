@@ -160,24 +160,15 @@ namespace qk {
 	}
 
 	template<>
-	void MemBlockAllocator<VkMemBuffer*>::deleteBlock(MemBlock *block, uint32_t flags) {
+	void MemBlockAllocator<VkMemBuffer*>::deleteBlock(MemBlock *block) {
 		auto device = getSharedRenderVulkanResource()->device();
 		auto buffer = block->val;
 		if (buffer->mapped)
 			vkUnmapMemory(device, buffer->memory);
-		if (flags & kSafeDeleteVkMemBlock_Flag) {
-			vk_delayTask(Cb([device, buffer=buffer->buffer, memory=buffer->memory](auto) {
-				if (buffer)
-					vkDestroyBuffer(device, buffer, nullptr);
-				if (memory)
-					vkFreeMemory(device, memory, nullptr);
-			}));
-		} else {
-			if (buffer->buffer)
-				vkDestroyBuffer(device, buffer->buffer, nullptr);
-			if (buffer->memory)
-				vkFreeMemory(device, buffer->memory, nullptr);
-		}
+		if (buffer->buffer)
+			vkDestroyBuffer(device, buffer->buffer, nullptr);
+		if (buffer->memory)
+			vkFreeMemory(device, buffer->memory, nullptr);
 		delete buffer;
 		delete block;
 	}
@@ -518,85 +509,35 @@ namespace qk {
 	}
 
 	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb) {
-		VkSubmitInfo info = {};
-		info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 		info.commandBufferCount = 1;
 		info.pCommandBuffers = cmd;
 		return getSharedRenderVulkanResource()->submitCommand(&info, cb);
 	}
 
-	void vk_deleteTexture(VkDevice device, VkTexture *tex) {
-		if (!tex)
-			return;
-		if (tex->view)
-			vkDestroyImageView(device, tex->view, nullptr);
-		if (tex->image)
-			vkDestroyImage(device, tex->image, nullptr);
-		if (tex->memory)
-			vkFreeMemory(device, tex->memory, nullptr);
-		delete tex;
-	}
-
-	void vk_deleteVertexBuffer(VkDevice device, VkVertexBuffer *vertex) {
-		if (!vertex)
-			return;
-		if (vertex->buffer)
-			vkDestroyBuffer(device, vertex->buffer, nullptr);
-		if (vertex->memory)
-			vkFreeMemory(device, vertex->memory, nullptr);
-		delete vertex;
-	}
-
-	void add_delay_task_for_app(Cb cb, bool recursion);
-
-	void vk_delayTask(Cb cb) {
-		add_delay_task_for_app(cb, false);
-	}
-
-	void vk_deleteTextureSafe(VkDevice device, VkTexture *tex) {
-		vk_delayTask(Cb([device, tex](auto e) {
-			vk_deleteTexture(device, tex);
-		}));
-	}
-
-	void vk_deleteVertexBufferSafe(VkDevice device, VkVertexBuffer *vertex) {
-		vk_delayTask(Cb([device, vertex](auto e) {
-			vk_deleteVertexBuffer(device, vertex);
-		}));
-	}
-
-	void vk_deleteImageView(VkDevice device, VkImageView view) {
-		vk_delayTask(Cb([device, view](auto e) {
-			vkDestroyImageView(device, view, nullptr);
-		}));
-	}
-
-	void vk_deleteFramebufferSafe(VkDevice device, VkFramebuffer framebuffer) {
-		vk_delayTask(Cb([device, framebuffer](auto e) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}));
-	}
-
-	template<>
-	void ObjectTraitsBase<VkTexture>::Release(VkTexture* tex) {
-		vk_deleteTexture(getSharedRenderVulkanResource()->device(), tex);
-	}
-
-	cVkMemBlock& makeBuffer(VkCmdPack &cmd, const void *src, uint32_t size, uint32_t reserve) {
-		auto &block = cmd.allocator[0]->alloc(size, reserve, vk_uniformBufferAlignment);
+	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve) {
+		auto &block = cmd->vkAlloc[0].alloc(size, reserve, vk_uniformBufferAlignment);
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val->mapped + block.begin, src, size);
 		return block;
 	}
 
-	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack &cmd, const void *src, uint32_t size, uint32_t reserve) {
+	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve) {
 		cVkMemBlock &block = makeBuffer(cmd, src, size, reserve);
 		return {
 			.buffer = block.val->buffer,
 			.offset = block.begin,
 			.range = size,
 		};
+	}
+
+	void VkRef::ref() {
+		refCount.fetch_add(1, std::memory_order_relaxed);
+	}
+	void VkRef::unref() {
+		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1)
+			delete this;
 	}
 
 } // namespace qk

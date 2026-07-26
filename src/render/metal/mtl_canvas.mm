@@ -193,15 +193,12 @@ namespace qk {
 		return _cmdPack.enc;
 	}
 
-	void MetalCanvas::setPipeline(MTLEncoder enc, MTLPipeline pipeline) {
+	void MetalCanvas::setPipeline(MTLEncoder enc, MSLShader& shader) {
+		auto pipeline = shader.getPipeline(_blendMode, _outColorTex.pixelFormat);
 		if (_cmdPack.pipeline != pipeline) {
 			[enc setRenderPipelineState:pipeline]; // set pipeline state for shader
 			_cmdPack.pipeline = pipeline;
 		}
-	}
-
-	void MetalCanvas::setPipeline(MTLEncoder enc, MSLShader& shader) {
-		return setPipeline(enc, shader.getPipeline(_blendMode, _outColorTex.pixelFormat));
 	}
 
 	// usePipeline with vertex data ensures vertex data is valid and set for draw call,
@@ -211,11 +208,10 @@ namespace qk {
 		if (Render::useVertexData(vertex.id)) {
 			auto buf = (__bridge id<MTLBuffer>)vertex.id->ptr; // get vertex buffer from vertex data id
 			[enc setVertexBuffer:buf offset:0 atIndex:shader.bufferIndex];
-		} else if (vertex.vertex.val()) {
+		} else {
+			Qk_ASSERT(vertex.vertex.val(), "Vertex data should not be null for draw call");
 			Qk_ASSERT_EQ(vertex.vertex.length(), vertex.vCount, "Vertex data length should match vertex count");
 			[enc setVertexBytes:vertex.vertex.val() length:vertex.vertex.size() atIndex:shader.bufferIndex];
-		} else {
-			return nil; // invalid vertex data, skip draw call
 		}
 		return enc;
 	}

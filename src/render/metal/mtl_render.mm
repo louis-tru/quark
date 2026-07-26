@@ -350,7 +350,7 @@ namespace qk {
 		return block;
 	}
 	template<> 
-	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block, uint32_t flags) {
+	void MemBlockAllocator<MTLBufferID>::deleteBlock(MemBlock *block) {
 		block->val = nil;
 		delete block;
 	}

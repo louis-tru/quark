@@ -12,8 +12,6 @@
 #import "../source.h"
 #import "../pixel.h"
 
-// use pipeline and set vertex buffer for vertex data, if invalid vertex data, return and skip draw call
-#define Qk_usePipeline(shader, ...) auto enc = usePipeline(shader,##__VA_ARGS__); if (!enc) return
 // set texture for slot 0 and return encoder, if texture not ready, return nil and skip draw call
 #define Qk_useTexture0(paint, dstSlot, ...) bool isYuv = false; \
 	auto enc = useTexture0(paint, dstSlot, &isYuv); if (!enc) return __VA_ARGS__
@@ -170,7 +168,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
-		Qk_usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
+		auto enc = usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
 		MSLColor::PcArgs pc{ color, offset, flags };
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
@@ -297,7 +295,7 @@ namespace qk {
 	void MetalCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
 		int count = Qk_Min(64, paint->count);
 		auto &shader = _shaders.colorGradient;
-		Qk_usePipeline(shader, vertex);
+		auto enc = usePipeline(shader, vertex);
 		MSLColorGradient::PcArgs pc{
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),

@@ -51,7 +51,7 @@ namespace qk {
 		auto fail = [&]() {
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			vk_deleteTexture(_device, tex);
+			tex->unref();
 			return false;
 		};
 		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
@@ -87,6 +87,24 @@ namespace qk {
 
 		_emptyTexture = tex;
 		return true;
+	}
+
+	VkTexture::~VkTexture() {
+		auto device = getSharedRenderVulkanResource()->device();
+		if (view)
+			vkDestroyImageView(device, view, nullptr);
+		if (image)
+			vkDestroyImage(device, image, nullptr);
+		if (memory)
+			vkFreeMemory(device, memory, nullptr);
+	}
+
+	VkVertexBuffer::~VkVertexBuffer() {
+		auto device = getSharedRenderVulkanResource()->device();
+		if (buffer)
+			vkDestroyBuffer(device, buffer, nullptr);
+		if (memory)
+			vkFreeMemory(device, memory, nullptr);
 	}
 
 	void VkTexture::generateMipmaps(VkCommandBuffer cmd) const {
@@ -198,8 +216,7 @@ namespace qk {
 		if (flags & kComputeWrite_TextureFlags)
 			usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
 		imageInfo.format = format;
 		imageInfo.extent = { uint32_t(size.x()), uint32_t(size.y()), 1 };
@@ -211,14 +228,13 @@ namespace qk {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		auto tex = new VkTexture{
-			.format = format,
-			.extent = { uint32_t(size.x()), uint32_t(size.y()) },
-			.mipLevels = mipLevels,
-			.usage = usage,
-		};
+		auto tex = new VkTexture();
+		tex->format = format;
+		tex->extent = { uint32_t(size.x()), uint32_t(size.y()) };
+		tex->mipLevels = mipLevels;
+		tex->usage = usage;
 		auto fail = [&]() {
-			vk_deleteTexture(_device, tex);
+			tex->unref();
 			return nullptr;
 		};
 		VkResult result;
@@ -230,15 +246,13 @@ namespace qk {
 		vk_call(vk_findMemoryType, return fail(), _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryType);
 
-		VkMemoryAllocateInfo memoryInfo = {};
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
 		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &tex->memory);
 		vk_call(vkBindImageMemory, return fail(), _device, tex->image, tex->memory, 0);
 
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		VkImageViewCreateInfo viewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
 		viewInfo.image = tex->image;
 		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		viewInfo.format = format;
@@ -298,7 +312,7 @@ namespace qk {
 				vkFreeMemory(_device, stagingMemory, nullptr);
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			vk_deleteTexture(_device, vk_tex);
+			vk_tex->unref();
 			return false;
 		};
 
@@ -318,8 +332,7 @@ namespace qk {
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryType
 		);
 		void *mapped;
-		VkMemoryAllocateInfo memoryInfo = {};
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
 		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &stagingMemory);
@@ -337,8 +350,7 @@ namespace qk {
 		ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
 
 		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
-		VkImageMemoryBarrier barrier = {};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		VkImageMemoryBarrier barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -397,18 +409,15 @@ namespace qk {
 		auto *vk_tex = static_cast<VkTexture*>(tex->ptr());
 		if (!vk_tex)
 			return;
-		// We cannot delete the texture immediately, because it may be in use by the GPU. Instead,
-		// we schedule a delayed task to delete the texture after the GPU has finished using it.
-		vk_deleteTextureSafe(_device, vk_tex);
+		vk_tex->unref();
 		tex->set_ptr(nullptr);
 	}
 
 	VkVertexBuffer* VulkanRenderResource::newVertexBuffer(uint32_t size) {
-		auto vertex = new VkVertexBuffer{
-			.size = VkDeviceSize(size),
-		};
+		auto vertex = new VkVertexBuffer();
+		vertex->size = VkDeviceSize(size);
 		auto fail = [&]() {
-			vk_deleteVertexBuffer(_device, vertex);
+			vertex->unref();
 			return nullptr;
 		};
 		VkResult result;
@@ -455,7 +464,7 @@ namespace qk {
 				vkFreeMemory(_device, stagingMemory, nullptr);
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			vk_deleteVertexBuffer(_device, vertex);
+			vertex->unref();
 			return false;
 		};
 
@@ -519,7 +528,7 @@ namespace qk {
 		auto vertex = static_cast<VkVertexBuffer*>(id->ptr);
 		if (!vertex)
 			return;
-		vk_deleteVertexBufferSafe(_device, vertex);
+		vertex->unref();
 		id->ptr = nullptr;
 	}
 

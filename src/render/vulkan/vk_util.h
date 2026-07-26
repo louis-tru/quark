@@ -47,7 +47,14 @@ namespace qk {
 	class VulkanRender;
 	struct VkCmdPack;
 
-	struct VkTexture {
+	struct VkRef {
+		std::atomic_int refCount{1}; // refCount starts at 1 when created
+		virtual ~VkRef() = default;
+		void ref();
+		void unref();
+	};
+
+	struct VkTexture: VkRef {
 		VkImage image = VK_NULL_HANDLE;
 		VkImageView view = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -55,16 +62,20 @@ namespace qk {
 		VkExtent2D extent;
 		uint32_t mipLevels;
 		VkImageUsageFlags usage;
+		~VkTexture() override;
 		void generateMipmaps(VkCommandBuffer cmd) const;
 	};
 
 	template<>
-	void ObjectTraitsBase<VkTexture>::Release(VkTexture* tex);
+	inline void ObjectTraitsBase<VkTexture>::Release(VkTexture* tex) {
+		tex->unref();
+	}
 
-	struct VkVertexBuffer {
+	struct VkVertexBuffer: VkRef {
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VkDeviceSize size = 0;
+		~VkVertexBuffer() override;
 	};
 
 	struct VkMemBuffer {
@@ -77,11 +88,8 @@ namespace qk {
 	typedef MemBlockAllocator<VkMemBuffer*> VkMemBufferAllocator;
 	typedef VkMemBufferAllocator::MemBlock VkMemBlock;
 	typedef const VkMemBlock cVkMemBlock;
-	constexpr uint32_t kSafeDeleteVkMemBlock_Flag = 1u;
 
 	extern uint32_t vk_uniformBufferAlignment;
-
-	void vk_delayTask(Cb cb);
 
 	inline void vk_check(const char *call, VkResult result) {
 		Qk_CHECK(result == VK_SUCCESS, "%s failed: %d", call, int(result));
@@ -145,24 +153,17 @@ namespace qk {
 
 	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb);
 
-	void vk_deleteTexture(VkDevice device, VkTexture *tex);
-	void vk_deleteTextureSafe(VkDevice device, VkTexture *tex);
-	void vk_deleteVertexBuffer(VkDevice device, VkVertexBuffer *vertex);
-	void vk_deleteVertexBufferSafe(VkDevice device, VkVertexBuffer *vertex);
-	void vk_deleteImageView(VkDevice device, VkImageView view);
-	void vk_deleteFramebufferSafe(VkDevice device, VkFramebuffer framebuffer);
+	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
 
-	cVkMemBlock& makeBuffer(VkCmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0);
-
-	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0);
+	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
 
 	template<typename T>
-	cVkMemBlock& makeBufferT(VkCmdPack &cmd, const T *src, uint32_t length = 1) {
+	cVkMemBlock& makeBufferT(VkCmdPack *cmd, const T *src, uint32_t length = 1) {
 		return makeBuffer(cmd, src, length * sizeof(T), sizeof(T));
 	}
 
 	template<typename T>
-	VkDescriptorBufferInfo makeBufferInfoT(VkCmdPack &cmd, const T *src, uint32_t length = 1) {
+	VkDescriptorBufferInfo makeBufferInfoT(VkCmdPack *cmd, const T *src, uint32_t length = 1) {
 		return makeBufferInfo(cmd, src, length * sizeof(T), sizeof(T));
 	}
 

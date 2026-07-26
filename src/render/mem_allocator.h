@@ -67,7 +67,7 @@ namespace qk {
 		~MemBlockAllocator() {
 			auto block = _head;
 			do {
-				block = deleteBlock_(block, 0);
+				block = deleteBlock_(block);
 			} while(block);
 		}
 		void reset() {
@@ -75,10 +75,10 @@ namespace qk {
 			_current->begin = _current->end = 0;
 		}
 		// release all blocks except the first one, and reset the first block for reuse.
-		void clear(uint32_t flags = 0) {
+		void clear() {
 			auto block = _head->_next;
 			while (block)
-				block = deleteBlock_(block, flags);
+				block = deleteBlock_(block);
 			_current = _head;
 			_current->_next = nullptr;
 			_current->begin = _current->end = 0;
@@ -100,7 +100,7 @@ namespace qk {
 					if (block->capacity >= reserve)
 						break;
 					// delete blocks that are too small to satisfy the reserve
-					block = deleteBlock_(block, 0);
+					block = deleteBlock_(block);
 				}
 				if (!block) {
 					uint32_t capacity = std::max(_current->capacity << 1, reserve);
@@ -120,13 +120,13 @@ namespace qk {
 		}
 		Qk_DISABLE_COPY(MemBlockAllocator);
 		MemBlock* createBlock(uint32_t capacity);
-		void deleteBlock(MemBlock *block, uint32_t flags);
+		void deleteBlock(MemBlock *block);
 		// delete block return next block, or nullptr if no next block
-		MemBlock* deleteBlock_(MemBlock *block, uint32_t flags) {
+		MemBlock* deleteBlock_(MemBlock *block) {
 			_blocks--;
 			_capacity -= block->capacity;
 			auto next = block->_next;
-			return deleteBlock(block, flags), next;
+			return deleteBlock(block), next;
 		}
 		MemBlock *_head;
 		MemBlock *_current; // current block for alloc

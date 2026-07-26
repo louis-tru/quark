@@ -44,10 +44,10 @@ namespace qk {
 
 	void VulkanCanvas::setDefaultTarget(VkTexture *target) {
 		if(_outTex)
-			vk_deleteTextureSafe(_device, _outTex);
+			_outTex->unref();
 		_outTex = target;
 		Qk_ASSERT(_outTex, "Failed to create Vulkan canvas output texture");
-		_framebuffer.clearSafe(_device);
+		clearFramebuffer();
 		_framebuffer.framebuffer = vk_create_framebuffer(
 			_device, getRenderPass(_outTex->format), _outTex->view, _outTex->extent);
 		_framebuffer.view = _outTex->view;
@@ -56,21 +56,19 @@ namespace qk {
 	}
 
 	void VulkanCanvas::setSurfaceCmd(bool changeSize) {
-		endPass(); // end old pass if exist
+		resetCmdPack(_cmdPack); // clear old command pack
 
 		// create new output texture if size changed
 		if (changeSize) {
 			setDefaultTarget(_resource->newTexture(_surfaceSize, _opts.colorType, 1, kNone_TextureFlags));
 		}
 		// clear buffer allocators for new frame
-		_cmdPack.allocator[0]->clear();
-		_cmdPack.allocator[1]->clear();
-		_cmdPackFront.allocator[0]->clear(kSafeDeleteVkMemBlock_Flag);
-		_cmdPackFront.allocator[1]->clear(kSafeDeleteVkMemBlock_Flag);
+		_cmdPack->clearAllocator();
+		_cmdPackFront->clearAllocator(true);
 	}
 
 	void VulkanCanvas::setMatrixCmd() {
-		if (_cmdPack.renderPass)
+		if (_cmdPack->renderPass)
 			updateViewMatrixSet();
 	}
 

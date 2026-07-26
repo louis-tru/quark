@@ -46,7 +46,6 @@ namespace qk {
 		VkFramebuffer framebuffer = VK_NULL_HANDLE;
 		VkImageView view = VK_NULL_HANDLE;
 		bool holdView = false; // is hold view
-		void clearSafe(VkDevice device);
 		inline ~VkFramebufferData() {
 			Qk_ASSERT(!framebuffer && !view, "Vulkan framebuffer should be released before destruction");
 		}
@@ -69,9 +68,21 @@ namespace qk {
 			return recorded || commands.length();
 		}
 		void initialize(VkDevice device);
-		Sp<VkMemBufferAllocator> allocator[2]; // 0: host visible, 1: device local
+		void clearAllocator(bool safeDeleteVkMemBlock = false);
+		void finish();
+		inline void ref(VkRef *ref) {
+			ref->ref();
+			refs.push(ref);
+		}
+		inline void addCompleteCallback(Cb cb) {
+			completeCallbacks.push(cb);
+		}
+		LinearAllocator alloc; // linear allocator for this pack
+		Array<VkRef*> refs; // reference objects for this pack
+		Array<Cb> completeCallbacks; // complete callbacks for this pack
+		VkMemBufferAllocator vkAlloc[2]{{},{4096,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT}}; // 0: host visible, 1: device local
 		Array<VkCommandBuffer> commands; // recorded command buffers for this pack
-		VkCommandBuffer current; // current command buffer for recording
+		VkCommandBuffer current = VK_NULL_HANDLE; // current command buffer for recording
 		VkDescriptorPools descriptorPools; // descriptor pools for this pack
 		VkDescriptorSet set0; // common set, 0: image sampler, binding=1: root uniform buffer
 		VkDescriptorBufferInfo buffers[3]; // root, view, clip;
@@ -82,9 +93,9 @@ namespace qk {
 		VkClearColorValue clearColor; // current clear color for this pack
 		VkAttachmentLoadOp loadOp;
 		VkAttachmentStoreOp storeOp;
-		bool beginPass; // is begin pass for this pack
-		bool recorded; // is recorded command buffer for this pack
-		bool commonSetDirty; // is common descriptor set dirty for this pack
+		bool beginPass = false; // is begin pass for this pack
+		bool recorded = false; // is recorded command buffer for this pack
+		bool commonSetDirty = false; // is common descriptor set dirty for this pack
 	};
 
 	class VulkanCanvas: public GPUCanvas {
@@ -93,7 +104,7 @@ namespace qk {
 		~VulkanCanvas() override;
 		bool swapBuffer() override;
 		Array<VkCommandBuffer> flushBuffer();
-		bool isRecorded() const { return _cmdPackFront.isRecorded(); }
+		bool isRecorded() const { return _cmdPackFront->isRecorded(); }
 		void setDefaultTarget(VkTexture *target);
 	private:
 		void beginRenderPassReady();
@@ -109,7 +120,7 @@ namespace qk {
 		void bindDescriptorSet(VkDescriptorSet set, VkShader& shader, uint32_t bindSet = 0,
 				VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
 		inline VkDescriptorSet allocateDescriptorSet(VkDescriptorSetLayout setLayout) {
-			return _cmdPack.descriptorPools.allocateDescriptorSet(_device, setLayout);
+			return _cmdPack->descriptorPools.allocateDescriptorSet(_device, setLayout);
 		}
 		// void setPipeline(VkCommandBuffer cmd, VkPipeline pipeline);
 		VkCommandBuffer usePipeline(VkShader &shader);
@@ -122,7 +133,8 @@ namespace qk {
 			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		);
-		void resetCmdPack(VkCmdPack &pack);
+		void resetCmdPack(VkCmdPack *cmd);
+		void clearFramebuffer();
 		void setSurface(const Mat4 &root, Vec2 surfaceSize, Vec2 scale) override;
 		void setSurfaceCmd(bool changeSize) override;
 		void setMatrixCmd() override;
@@ -156,7 +168,7 @@ namespace qk {
 		VkFramebufferData _framebuffer;
 		VkTexture *_target, *_outTex; // current / default render target
 		VkTexture *_emptyTex; // empty texture for fallback
-		VkCmdPack _cmdPack, _cmdPackFront; // current and front command pack for render
+		VkCmdPack *_cmdPack, *_cmdPackFront; // current and front command pack for render
 		VkShaders _shaders; // canvas-local reflection and pipeline handle cache
 		Dict<uint32_t, VkSampler> _texSamplers;
 		Dict<uint64_t, VkRenderPass> _renderPasss;
