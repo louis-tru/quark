@@ -44,6 +44,7 @@
 	result = call(__VA_ARGS__); if (result != VK_SUCCESS) fail
 
 namespace qk {
+	class VulkanRenderResource;
 	class VulkanRender;
 	struct VkCmdPack;
 
@@ -58,24 +59,46 @@ namespace qk {
 		VkImage image = VK_NULL_HANDLE;
 		VkImageView view = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
-		VkFormat format;
 		VkExtent2D extent;
+		VkFormat format;
 		uint32_t mipLevels;
 		VkImageUsageFlags usage;
+		Array<VkImageLayout> layouts;
 		~VkTexture() override;
-		void generateMipmaps(VkCommandBuffer cmd) const;
+		Vec2 size() const { return Vec2(extent.width, extent.height); }
+		void transitionLayout(VkCommandBuffer cmd,
+			VkImageLayout oldLayout,
+			VkImageLayout newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+			uint32_t level = 0, uint32_t levelCount = 1) const;
+		void generateMipmaps(VkCommandBuffer cmd,
+			VkImageLayout baseLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) const;
 	};
 
-	template<>
-	inline void ObjectTraitsBase<VkTexture>::Release(VkTexture* tex) {
-		tex->unref();
-	}
+	template <>
+	struct ObjectTraits<VkTexture>: ObjectTraitsBase<VkTexture> {
+		static constexpr bool isRef = true;
+		inline static void Retain(VkTexture* tex) {
+			tex->ref();
+		}
+		inline static void Release(VkTexture* tex) {
+			tex->unref();
+		}
+	};
 
 	struct VkVertexBuffer: VkRef {
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VkDeviceSize size = 0;
 		~VkVertexBuffer() override;
+	};
+
+	struct VkSubmitResult {
+		VkFence fence;
+		std::atomic_int refCount;
+		std::atomic_bool completed;
+		inline void unref() {
+			refCount.fetch_sub(1, std::memory_order_relaxed);
+		}
 	};
 
 	struct VkMemBuffer {
@@ -93,6 +116,10 @@ namespace qk {
 
 	inline void vk_check(const char *call, VkResult result) {
 		Qk_CHECK(result == VK_SUCCESS, "%s failed: %d", call, int(result));
+	}
+
+	inline VkTexture* vk_cast_texture(cTexStat *texStat) {
+		return static_cast<VkTexture*>(texStat->ptr());
 	}
 
 	inline VkTexture* vk_get_texture(const ImageSource* src, uint32_t index = 0) {
@@ -141,6 +168,9 @@ namespace qk {
 
 	VkImageView vk_createLevelView(VkDevice device, const VkTexture *texture, uint32_t level);
 
+	cTexStat* vk_rebuild_texture(Vec2 size, ColorType type, cTexStat* texStat,
+		TexStat &storeStat, uint8_t flags);
+
 	VkFormat vk_pixelFormat(ColorType type);
 
 	VkResult vk_findMemoryType(
@@ -155,12 +185,12 @@ namespace qk {
 
 	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
 
-	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
-
 	template<typename T>
 	cVkMemBlock& makeBufferT(VkCmdPack *cmd, const T *src, uint32_t length = 1) {
 		return makeBuffer(cmd, src, length * sizeof(T), sizeof(T));
 	}
+
+	VkDescriptorBufferInfo makeBufferInfo(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
 
 	template<typename T>
 	VkDescriptorBufferInfo makeBufferInfoT(VkCmdPack *cmd, const T *src, uint32_t length = 1) {

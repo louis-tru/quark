@@ -67,24 +67,22 @@ namespace qk {
 		VkPipeline getComputePipeline(VkPipelineKind kind);
 		VkSampler get_sampler(const PaintImage* paint);
 		VkSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
-		VkResult submitCommand(const VkSubmitInfo* submit, VkFence fence = VK_NULL_HANDLE);
-		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
-		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags);
+		VkSubmitResult* submitCommand(VkCmdPack *pack);
+		VkSubmitResult* submitCommand(const VkSubmitInfo* submit, Cb cb, VkCmdPack *pack = nullptr);
+		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags,
+			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 		void queueWaitIdle();
+		bool isSubmitCompleted(VkSubmitResult* result);
 	private:
 		explicit VulkanRenderResource();
 		void createDevice();
-		bool createEmptyTexture();
 		VkVertexBuffer* newVertexBuffer(uint32_t size);
 		VkPipelineLayoutData* getPipelineLayoutNoLock(VkPipelineKind kind);
 		void checkAsyncWaitTasks(Array<Cb> *out);
-		inline VkShader& getShader(VkPipelineKind kind) {
-			Qk_ASSERT(kind < kVkPipelineCount, "Invalid Vulkan pipeline kind: %d", kind);
-			return *_shaders.allShaders[kind];
-		}
+		VkShader& getShader(VkPipelineKind kind);
 		VkShaderModule getShaderModule(VkPipelineKind kind, VkShaderStageFlagBits stage);
+		void refSubmitResult(VkSubmitResult* result, VkCmdPack *pack);
 		// fields:
-		struct AsyncWaitTask { VkFence fence; Cb cb; };
 		Mutex _mutex, _commitMutex;
 		VkInstance _instance;
 		VkPhysicalDevice _physicalDevice;
@@ -101,7 +99,8 @@ namespace qk {
 		Dict<uint32_t, VkPipelineLayoutData> _pipelineLayouts;
 		Dict<uint64_t, VkPipeline> _pipelines;
 		Dict<uint32_t, VkSampler> _samplers;
-		List<AsyncWaitTask> _asyncWaitTasksPool, _asyncWaitTasks;
+		List<VkSubmitResult> _submitResults;
+		List<Pair<VkSubmitResult*, Cb>> _asyncWaitTasks;
 		int64_t _nextAsyncWaitCheckTime;
 		VkCommandPool _commandPool;
 		friend VulkanRenderResource* getSharedRenderVulkanResource();
@@ -121,7 +120,7 @@ namespace qk {
 		void unloadVertexData(VertexData::ID *id) override;
 	protected:
 		explicit VulkanRender(Options opts);
-	// fields:
+		// fields:
 		VulkanRenderResource* _resource;
 		VkDevice _device;
 		VulkanCanvas *_vkCanvas;

@@ -39,8 +39,6 @@
 
 namespace qk {
 	class VulkanCanvas;
-	class VulkanRender;
-	class VulkanRenderResource;
 
 	struct VkFramebufferData {
 		VkFramebuffer framebuffer = VK_NULL_HANDLE;
@@ -67,20 +65,24 @@ namespace qk {
 		inline bool isRecorded() const {
 			return recorded || commands.length();
 		}
-		void initialize(VkDevice device);
-		void clearAllocator(bool safeDeleteVkMemBlock = false);
-		void finish();
+		inline void addCompleteCallback(Cb cb) {
+			completeCallbacks.push(cb);
+		}
 		inline void ref(VkRef *ref) {
 			ref->ref();
 			refs.push(ref);
 		}
-		inline void addCompleteCallback(Cb cb) {
-			completeCallbacks.push(cb);
-		}
+		VkCmdPack(VkDevice device);
+		~VkCmdPack();
+		void clearAllocator(bool safeDelete = false);
+		void reset(VulkanCanvas *host);
+		void finish();
+		std::atomic<VkSubmitResult*> completion{nullptr};
 		LinearAllocator alloc; // linear allocator for this pack
+		VkMemBufferAllocator vkAlloc[2]{{},{4096,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT}}; // 0: host visible, 1: device local
 		Array<VkRef*> refs; // reference objects for this pack
 		Array<Cb> completeCallbacks; // complete callbacks for this pack
-		VkMemBufferAllocator vkAlloc[2]{{},{4096,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT}}; // 0: host visible, 1: device local
+		Array<Sp<VulkanCanvas>> subCanvas; // sub canvas ref for this pack
 		Array<VkCommandBuffer> commands; // recorded command buffers for this pack
 		VkCommandBuffer current = VK_NULL_HANDLE; // current command buffer for recording
 		VkDescriptorPools descriptorPools; // descriptor pools for this pack
@@ -109,21 +111,29 @@ namespace qk {
 	private:
 		void beginRenderPassReady();
 		void beginRenderPass();
-		void beginPass(int level = 0, bool loadColor = true, Color4f *clearColor = nullptr);
+		void beginPass(int level = 0, bool loadColor = true, const Color4f *clearColor = nullptr);
 		void endPass();
-		void updateRootMatrixSet();
-		void updateViewMatrixSet();
-		void bindCommonDescriptorSet(VkShader& shader);
+		void setRootMatrixBuffer();
+		void setViewMatrixBuffer();
+		void setBuffer(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer);
+		void setBuffer(VkDescriptorSet set, uint32_t binding, const void* data, uint32_t size) {
+			setBuffer(set, binding, makeBuffer(_cmdPack, data, size));
+		}
 		void updateCommonDescriptorSet(bool allocBuff);
-		void updateDescriptorSet(VkDescriptorSet set, uint32_t binding, VkTexture tex, VkSampler sampler);
-		void updateDescriptorSet(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer);
-		void bindDescriptorSet(VkDescriptorSet set, VkShader& shader, uint32_t bindSet = 0,
-				VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
+		void bindDescriptorSet(VkDescriptorSet set, VkShader& shader, uint32_t setIdx = 1,
+				uint32_t dynamicOffsetCount = 0, VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
+		bool useTexture(VkDescriptorSet set, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
+		void setTextureParam(VkDescriptorSet set, uint32_t binding, VkTexture *tex,
+			VkSampler sampler = nullptr, VkImageView view = VK_NULL_HANDLE);
+		void setTextureLevelParam(VkDescriptorSet set, uint32_t binding, VkTexture *tex,
+			uint32_t level, VkSampler sampler = nullptr);
+		void makeTextureMipReadable(VkTexture *tex, uint32_t level = 0);
+		VkDescriptorSet useTexture0(VkDescriptorSet set, const PaintImage *paint, int dstSlot, bool* isYuv);
 		inline VkDescriptorSet allocateDescriptorSet(VkDescriptorSetLayout setLayout) {
 			return _cmdPack->descriptorPools.allocateDescriptorSet(_device, setLayout);
 		}
-		// void setPipeline(VkCommandBuffer cmd, VkPipeline pipeline);
 		VkCommandBuffer usePipeline(VkShader &shader);
+		VkCommandBuffer usePipeline(VkShader &shader, float vertex[], uint32_t vCount);
 		VkCommandBuffer usePipeline(VkShader &shader, const VertexData &vertex);
 		VkSampler get_sampler(const PaintImage* paint);
 		VkSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
@@ -133,7 +143,9 @@ namespace qk {
 			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		);
-		void resetCmdPack(VkCmdPack *cmd);
+		void copyImage(ImageSource *src, Vec2 srcOffset, Range dst, Vec2 resolution);
+		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags);
+		void clearColor(const Color4f &color, const Range *surfaceRange);
 		void clearFramebuffer();
 		void setSurface(const Mat4 &root, Vec2 surfaceSize, Vec2 scale) override;
 		void setSurfaceCmd(bool changeSize) override;
@@ -166,15 +178,16 @@ namespace qk {
 		VkDevice _device;
 		VkCommandPool _commandPool; // owned by this canvas; all local command buffers come from it
 		VkFramebufferData _framebuffer;
-		VkTexture *_target, *_outTex; // current / default render target
-		VkTexture *_emptyTex; // empty texture for fallback
+		VkTexture *_target; // current render target
+		Sp<VkTexture> _outTex; // default output texture
+		Sp<VkTexture> _emptyTex; // empty texture for fallback
 		VkCmdPack *_cmdPack, *_cmdPackFront; // current and front command pack for render
 		VkShaders _shaders; // canvas-local reflection and pipeline handle cache
 		Dict<uint32_t, VkSampler> _texSamplers;
 		Dict<uint64_t, VkRenderPass> _renderPasss;
 		friend class VkCmdPack;
+		friend class VulkanRenderResource;
 	};
 
-}
-
+} // namespace qk
 #endif

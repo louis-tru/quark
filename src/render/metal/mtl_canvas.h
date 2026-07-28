@@ -25,14 +25,14 @@ namespace qk {
 
 	struct MTL_CmdPack {
 		inline bool isRecorded() const {
-			return recorded || cmds.length();
+			return recorded || commands.length();
 		}
 		template <typename U>
 		inline cMTLMemBlock alloc(uint32_t size) {
 			return allocator->alloc<U>(size);
 		}
 		Sp<MTLMemBufferAllocator> allocator = nullptr; // buffers allocator
-		Array<MTLCommandBufferID> cmds; // command buffers
+		Array<MTLCommandBufferID> commands; // command buffers
 		MTLCommandBufferID current = nullptr; // current command buffer for render pass
 		MTLPassDesc pass = nullptr; // current render pass descriptor for enc
 		MTLEncoder enc = nullptr; // current encoder for render
@@ -109,8 +109,8 @@ namespace qk {
 		//   _outTex               : default surface render target
 		//   _state->output        : rendering directly into output image
 		//   tmpA / tmpB           : temporary ping-pong render targets
-		// actual render passes always write into _outColorTex.
-		MTLTextureID _outColorTex; //
+		// actual render passes always write into _target.
+		MTLTextureID _target; //
 		bool _supportsSamplerClampToZero; // whether device supports sampler clamp to zero.
 		MSLShaders _shaders; // shader source and pipeline state cache, for canvas use
 		MTLArgumentEncoderID _capaCompositeSet2Encoder, _capaCompositeSet3Encoder;

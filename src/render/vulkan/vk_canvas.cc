@@ -85,15 +85,36 @@ namespace qk {
 		iter = pools.begin();
 	}
 
-	void VkCmdPack::initialize(VkDevice device) {
+	// -----------------------------------------------------------------------
+
+	VkCmdPack::VkCmdPack(VkDevice device) {
 		descriptorPools.pools.pushBack(descriptorPools.createDescriptorPool(device));
 		descriptorPools.iter = descriptorPools.pools.begin();
 		refs = Array<VkRef*>(&alloc);
 		completeCallbacks = Array<Cb>(&alloc);
+		subCanvas = Array<Sp<VulkanCanvas>>(&alloc);
+		commands = Array<VkCommandBuffer>(&alloc);
 	}
 
-	void VkCmdPack::clearAllocator(bool safeDeleteVkMemBlock) {
-		if (safeDeleteVkMemBlock) {
+	VkCmdPack::~VkCmdPack() {
+		auto device = getSharedRenderVulkanResource()->device();
+		descriptorPools.destroy(device);
+		if (auto submit = completion.load(std::memory_order_acquire))
+			submit->unref();
+		finish();
+	}
+
+	void VkCmdPack::clearAllocator(bool safeDelete) {
+		Qk_ASSERT_EQ(refs.length(), 0,
+			"Vulkan refs should be released before clear allocator");
+		Qk_ASSERT_EQ(completeCallbacks.length(), 0,
+			"Vulkan completeCallbacks should be resolved before clear allocator");
+		Qk_ASSERT_EQ(subCanvas.length(), 0,
+			"Vulkan subCanvas should be released before clear allocator");
+		Qk_ASSERT_EQ(commands.length(), 0,
+			"Vulkan command buffers should be released before clear allocator");
+		alloc.clear();
+		if (safeDelete) {
 			addCompleteCallback(Cb([](auto, auto self) {
 				self->vkAlloc[0].clear();
 				self->vkAlloc[1].clear();
@@ -102,17 +123,39 @@ namespace qk {
 			vkAlloc[0].clear();
 			vkAlloc[1].clear();
 		}
-		alloc.clear();
+	}
+
+	void VkCmdPack::reset(VulkanCanvas *h) {
+		finish();
+		if (commands.length())
+			vkFreeCommandBuffers(h->_device, h->_commandPool, commands.length(), commands.val());
+		if (current)
+			vkFreeCommandBuffers(h->_device, h->_commandPool, 1, &current);
+		vk_beginCommandBuffer(h->_device, h->_commandPool, &current);
+		subCanvas.clear();
+		commands.clear();
+		descriptorPools.reset(h->_device);
+		alloc.reset();
+		vkAlloc[0].reset();
+		vkAlloc[1].reset();
+		set0 = VK_NULL_HANDLE;
+		pipeline = VK_NULL_HANDLE;
+		renderPass = VK_NULL_HANDLE;
+		beginPass = false;
+		recorded = false;
+		commonSetDirty = false;
 	}
 
 	void VkCmdPack::finish() {
+		for (auto &cb: completeCallbacks)
+			cb->resolve();
 		for (auto &ref: refs)
 			ref->unref();
 		refs.clear();
-		for (auto &cb: completeCallbacks)
-			cb->resolve();
 		completeCallbacks.clear();
 	}
+
+	// -----------------------------------------------------------------------
 
 	VulkanCanvas::VulkanCanvas(VulkanRender *render, Render::Options opts)
 		: GPUCanvas(render, opts)
@@ -137,11 +180,9 @@ namespace qk {
 		auto result = vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool);
 		Qk_ASSERT_EQ(result, VK_SUCCESS, "Failed to create Vulkan canvas command pool");
 
-		_cmdPack = new VkCmdPack();
-		_cmdPack->initialize(_device);
-		resetCmdPack(_cmdPack);
-		_cmdPackFront = new VkCmdPack();
-		_cmdPackFront->initialize(_device);
+		_cmdPack = new VkCmdPack(_device);
+		_cmdPack->reset(this);
+		_cmdPackFront = new VkCmdPack(_device);
 	}
 
 	VulkanCanvas::~VulkanCanvas() {
@@ -153,40 +194,16 @@ namespace qk {
 			vkDestroyImageView(_device, _framebuffer.view, nullptr);
 		for (auto &i: _renderPasss)
 			vkDestroyRenderPass(_device, i.second, nullptr);
-		Releasep(_outTex);
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
-		_cmdPack->descriptorPools.destroy(_device);
-		_cmdPackFront->descriptorPools.destroy(_device);
-		_cmdPack->finish();
-		_cmdPackFront->finish();
 		Releasep(_cmdPack);
 		Releasep(_cmdPackFront);
+		_outTex = nullptr;
+		_emptyTex = nullptr;
 		_commandPool = VK_NULL_HANDLE;
 		_device = VK_NULL_HANDLE;
 		_framebuffer.view = VK_NULL_HANDLE;
 		_framebuffer.framebuffer = VK_NULL_HANDLE;
 		_mutex.unlock();
-	}
-
-	void VulkanCanvas::resetCmdPack(VkCmdPack *cmd) {
-		if (cmd->commands.length())
-			vkFreeCommandBuffers(_device, _commandPool, cmd->commands.length(), cmd->commands.val());
-		if (cmd->current)
-			vkFreeCommandBuffers(_device, _commandPool, 1, &cmd->current);
-		cmd->finish();
-		cmd->commands.clear();
-		cmd->descriptorPools.reset(_device);
-		Qk_ASSERT_EQ(VK_SUCCESS, vk_beginCommandBuffer(_device, _commandPool, &cmd->current),
-			"Failed to begin Vulkan command buffer");
-		cmd->alloc.reset();
-		cmd->vkAlloc[0].reset();
-		cmd->vkAlloc[1].reset();
-		cmd->set0 = VK_NULL_HANDLE;
-		cmd->pipeline = VK_NULL_HANDLE;
-		cmd->renderPass = VK_NULL_HANDLE;
-		cmd->commonSetDirty = false;
-		cmd->beginPass = false;
-		cmd->recorded = false;
 	}
 
 	void VulkanCanvas::clearFramebuffer() {
@@ -228,39 +245,72 @@ namespace qk {
 		return _renderPasss.set(key, renderPass);
 	}
 
-	void VulkanCanvas::updateRootMatrixSet() {
-		Qk_ASSERT(_cmdPack->renderPass, "Vulkan render pass should be begun before updating root matrix");
+	void VulkanCanvas::setRootMatrixBuffer() {
+		Qk_ASSERT(_cmdPack->renderPass, "Vulkan render pass should be begun before setting root matrix buffer");
 		SpvColor::RootMatrixBlock root{
 			.value = _rootMatrix.transpose(),
 			.noScale = _rootMatrixNoScale.transpose(),
 			.surfaceScale = _surfaceScale,
 		};
 		auto oldBuff = _cmdPack->buffers[0];
-		auto newBuff = makeBufferInfoT(_cmdPack, &root);
-		_cmdPack->buffers[0] = newBuff;
-		if (newBuff.buffer != oldBuff.buffer)
+		_cmdPack->buffers[0] = makeBufferInfoT(_cmdPack, &root);
+		if (_cmdPack->buffers[0].buffer != oldBuff.buffer)
 			updateCommonDescriptorSet(false); // update descriptor set
 		_cmdPack->commonSetDirty = true;
 	}
 
-	void VulkanCanvas::updateViewMatrixSet() {
-		Qk_ASSERT(_cmdPack->renderPass, "Vulkan render pass should be begun before updating view matrix");
-		SpvColor::ViewMatrixBlock view{
-			.value = Mat4(_state->matrix).transpose(),
-		};
+	void VulkanCanvas::setViewMatrixBuffer() {
+		Qk_ASSERT(_cmdPack->renderPass, "Vulkan render pass should be begun before setting view matrix buffer");
+		SpvColor::ViewMatrixBlock view{ .value = Mat4(_state->matrix).transpose() };
 		auto oldBuff = _cmdPack->buffers[1].buffer;
-		auto newBuff = makeBufferInfoT(_cmdPack, &view);
-		_cmdPack->buffers[1] = newBuff; // dynamic buffer is same as previous, no need to update descriptor set
-		if (newBuff.buffer != oldBuff)
+		_cmdPack->buffers[1] = makeBufferInfoT(_cmdPack, &view);
+		if (_cmdPack->buffers[1].buffer != oldBuff)
 			updateCommonDescriptorSet(false); // update descriptor set
 		_cmdPack->commonSetDirty = true;
 	}
 
-	void VulkanCanvas::updateDescriptorSet(VkDescriptorSet set, uint32_t binding,
-		VkTexture tex, VkSampler sampler)
-	{
-		VkDescriptorImageInfo image{sampler};
-		image.imageView = tex.view;
+	VkDescriptorSet VulkanCanvas::useTexture0(VkDescriptorSet set, const PaintImage *paint, int dstSlot, bool* isYuv) {
+		if (paint->_isCanvas) { // flush canvas to current canvas
+			auto srcC = static_cast<VulkanCanvas*>(paint->canvas);
+			if (srcC == this || !srcC->isGpu())
+				return VK_NULL_HANDLE; // if the source canvas is the same as current canvas or not gpu, skip
+			if (srcC->render() != _vkRender)
+				return VK_NULL_HANDLE; // if the source canvas is not from the same render, skip
+			if (!srcC->_outTex)
+				return VK_NULL_HANDLE; // if the source canvas has no output texture, skip
+			flushSubcanvasCmd(srcC); // flush subcanvas to current canvas
+			makeTextureMipReadable(srcC->_outTex.get());
+			setTextureParam(set, dstSlot, srcC->_outTex.get(), get_sampler(paint));
+			return set;
+		} else {
+			if (kYUV420P_Y_8_ColorType == paint->image->type()) { // yuv420p or yuv420sp
+				set = allocateDescriptorSet(_shaders.imageYuv.sets(1));
+				if (isYuv) *isYuv = true;
+			}
+			if (useTexture(set, paint->image, 0, dstSlot, paint))
+				return set;
+			return VK_NULL_HANDLE;
+		}
+	}
+
+	bool VulkanCanvas::useTexture(VkDescriptorSet set, ImageSource *src, int srcSlot, int dstSlot,
+			const PaintImage *paint) {
+		auto index = paint->srcIndex + srcSlot;
+		Qk_ASSERT_LT(index, 8, "Texture slot index out of range, srcIndex: %d, slot: %d", paint->srcIndex, srcSlot);
+		// mark texture for this render, and try to create texture immediately
+		src->markAsTexture();
+		if (!src->texture(index)->ptr()) {
+			Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
+			return false;
+		}
+		setTextureParam(set, dstSlot, vk_get_texture(src, index), get_sampler(paint));
+		return true;
+	}
+
+	void VulkanCanvas::setTextureParam(VkDescriptorSet set, uint32_t binding,
+			VkTexture *tex, VkSampler sampler, VkImageView view) {
+		VkDescriptorImageInfo image{sampler ? sampler: _resource->nearestSampler()};
+		image.imageView = view ? view: tex->view;
 		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
 		write.dstSet = set;
@@ -269,9 +319,29 @@ namespace qk {
 		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		write.pImageInfo = &image;
 		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
+		_cmdPack->ref(tex);
 	}
 
-	void VulkanCanvas::updateDescriptorSet(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer) {
+	void VulkanCanvas::setTextureLevelParam(VkDescriptorSet set, uint32_t binding, VkTexture *tex,
+		uint32_t level, VkSampler sampler)
+	{
+		Qk_ASSERT_LT(level, tex->mipLevels, "Invalid Vulkan render target mip level");
+		auto view = vk_createLevelView(_device, tex, level);
+		_cmdPack->addCompleteCallback(Cb([](auto, auto view) {
+			vkDestroyImageView(getSharedRenderVulkanResource()->device(), view, nullptr);
+		}, view));
+		setTextureParam(set, binding, tex, sampler, view);
+	}
+
+	void VulkanCanvas::makeTextureMipReadable(VkTexture *tex, uint32_t level) {
+		Qk_ASSERT(!_cmdPack->renderPass, "Texture layout transition must be outside render pass");
+		tex->transitionLayout(_cmdPack->current,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, level);
+		_cmdPack->recorded = true;
+	}
+
+	void VulkanCanvas::setBuffer(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer) {
 		VkDescriptorBufferInfo info{buffer.val->buffer};
 		info.offset = buffer.begin;
 		info.range = buffer.end - buffer.begin;
@@ -285,12 +355,12 @@ namespace qk {
 	}
 
 	void VulkanCanvas::bindDescriptorSet(VkDescriptorSet set, VkShader& shader,
-		uint32_t bindSet, VkPipelineBindPoint bindPoint)
+		uint32_t setIdx, uint32_t dynamicOffsetCount, VkPipelineBindPoint bindPoint)
 	{
 		static constexpr uint32_t dynamicOffsets[32]{0};
-		Qk_ASSERT(bindSet < 32, "Vulkan descriptor set bind index overflow");
+		Qk_ASSERT(dynamicOffsetCount < 32, "Vulkan descriptor set bind index overflow");
 		vkCmdBindDescriptorSets(_cmdPack->current, bindPoint, shader.layout(),
-			0, 1, &set, bindSet, dynamicOffsets);
+			setIdx, 1, &set, dynamicOffsetCount, dynamicOffsetCount ? dynamicOffsets: nullptr);
 	}
 
 	void VulkanCanvas::updateCommonDescriptorSet(bool allocBuff) {
@@ -299,7 +369,9 @@ namespace qk {
 		// Update image sampler descriptor sets
 		VkWriteDescriptorSet writes[4]{};
 		VkDescriptorImageInfo image{_resource->nearestSampler()};
-		image.imageView = _clipState ? vk_get_texture(_clipState->mask.get())->view: _emptyTex->view;
+		auto clipTex = _clipState ? vk_get_texture(_clipState->mask.get()): _emptyTex.get();
+		_cmdPack->ref(clipTex); // ref clip texture for this pack
+		image.imageView = clipTex->view;
 		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		writes[0].dstSet = _cmdPack->set0;
@@ -342,16 +414,7 @@ namespace qk {
 		_cmdPack->commonSetDirty = true;
 	}
 
-	void VulkanCanvas::bindCommonDescriptorSet(VkShader& shader) {
-		uint32_t dynamicOffsets[3] = {
-			uint32_t(_cmdPack->buffers[0].offset),
-			uint32_t(_cmdPack->buffers[1].offset), uint32_t(_cmdPack->buffers[2].offset),
-		};
-		vkCmdBindDescriptorSets(_cmdPack->current, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.layout(),
-			0, 1, &_cmdPack->set0, 3, dynamicOffsets);
-	}
-
-	void VulkanCanvas::beginPass(int level, bool loadColor, Color4f *clearColor) {
+	void VulkanCanvas::beginPass(int level, bool loadColor, const Color4f *clearColor) {
 	 #if DEBUG
 		if (_cmdPack->beginPass) {
 			if (_cmdPack->target == _target && _cmdPack->level == level) {
@@ -393,12 +456,19 @@ namespace qk {
 	void VulkanCanvas::beginRenderPassReady() {
 		if (!_cmdPack->beginPass)
 			beginPass();
-
 		auto target = _cmdPack->target;
-		_cmdPack->renderPass = getRenderPass(target->format, _cmdPack->loadOp, _cmdPack->storeOp);
+		Qk_ASSERT_LT(_cmdPack->level, target->mipLevels, "Invalid Vulkan render target mip level");
+
+		auto initialLayout = _cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_LOAD ?
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: VK_IMAGE_LAYOUT_UNDEFINED;
+		_cmdPack->renderPass = getRenderPass(target->format,
+			_cmdPack->loadOp, _cmdPack->storeOp, initialLayout);
 
 		VkRenderPassBeginInfo info{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-		info.renderArea.extent = { uint32_t(_surfaceSize.x()), uint32_t(_surfaceSize.y()) };
+		info.renderArea.extent = {
+			std::max(target->extent.width >> _cmdPack->level, 1u),
+			std::max(target->extent.height >> _cmdPack->level, 1u)
+		};
 		info.renderPass = _cmdPack->renderPass;
 
 		if (_framebuffer.view != target->view) {
@@ -452,9 +522,24 @@ namespace qk {
 		}
 
 		if (pipelineChanged || _cmdPack->commonSetDirty) {
-			bindCommonDescriptorSet(shader);
+			uint32_t dynamicOffsets[3] = {
+				uint32_t(_cmdPack->buffers[0].offset),
+				uint32_t(_cmdPack->buffers[1].offset), uint32_t(_cmdPack->buffers[2].offset),
+			};
+			vkCmdBindDescriptorSets(_cmdPack->current, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.layout(),
+				0, 1, &_cmdPack->set0, 3, dynamicOffsets);
 			_cmdPack->commonSetDirty = false;
 		}
+		return cmd;
+	}
+
+	VkCommandBuffer VulkanCanvas::usePipeline(VkShader &shader, float vertex[], uint32_t vCount) {
+		auto cmd = usePipeline(shader);
+		auto &block = makeBufferT(_cmdPack, vertex, vCount);
+		VkBuffer buffer = block.val->buffer;
+		VkDeviceSize offset = block.begin;
+		Qk_ASSERT(buffer, "Vertex buffer should not be null");
+		vkCmdBindVertexBuffers(cmd, 0, 1, &buffer, &offset);
 		return cmd;
 	}
 
@@ -476,40 +561,68 @@ namespace qk {
 		}
 		Qk_ASSERT(buffer, "Vertex buffer should not be null");
 		vkCmdBindVertexBuffers(cmd, 0, 1, &buffer, &offset);
-		return _cmdPack->current;
+		return cmd;
 	}
 
 	bool VulkanCanvas::swapBuffer() {
 		if (_capaBuilder)
 			_capaBuilder->flush();
 		endPass(); // end current pass to ensure all commands are encoded before swap
-		_mutex.lock();
-		bool canSwap = _cmdPackFront->current == VK_NULL_HANDLE;
+		Qk_ASSERT_EQ(VK_SUCCESS, vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
+		ScopeLock lock(_mutex);
+		bool canSwap = _cmdPackFront->isRecorded() == false;
+		if (!canSwap) {
+			auto submit = _cmdPackFront->completion.load(std::memory_order_acquire);
+			if (submit && _resource->isSubmitCompleted(submit))
+				canSwap = true;
+		}
 		// only swap if there are recorded commands and front cmd pack is empty
 		if (canSwap && _cmdPack->isRecorded()) {
+			auto submit = _cmdPackFront->completion.exchange(nullptr, std::memory_order_acq_rel);
+			if (submit)
+				submit->unref();
 			std::swap(_cmdPackFront, _cmdPack); // swap cmd buffer and pass descriptor to front
 		}
 		clear_PathvCache(_cache, 0);
 		// reset cmd pack for next frame
-		resetCmdPack(_cmdPack);
-		_mutex.unlock();
+		_cmdPack->reset(this);
 		return canSwap;
 	}
 
 	Array<VkCommandBuffer> VulkanCanvas::flushBuffer() {
-		_mutex.lock();
-		auto cmds = std::move(_cmdPackFront->commands); // get command buffers for flush
+		ScopeLock lock(_mutex);
+		if (_cmdPackFront->current == VK_NULL_HANDLE)
+			return Array<VkCommandBuffer>(); // no command buffer to flush
 		if (_cmdPackFront->recorded) {
-			// add command buffer to cmds for flush if it has recorded commands
-			cmds.push(_cmdPackFront->current);
+			_cmdPackFront->commands.push(_cmdPackFront->current);
+			_cmdPackFront->recorded = false;
+		} else {
+			vkFreeCommandBuffers(_device, _commandPool, 1, &_cmdPackFront->current);
 		}
-		_cmdPackFront->recorded = false;
-		// [_cmdPackFront.current addCompletedHandler:^(MTLCommandBufferID buffer) {
-		// 	// clear front command pack after flush is completed
-		// 	_cmdPackFront.current = nil;
-		// }];
-		_mutex.unlock();
-		Qk_ReturnLocal(cmds);
+		_cmdPackFront->current = VK_NULL_HANDLE; // mark current command buffer as flushed
+		return _cmdPackFront->commands;
+	}
+
+	void VulkanCanvas::flushSubcanvasCmd(GPUCanvas *sub) {
+		if (sub == this)
+			return;
+		if (sub->render() != _render)
+			return;
+		auto vkCanvas = static_cast<VulkanCanvas*>(sub);
+		auto commands = vkCanvas->flushBuffer(); // flush subcanvas to get command buffers
+		if (commands.isNull())
+			return;
+		endPass();
+
+		if (_cmdPack->recorded) {
+			_cmdPack->commands.push(_cmdPack->current); // merge
+			_cmdPack->recorded = false;
+			Qk_ASSERT_EQ(VK_SUCCESS, vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
+			// begin a new command buffer for next pass
+			vk_beginCommandBuffer(_device, _commandPool, &_cmdPack->current);
+		}
+		_cmdPack->commands.concat(commands); // merge subcanvas commands
+		_cmdPack->subCanvas.push(vkCanvas); // ref subcanvas to this command pack
 	}
 
 	VkSampler VulkanCanvas::get_sampler(const PaintImage* paint) {

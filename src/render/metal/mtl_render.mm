@@ -319,8 +319,10 @@ namespace qk {
 		auto tex = mtl_get_texture(texStat);
 		if (fmt == MTLPixelFormatInvalid)
 			return nullptr;
-		if (!tex || Vec2(tex.width, tex.height) != size.x() || tex.height != size.y() || tex.pixelFormat != fmt ||
-				(flags & kMipmap_TextureFlags && tex.mipmapLevelCount <= 1)
+		if (!tex ||
+				Vec2(tex.width, tex.height) != size ||
+				tex.pixelFormat != fmt ||
+				((flags & kMipmap_TextureFlags) && tex.mipmapLevelCount <= 1)
 		) {
 			tex = mtl_new_texture(device, size, fmt, flags);
 			if (!tex)

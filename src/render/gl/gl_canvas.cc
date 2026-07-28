@@ -100,7 +100,7 @@ namespace qk {
 	}
 
 	bool GLCanvas::swapBuffer() {
-		_mutex.lock();
+		ScopeLock lock(_mutex);
 		// check if have cmds in front buffer, if have cmds, wait for next swap
 		bool canSwap = _cmdPackFront->isEmpty();
 		if (canSwap) {
@@ -109,15 +109,12 @@ namespace qk {
 			clear_PathvCache(_cache, 0); // tag: clear mark
 		}
 		_cmdPack->clear(); // clear cmd buffer for next frame
-		_mutex.unlock();
 		return canSwap;
 	}
 
 	void GLCanvas::flushBuffer() { // only can rendering thread call
-		_mutex.lock();
+		ScopeLock lock(_mutex);
 		_cmdPackFront->flush(); // commit gl cmd
-		_mutex.unlock();
-		// clearExec_PathvCache(_cache); // clear @clear mark
 	}
 
 	void GLCanvas::vportCopy(GLuint dstFBO) {

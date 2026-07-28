@@ -322,7 +322,7 @@ namespace qk {
 			[enc setComputePipelineState:shader.getComputePipeline()];
 			[enc setBytes:&pc length:sizeof(pc) atIndex:shader.compute.pc];
 			[enc setBuffer:env.val offset:env.begin atIndex:shader.compute.env];
-			[enc setTexture:_outColorTex atIndex:shader.compute.dstImage];
+			[enc setTexture:_target atIndex:shader.compute.dstImage];
 			[enc setBuffer:paths.val offset:paths.begin atIndex:shader.compute.paths];
 			[enc setBuffer:globalTiles.val offset:globalTiles.begin atIndex:shader.compute.globalTiles];
 			[enc setBuffer:pathTiles.val offset:pathTiles.begin atIndex:shader.compute.pathTiles];

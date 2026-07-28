@@ -405,7 +405,7 @@ namespace qk {
 
 			for (int i = 0; i < 4; i++) {
 				auto horn = horns[i];
-				float v[] = { c[0],c[1],horn[0],c[1],horn[0],horn[1],c[0],horn[1] };
+				float v[] = { c[0],c[1],0, horn[0],c[1],0, horn[0],horn[1],0, c[0],horn[1],0 };
 				float r0 = F32::min(Vec2(r[i], s1).length(), rmax); // len
 				float r1 = F32::min(Vec2(r[i], s2).length(), rmax);
 				float n = 2.0 * r1 / r0;

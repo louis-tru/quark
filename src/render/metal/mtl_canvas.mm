@@ -63,7 +63,7 @@ namespace qk {
 		, _mtlrender(render)
 		, _device(nil), _commandQueue(nil)
 		, _cmdPack{}, _cmdPackFront{}
-		, _outTex(nil), _outColorTex(nil)
+		, _outTex(nil), _target(nil)
 		, _supportsSamplerClampToZero(false)
 		, _capaCompositeSet2Encoder(nil)
 		, _capaCompositeSet3Encoder(nil)
@@ -110,7 +110,7 @@ namespace qk {
 		_cmdPack = {};
 		_cmdPackFront = {}; // clear cmd packs
 		_outTex = nil; // Color render buffer object of texture
-		_outColorTex = nil; // Current active color render target texture
+		_target = nil; // Current active color render target texture
 		_capaCompositeSet2Encoder = nil;
 		_capaCompositeSet3Encoder = nil;
 		_commandQueue = nil; // Metal command queue
@@ -134,7 +134,7 @@ namespace qk {
 	MTLPassDesc MetalCanvas::beginPass(int level, bool loadColor) {
 	 #if DEBUG
 		if (_cmdPack.beginPass) {
-			if (_cmdPack.pass.colorAttachments[0].texture == _outColorTex &&
+			if (_cmdPack.pass.colorAttachments[0].texture == _target &&
 					_cmdPack.pass.colorAttachments[0].level == level
 			) {
 				Qk_Fatal("Same render target should not begin a new pass without ending the previous pass.");
@@ -145,8 +145,8 @@ namespace qk {
 		auto pass = _cmdPack.pass ? _cmdPack.pass: [MTLRenderPassDescriptor new];
 		auto recorded = _cmdPack.isRecorded();
 
-		Qk_ASSERT(_outColorTex, "Output color texture should be created before beginning a pass");
-		pass.colorAttachments[0].texture = _outColorTex;
+		Qk_ASSERT(_target, "Output color texture should be created before beginning a pass");
+		pass.colorAttachments[0].texture = _target;
 		pass.colorAttachments[0].loadAction = recorded && loadColor ? MTLLoadActionLoad : MTLLoadActionDontCare;
 		pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 		pass.colorAttachments[0].level = level;
@@ -194,7 +194,7 @@ namespace qk {
 	}
 
 	void MetalCanvas::setPipeline(MTLEncoder enc, MSLShader& shader) {
-		auto pipeline = shader.getPipeline(_blendMode, _outColorTex.pixelFormat);
+		auto pipeline = shader.getPipeline(_blendMode, _target.pixelFormat);
 		if (_cmdPack.pipeline != pipeline) {
 			[enc setRenderPipelineState:pipeline]; // set pipeline state for shader
 			_cmdPack.pipeline = pipeline;
@@ -220,7 +220,7 @@ namespace qk {
 		if (_capaBuilder)
 			_capaBuilder->flush(); // flush CAPA data for current frame before swap
 		endPass(); // end current pass to ensure all commands are encoded before swap
-		_mutex.lock();
+		ScopeLock lock(_mutex);
 		bool canSwap = _cmdPackFront.current == nil;
 		// only swap if there are recorded commands and front cmd pack is empty
 		if (canSwap && _cmdPack.isRecorded()) {
@@ -233,25 +233,22 @@ namespace qk {
 			.current = [_commandQueue commandBuffer], // create new command buffer for next frame
 		};
 		_cmdPack.allocator->reset(); // reset buffer allocator for new frame
-		_mutex.unlock();
 		return canSwap;
 	}
 
 	Array<MTLCommandBufferID> MetalCanvas::flushBuffer() {
-		_mutex.lock();
+		ScopeLock lock(_mutex); // ensure mutex is unlocked when function exits
 		Qk_ASSERT(!_cmdPackFront.beginPass, "Cannot flush buffer while a pass is still active, end the pass first");
-		auto cmds = std::move(_cmdPackFront.cmds); // get command buffers for flush
 		if (_cmdPackFront.recorded) {
 			// add command buffer to cmds for flush if it has recorded commands
-			cmds.push(_cmdPackFront.current);
+			_cmdPackFront.commands.push(_cmdPackFront.current);
 		}
 		_cmdPackFront.recorded = false;
 		[_cmdPackFront.current addCompletedHandler:^(MTLCommandBufferID buffer) {
 			// clear front command pack after flush is completed
 			_cmdPackFront.current = nil;
 		}];
-		_mutex.unlock();
-		Qk_ReturnLocal(cmds); // return command buffers for flush
+		return std::move(_cmdPackFront.commands);
 	}
 
 	void MetalCanvas::flushSubcanvasCmd(GPUCanvas *sub) {
@@ -259,21 +256,20 @@ namespace qk {
 			return; // only flush subcanvas if it is not the same as current canvas
 		if (sub->render() != _render)
 			return; // only flush subcanvas if it is from the same render
-		auto cmds = static_cast<MetalCanvas*>(sub)->flushBuffer(); // flush subcanvas to get command buffers
-		if (cmds.isNull())
+
+		auto commands = static_cast<MetalCanvas*>(sub)->flushBuffer();
+		if (commands.isNull())
 			return; // if no command buffers, skip
 
 		endPass(); // end current pass to ensure all commands are encoded before flush
 
-		if (_cmdPack.recorded) {
-			// add current command buffer to cmds for flush if it has recorded commands
-			_cmdPack.cmds.push(_cmdPack.current);
-		}
-		_cmdPack.recorded = true;
-		_cmdPack.current = cmds.back(); // get a command buffer from cmds for next pass
-		cmds.pop();
+		if (_cmdPack.recorded)
+			_cmdPack.commands.push(_cmdPack.current);
+		_cmdPack.current = commands.back(); // get a command buffer from cmds for next pass
+		commands.pop();
 		// add remaining command buffers to cmd pack for flush
-		_cmdPack.cmds.concat(cmds);
+		_cmdPack.commands.concat(commands);
+		_cmdPack.recorded = true;
 	}
 
 	void MetalCanvas::vportCopy(MTLCommandBufferID cmd, MTLDrawableID dst) {

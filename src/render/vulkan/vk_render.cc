@@ -30,6 +30,7 @@
 
 #include "./vk_render.h"
 #include "src/util/macros.h"
+#include <atomic>
 
 namespace qk {
 	uint32_t vk_uniformBufferAlignment;
@@ -74,11 +75,16 @@ namespace qk {
 		);
 		vk_maxPushConstantsSize = U32::min(256, properties.limits.maxPushConstantsSize);
 
-		_emptyTexture = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags);
 		_nearestSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kNearest_MipmapMode);
 
-		Qk_CHECK(createEmptyTexture(), "Failed to create Vulkan empty texture");
+		VkFence fence;
+		VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+		vk_check("vkCreateFence", vkCreateFence(_device, &info, nullptr, &fence));
+		_submitResults.pushBack({fence, {0}, {true}});
+
+		_emptyTexture = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		_shaders.buildAll();
 	}
 
@@ -99,12 +105,11 @@ namespace qk {
 		for (auto &sampler: _samplers) {
 			vkDestroySampler(_device, sampler.second, nullptr);
 		}
-		for (auto &task: _asyncWaitTasksPool) {
-			vkDestroyFence(_device, task.fence, nullptr);
-		}
 		for (auto &task: _asyncWaitTasks) {
-			task.cb->resolve(); // Resolve the callback before destroying the fence
-			vkDestroyFence(_device, task.fence, nullptr);
+			task.second->resolve();
+		}
+		for (auto &result: _submitResults) {
+			vkDestroyFence(_device, result.fence, nullptr);
 		}
 		_emptyTexture = nullptr;
 		if (_commandPool)
@@ -114,6 +119,11 @@ namespace qk {
 		vkDestroyDevice(_device, nullptr);
 		if (_instance)
 			vkDestroyInstance(_instance, nullptr);
+	}
+
+	inline VkShader& VulkanRenderResource::getShader(VkPipelineKind kind) {
+		Qk_ASSERT(kind < kVkPipelineCount, "Invalid Vulkan pipeline kind: %d", kind);
+		return *_shaders.allShaders[kind];
 	}
 
 	VkShaderModule VulkanRenderResource::getShaderModule(VkPipelineKind kind, VkShaderStageFlagBits stage) {
@@ -244,7 +254,13 @@ namespace qk {
 		}
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.topology =
+			kind == kVkBlur_Pipeline ||
+			kind == kVkCp_Pipeline ||
+			kind == kVkClear_Pipeline ||
+			kind == kVkColorRrectBlur_Pipeline
+					? VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
+					: VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 		VkPipelineViewportStateCreateInfo viewport{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
 		viewport.viewportCount = 1;
@@ -320,47 +336,69 @@ namespace qk {
 		vkQueueWaitIdle(_commandQueue);
 	}
 
-	VkResult VulkanRenderResource::submitCommand(const VkSubmitInfo* submit, VkFence fence) {
-		VkResult result;
+	bool VulkanRenderResource::isSubmitCompleted(VkSubmitResult* result) {
+		auto completed = result->completed.load(std::memory_order_relaxed);
+		if (!completed) {
+			if (vkGetFenceStatus(_device, result->fence) == VK_SUCCESS) {
+				result->completed.store(true, std::memory_order_relaxed);
+				return true;
+			}
+		}
+		return completed;
+	}
+
+	void VulkanRenderResource::refSubmitResult(VkSubmitResult* result, VkCmdPack *pack) {
+		result->refCount.fetch_add(1, std::memory_order_relaxed);
+		pack->completion.store(result, std::memory_order_release);
+		for (auto &sub: pack->subCanvas)
+			refSubmitResult(result, sub->_cmdPackFront);
+	}
+
+	VkSubmitResult* VulkanRenderResource::submitCommand(VkCmdPack *pack) {
+		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+		info.commandBufferCount = pack->commands.length();
+		info.pCommandBuffers = pack->commands.val();
+		return submitCommand(&info, nullptr, pack);
+	}
+
+	VkSubmitResult* VulkanRenderResource::submitCommand(const VkSubmitInfo* submit, Cb cb, VkCmdPack *pack) {
+		List<VkSubmitResult>::Iterator it;
 		Array<Cb> callbacks;
 		{
 			ScopeLock lock(_commitMutex);
-			result = vkQueueSubmit(_commandQueue, 1, submit, fence);
-			checkAsyncWaitTasks(&callbacks);
-		}
-		for (auto &cb: callbacks) {
-			cb->resolve();
-		}
-		return result;
-	}
+			it = --_submitResults.end();
+			if (it->refCount.load(std::memory_order_relaxed) != 0 || !isSubmitCompleted(it.operator->())) {
+					// If the last fence is not completed, create a new fence
+				VkFence fence = VK_NULL_HANDLE;
+				VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+				Qk_ASSERT_EQ(VK_SUCCESS, vkCreateFence(_device, &info, nullptr, &fence),
+					"Failed to create Vulkan fence");
+				it = _submitResults.pushBack({fence, {0}, {true}});
+			}
+			Qk_ASSERT_EQ(VK_SUCCESS, vkResetFences(_device, 1, &it->fence),
+				"Failed to reset Vulkan fence");
+			Qk_ASSERT_EQ(VK_SUCCESS, vkQueueSubmit(_commandQueue, 1, submit, it->fence),
+				"Failed to submit Vulkan command");
 
-	VkResult VulkanRenderResource::submitCommand(const VkSubmitInfo* submit, Cb cb) {
-		ScopeLock lock(_commitMutex);
-		if (!cb) {
-			return vkQueueSubmit(_commandQueue, 1, submit, VK_NULL_HANDLE);
+			it->completed.store(false, std::memory_order_relaxed);
+			_submitResults.splice(_submitResults.begin(), _submitResults, it, _submitResults.end());
+
+			if (cb) {
+				it->refCount.fetch_add(1, std::memory_order_relaxed);
+				_asyncWaitTasks.pushBack({it.operator->(), cb});
+			}
+			if (pack) {
+				checkAsyncWaitTasks(&callbacks);
+				refSubmitResult(it.operator->(), pack);
+			}
 		}
-		VkFence fence = VK_NULL_HANDLE;
-		auto it = _asyncWaitTasksPool.begin();
-		if (it != _asyncWaitTasksPool.end()) {
-			fence = it->fence;
-			_asyncWaitTasksPool.erase(it);
-		} else {
-			VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-			auto res = vkCreateFence(_device, &info, nullptr, &fence);
-			if (res != VK_SUCCESS)
-				return res;
-		}
-		auto result = vkQueueSubmit(_commandQueue, 1, submit, fence);
-		if (result == VK_SUCCESS) {
-			_asyncWaitTasks.pushBack({fence, cb}); // Add the task to the active list if submission succeeded
-		} else {
-			_asyncWaitTasksPool.pushBack({fence}); // Return the fence to the pool if submission failed
-		}
-		return result;
+		for (auto &cb: callbacks)
+			cb->resolve();
+		return it.operator->();
 	}
 
 	void VulkanRenderResource::checkAsyncWaitTasks(Array<Cb> *out) {
-		if (_asyncWaitTasks.length() == 0)
+		if (_asyncWaitTasks.isNull())
 			return;
 
 		int64_t now = time_monotonic();
@@ -370,11 +408,9 @@ namespace qk {
 		_nextAsyncWaitCheckTime = now + 16 * 1000;
 
 		for (auto it = _asyncWaitTasks.begin(); it != _asyncWaitTasks.end(); ) {
-			if (vkGetFenceStatus(_device, it->fence) == VK_SUCCESS) {
-				out->push(it->cb);
-				vkResetFences(_device, 1, &it->fence);
-				it->cb = nullptr;
-				_asyncWaitTasksPool.pushBack(*it);
+			if (isSubmitCompleted(it->first)) {
+				out->push(it->second);
+				it->first->refCount.fetch_sub(1, std::memory_order_relaxed);
 				it = _asyncWaitTasks.erase(it);
 			} else {
 				++it;

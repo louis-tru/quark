@@ -113,8 +113,8 @@ public:
 		if (!drawable)
 			return;
 		_mtlcanvas->_outTex = drawable ? drawable.texture : nil;
-		if (_mtlcanvas->_outColorTex != qk::mtl_get_texture_from(_mtlcanvas->_state->output.get())) {
-			_mtlcanvas->_outColorTex = _mtlcanvas->_outTex;
+		if (_mtlcanvas->_target != qk::mtl_get_texture_from(_mtlcanvas->_state->output.get())) {
+			_mtlcanvas->_target = _mtlcanvas->_outTex;
 		}
 	}
 

@@ -497,22 +497,25 @@ namespace qk {
 
 	// A simple Vulkan application that draws a single color to the screen.
 	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd) {
-		VkResult result;
 		VkCommandBufferAllocateInfo cmdInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
 		cmdInfo.commandPool = pool;
 		cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		cmdInfo.commandBufferCount = 1;
-		vk_call(vkAllocateCommandBuffers, return result, device, &cmdInfo, cmd);
+		Qk_ASSERT_EQ(VK_SUCCESS, vkAllocateCommandBuffers(device, &cmdInfo, cmd),
+			"Failed to allocate Vulkan command buffer");
 		VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		return vkBeginCommandBuffer(*cmd, &beginInfo);
+		Qk_ASSERT_EQ(VK_SUCCESS, vkBeginCommandBuffer(*cmd, &beginInfo),
+			"Failed to begin Vulkan command buffer");
+		return VK_SUCCESS;
 	}
 
 	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb) {
 		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
 		info.commandBufferCount = 1;
 		info.pCommandBuffers = cmd;
-		return getSharedRenderVulkanResource()->submitCommand(&info, cb);
+		getSharedRenderVulkanResource()->submitCommand(&info, cb);
+		return VK_SUCCESS;
 	}
 
 	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve) {

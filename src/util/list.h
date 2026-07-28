@@ -72,8 +72,8 @@ namespace qk {
 		Iterator pushFront(const T& item);
 		Iterator pushFront(T&& item);
 
-		void     splice(IteratorConst it, List& ls);
-		void     splice(IteratorConst it, List& ls, IteratorConst begin, IteratorConst end);
+		void     splice(IteratorConst after, List& ls);
+		void     splice(IteratorConst after, List& ls, IteratorConst begin, IteratorConst end);
 
 		void     popBack();
 		void     popFront();
@@ -203,29 +203,33 @@ namespace qk {
 	}
 
 	template<typename T, typename B>
-	void List<T, B>::splice(IteratorConst it, List& ls) {
-		splice(it, ls,
+	void List<T, B>::splice(IteratorConst after, List& ls) {
+		if (&ls == this)
+			return;
+		splice(after, ls,
 			IteratorConst(ls._end._next), IteratorConst(ls.end_()));
 	}
 
 	template<typename T, typename B>
-	void List<T, B>::splice(IteratorConst it, List& ls, IteratorConst new_f, IteratorConst new_e) {
-		if (new_f != new_e) {
-			Qk_CHECK(_allocator == ls._allocator, "Cannot splice lists with different allocators");
-			auto start = node_(new_f);
-			auto end = node_(new_e);
-			auto cur = node_(it);
-			auto start_prev = start->_prev;
-
-			link_(cur->_prev, start);
-			while (start != end) {
-				_length++;
-				ls._length--;
-				start = start->_next;
-			}
-			link_(end->_prev, cur);
-			link_(start_prev, end); // link ls
+	void List<T, B>::splice(IteratorConst after, List& ls, IteratorConst new_f, IteratorConst new_e) {
+		Qk_ASSERT_EQ(_allocator, ls._allocator, "Invalid List splice allocator");
+		if (new_f == new_e)
+			return;
+		auto first = node_(new_f);
+		auto end = node_(new_e);
+		auto sentry = ls.end_();
+		auto cur = node_(after);
+		for (auto node = first; node != end; node = node->_next) {
+			Qk_ASSERT_NE(node, sentry, "Invalid List splice range");
+			if (node == cur)
+				return; // do not splice to self
+			_length++;
+			ls._length--;
 		}
+		auto last = end->_prev;
+		link_(first->_prev, end); // unlink from ls
+		link_(cur->_prev, first);
+		link_(last, cur);
 	}
 
 	template<typename T, typename B>

@@ -41,52 +41,27 @@ namespace qk {
 		return getSharedRenderVulkanResource();
 	}
 
-	bool VulkanRenderResource::createEmptyTexture() {
-		auto tex = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags);
-		if (!tex)
-			return false;
-
-		VkResult result;
-		VkCommandBuffer cmd = VK_NULL_HANDLE;
-		auto fail = [&]() {
-			if (cmd)
-				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			tex->unref();
-			return false;
-		};
-		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
-
-		VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = tex->image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.levelCount = 1;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-		VkClearColorValue color{};
-		vkCmdClearColorImage(cmd, tex->image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, 1, &barrier.subresourceRange);
-
-		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-		vk_call(vkEndCommandBuffer, return fail(), cmd);
-		vk_call(vk_submitCommand, return fail(), &cmd, 0);
-
-		_emptyTexture = tex;
-		return true;
+	cTexStat* vk_rebuild_texture(Vec2 size, ColorType type, cTexStat* texStat,
+		TexStat &storeStat, uint8_t flags)
+	{
+		auto fmt = vk_pixelFormat(type);
+		auto tex = vk_cast_texture(texStat);
+		if (fmt == VK_FORMAT_UNDEFINED)
+			return nullptr;
+		auto mipmap = flags & kMipmap_TextureFlags;
+		if (!tex ||
+				tex->size() != size ||
+				tex->format != fmt ||
+				(mipmap && tex->mipLevels <= 1)
+		) {
+			uint32_t mipLevels = mipmap ? vk_mipLevelCount(size): 1;
+			tex = getSharedRenderVulkanResource()->newTexture(size, type, mipLevels, flags);
+			if (!tex)
+				return nullptr;
+			texStat = &storeStat;
+			storeStat.set_ptr(tex);
+		}
+		return texStat;
 	}
 
 	VkTexture::~VkTexture() {
@@ -107,26 +82,80 @@ namespace qk {
 			vkFreeMemory(device, memory, nullptr);
 	}
 
-	void VkTexture::generateMipmaps(VkCommandBuffer cmd) const {
+	void vk_layout_access(VkImageLayout layout,
+		VkPipelineStageFlags &stage, VkAccessFlags &access)
+	{
+		switch (layout) {
+			case VK_IMAGE_LAYOUT_UNDEFINED:
+				stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				access = 0;
+				break;
+			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+				stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				access = VK_ACCESS_TRANSFER_READ_BIT;
+				break;
+			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+				stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				access = VK_ACCESS_TRANSFER_WRITE_BIT;
+				break;
+			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+				stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				access = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				break;
+			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+				stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+				access = VK_ACCESS_SHADER_READ_BIT;
+				break;
+			case VK_IMAGE_LAYOUT_GENERAL:
+				stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+				access = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+				break;
+			default:
+				Qk_ASSERT(false, "Unsupported Vulkan image layout transition: %d", layout);
+				stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+				access = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+				break;
+		}
+	}
+
+	void VkTexture::transitionLayout(VkCommandBuffer cmd,
+		VkImageLayout oldLayout, VkImageLayout newLayout,
+		uint32_t level, uint32_t levelCount) const
+	{
+		Qk_ASSERT(level < mipLevels && levelCount && level + levelCount <= mipLevels,
+			"Invalid Vulkan texture mip range");
+		VkPipelineStageFlags srcStage, dstStage;
 		VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+		vk_layout_access(oldLayout, srcStage, barrier.srcAccessMask);
+		vk_layout_access(newLayout, dstStage, barrier.dstAccessMask);
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = image;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseMipLevel = level;
+		barrier.subresourceRange.levelCount = levelCount;
 		barrier.subresourceRange.layerCount = 1;
+		vkCmdPipelineBarrier(cmd, srcStage, dstStage,
+			0, 0, nullptr, 0, nullptr, 1, &barrier);
+	}
+
+	void VkTexture::generateMipmaps(VkCommandBuffer cmd, VkImageLayout baseLayout) const {
+		if (mipLevels == 1) {
+			transitionLayout(cmd, baseLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			return;
+		}
 
 		int32_t width = int32_t(extent.width);
 		int32_t height = int32_t(extent.height);
 		for (uint32_t i = 1; i < mipLevels; i++) {
-			barrier.subresourceRange.baseMipLevel = i - 1;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			vkCmdPipelineBarrier(cmd,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			transitionLayout(cmd,
+				i == 1 ? baseLayout: VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i - 1);
+			transitionLayout(cmd, VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i);
 
 			VkImageBlit blit = {};
 			blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -142,25 +171,13 @@ namespace qk {
 				image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				1, &blit, VK_FILTER_LINEAR);
 
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			vkCmdPipelineBarrier(cmd,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			transitionLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, i - 1);
 			width = std::max(width >> 1, 1);
 			height = std::max(height >> 1, 1);
 		}
-
-		barrier.subresourceRange.baseMipLevel = mipLevels - 1;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier);
+		transitionLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1);
 	}
 
 	VkSampler VulkanRenderResource::get_sampler(const PaintImage* paint) {
@@ -194,7 +211,9 @@ namespace qk {
 		return get_sampler(&image);
 	}
 
-	VkTexture* VulkanRenderResource::newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags) {
+	VkTexture* VulkanRenderResource::newTexture(Vec2 size, ColorType type, uint32_t mipLevels,
+		uint8_t flags, VkImageLayout initialLayout)
+	{
 		VkFormat format = vk_pixelFormat(type);
 		if (format == VK_FORMAT_UNDEFINED || size.x() <= 0 || size.y() <= 0)
 			return nullptr;
@@ -228,12 +247,15 @@ namespace qk {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+		VkCommandBuffer cmd = VK_NULL_HANDLE;
 		auto tex = new VkTexture();
-		tex->format = format;
 		tex->extent = { uint32_t(size.x()), uint32_t(size.y()) };
+		tex->format = format;
 		tex->mipLevels = mipLevels;
 		tex->usage = usage;
 		auto fail = [&]() {
+			if (cmd)
+				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
 			tex->unref();
 			return nullptr;
 		};
@@ -261,6 +283,17 @@ namespace qk {
 		viewInfo.subresourceRange.layerCount = 1;
 		vk_call(vkCreateImageView, return fail(), _device, &viewInfo, nullptr, &tex->view);
 
+		if (initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			ScopeLock lock(_mutex);
+			vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
+			tex->transitionLayout(cmd, VK_IMAGE_LAYOUT_UNDEFINED,
+				initialLayout, 0, mipLevels);
+			vk_call(vkEndCommandBuffer, return fail(), cmd);
+			vk_call(vk_submitCommand, return fail(), &cmd, Cb([this,cmd](auto e) {
+				ScopeLock lock(_mutex);
+				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
+			}));
+		}
 		return tex;
 	}
 
@@ -298,8 +331,8 @@ namespace qk {
 			generateMipmaps = (properties.optimalTilingFeatures & required) == required;
 		}
 		auto imageLevels = generateMipmaps ? vk_mipLevelCount(pix->size()) : uint32_t(levels);
-		auto vk_tex = newTexture(pix->size(), pix->type(), imageLevels, 0);
-		if (!vk_tex)
+		auto vkTex = newTexture(pix->size(), pix->type(), imageLevels, 0);
+		if (!vkTex)
 			return false;
 
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -312,7 +345,7 @@ namespace qk {
 				vkFreeMemory(_device, stagingMemory, nullptr);
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			vk_tex->unref();
+			vkTex->unref();
 			return false;
 		};
 
@@ -350,19 +383,8 @@ namespace qk {
 		ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
 
 		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
-		VkImageMemoryBarrier barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = vk_tex->image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.levelCount = imageLevels;
-		barrier.subresourceRange.layerCount = 1;
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkTex->transitionLayout(cmd, VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, generateMipmaps ? 1: imageLevels);
 
 		offset = 0;
 		for (int i = 0; i < levels; i++) {
@@ -374,22 +396,15 @@ namespace qk {
 			copy.imageSubresource.layerCount = 1;
 			copy.imageExtent = { uint32_t(pix[i].width()), uint32_t(pix[i].height()), 1 };
 			vkCmdCopyBufferToImage(cmd,
-				stagingBuffer, vk_tex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+				stagingBuffer, vkTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 			offset += pix[i].length();
 		}
 
 		if (generateMipmaps) {
-			vk_tex->generateMipmaps(cmd);
+			vkTex->generateMipmaps(cmd);
 		} else {
-			barrier.subresourceRange.baseMipLevel = 0;
-			barrier.subresourceRange.levelCount = imageLevels;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			vkCmdPipelineBarrier(cmd,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkTex->transitionLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, imageLevels);
 		}
 
 		vk_call(vkEndCommandBuffer, return fail(), cmd);
@@ -401,12 +416,12 @@ namespace qk {
 		}));
 
 		VulkanRenderResource::unloadTexture(out);
-		out->set_ptr(vk_tex);
+		out->set_ptr(vkTex);
 		return true;
 	}
 
 	void VulkanRenderResource::unloadTexture(TexStat *tex) {
-		auto *vk_tex = static_cast<VkTexture*>(tex->ptr());
+		auto *vk_tex = vk_cast_texture(tex);
 		if (!vk_tex)
 			return;
 		vk_tex->unref();

@@ -64,20 +64,15 @@ namespace qk {
 	void MetalCanvas::setSurfaceCmd(bool changeSize) {
 		endPass(); // end old pass if exist
 
+		// clear buffer allocators for new frame
+		_cmdPack.allocator->clear();
+		_cmdPackFront.allocator->clear();
+
 		if (changeSize) {
 			_outTex = mtl_new_texture(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), kComputeWrite_TextureFlags);
 		}
-		_outColorTex = _outTex; // set to main texture by default
-
-		// start a new pass with new buffers
-		// auto pass = beginPass();
-		// pass.colorAttachments[0].loadAction = MTLLoadActionClear;
-		// pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0); // clear to transparent
-
-		// clear buffer allocators for new frame
-		_cmdPack.allocator->clear();
-		_cmdPackFront.allocator->clear();
+		_target = _outTex; // set to main texture by default
 	}
 
 	void MetalCanvas::setMatrixCmd() {
@@ -95,11 +90,11 @@ namespace qk {
 		auto begin = clip->bounds.begin,
 				 end = clip->bounds.end, size = end - begin;
 		auto blend = _blendMode; // save current blend mode
-		auto colorTex = _outColorTex; // save current color texture
+		auto lastTarget = _target; // save current color texture
 		// switch blend mode to src
 		_blendMode = kSrc_BlendMode;
 		// output to clip mask texture
-		_outColorTex = mtl_get_texture_from(*clip->mask);
+		_target = mtl_get_texture_from(clip->mask.get());
 
 		endPass(); // end current pass
 
@@ -132,8 +127,7 @@ namespace qk {
 		endPass();
 		// restore framebuffer and blend mode
 		_blendMode = blend;
-		_outColorTex = colorTex;
-		restoreClipCmd(clip); // set clip data
+		_target = lastTarget;
 	}
 
 	void MetalCanvas::restoreClipCmd(GC_State::Clip* clip) {
@@ -181,7 +175,7 @@ namespace qk {
 		if (!surfaceRange) {
 			// clear color by load action if no encoder and clear full surface,
 			// which is more efficient than drawing a rect
-			auto pass = beginPass();
+			auto pass = beginPass(0, false);
 			pass.colorAttachments[0].loadAction = MTLLoadActionClear;
 			pass.colorAttachments[0].clearColor = MTLClearColorMake(color.r(), color.g(), color.b(), color.a());
 		} else {
@@ -245,14 +239,17 @@ namespace qk {
 		if (info.kind == kImage_DrawKind && isYuv) { // yuv420p or yuv420sp
 			auto &yuv = _shaders.imageYuv;
 			enc = usePipeline(yuv, vertex, enc);
-			if (!enc) return;
 			auto src = info.paint->image;
-			Qk_ASSERT_EQ(true, use_texture(enc, src, 0, yuv.fragment.image, info.paint)); // y
+			// Qk_ASSERT_EQ(true, use_texture(enc, src, 0, yuv.fragment.image, info.paint)); // y
+			Qk_ASSERT_EQ(shader.fragment.image, yuv.fragment.image, "image slot should match"); // y
 			Qk_ASSERT_EQ(true, use_texture(enc, src, 1, yuv.fragment.image_uv, info.paint)); // u or uv
 			int format = 0; // default to yuv420sp
 			if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
 				Qk_ASSERT_EQ(true, use_texture(enc, src, 2, yuv.fragment.image_v, info.paint)); // v
 				format = 1; // yuv420p
+			} else {
+				// image_v is still evaluated by mix(); bind a valid placeholder for YUV420SP.
+				set_texture_param(enc, mtl_get_texture_from(src), yuv.fragment.image_v, info.paint);
 			}
 			MSLImageYuv::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
@@ -264,12 +261,7 @@ namespace qk {
 			[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		} else {
 			enc = usePipeline(shader, vertex, enc);
-			if (!enc) return;
 			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
-			// set atlas texture for fragment shader,
-			// because resources cannot be empty, although not used in non-cgaa draw,
-			// so set a texture for non-cgaa draw to avoid error.
-			// Qk_ASSERT_EQ(true, use_texture(enc, src, 0, shader.fragment.atlasTex, info.paint));
 			// set color and other args for shader push constants
 			MSLImage::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
@@ -330,7 +322,7 @@ namespace qk {
 
 		for (int i = 0; i < 4; i++) {
 			auto horn = horns[i];
-			float v[] = { c[0],c[1],horn[0],c[1],horn[0],horn[1],c[0],horn[1] };
+			float v[] = { c[0],c[1],0, horn[0],c[1],0, horn[0],horn[1],0, c[0],horn[1],0 };
 			float r0 = F32::min(Vec2(radius[i], s1).length(), rmax);
 			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
 			float n = 2.0 * r1 / r0;
@@ -384,7 +376,7 @@ namespace qk {
 		auto outTexA = mtl_get_texture_from(tmpA);
 		Qk_ASSERT(outTexA, "blurFilterBeginCmd tmpA texture is null");
 		_rootMatrix = blurRootMat;
-		_outColorTex = outTexA; // output to texture A for blur filter then do post processing
+		_target = outTexA; // output to texture A for blur filter then do post processing
 		clearColor({0,0,0,0}, nullptr);
 	}
 
@@ -420,7 +412,7 @@ namespace qk {
 
 		if (imageLod) {
 			if (oRw >> imageLod == 0 || oRh >> imageLod == 0) {
-				_outColorTex = mtl_get_texture_from(*_state->output, _outTex);
+				_target = mtl_get_texture_from(_state->output.get(), _outTex);
 				_blendMode = blend;
 				return endPass(); // end pass
 			}
@@ -451,7 +443,7 @@ namespace qk {
 			// |r| body |r|
 			// |r|rrrrrr|r|
 			// |r|rrrrrr|r|
-			_outColorTex = texB; // output to texture B
+			_target = texB; // output to texture B
 			beginPass(imageLod, false); // begin new pass for blur x-axis
 			// Making blur of the x-axis direction
 			float vertex[] = { x1+radius,y1,0, x2-radius,y1,0, x1+radius,y2,0, x2-radius,y2,0 };
@@ -476,7 +468,7 @@ namespace qk {
 			x2 = end.x() - padding, y2 = end.y() - padding;
 			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 			auto uv_offset = -offset * _surfaceScale / iR;
-			_outColorTex = mtl_get_texture_from(*_state->output, _outTex);
+			_target = mtl_get_texture_from(*_state->output, _outTex);
 			_blendMode = blend;
 			beginPass(); // begin new pass for main render target
 			MSLBlur::PcArgs pc = { iR, iR, Vec2(0, radius2 / iR.y()), uv_offset,
@@ -523,8 +515,8 @@ namespace qk {
 			_cmdPack.recorded = true; // mark cmd pack as recorded after encoding commands
 		} else {
 			auto sampler = srcRect.size == dstSize ? _mtlrender->_nearestSampler : _mtlrender->_linearSampler;
-			auto colorTex = _outColorTex;
-			_outColorTex = tex;
+			auto target = _target;
+			_target = tex;
 			// load raw color if need to blend with existing color
 			beginPass(0, _blendMode > kSrc_BlendMode ? true: false);
 			auto &cp = _shaders.cp;
@@ -542,7 +534,7 @@ namespace qk {
 			[enc setFragmentTexture:srcTex atIndex:cp.fragment.image];
 			[enc setFragmentSamplerState:sampler atIndex:cp.fragment.image];
 			[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
-			_outColorTex = colorTex; // restore output color texture
+			_target = target; // restore output color texture
 			endPass();
 		}
 
@@ -571,14 +563,14 @@ namespace qk {
 			// output render target texture.
 			return;
 		}
-		_outColorTex = mtl_get_texture(tex); // set new output color texture for next pass
+		_target = mtl_get_texture(tex); // set new output color texture for next pass
 		setTex_SourceImage(dst, {int(s[0]),int(s[1]),_opts.colorType,dst->info().alphaType()}, tex);
 	}
 
 	void MetalCanvas::outputImageEndCmd(ImageSource* exit) {
 		endPass(); // end current pass, change outTex back to canvas's own texture for next pass
 		// restore output color texture for next pass
-		_outColorTex = mtl_get_texture_from(*_state->output, _outTex);
+		_target = mtl_get_texture_from(*_state->output, _outTex);
 		if (exit->mipmap()) {
 			auto tex = mtl_get_texture(exit->texture(0));
 			Qk_ASSERT(tex, "outputImageEndCmd exit texture is null");

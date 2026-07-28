@@ -70,6 +70,74 @@ The Vulkan backend now has a platform-independent shared resource foundation.
 Rendering pipelines, descriptor binding, Vulkan Canvas drawing, and
 platform-specific surface/swapchain integration remain incomplete.
 
+## 2026-07-29 Vulkan Canvas Review Contracts
+
+The current Vulkan Canvas implementation intentionally follows these ownership
+and call-order rules. Preserve them during later reviews:
+
+- This checkpoint implements most non-CAPA Canvas commands: color, image/YUV,
+  gradient, rounded-rect blur, clip masks, blur ping-pong, indexed triangles,
+  image copy/read, and output-image target switching. The code deliberately
+  follows the established Metal command structure where practical.
+- Current/front `VkCmdPack` ownership, growing descriptor pools, per-pack
+  uniform/vertex allocators, shared-queue submission, and fence-backed
+  completion propagation to participating subcanvases are now connected.
+  CAPA command encoding and platform surface/swapchain presentation remain
+  outside this checkpoint.
+- `_cmdPackFront` contains the earlier submitted work and `_cmdPack` records
+  later work. Destruction deferred through a submitted `_cmdPack` therefore
+  completes after work already owned by `_cmdPackFront`; do not report
+  `clearFramebuffer()` as unsafe merely because the framebuffer may also have
+  been referenced by the front pack. This relies on preserving the single-queue
+  submission order and the rule that a pack carrying such deferred destruction
+  is not resolved early as discarded work.
+- `usePipeline()` intentionally requires `beginPass()` to have been selected by
+  the caller. The assertion is the Vulkan equivalent of the Metal call path
+  already carrying an encoder; do not change it to lazily choose a pass.
+- `VulkanRenderResource::newTexture()` is a general texture creator. It adds
+  `VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT` only when the format supports it, but
+  does not reject non-renderable formats. Code choosing a texture as a Canvas
+  render target owns that capability check.
+- `_outTex` is the Canvas-owned strong `Sp<VkTexture>` reference. `_target` is
+  intentionally a weak pointer to either `_outTex` or a texture whose lifetime
+  is held by the surrounding image/state/temporary-texture path; do not add a
+  second CmdPack reference merely because a texture is selected as a target.
+
+Confirmed review items that remain separate from those intentional contracts:
+
+- `readImageCmd()` must not use attachment `LOAD` for a newly allocated
+  undefined destination merely because the blend mode needs destination color.
+  The destination must first have defined contents, normally transparent clear,
+  unless the intended contents are explicitly copied into it.
+- A non-imageless `VkFramebuffer` color attachment image view must select
+  exactly one mip level. This also applies to mip level zero: the base
+  `VkTexture::view` cannot be used when its `levelCount` spans all mip levels.
+  Equal layouts across those levels do not relax this framebuffer rule.
+- Every command-buffer segment placed in `VkCmdPack::commands` must have passed
+  `vkEndCommandBuffer()`. `swapBuffer()` ends the final current buffer, and
+  `flushSubcanvasCmd()` now also ends an earlier parent segment before storing
+  it and allocating the next segment.
+- The size-changing `setSurfaceCmd()` path clears the current allocators before
+  `setDefaultTarget()` queues destruction of the old framebuffer, avoiding the
+  earlier callback-array assertion conflict.
+- Render-target-to-sampled transitions must remain explicit. The subcanvas path
+  and ordinary non-mipmapped `outputImageEndCmd()` now make their outputs
+  readable. Before either texture is rendered into again, its sampled layout
+  must likewise be transitioned back to an attachment-compatible layout (or
+  supplied as the render pass's real initial layout). Repeated sampling must
+  not blindly encode another color-attachment-to-readable transition when no
+  intervening render occurred.
+- Texture layout state must ultimately be tracked per mip level. Recording that
+  state globally on `VkTexture` also needs a defined policy for command packs
+  that are discarded before submission; otherwise CPU-side state can describe
+  a transition that the GPU never executes.
+- A parent submission may contain command buffers allocated from several
+  canvases and therefore several command pools. Submission does not require
+  locking or reallocating those source pools, but each command buffer must be
+  freed/reset only through the pool that allocated it. Keep the subcanvas packs
+  alive through completion and do not free copied child handles through the
+  parent Canvas command pool.
+
 ## 2026-07-17 Minimal Vulkan Starting Point
 
 `test/android/vk/` is the preferred readable starting point for Vulkan work and
