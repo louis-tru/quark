@@ -66,12 +66,9 @@ namespace qk {
 		Array<VkImageLayout> layouts;
 		~VkTexture() override;
 		Vec2 size() const { return Vec2(extent.width, extent.height); }
-		void transitionLayout(VkCommandBuffer cmd,
-			VkImageLayout oldLayout,
-			VkImageLayout newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			uint32_t level = 0, uint32_t levelCount = 1) const;
-		void generateMipmaps(VkCommandBuffer cmd,
-			VkImageLayout baseLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) const;
+		bool transitionLayout(VkCommandBuffer cmd, VkImageLayout newLayout,
+			uint32_t level = 0, uint32_t levelCount = 1);
+		void generateMipmaps(VkCommandBuffer cmd);
 	};
 
 	template <>

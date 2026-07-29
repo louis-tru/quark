@@ -14,7 +14,7 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
      tile span 由 GPU prepare pass 写入 `CAPAEnvironment`。
 
 1. `capa_prepare.glsl`
-   - 每条 edge 一个 64-wide thread。
+   - `local_size_x=32`，每条 edge 一个 invocation。
    - 将 path-space edge 变换到 surface-space。
    - 更新每个 path 的 clipped bounds。
    - 写 short-edge task，并累加 `env.taskCount`。
@@ -94,41 +94,41 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
      分类，只在需要 full 标记时把
      `CAPASmallTile.value` 写成 `CAPA_FULL_TILE` (`CAPA_NIL - 1`)。
 
-9. `capa_prefix.glsl`
-   - 使用 `env.prefixPassGroups_Size16_2` indirect dispatch。
-   - 沿 `CAPAPathTileRow.boundaryTileIndex/count` 指向的连续 boundary tile
-     区间做真正 per-row prefix。
-   - 从 `CAPAPathTileRow.backdrop[row]` 读取该 row 的初始前缀，累加
-     `CAPABoundaryTile.backdrop[row]` 的 local row delta，并把
-     `CAPABoundaryTile.backdrop[row]` 改写成 coverage pass 需要的 tile-left
-     row prefix。
+9. `capa_layer_plan.glsl`
+   - 使用 `env.layerPlanPassGroups_Size32` indirect dispatch。
+   - classify 后、prefix/coverage 前运行。每个 global tile 线程按 path
+     `tileRect` 统计当前 tile 命中的 path-tile 层数，并从 front to back 写入
+     保留的 layer span。
+   - 用 `env.layerPlanPathTileCount` 一次性分配连续 `CAPAPathTile` span，再从
+     `CAPASmallTile.value` 把 boundary/full tile 信息写入新的 `CAPAPathTile`；
+     `CAPA_NIL` 空 tile 不写入最终 span。
+   - 对真实 boundary tile，`CAPAPathTile.coverageTileIndex` 会先临时保存
+     source `CAPABoundaryTile` index；随后为本 global tile 一次性分配
+     z-linear `CAPACoverageTile` 段，填入 source boundary index，并把
+     `coverageTileIndex` 回填成 final coverage tile index。
+   - `CAPAGlobalTile.head/count` 表示这个 global tile 的连续 path-tile span，
+     供 composite 线性访问。
+   - 写入阶段会恢复连续 `SrcOver` full tile 预混合。分配使用 raw hit
+     count，实际写入可能更少；`CAPAGlobalTile.head/count` 指向实际写好的
+     连续节点。
 
-10. `capa_coverage.glsl`
-   - 使用 `env.coveragePassGroups_Size16_2` indirect dispatch。
-   - 只处理 layer plan 阶段保留下来的 `CAPACoverageTile`。每个 coverage tile
-     保存一个 source `CAPABoundaryTile` index，并拥有最终 `values[64]`
-     packed R8 coverage page。
-   - 开头先从 source boundary tile 的 `backdrop[row]` 读出本行 tile-left
-     prefix 到私有变量，然后将 short-edge node + row prefix 积分成 16x16
-     packed R8 coverage page。
+10. `capa_prefix.glsl`
+    - 使用 `env.prefixPassGroups_Size16_2` indirect dispatch。
+    - 沿 `CAPAPathTileRow.boundaryTileIndex/count` 指向的连续 boundary tile
+      区间做真正 per-row prefix。
+    - 从 `CAPAPathTileRow.backdrop[row]` 读取该 row 的初始前缀，累加
+      `CAPABoundaryTile.backdrop[row]` 的 local row delta，并把
+      `CAPABoundaryTile.backdrop[row]` 改写成 coverage pass 需要的 tile-left
+      row prefix。
 
-11. `capa_layer_plan.glsl`
-    - 使用 `env.layerPlanPassGroups_Size32` indirect dispatch。
-    - classify 后、prefix/coverage 前运行。每个 global tile 线程按 path
-      `tileRect` 统计当前 tile 命中的 path-tile 层数，并从 front to back 写入
-      保留的 layer span。
-    - 用 `env.layerPlanPathTileCount` 一次性分配连续 `CAPAPathTile` span，再从
-      `CAPASmallTile.value` 把 boundary/full tile 信息写入新的 `CAPAPathTile`；
-      `CAPA_NIL` 空 tile 不写入最终 span。
-    - 对真实 boundary tile，`CAPAPathTile.coverageTileIndex` 会先临时保存
-      source `CAPABoundaryTile` index；随后 order 为本 global tile 一次性分配
-      z-linear `CAPACoverageTile` 段，填入 source boundary index，并把
-      `coverageTileIndex` 回填成 final coverage tile index。
-    - `CAPAGlobalTile.head/count` 表示这个 global tile 的连续 path-tile span，
-      供 composite 线性访问。
-    - 写入阶段会恢复连续 `SrcOver` full tile 预混合。分配使用 raw hit
-      count，实际写入可能更少；`CAPAGlobalTile.head/count` 指向实际写好的
-      连续节点。
+11. `capa_coverage.glsl`
+    - 使用 `env.coveragePassGroups_Size16_2` indirect dispatch。
+    - 只处理 layer plan 阶段保留下来的 `CAPACoverageTile`。每个 coverage tile
+      保存一个 source `CAPABoundaryTile` index，并拥有最终 `values[64]`
+      packed R8 coverage page。
+    - 开头先从 source boundary tile 的 `backdrop[row]` 读出本行 tile-left
+      prefix 到私有变量，然后将 short-edge node + row prefix 积分成 16x16
+      packed R8 coverage page。
 
 12. `capa_composite.glsl`
     - 使用 `env.compositePassGroups_Size16_16` indirect dispatch。
@@ -143,7 +143,7 @@ group count 由 shader 写入 `CAPAEnvironment`，Metal 侧应使用 indirect di
 - `MetalCanvas::drawCAPACmd()` 必须提交上面的 12 个 shader pass。
 - 只有生成调度参数之前的 pass 可以用 CPU 固定 group count：
   `prepare`、`prepare_tiles`、`prepare_dispatch`。
-- `tile`、`order`、`bin`、`boundary`、`backdrop`、`classify`、`prefix`、
+- `tile`、`bin`、`boundary`、`backdrop`、`classify`、`layer_plan`、`prefix`、
   `coverage`、`composite` 必须从 `CAPAEnvironment` 对应 `uvec4` 字段做
   Metal indirect dispatch。
 - `CAPAEnvironment` 的 `uvec4` 字段按 16 字节对齐，Metal indirect dispatch 读取

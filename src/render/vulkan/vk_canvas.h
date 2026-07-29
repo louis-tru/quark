@@ -43,6 +43,8 @@ namespace qk {
 	struct VkFramebufferData {
 		VkFramebuffer framebuffer = VK_NULL_HANDLE;
 		VkImageView view = VK_NULL_HANDLE;
+		VkImage image = VK_NULL_HANDLE;
+		uint32_t level = 0;
 		bool holdView = false; // is hold view
 		inline ~VkFramebufferData() {
 			Qk_ASSERT(!framebuffer && !view, "Vulkan framebuffer should be released before destruction");
@@ -74,7 +76,7 @@ namespace qk {
 		}
 		VkCmdPack(VkDevice device);
 		~VkCmdPack();
-		void clearAllocator(bool safeDelete = false);
+		void clearAllocator();
 		void reset(VulkanCanvas *host);
 		void finish();
 		std::atomic<VkSubmitResult*> completion{nullptr};
@@ -84,6 +86,7 @@ namespace qk {
 		Array<Cb> completeCallbacks; // complete callbacks for this pack
 		Array<Sp<VulkanCanvas>> subCanvas; // sub canvas ref for this pack
 		Array<VkCommandBuffer> commands; // recorded command buffers for this pack
+		Array<VkCommandBuffer> ownCommands; // command buffers allocated from this canvas command pool
 		VkCommandBuffer current = VK_NULL_HANDLE; // current command buffer for recording
 		VkDescriptorPools descriptorPools; // descriptor pools for this pack
 		VkDescriptorSet set0; // common set, 0: image sampler, binding=1: root uniform buffer

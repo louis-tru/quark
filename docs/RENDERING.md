@@ -8,7 +8,7 @@ This is the AI-facing map for Quark rendering. It focuses on code navigation and
 Canvas API
   -> GPUCanvas shared implementation
   -> backend `*Cmd` method
-  -> GL command pack or Metal encoder
+  -> GL command pack, Metal encoder, or Vulkan command buffer
   -> GPU surface / offscreen target
 ```
 
@@ -21,6 +21,10 @@ Key files:
 - `src/render/gl/gl_command.*`: GL command storage and actual GL draw calls.
 - `src/render/metal/mtl_canvas.*`: MetalCanvas direct command encoding.
 - `src/render/metal/mtl_render.*`: Metal resource upload, texture helpers, samplers, pipelines.
+- `src/render/vulkan/vk_canvas.*`: Vulkan command packs, render passes,
+  descriptors, framebuffers, and Canvas commands.
+- `src/render/vulkan/vk_render.*`: shared Vulkan device resources, shaders,
+  pipelines, queue submission, and completion state.
 - `src/render/source.*`: `ImageSource` and `TexStat` texture lifecycle.
 - `src/render/paint.*`: paint/image/gradient/filter state.
 - `src/render/pathv_cache.*`: path triangulation and cached vertex data.
@@ -85,10 +89,7 @@ The current executable CAPA pass plan is documented in
 
 Backends implement only the operations declared as pure virtual `*Cmd` methods in `gpu_canvas.h`.
 
-Current baseline:
-
-- Commit `04995bae5` introduced this split as the working architecture.
-- `GPUCanvas` should own behavior that is common to GL and Metal.
+- `GPUCanvas` should own behavior that is common to GL, Metal, and Vulkan.
 - Backend files should focus on resource upload, command storage/encoding, pipeline state, and draw/read/output implementations.
 - Avoid moving shared behavior back into GL just because GL is currently the most complete backend.
 
@@ -167,6 +168,27 @@ Metal-specific rule of thumb:
 - Metal implements the main GL-aligned clip/blur/read/output paths, but visual
   validation is still useful for difficult combinations and edge cases.
 
+## Vulkan Backend Shape
+
+Vulkan follows the same `GPUCanvas` command semantics while making implicit GL
+state explicit:
+
+- one application-wide device/graphics queue is owned by
+  `VulkanRenderResource`;
+- every Canvas owns a command pool and current/front `VkCmdPack`;
+- command packs own descriptor pools, transient allocators, resource
+  references, completion callbacks, and command-buffer lists;
+- generated SPIR-V reflection drives descriptor-set layouts, pipeline layouts,
+  vertex attributes, push constants, and pipeline creation;
+- textures track layout per mip and record explicit barriers between transfer,
+  render-target, and sampled use;
+- submit/present calls on the shared queue require external synchronization,
+  while command recording can use independent Canvas pools.
+
+Most ordinary non-CAPA drawing commands are implemented. Framebuffer mip views,
+discarded-pack layout state, platform presentation, and CAPA remain active work.
+See [`VULKAN.md`](VULKAN.md) for the authoritative architecture and backlog.
+
 ## Texture And Image Lifecycle
 
 `ImageSource` manages image state and texture handles. It can represent decoded CPU pixels or a backend GPU texture.
@@ -175,6 +197,7 @@ Metal-specific rule of thumb:
 
 - GL uses `TexStat::id()`.
 - Metal uses `TexStat::ptr()` with retained Objective-C texture pointers.
+- Vulkan uses `TexStat::ptr()` with `VkTexture` reference-counted wrappers.
 
 Important helpers:
 
@@ -233,18 +256,21 @@ Do not hard-code texture and buffer slots when a shader wrapper exposes indices.
 - `shader.fragment.aaclip`
 - other generated `shader.vertex.*` / `shader.fragment.*` fields
 
-This matters because generated GL/Metal shader wrappers may move slots.
+This matters because generated GL/Metal/Vulkan shader wrappers may move slots.
 
 ## Current Validation Risks
 
-The primary Metal drawing paths are implemented. Remaining work is mainly
-validation and performance hardening:
+The primary Metal drawing paths are implemented. Remaining cross-backend work
+is mainly validation and Vulkan completion:
 
 - anti-aliased difference clips and nested clip restore behavior
 - blur edge sampling and temporary texture reuse
 - output-image mipmap use and render-target transitions
 - `drawTrianglesCmd()` transient buffer lifetime and buffer reuse
 - upload staging-buffer and compatible texture reuse
+- Vulkan framebuffer mip-view ownership and cache identity
+- Vulkan provisional layout state when a command pack is discarded
+- Vulkan surface/swapchain/present integration and CAPA
 
 When changing these paths, read the GL equivalents for behavior and the current
 Metal implementation for explicit encoder/resource lifetime.

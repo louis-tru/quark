@@ -94,6 +94,7 @@ namespace qk {
 		completeCallbacks = Array<Cb>(&alloc);
 		subCanvas = Array<Sp<VulkanCanvas>>(&alloc);
 		commands = Array<VkCommandBuffer>(&alloc);
+		ownCommands = Array<VkCommandBuffer>(&alloc);
 	}
 
 	VkCmdPack::~VkCmdPack() {
@@ -104,36 +105,23 @@ namespace qk {
 		finish();
 	}
 
-	void VkCmdPack::clearAllocator(bool safeDelete) {
-		Qk_ASSERT_EQ(refs.length(), 0,
-			"Vulkan refs should be released before clear allocator");
-		Qk_ASSERT_EQ(completeCallbacks.length(), 0,
-			"Vulkan completeCallbacks should be resolved before clear allocator");
-		Qk_ASSERT_EQ(subCanvas.length(), 0,
-			"Vulkan subCanvas should be released before clear allocator");
-		Qk_ASSERT_EQ(commands.length(), 0,
-			"Vulkan command buffers should be released before clear allocator");
-		alloc.clear();
-		if (safeDelete) {
-			addCompleteCallback(Cb([](auto, auto self) {
-				self->vkAlloc[0].clear();
-				self->vkAlloc[1].clear();
-			}, this));
-		} else {
-			vkAlloc[0].clear();
-			vkAlloc[1].clear();
-		}
+	void VkCmdPack::clearAllocator() {
+		addCompleteCallback(Cb([](auto, auto self) {
+			self->vkAlloc[0].clear();
+			self->vkAlloc[1].clear();
+		}, this));
 	}
 
 	void VkCmdPack::reset(VulkanCanvas *h) {
-		finish();
-		if (commands.length())
-			vkFreeCommandBuffers(h->_device, h->_commandPool, commands.length(), commands.val());
+		if (ownCommands.length())
+			vkFreeCommandBuffers(h->_device, h->_commandPool,
+				ownCommands.length(), ownCommands.val());
 		if (current)
 			vkFreeCommandBuffers(h->_device, h->_commandPool, 1, &current);
 		vk_beginCommandBuffer(h->_device, h->_commandPool, &current);
 		subCanvas.clear();
 		commands.clear();
+		ownCommands.clear();
 		descriptorPools.reset(h->_device);
 		alloc.reset();
 		vkAlloc[0].reset();
@@ -144,15 +132,16 @@ namespace qk {
 		beginPass = false;
 		recorded = false;
 		commonSetDirty = false;
+		finish();
 	}
 
 	void VkCmdPack::finish() {
 		for (auto &cb: completeCallbacks)
 			cb->resolve();
+		completeCallbacks.clear();
 		for (auto &ref: refs)
 			ref->unref();
 		refs.clear();
-		completeCallbacks.clear();
 	}
 
 	// -----------------------------------------------------------------------
@@ -203,6 +192,8 @@ namespace qk {
 		_device = VK_NULL_HANDLE;
 		_framebuffer.view = VK_NULL_HANDLE;
 		_framebuffer.framebuffer = VK_NULL_HANDLE;
+		_framebuffer.image = VK_NULL_HANDLE;
+		_framebuffer.level = 0;
 		_mutex.unlock();
 	}
 
@@ -219,6 +210,8 @@ namespace qk {
 		}
 		_framebuffer.framebuffer = VK_NULL_HANDLE;
 		_framebuffer.view = VK_NULL_HANDLE;
+		_framebuffer.image = VK_NULL_HANDLE;
+		_framebuffer.level = 0;
 		_framebuffer.holdView = false;
 	}
 
@@ -335,10 +328,9 @@ namespace qk {
 
 	void VulkanCanvas::makeTextureMipReadable(VkTexture *tex, uint32_t level) {
 		Qk_ASSERT(!_cmdPack->renderPass, "Texture layout transition must be outside render pass");
-		tex->transitionLayout(_cmdPack->current,
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, level);
-		_cmdPack->recorded = true;
+		if (tex->transitionLayout(_cmdPack->current,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, level))
+			_cmdPack->recorded = true;
 	}
 
 	void VulkanCanvas::setBuffer(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer) {
@@ -459,8 +451,12 @@ namespace qk {
 		auto target = _cmdPack->target;
 		Qk_ASSERT_LT(_cmdPack->level, target->mipLevels, "Invalid Vulkan render target mip level");
 
-		auto initialLayout = _cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_LOAD ?
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: VK_IMAGE_LAYOUT_UNDEFINED;
+		auto initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		if (_cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_LOAD) {
+			target->transitionLayout(_cmdPack->current,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, _cmdPack->level);
+			initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		}
 		_cmdPack->renderPass = getRenderPass(target->format,
 			_cmdPack->loadOp, _cmdPack->storeOp, initialLayout);
 
@@ -471,14 +467,16 @@ namespace qk {
 		};
 		info.renderPass = _cmdPack->renderPass;
 
-		if (_framebuffer.view != target->view) {
+		if (_framebuffer.image != target->image || _framebuffer.level != _cmdPack->level) {
 			clearFramebuffer();
-			if (_cmdPack->level) {
+			if (target->mipLevels > 1) {
 				_framebuffer.view = vk_createLevelView(_device, target, _cmdPack->level);
 				_framebuffer.holdView = true;
 			} else {
 				_framebuffer.view = target->view;
 			}
+			_framebuffer.image = target->image;
+			_framebuffer.level = _cmdPack->level;
 			_framebuffer.framebuffer = vk_create_framebuffer(
 				_device, info.renderPass, _framebuffer.view, info.renderArea.extent);
 		}
@@ -490,6 +488,7 @@ namespace qk {
 			info.pClearValues = &clearValue;
 		}
 		vkCmdBeginRenderPass(_cmdPack->current, &info, VK_SUBPASS_CONTENTS_INLINE);
+		target->layouts[_cmdPack->level] = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 
 	void VulkanCanvas::beginRenderPass() {
@@ -568,7 +567,6 @@ namespace qk {
 		if (_capaBuilder)
 			_capaBuilder->flush();
 		endPass(); // end current pass to ensure all commands are encoded before swap
-		Qk_ASSERT_EQ(VK_SUCCESS, vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
 		ScopeLock lock(_mutex);
 		bool canSwap = _cmdPackFront->isRecorded() == false;
 		if (!canSwap) {
@@ -578,14 +576,20 @@ namespace qk {
 		}
 		// only swap if there are recorded commands and front cmd pack is empty
 		if (canSwap && _cmdPack->isRecorded()) {
+			Qk_ASSERT_EQ(
+				VK_SUCCESS,
+				vkEndCommandBuffer(_cmdPack->current),
+				"Failed to end command buffer"
+			);
 			auto submit = _cmdPackFront->completion.exchange(nullptr, std::memory_order_acq_rel);
 			if (submit)
 				submit->unref();
 			std::swap(_cmdPackFront, _cmdPack); // swap cmd buffer and pass descriptor to front
+			// reset front cmd pack for next frame
+			clear_PathvCache(_cache, 0);
+			// reset cmd pack for next frame
+			_cmdPack->reset(this);
 		}
-		clear_PathvCache(_cache, 0);
-		// reset cmd pack for next frame
-		_cmdPack->reset(this);
 		return canSwap;
 	}
 
@@ -595,6 +599,7 @@ namespace qk {
 			return Array<VkCommandBuffer>(); // no command buffer to flush
 		if (_cmdPackFront->recorded) {
 			_cmdPackFront->commands.push(_cmdPackFront->current);
+			_cmdPackFront->ownCommands.push(_cmdPackFront->current);
 			_cmdPackFront->recorded = false;
 		} else {
 			vkFreeCommandBuffers(_device, _commandPool, 1, &_cmdPackFront->current);
@@ -616,6 +621,7 @@ namespace qk {
 
 		if (_cmdPack->recorded) {
 			_cmdPack->commands.push(_cmdPack->current); // merge
+			_cmdPack->ownCommands.push(_cmdPack->current);
 			_cmdPack->recorded = false;
 			Qk_ASSERT_EQ(VK_SUCCESS, vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
 			// begin a new command buffer for next pass

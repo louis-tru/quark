@@ -32,6 +32,9 @@ Important source areas:
 - `src/render/`: render abstractions, canvas, paint, path, image, font, and GPU backends.
 - `src/render/gl/`: OpenGL backend and current behavior reference for many render features.
 - `src/render/metal/`: Metal backend and direct Metal command encoding.
+- `src/render/vulkan/`: shared Vulkan device/resources, shader reflection,
+  command packs, Canvas commands, and the in-progress platform presentation
+  backend.
 - `src/render/shader/`: source GLSL shader files and generated backend shader
   outputs. Check the generator/source relationship before editing generated
   files.
@@ -88,8 +91,12 @@ The render code is organized around shared GPU canvas behavior:
 - GL uses command packing through `GLC_CmdPack`.
 - Metal records directly into Metal command buffers and render/blit encoders
   through `MTL_CmdPack`.
+- Vulkan records through per-Canvas command pools/packs and submits through one
+  shared application queue.
 
-This split is important. New Canvas-level behavior usually belongs in `GPUCanvas`; backend-specific resource handling and draw calls belong in GL/Metal `*Cmd` implementations.
+This split is important. New Canvas-level behavior usually belongs in
+`GPUCanvas`; backend-specific resource handling and draw calls belong in the
+GL/Metal/Vulkan `*Cmd` implementations.
 
 The normal GL/Metal AASide path no longer uses render z depth or depth/stencil
 ordering. Coverage and compositing must work through geometry, shaders,
@@ -108,16 +115,19 @@ copying GL's implicit state-machine habits into Metal.
 - AASide is intentionally bounded; tiny shapes, narrow channels, overlapping
   coverage, and difficult transforms can exceed what one interpolated edge
   value can represent.
-- The next high-precision direction is tile-based Compute AA for Metal/Vulkan
-  class backends. The isolated prototype in `test/compute_aa/` validates local
-  tile edge lists, tile-left backdrop winding, and 4x4 sample coverage.
+- CAPA is the current high-precision fill direction for Metal/Vulkan-class
+  backends. The isolated `test/compute_aa/` work remains historical evidence
+  for tile-local edge lists, tile-left backdrop, and coverage classification;
+  CGAA is no longer the active production direction.
 - Detailed AA semantics and research notes live in
   `docs/GPU_2D_ANTIALIASING.md`.
 
 ## Persistent Concepts
 
 - `ImageSource` is not just an image loader. It is the bridge between decoded pixels, GPU textures, mipmaps, load state, and shared view usage.
-- `TexStat` is the backend texture handle container. GL stores numeric texture IDs; Metal stores retained Objective-C texture pointers.
+- `TexStat` is the backend texture handle container. GL stores numeric texture
+  IDs; Metal stores retained Objective-C texture pointers; Vulkan stores
+  reference-counted `VkTexture` wrappers through its pointer slot.
 - `RenderResource` owns backend-local upload/unload operations for textures and vertex data.
 - `PaintImage::setCanvas()` consumes an already rendered canvas as a texture source.
 - `Canvas::outputImage()` changes where subsequent drawing goes.
@@ -130,6 +140,9 @@ copying GL's implicit state-machine habits into Metal.
   copying when deferred command execution outlives transient input buffers.
 - Metal render-target changes require ending the current render encoder, but
   they do not inherently require creating a new command buffer.
+- Vulkan uses one shared application queue, per-Canvas command pools, explicit
+  descriptor/layout state, and per-mip texture-layout tracking. See
+  `docs/VULKAN.md` before reviewing or extending that backend.
 
 ## Developer Support
 
@@ -146,6 +159,7 @@ When an AI assistant finishes meaningful work, update:
 
 - `docs/CURRENT_WORK.md` if the active implementation state changed.
 - `docs/RENDERING.md` if rendering architecture or backend rules changed.
+- `docs/VULKAN.md` for durable Vulkan architecture, invariants, and backlog.
 - `docs/GPU_2D_ANTIALIASING.md` if AA semantics or Compute AA direction changed.
 - `docs/TROUBLESHOOTING.md` for a diagnosed failure and its prevention rule.
 - `docs/ENGINEERING_RULES.md` only for durable hard decision rules.

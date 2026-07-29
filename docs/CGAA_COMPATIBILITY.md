@@ -1,7 +1,8 @@
 # CGAA Compatibility
 
-This file records platform and GPU requirements that must be preserved when
-CGAA enters Quark's production renderer.
+This file records platform and GPU requirements for the optional/historical
+CGAA compute path. CGAA is no longer the active production direction, but these
+constraints must be preserved if it is enabled or revisited.
 
 ## Metal Shading Language Requirement
 

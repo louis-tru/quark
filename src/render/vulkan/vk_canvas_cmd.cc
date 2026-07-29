@@ -49,23 +49,17 @@ namespace qk {
 	}
 
 	void VulkanCanvas::setDefaultTarget(VkTexture *tex) {
+		Qk_ASSERT(tex, "Failed to create Vulkan canvas output texture");
 		_outTex = tex;
-		Qk_ASSERT(_outTex, "Failed to create Vulkan canvas output texture");
-		clearFramebuffer();
-		_framebuffer.framebuffer = vk_create_framebuffer(
-			_device, getRenderPass(_outTex->format), _outTex->view, _outTex->extent);
-		_framebuffer.view = _outTex->view;
-		Qk_ASSERT(_framebuffer.framebuffer, "Failed to create Vulkan canvas framebuffer");
 		_target = tex; // set current render target to default output texture
 	}
 
 	void VulkanCanvas::setSurfaceCmd(bool changeSize) {
 		endPass(); // end old pass if exist
 
-		_cmdPack->reset(this); // clear old command pack
 		// clear buffer allocators for new frame
 		_cmdPack->clearAllocator();
-		_cmdPackFront->clearAllocator(true);
+		_cmdPackFront->clearAllocator();
 
 		// create new output texture if size changed
 		if (changeSize) {
@@ -469,12 +463,8 @@ namespace qk {
 		_target = target; // restore output color texture
 		endPass();
 
-		// transition srcTex to color attachment layout for next pass
-		srcTex->transitionLayout(_cmdPack->current,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
 		if (dst->mipmap()) {
-			tex->generateMipmaps(_cmdPack->current, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+			tex->generateMipmaps(_cmdPack->current);
 		} else {
 			makeTextureMipReadable(tex); // make texture readable for shader
 		}
@@ -506,7 +496,7 @@ namespace qk {
 		auto tex = vk_get_texture(exit);
 		Qk_ASSERT(tex, "outputImageEndCmd exit texture is null");
 		if (exit->mipmap()) {
-			tex->generateMipmaps(_cmdPack->current, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+			tex->generateMipmaps(_cmdPack->current);
 			_cmdPack->recorded = true; // mark cmd pack as recorded after encoding commands
 		} else {
 			makeTextureMipReadable(tex);
