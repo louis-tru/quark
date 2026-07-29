@@ -10,8 +10,10 @@ The active renderer task is completing the Vulkan backend on `master`.
 
 - Shared Vulkan device/resource management is implemented.
 - Most non-CAPA `VulkanCanvas` commands now have Metal-aligned implementations.
-- The next work is framebuffer/mip-view correctness, command-pack layout-state
-  handling, platform surface/presentation integration, then CAPA.
+- Framebuffer/mip-view and command-pack completion ownership have been handled.
+- A shared Android/Linux surface/swapchain/present implementation now exists;
+  Android build/runtime bring-up is the immediate next checkpoint, followed by
+  Linux validation and CAPA.
 - Detailed architecture, invariants, and the Vulkan backlog live in
   [`VULKAN.md`](VULKAN.md).
 
@@ -29,7 +31,10 @@ Implemented:
 - current/front command packs with per-pack allocators and completion state;
 - ordinary color, image/YUV, gradient, rounded-rect blur, clip, blur, indexed
   triangle, image-copy/read, and output-image command encoding;
-- per-mip `VkTexture::layouts` state and redundant-transition elimination.
+- per-mip `VkTexture::layouts` state and redundant-transition elimination;
+- Android/Xlib surface creation, FIFO swapchain management, nonblocking acquire,
+  direct Canvas rendering into acquired images, shared-queue
+  submission/present, and externally driven surface reload.
 
 Immediate correctness work:
 
@@ -42,7 +47,7 @@ Immediate correctness work:
 
 Still incomplete:
 
-- production platform surface/swapchain/present integration;
+- Android and Linux runtime validation of platform presentation;
 - Vulkan CAPA command encoding (`drawCAPACmd()` still returns `false`);
 - runtime validation across Android and desktop Vulkan drivers.
 

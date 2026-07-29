@@ -158,7 +158,7 @@ namespace qk {
 		, _cmdPack(nullptr), _cmdPackFront(nullptr)
 		, _shaders(_resource->shaders()) // copy shared shader resource
 	{
-		_opts.colorType = _opts.colorType ? _opts.colorType: kBGRA_8888_ColorType;
+		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
 		auto format = vk_pixelFormat(_opts.colorType);
 		Qk_ASSERT_NE(format, VK_FORMAT_UNDEFINED, "Invalid Vulkan canvas color format");
 

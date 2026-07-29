@@ -54,9 +54,7 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void release() override {
-		lock();
 		stopDisplay();
-		unlock();
 		GLRender::release();
 		resolvedMsg(true);
 		_view = nil;
@@ -64,18 +62,25 @@ class MacGLRender final: public GLRender, public RenderSurface {
 		Object::release(); // final destruction
 	}
 
+	void reload() override {
+		lock(); // safe reload, avoid render thread is calling onRenderBackendDisplay while reload
+		_surfaceSize = getSurfaceSize();
+		_delegate->onRenderBackendReload(_surfaceSize);
+		unlock();
+	}
+
 	bool isRenderThread() {
 		return _threadId == thread_self_id();
 	}
 
-	void lock() override {
+	void lock() {
 		if (!isRenderThread()) { // avoid deadlock if already in render thread
 			CGLLockContext(_ctx.CGLContextObj);
 			[_ctx makeCurrentContext];
 		}
 	}
 
-	void unlock() override {
+	void unlock() {
 		if (!isRenderThread()) {
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
@@ -98,22 +103,20 @@ class MacGLRender final: public GLRender, public RenderSurface {
 				cb->resolve(); // if failed to lock, immediately resolve the message
 			}
 		} else {
-			_mutexMsg.lock();
+			ScopeLock lock(_mutexMsg);
 			_msg.push(cb);
-			_mutexMsg.unlock();
 		}
 	}
 
 	void resolvedMsg(bool destroy) {
 		if (destroy) {
-			_mutexMsg.lock();
+			ScopeLock lock(_mutexMsg);
 			if (_msg.length()) {
 				lock();
 				for (auto &i : _msg) i->resolve();
 				_msg.clear();
 				unlock();
 			}
-			_mutexMsg.unlock();
 		} else if (_msg.length()) {
 			_mutexMsg.lock();
 			auto msg(std::move(_msg));
@@ -130,9 +133,12 @@ class MacGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void renderDisplay() {
-		if (!_isRun)
-			return;
 		CGLLockContext(_ctx.CGLContextObj);
+		if (!_isRun) {
+			CGLUnlockContext(_ctx.CGLContextObj);
+			return;
+		}
+
 		// Make the context current
 		[_ctx makeCurrentContext];
 		_threadId = thread_self_id();
@@ -199,11 +205,16 @@ private:
 	}
 
 	void stopDisplay() {
-		if (!_isRun) return;
+		lock();
+		if (!_isRun) {
+			unlock();
+			return;
+		}
 		_isRun = false;
 		CVDisplayLinkStop(_displayLink);
 		CVDisplayLinkRelease(_displayLink);
 		_displayLink = nil;
+		unlock();
 	}
 
 //fields:

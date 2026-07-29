@@ -275,19 +275,19 @@ namespace qk {
 			return nullptr;
 		};
 		VkResult result;
-		vk_call(vkCreateImage, return fail(), _device, &imageInfo, nullptr, &tex->image);
+		vk_call(vkCreateImage, _device, &imageInfo, nullptr, &tex->image);
 
 		uint32_t memoryType;
 		VkMemoryRequirements requirements{};
 		vkGetImageMemoryRequirements(_device, tex->image, &requirements);
-		vk_call(vk_findMemoryType, return fail(), _physicalDevice, requirements.memoryTypeBits,
+		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryType);
 
 		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &tex->memory);
-		vk_call(vkBindImageMemory, return fail(), _device, tex->image, tex->memory, 0);
+		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &tex->memory);
+		vk_call(vkBindImageMemory, _device, tex->image, tex->memory, 0);
 
 		VkImageViewCreateInfo viewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
 		viewInfo.image = tex->image;
@@ -296,14 +296,14 @@ namespace qk {
 		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		viewInfo.subresourceRange.levelCount = mipLevels;
 		viewInfo.subresourceRange.layerCount = 1;
-		vk_call(vkCreateImageView, return fail(), _device, &viewInfo, nullptr, &tex->view);
+		vk_call(vkCreateImageView, _device, &viewInfo, nullptr, &tex->view);
 
 		if (initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 			ScopeLock lock(_mutex);
-			vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
+			vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
 			tex->transitionLayout(cmd, initialLayout, 0, mipLevels);
-			vk_call(vkEndCommandBuffer, return fail(), cmd);
-			vk_call(vk_submitCommand, return fail(), &cmd, Cb([this,cmd](auto e) {
+			vk_call(vkEndCommandBuffer, cmd);
+			vk_call(vk_submitCommand, &cmd, Cb([this,cmd](auto e) {
 				ScopeLock lock(_mutex);
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
 			}));
@@ -370,21 +370,21 @@ namespace qk {
 			.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		};
-		vk_call(vkCreateBuffer, return fail(), _device, &bufferInfo, nullptr, &stagingBuffer);
+		vk_call(vkCreateBuffer, _device, &bufferInfo, nullptr, &stagingBuffer);
 
 		uint32_t memoryType;
 		VkMemoryRequirements requirements = {};
 		vkGetBufferMemoryRequirements(_device, stagingBuffer, &requirements);
-		vk_call(vk_findMemoryType, return fail(), _physicalDevice, requirements.memoryTypeBits,
+		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryType
 		);
 		void *mapped;
 		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &stagingMemory);
-		vk_call(vkBindBufferMemory, return fail(), _device, stagingBuffer, stagingMemory, 0);
-		vk_call(vkMapMemory, return fail(), _device, stagingMemory, 0, uploadSize, 0, &mapped);
+		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &stagingMemory);
+		vk_call(vkBindBufferMemory, _device, stagingBuffer, stagingMemory, 0);
+		vk_call(vkMapMemory, _device, stagingMemory, 0, uploadSize, 0, &mapped);
 
 		VkDeviceSize offset = 0;
 		for (int i = 0; i < levels; i++) {
@@ -396,7 +396,7 @@ namespace qk {
 
 		ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
 
-		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
+		vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
 		vkTex->transitionLayout(cmd,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, generateMipmaps ? 1: imageLevels);
 
@@ -421,8 +421,8 @@ namespace qk {
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, imageLevels);
 		}
 
-		vk_call(vkEndCommandBuffer, return fail(), cmd);
-		vk_call(vk_submitCommand, return fail(), &cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
+		vk_call(vkEndCommandBuffer, cmd);
+		vk_call(vk_submitCommand, &cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
 			ScopeLock lock(_mutex);
 			vkDestroyBuffer(_device, stagingBuffer, nullptr);
 			vkFreeMemory(_device, stagingMemory, nullptr);
@@ -454,19 +454,19 @@ namespace qk {
 		bufferInfo.size = vertex->size;
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		vk_call(vkCreateBuffer, return fail(), _device, &bufferInfo, nullptr, &vertex->buffer);
+		vk_call(vkCreateBuffer, _device, &bufferInfo, nullptr, &vertex->buffer);
 
 		uint32_t memoryType;
 		VkMemoryRequirements requirements{};
 		vkGetBufferMemoryRequirements(_device, vertex->buffer, &requirements);
-		vk_call(vk_findMemoryType, return fail(), _physicalDevice, requirements.memoryTypeBits,
+		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryType);
 
 		VkMemoryAllocateInfo memoryInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &vertex->memory);
-		vk_call(vkBindBufferMemory, return fail(), _device, vertex->buffer, vertex->memory, 0);
+		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &vertex->memory);
+		vk_call(vkBindBufferMemory, _device, vertex->buffer, vertex->memory, 0);
 
 		return vertex;
 	}
@@ -503,28 +503,28 @@ namespace qk {
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		vk_call(vkCreateBuffer, return fail(), _device, &bufferInfo, nullptr, &stagingBuffer);
+		vk_call(vkCreateBuffer, _device, &bufferInfo, nullptr, &stagingBuffer);
 
 		uint32_t memoryType;
 		VkMemoryRequirements requirements{};
 		vkGetBufferMemoryRequirements(_device, stagingBuffer, &requirements);
-		vk_call(vk_findMemoryType, return fail(), _physicalDevice, requirements.memoryTypeBits,
+		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryType);
 
 		VkMemoryAllocateInfo memoryInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, return fail(), _device, &memoryInfo, nullptr, &stagingMemory);
-		vk_call(vkBindBufferMemory, return fail(), _device, stagingBuffer, stagingMemory, 0);
+		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &stagingMemory);
+		vk_call(vkBindBufferMemory, _device, stagingBuffer, stagingMemory, 0);
 
 		void *mapped = nullptr;
-		vk_call(vkMapMemory, return fail(), _device, stagingMemory, 0, vertex->size, 0, &mapped);
+		vk_call(vkMapMemory, _device, stagingMemory, 0, vertex->size, 0, &mapped);
 		memcpy(mapped, data.val(), data.size());
 		vkUnmapMemory(_device, stagingMemory);
 
 		ScopeLock lock(_mutex);
 
-		vk_call(vk_beginCommandBuffer, return fail(), _device, _commandPool, &cmd);
+		vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
 
 		VkBufferCopy copy{.size = vertex->size};
 		vkCmdCopyBuffer(cmd, stagingBuffer, vertex->buffer, 1, &copy);
@@ -540,8 +540,8 @@ namespace qk {
 			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
 			0, 0, nullptr, 1, &barrier, 0, nullptr);
 
-		vk_call(vkEndCommandBuffer, return fail(), cmd);
-		vk_call(vk_submitCommand, return fail(), &cmd,
+		vk_call(vkEndCommandBuffer, cmd);
+		vk_call(vk_submitCommand, &cmd,
 			Cb([this, stagingBuffer, stagingMemory, cmd](auto e) {
 				ScopeLock lock(_mutex);
 				vkDestroyBuffer(_device, stagingBuffer, nullptr);

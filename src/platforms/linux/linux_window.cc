@@ -42,7 +42,7 @@
 #undef None
 
 #include "./linux_app.h"
-#include "../../render/linux/linux_render.h"
+#include "../../render/plotforms.h"
 #include "../../ui/ui.h"
 
 namespace qk {
@@ -371,7 +371,7 @@ namespace qk {
 			_impl = new WindowPlatform(this, opts);
 			_render->surface()->makeSurface((EGLNativeWindowType)_impl->xwin());
 			_render->reload();
-			_render->surface()->renderLoopRun();
+			_render->surface()->runRenderLoop();
 			activate();
 		}), true);
 	}

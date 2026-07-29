@@ -496,7 +496,8 @@ namespace qk {
 	}
 
 	// A simple Vulkan application that draws a single color to the screen.
-	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd) {
+	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd,
+		VkCommandBufferUsageFlags flags) {
 		VkCommandBufferAllocateInfo cmdInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
 		cmdInfo.commandPool = pool;
 		cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -504,7 +505,7 @@ namespace qk {
 		Qk_ASSERT_EQ(VK_SUCCESS, vkAllocateCommandBuffers(device, &cmdInfo, cmd),
 			"Failed to allocate Vulkan command buffer");
 		VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		beginInfo.flags = flags;
 		Qk_ASSERT_EQ(VK_SUCCESS, vkBeginCommandBuffer(*cmd, &beginInfo),
 			"Failed to begin Vulkan command buffer");
 		return VK_SUCCESS;

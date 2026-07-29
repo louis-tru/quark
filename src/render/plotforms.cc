@@ -28,41 +28,26 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// @private head
-
-#ifndef __quark_platforms_linux__linux_app__
-#define __quark_platforms_linux__linux_app__
-
-#include <X11/Xlib.h>
-#include "../../util/cb.h"
-
-typedef Window XWindow;
-typedef Display XDisplay;
+#include "./plotforms.h"
 
 namespace qk {
-	class Window;
-	class WindowImpl;
 
-	class LinuxIMEHelper {
-	public:
-		static LinuxIMEHelper* Make(WindowImpl* impl,
-			int inputStyle = XIMPreeditPosition);
-		virtual ~LinuxIMEHelper() = 0;
-		virtual void key_press(XKeyPressedEvent *event) = 0;
-		virtual void focus_in() = 0;
-		virtual void focus_out() = 0;
-	};
+#ifdef Qk_LINUX
+	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
+	static void retainXDisplay(Display* dpy){}
 
-	class WindowImpl: public SafeFlag {
-	public:
-		Qk_DEFINE_PROP_GET(Window*, win, Protected);
-		Qk_DEFINE_PROP_GET(XWindow, xwin, Protected);
-		Qk_DEFINE_PROP_GET(XDisplay*, xdpy, Protected);
-		Qk_DEFINE_PROP_GET(LinuxIMEHelper*, ime, Protected);
-	};
+	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay, retainXDisplay>> XDisplayAuto;
 
-	float dpiForXDisplay(); // get dpi for default xdisplay
-	void post_message_main(Cb cb, bool sync = false); // sync to x11 main message loop
-}
-
+	Display* openXDisplay() {
+		static XDisplayAuto xdpy([]() {
+			Qk_ASSERT_EQ(1, XInitThreads(), "Error: Can't init X threads");
+			auto xdpy = XOpenDisplay(nullptr);
+			Qk_CHECK(xdpy, "Can't open display");
+			return xdpy;
+		}());
+		return xdpy.get();
+	}
 #endif
+
+}
+//#endif

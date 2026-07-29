@@ -40,8 +40,8 @@
 #include "../source.h"
 #include "./vk_shader.h"
 
-#define vk_call(call, fail, ...) \
-	result = call(__VA_ARGS__); if (result != VK_SUCCESS) fail
+#define vk_call(call, ...) \
+	result = call(__VA_ARGS__); if (result != VK_SUCCESS) return fail()
 
 namespace qk {
 	class VulkanRenderResource;
@@ -91,8 +91,12 @@ namespace qk {
 
 	struct VkSubmitResult {
 		VkFence fence;
+		VkResult result;
 		std::atomic_int refCount;
 		std::atomic_bool completed;
+		inline void ref() {
+			refCount.fetch_add(1, std::memory_order_relaxed);
+		}
 		inline void unref() {
 			refCount.fetch_sub(1, std::memory_order_relaxed);
 		}
@@ -176,7 +180,8 @@ namespace qk {
 	);
 
 	// A simple Vulkan application that draws a single color to the screen.
-	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd);
+	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd,
+		VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb);
 

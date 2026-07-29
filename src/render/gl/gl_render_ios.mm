@@ -67,40 +67,40 @@ class IosGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void release() override {
-		lock();
-		if (_view)
-			[_view stopDisplay]; // thread task must be forced to end
-		unlock();
-
+		stopDisplay();
 		GLRender::release(); // Destroy the pre object first
 
-		GLuint
-			fbo = _fbo_0,
-			rbo = _rbo_0;
-		_fbo_0 = _rbo_0 = 0; // clear
-		post_message(Cb([fbo,rbo](auto &e) {
+		post_message(Cb([fbo=_fbo_0,rbo=_rbo_0](auto) {
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteRenderbuffers(1, &rbo);
 		}));
-
+		_fbo_0 = 0;
+		_rbo_0 = 0;
 		_ctx = nil;
 		_layer = nil;
 		_view = nil;
 		Object::release(); // final destruction
 	}
 
+	void reload() override {
+		lock(); // safe reload, avoid render thread is calling onRenderBackendDisplay while reload
+		_surfaceSize = getSurfaceSize();
+		_delegate->onRenderBackendReload(_surfaceSize);
+		unlock();
+	}
+
 	bool isRenderThread() {
 		return _threadId == thread_self_id();
 	}
 
-	void lock() override {
+	void lock() {
 		if (!isRenderThread()) { // avoid deadlock if already in render thread
 			_mutex.lock();
 			[EAGLContext setCurrentContext:_ctx];
 		}
 	}
 
-	void unlock() override {
+	void unlock() {
 		if (!isRenderThread()) {
 			_mutex.unlock();
 		}
@@ -126,7 +126,10 @@ class IosGLRender final: public GLRender, public RenderSurface {
 	}
 
 	void renderDisplay() {
-		_mutex.lock();
+		ScopeLock lock(_mutex);
+		if (!_view || !_view.isRun)
+			return;
+
 		_threadId = thread_self_id();
 		Qk_ASSERT_EQ(EAGLContext.currentContext, _ctx, "Failed to set current OpenGL context");
 
@@ -167,7 +170,6 @@ class IosGLRender final: public GLRender, public RenderSurface {
 			[_ctx presentRenderbuffer: GL_RENDERBUFFER];
 		}
 		_threadId = qk::ThreadID();
-		_mutex.unlock();
 	}
 
 	UIView* surfaceView() override {
@@ -187,6 +189,13 @@ class IosGLRender final: public GLRender, public RenderSurface {
 		//_layer.contentsGravity = kCAGravityTopLeft;
 
 		return _view;
+	}
+
+	void stopDisplay() {
+		lock();
+		if (_view)
+			[_view stopDisplay];
+		unlock();
 	}
 
  private:

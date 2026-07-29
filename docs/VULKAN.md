@@ -13,7 +13,10 @@ The backend has moved beyond the original shell:
   pipelines;
 - most ordinary `GPUCanvas` commands have Vulkan implementations;
 - command submission and non-blocking completion tracking are connected;
-- CAPA and production platform presentation are not complete.
+- the first shared Android/Linux surface, swapchain, direct Canvas rendering,
+  submit, and present path is implemented but has not yet had runtime
+  validation;
+- CAPA is not complete.
 
 The readable Vulkan learning/smoke test remains `test/android/vk/`. It is a
 NativeActivity test independent of the production backend and deliberately uses
@@ -31,11 +34,44 @@ simple synchronization.
 - `vk_canvas.*`: command packs, descriptor pools, render passes, framebuffers,
   descriptors, pipelines, submission assembly, and Canvas state.
 - `vk_canvas_cmd.cc`: backend implementations of the `GPUCanvas` command hooks.
+- `vk_render_linux.cc`: shared Android/Linux platform surface, swapchain,
+  acquire semaphores, swapchain-image targets, and present flow.
 - `vk_util.*`: Vulkan format, memory, sampler, render-pass, framebuffer, image
   view, command-buffer, and buffer-allocation helpers.
 
 Platform-specific surface/swapchain implementations should remain separate from
 the platform-independent shared resource and Canvas layers.
+
+## Android/Linux Presentation Model
+
+The main Canvas renders directly into the acquired swapchain image. The shared
+platform implementation:
+
+1. creates an Android or Xlib `VkSurfaceKHR`;
+2. creates a FIFO swapchain whose images support color-attachment, sampled, and
+   compute-storage use;
+3. acquires one image with a per-frame acquire semaphore;
+4. wraps that image as the main Canvas target without taking ownership of the
+   swapchain image or its memory;
+5. records ordinary Canvas commands directly against that target;
+6. appends the platform presentation-layout transition after the unchanged
+   Canvas command list;
+7. submits the Canvas command list through the shared queue and presents
+   while holding the same queue-serialization contract used by other windows.
+
+The platform alternates between two acquire semaphores. The Canvas current/front
+command-pack model permits at most one submitted frame plus one acquired frame
+waiting to be submitted, so the earlier acquire semaphore is available again
+when the index wraps without adding a fence-status check to the display path.
+Render-finished semaphores belong to swapchain images, so each is reused only
+after that same image is acquired again. Swapchain recreation waits for the
+shared queue and rebuilds surface-dependent state. The next acquired image
+replaces the Canvas default target through the ordinary `setDefaultTarget()`
+path.
+
+`vkAcquireNextImageKHR()` currently uses a zero timeout. If acquisition fails or
+the swapchain is out of date, the render tick is discarded. Swapchain reload is
+driven by the external surface lifecycle rather than from `renderDisplay()`.
 
 ## Device And Queue Model
 
@@ -255,11 +291,10 @@ only handles allocated from that Canvas command pool and is the list freed by
 
 ### Missing Work
 
-- platform surface/swapchain acquisition and present flow;
-- swapchain resize/out-of-date handling;
 - Vulkan CAPA pass/resource/descriptor/dispatch encoding;
 - driver/device capability validation and fallback behavior;
-- Android and desktop build/runtime smoke tests.
+- Android build/runtime bring-up of the new production presentation path;
+- Linux/Xlib build/runtime smoke testing and any platform-specific corrections.
 
 ## Review Guardrails
 

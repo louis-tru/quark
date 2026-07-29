@@ -67,8 +67,8 @@ namespace qk {
 		VkPipeline getComputePipeline(VkPipelineKind kind);
 		VkSampler get_sampler(const PaintImage* paint);
 		VkSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
-		VkSubmitResult* submitCommand(VkCmdPack *pack);
-		VkSubmitResult* submitCommand(const VkSubmitInfo* submit, Cb cb, VkCmdPack *pack = nullptr);
+		VkResult submitCommand(const VkSubmitInfo* submit, VkPresentInfoKHR *present, VkCmdPack *pack);
+		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
 		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags,
 			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 		void queueWaitIdle();
@@ -82,6 +82,7 @@ namespace qk {
 		VkShader& getShader(VkPipelineKind kind);
 		VkShaderModule getShaderModule(VkPipelineKind kind, VkShaderStageFlagBits stage);
 		void refSubmitResult(VkSubmitResult* result, VkCmdPack *pack);
+		VkSubmitResult* submitCommandNoLock(const VkSubmitInfo* submit, Cb cb);
 		// fields:
 		Mutex _mutex, _commitMutex;
 		VkInstance _instance;

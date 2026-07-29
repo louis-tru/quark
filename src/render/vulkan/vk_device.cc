@@ -30,6 +30,13 @@
 
 #include "./vk_render.h"
 
+#if Qk_LINUX
+# include "../plotforms.h"
+# undef Status
+# undef Bool
+# undef None
+#endif
+
 namespace qk {
 
 	static const char* vk_platformSurfaceExtension() {
@@ -49,17 +56,12 @@ namespace qk {
 		return true; // Vulkan Android 规范保证
 #elif Qk_WIN
 		return vkGetPhysicalDeviceWin32PresentationSupportKHR(device, family);
-#else
-/*
-#if Qk_X11
+#elif Qk_LINUX
+		auto display = openXDisplay();
+		auto visual = DefaultVisual(display, DefaultScreen(display));
 		return vkGetPhysicalDeviceXlibPresentationSupportKHR(
-				device, family, display, visualId);
-#elif Qk_WAYLAND
-		return vkGetPhysicalDeviceWaylandPresentationSupportKHR(
-				device, family, display);
-*/
-		// X11/Wayland require platform display/visual parameters. Add them to
-		// vk_selectBestDevice when the corresponding Vulkan backend is enabled.
+			device, family, display, XVisualIDFromVisual(visual));
+#else
 		return false;
 #endif
 	}
@@ -350,7 +352,8 @@ namespace qk {
 
 	void VulkanRenderResource::createDevice() {
 		uint32_t familyCount = 0;
-		Array<VkQueueFamilyProperties> families(_queueFamily + 1);
+		vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount, nullptr);
+		Array<VkQueueFamilyProperties> families(familyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount, families.val());
 		Qk_ASSERT(_queueFamily < familyCount, "Invalid graphics queue family index");
 

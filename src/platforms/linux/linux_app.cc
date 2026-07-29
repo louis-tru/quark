@@ -36,11 +36,7 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 
-#include "../../render/linux/linux_render.h"
-
-#undef Status
-#undef Bool
-#undef None
+#include "../../render/plotforms.h"
 
 #include "./linux_app.h"
 #include "../../util/thread/inl.h"
@@ -120,12 +116,12 @@ namespace qk
 					case MapNotify:
 						Qk_DLog("event, MapNotify, Window onForeground");
 						_app->triggerForeground(win);
-						win->render()->surface()->renderLoopRun();
+						win->render()->surface()->runRenderLoop();
 						break;
 					case UnmapNotify:
 						Qk_DLog("event, UnmapNotify, Window onBackground");
 						_app->triggerBackground(win);
-						win->render()->surface()->renderLoopStop();
+						win->render()->surface()->stopRenderLoop();
 						break;
 					case FocusIn:
 						Qk_DLog("event, FocusIn, Window onResume");

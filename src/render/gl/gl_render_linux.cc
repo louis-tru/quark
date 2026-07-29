@@ -60,23 +60,6 @@ namespace qk {
 
 	typedef Sp<EGLDisplayType, ObjectTraitsFrom<EGLDisplayType, closeEGLDisplay, retainEGLDisplay>> EGLDisplayAuto;
 
-#ifndef Qk_ANDROID
-	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
-	static void retainXDisplay(Display* dpy){}
-
-	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay, retainXDisplay>> XDisplayAuto;
-
-	Display* openXDisplay() {
-		static XDisplayAuto xdpy([]() {
-			Qk_ASSERT_EQ(1, XInitThreads(), "Error: Can't init X threads");
-			auto xdpy = XOpenDisplay(nullptr);
-			Qk_CHECK(xdpy, "Can't open display");
-			return xdpy;
-		}());
-		return xdpy.get();
-	}
-#endif
-
 	static EGLDisplay egl_display() {
 		static EGLDisplayAuto display = EGL_NO_DISPLAY;
 		if (display.get() == EGL_NO_DISPLAY) { // get display and init it
@@ -175,7 +158,8 @@ namespace qk {
 			, _config(config)
 			, _context(ctx)
 			, _surface(EGL_NO_SURFACE)
-			, _win(EGL_NO_NATIVE_WINDOW)
+			, _window(EGL_NO_NATIVE_WINDOW)
+			, _isRun(true)
 		{}
 
 		~LinuxGLRender() override {
@@ -183,24 +167,10 @@ namespace qk {
 		}
 
 		void release() override {
-			lock();
-			renderLoopStop();
-			unlock();
-
+			stopDisplay();
 			GLRender::release(); // Destroy the pre object first
 
-			// Perform the final message task
-			_mutexMsg.lock();
-			if (_msg.length()) {
-				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
-					Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
-				lock();
-				for (auto &i : _msg)
-					i->resolve();
-				_msg.clear();
-				unlock();
-			}
-			_mutexMsg.unlock();
+			resolvedMsg(true);
 
 			if (_display != EGL_NO_DISPLAY) {
 				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -210,20 +180,19 @@ namespace qk {
 			_display = EGL_NO_DISPLAY;
 			_context = EGL_NO_CONTEXT;
 			_surface = EGL_NO_SURFACE;
+			_window = EGL_NO_NATIVE_WINDOW;
 
 			Object::release(); // final destruction
 		}
 
+		void reload() override {
+			std::lock_guard<RecursiveMutex> lock(_mutex);
+			_surfaceSize = getSurfaceSize();
+			_delegate->onRenderBackendReload(_surfaceSize);
+		}
+
 		bool isRenderThread() {
 			return _threadId == thread_self_id();
-		}
-
-		void lock() override {
-			_mutex.lock();
-		}
-
-		void unlock() override {
-			_mutex.unlock();
 		}
 
 		RenderSurface* surface() override {
@@ -234,9 +203,8 @@ namespace qk {
 			Qk_ASSERT(_context, "Render context is null. Cannot post message.");
 			if (!_context) return; // Render is release, do not post message
 			if (isRenderThread()) {
-				lock();
+				std::lock_guard<RecursiveMutex> lock(_mutex);
 				cb->resolve();
-				unlock();
 			} else if (_threadId == ThreadID()) { // No run
 				if (_mutexMsg.try_lock()) {
 					_msg.push(cb);
@@ -245,36 +213,55 @@ namespace qk {
 					cb->resolve();
 				}
 			} else {
-				_mutexMsg.lock();
+				ScopeLock lock(_mutexMsg);
 				_msg.push(cb);
+			}
+		}
+
+		void resolvedMsg(bool destroy) {
+			if (destroy) {
+				ScopeLock lock(_mutexMsg);
+				if (_msg.length()) {
+					if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
+						Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
+					std::lock_guard<RecursiveMutex> lock(_mutex);
+					for (auto &i : _msg)
+						i->resolve();
+					_msg.clear();
+				}
+			} else if (_msg.length()) {
+				_mutexMsg.lock();
+				auto msg(std::move(_msg));
 				_mutexMsg.unlock();
+				for ( auto &i : msg )
+					i->resolve();
 			}
 		}
 
 		Vec2 getSurfaceSize() override {
-			if (!_win) return {};
+			if (!_window) return {};
 #if Qk_ANDROID
-			Vec2 size(ANativeWindow_getWidth(_win), ANativeWindow_getHeight(_win));
+			Vec2 size(ANativeWindow_getWidth(_window), ANativeWindow_getHeight(_window));
 #else
-		XWindowAttributes attrs;
-		auto dpy = openXDisplay();
-		Qk_ASSERT_EQ(1, XGetWindowAttributes(dpy, _win, &attrs));
-		// Qk_DLog("attrs.width: %d, attrs.height: %d", attrs.width, attrs.height);
-		Vec2 size(attrs.width, attrs.height);
+			XWindowAttributes attrs;
+			auto dpy = openXDisplay();
+			auto xwin = static_cast<XWindow>(_window);
+			Qk_ASSERT_EQ(1, XGetWindowAttributes(dpy, xwin, &attrs), "Failed to get X window attributes");
+			// Qk_DLog("attrs.width: %d, attrs.height: %d", attrs.width, attrs.height);
+			Vec2 size(attrs.width, attrs.height);
 #endif
 			return Vec2(size.width(), size.height());
 		}
 
 		void renderDisplay() override {
-			lock();
-			makeCurrent();
+			std::lock_guard<RecursiveMutex> lock(_mutex);
+			if (!_isRun)
+				return;
 
-			if (_msg.length()) { //
-				_mutexMsg.lock();
-				auto msg(std::move(_msg));
-				_mutexMsg.unlock();
-				for (auto &i : msg) i->resolve();
-			}
+			Qk_ASSERT(_surface, "EGL surface must be created before renderDisplay");
+
+			makeCurrent();
+			resolvedMsg(false);
 
 			if (_delegate->onRenderBackendDisplay()) {
 				_glcanvas->flushBuffer(); // commit gl canvas cmd
@@ -297,7 +284,6 @@ namespace qk {
 				// glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, TIMEOUT)
 				eglSwapBuffers(_display, _surface);
 			}
-			unlock();
 		}
 
 		void makeSurface(EGLNativeWindowType win) override {
@@ -305,8 +291,7 @@ namespace qk {
 				EGLSurface surface = eglCreateWindowSurface(_display, _config, win, nullptr);
 
 				Qk_CHECK(surface, "Unable to create a drawing surface");
-
-				_win = win;
+				_window = win;
 				_surface = surface;
 			}
 		}
@@ -319,6 +304,7 @@ namespace qk {
 				}
 				eglDestroySurface(_display, _surface);
 				_surface = EGL_NO_SURFACE;
+				_window = EGL_NO_NATIVE_WINDOW;
 			}
 		}
 
@@ -331,7 +317,7 @@ namespace qk {
 			Qk_ASSERT_EQ(thread_self_id(), _threadId);
 		}
 
-		void renderLoopRun() override {
+		void runRenderLoop() override {
 			if (_threadId != ThreadID())
 				return;
 
@@ -340,11 +326,11 @@ namespace qk {
 					"Unable to create a drawing surface");
 				const int64_t intervalUs = 1e6 / 60; // 60 frames
 				while (!t->abort) {
-					auto timeUs = time_monotonic();
+					auto sleepUs = time_monotonic();
 					renderDisplay();
-					timeUs += intervalUs - time_monotonic();
-					if (timeUs >= 0) {
-						thread_sleep(timeUs);
+					sleepUs += intervalUs - time_monotonic();
+					if (sleepUs >= 0) {
+						thread_sleep(sleepUs);
 					}
 				}
 				Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
@@ -352,7 +338,7 @@ namespace qk {
 			}, "linux_render_Thread");
 		}
 
-		void renderLoopStop() override {
+		void stopRenderLoop() override {
 			if (_threadId != ThreadID()) {
 				thread_try_abort(_threadId);
 				thread_join_for(_threadId);
@@ -360,16 +346,25 @@ namespace qk {
 			}
 		}
 
+		void stopDisplay() {
+			{
+				std::lock_guard<RecursiveMutex> lock(_mutex);
+				_isRun = false;
+			}
+			stopRenderLoop();
+		}
+
 	private:
 		EGLDisplay _display;
 		EGLConfig _config;
 		EGLContext _context;
 		EGLSurface _surface;
-		EGLNativeWindowType _win;
+		EGLNativeWindowType _window;
 		Mutex _mutexMsg;
 		Array<Cb> _msg;
 		ThreadID _threadId;
 		RecursiveMutex _mutex;
+		bool _isRun;
 	};
 
 	// ------------------------------------------

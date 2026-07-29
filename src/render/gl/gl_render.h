@@ -83,15 +83,12 @@ namespace qk {
 	public:
 		~GLRender() override;
 		void release() override;
-		void reload() override;
 		Canvas* createCanvas(Options opts) override;
 		bool uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) override;
 		void unloadTexture(TexStat *tex) override;
 		TexStat createTextureStat(Vec2 size, ColorType type, uint8_t flags) override;
 		bool uploadVertexData(VertexData::ID *id) override;
 		void unloadVertexData(VertexData::ID *id) override;
-		virtual void lock(); // lock render thread
-		virtual void unlock(); // unlock render
 		// set gl state
 		void set_blend_mode(BlendMode mode);
 		void set_viewport(Vec2 size);

@@ -81,7 +81,7 @@ namespace qk {
 		VkFence fence;
 		VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
 		vk_check("vkCreateFence", vkCreateFence(_device, &info, nullptr, &fence));
-		_submitResults.pushBack({fence, {0}, {true}});
+		_submitResults.pushBack({fence, VK_SUCCESS, {0}, {true}});
 
 		_emptyTexture = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -348,52 +348,59 @@ namespace qk {
 	}
 
 	void VulkanRenderResource::refSubmitResult(VkSubmitResult* result, VkCmdPack *pack) {
-		result->refCount.fetch_add(1, std::memory_order_relaxed);
+		result->ref();
 		pack->completion.store(result, std::memory_order_release);
 		for (auto &sub: pack->subCanvas)
 			refSubmitResult(result, sub->_cmdPackFront);
 	}
 
-	VkSubmitResult* VulkanRenderResource::submitCommand(VkCmdPack *pack) {
-		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
-		info.commandBufferCount = pack->commands.length();
-		info.pCommandBuffers = pack->commands.val();
-		return submitCommand(&info, nullptr, pack);
-	}
-
-	VkSubmitResult* VulkanRenderResource::submitCommand(const VkSubmitInfo* submit, Cb cb, VkCmdPack *pack) {
-		List<VkSubmitResult>::Iterator it;
+	VkResult VulkanRenderResource::submitCommand(
+		const VkSubmitInfo* submit, VkPresentInfoKHR *present, VkCmdPack *pack)
+	{
+		VkResult result = VK_SUCCESS;
 		Array<Cb> callbacks;
 		{
 			ScopeLock lock(_commitMutex);
-			it = --_submitResults.end();
-			if (it->refCount.load(std::memory_order_relaxed) != 0 || !isSubmitCompleted(it.operator->())) {
-					// If the last fence is not completed, create a new fence
-				VkFence fence = VK_NULL_HANDLE;
-				VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-				Qk_ASSERT_EQ(VK_SUCCESS, vkCreateFence(_device, &info, nullptr, &fence),
-					"Failed to create Vulkan fence");
-				it = _submitResults.pushBack({fence, {0}, {true}});
-			}
-			Qk_ASSERT_EQ(VK_SUCCESS, vkResetFences(_device, 1, &it->fence),
-				"Failed to reset Vulkan fence");
-			Qk_ASSERT_EQ(VK_SUCCESS, vkQueueSubmit(_commandQueue, 1, submit, it->fence),
-				"Failed to submit Vulkan command");
-
-			it->completed.store(false, std::memory_order_relaxed);
-			_submitResults.splice(_submitResults.begin(), _submitResults, it, _submitResults.end());
-
-			if (cb) {
-				it->refCount.fetch_add(1, std::memory_order_relaxed);
-				_asyncWaitTasks.pushBack({it.operator->(), cb});
-			}
+			auto submitResult = submitCommandNoLock(submit, nullptr);
+			if (present)
+				result = vkQueuePresentKHR(_commandQueue, present);
 			if (pack) {
 				checkAsyncWaitTasks(&callbacks);
-				refSubmitResult(it.operator->(), pack);
+				refSubmitResult(submitResult, pack);
 			}
 		}
 		for (auto &cb: callbacks)
 			cb->resolve();
+		return result;
+	}
+
+	VkResult VulkanRenderResource::submitCommand(const VkSubmitInfo* submit, Cb cb) {
+		ScopeLock lock(_commitMutex);
+		return submitCommandNoLock(submit, cb)->result;
+	}
+
+	VkSubmitResult* VulkanRenderResource::submitCommandNoLock(const VkSubmitInfo* submit, Cb cb) {
+		auto it = --_submitResults.end();
+		if (it->refCount.load(std::memory_order_relaxed) != 0 || !isSubmitCompleted(it.operator->())) {
+				// If the last fence is not completed, create a new fence
+			VkFence fence = VK_NULL_HANDLE;
+			VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+			Qk_ASSERT_EQ(VK_SUCCESS, vkCreateFence(_device, &info, nullptr, &fence),
+				"Failed to create Vulkan fence");
+			it = _submitResults.pushBack({fence, VK_SUCCESS, {0}, {true}});
+		}
+		Qk_ASSERT_EQ(VK_SUCCESS, vkResetFences(_device, 1, &it->fence),
+			"Failed to reset Vulkan fence");
+		Qk_ASSERT_EQ(VK_SUCCESS, vkQueueSubmit(_commandQueue, 1, submit, it->fence),
+			"Failed to submit Vulkan command");
+
+		it->completed.store(false, std::memory_order_relaxed);
+		_submitResults.splice(_submitResults.begin(), _submitResults, it, _submitResults.end());
+
+		if (cb) {
+			it->refCount.fetch_add(1, std::memory_order_relaxed);
+			_asyncWaitTasks.pushBack({it.operator->(), cb});
+		}
 		return it.operator->();
 	}
 

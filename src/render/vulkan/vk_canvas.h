@@ -111,6 +111,7 @@ namespace qk {
 		Array<VkCommandBuffer> flushBuffer();
 		bool isRecorded() const { return _cmdPackFront->isRecorded(); }
 		void setDefaultTarget(VkTexture *target);
+		VkCmdPack* cmdPackFront() { return _cmdPackFront; }
 	private:
 		void beginRenderPassReady();
 		void beginRenderPass();

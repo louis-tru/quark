@@ -77,7 +77,8 @@ def_opts('without-visibility-hidden', 0,
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
-def_opts(['use-gl', 'gl'], 1,   '--enable-gl,-gl use opengl backend [{0}]');
+def_opts(['use-gl', 'gl'], 1,   '--use-gl,-gl enable opengl backend [{0}]');
+def_opts(['use-vk', 'vk'], 0,   '--use-vk,-vk enable vulkan backend [{0}]');
 def_opts(['use-js', 'js'], 1,   '--use-js,-js enable javascript modules [{0}]');
 
 function isApple(os) {
@@ -721,6 +722,7 @@ async function configure() {
 			media: opts.media,
 			use_system_zlib: bi(os.match(/^(android|linux|ios|mac)$/)),
 			use_gl: opts.use_gl ? 1: 0,
+			use_vk: opts.use_vk ? 1: 0,
 			use_v8: use_v8,
 			use_openssl: bi(!opts.without_ssl),
 			use_dtrace: bi(use_dtrace),

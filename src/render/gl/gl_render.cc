@@ -563,13 +563,6 @@ namespace qk {
 		_canvas = nullptr;
 	}
 
-	void GLRender::reload() {
-		lock(); // safe reload, avoid render thread is calling onRenderBackendDisplay while reload
-		_surfaceSize = getSurfaceSize();
-		_delegate->onRenderBackendReload(_surfaceSize);
-		unlock();
-	}
-
 	void GLRender::set_blend_mode(BlendMode mode) {
 		if (mode != _blendMode) {
 			gl_set_blend_mode(mode);

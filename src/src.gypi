@@ -228,7 +228,7 @@
 					}],
 				],
 			}],
-			['os=="android" and use_gl==0', { # use vulkan
+			['os in "linux android" and use_vk==1', { # use vulkan
 				'defines': [ 'Qk_ENABLE_VULKAN=1' ],
 				'sources': [
 					'render/vulkan/vk_canvas.h',
@@ -244,13 +244,15 @@
 					'render/vulkan/vk_shaders.cc',
 					'render/vulkan/vk_util.h',
 					'render/vulkan/vk_util.cc',
+					'render/vulkan/vk_render_linux.cc',
 				],
 				'link_settings': {
 					'libraries': [ '-lvulkan' ],
 				},
 			}],
-			['os=="linux" or os=="android"', {
+			['os in "linux android"', {
 				'sources': [
+					'render/plotforms.cc',
 					'render/font/priv/arguments.h', ### priv
 					'render/font/priv/fontdata.cc',
 					'render/font/priv/fontdata.h',
@@ -370,7 +372,7 @@
 					],
 				},
 			}],
-			['os=="mac" or os=="ios"', { # mac ios
+			['os in "mac ios"', { # mac ios
 				'dependencies': [
 					'deps/reachability/reachability.gyp:reachability',
 				],

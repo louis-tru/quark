@@ -78,11 +78,9 @@ public:
 	{}
 
 	void release() override {
-		lock();
 		stopDisplay();
-		unlock();
 		MetalRender::release();
-		_view       = nil;
+		_view = nil;
 		_metalLayer = nil;
 		Object::release();
 	}
@@ -95,21 +93,13 @@ public:
 		return this;
 	}
 
-	void lock() {
-		_mutex.lock();
-	}
-
-	void unlock() {
-		_mutex.unlock();
-	}
-
 	Vec2 getSurfaceSize() override {
 		Vec2 size = _view ? _view.surfaceSize : Vec2();
 		Qk_ASSERT(!size.is_zero_axis());
 		return size;
 	}
 
-	void setMainCanvasDrawable(id<CAMetalDrawable> drawable) {
+	void setDefaultTarget(id<CAMetalDrawable> drawable) {
 		if (!drawable)
 			return;
 		_mtlcanvas->_outTex = drawable ? drawable.texture : nil;
@@ -119,9 +109,10 @@ public:
 	}
 
 	void renderDisplay(id<CAMetalDrawable> drawable = nil) {
+		ScopeLock lock(_mutex);
 		if (!_isRun)
 			return;
-		lock();
+
 		_threadId = thread_self_id();
 
 		Qk_ASSERT(_metalLayer, "Metal layer is null");
@@ -137,7 +128,7 @@ public:
 			return; // if drawable is nil, skip this frame
 
 			// set the main canvas drawable for rendering
-		setMainCanvasDrawable(drawable);
+		setDefaultTarget(drawable);
 
 		if (_delegate->onRenderBackendDisplay() && _mtlcanvas->isRecorded()) {
 			auto cmds = _mtlcanvas->flushBuffer();
@@ -150,7 +141,6 @@ public:
 			}
 		}
 		_threadId = qk::ThreadID();
-		unlock();
 	}
 
 	UIView* surfaceView() override {
@@ -168,11 +158,10 @@ public:
 	}
 
 	void reload() override {
-		lock();
+		ScopeLock lock(_mutex);
 		_surfaceSize = getSurfaceSize();
 		_metalLayer.drawableSize = CGSizeFromVec2(_surfaceSize);
 		_delegate->onRenderBackendReload(_surfaceSize);
-		unlock();
 	}
 
 #if Qk_MacOS
@@ -271,6 +260,7 @@ private:
 #endif
 
 	void stopDisplay() {
+		ScopeLock lock(_mutex);
 		if (!_isRun) return;
 		_isRun = false;
 #if Qk_iOS
@@ -292,7 +282,7 @@ private:
 		_displayLink = nil;
 	}
 
-//fields:
+	//fields:
 	MTLSurfaceView *_view;
 	CAMetalLayer   *_metalLayer;
 	Mutex           _mutex;

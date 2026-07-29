@@ -54,6 +54,10 @@
 #include <EGL/eglplatform.h>
 #endif
 
+#if Qk_LINUX
+#include <X11/Xlib.h>
+#endif
+
 namespace qk {
 
 	/**
@@ -68,10 +72,15 @@ namespace qk {
 		virtual void makeSurface(EGLNativeWindowType win) = 0;
 		virtual void deleteSurface() = 0;
 		virtual void renderDisplay() = 0; // external render function, called in render loop
-		virtual void renderLoopRun() = 0; // create render thread and run render loop
-		virtual void renderLoopStop() = 0; // stop render loop and destroy render thread
+		virtual void runRenderLoop() = 0; // create render thread and run render loop
+		virtual void stopRenderLoop() = 0; // stop render loop and destroy render thread
 #endif
 	};
+
+#if Qk_LINUX
+	typedef Display XDisplay;
+	XDisplay* openXDisplay(); // open default xdisplay
+#endif
 }
 
 #endif
