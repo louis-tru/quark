@@ -56,6 +56,7 @@
 
 #if Qk_LINUX
 #include <X11/Xlib.h>
+typedef Display XDisplay;
 #endif
 
 namespace qk {
@@ -78,7 +79,6 @@ namespace qk {
 	};
 
 #if Qk_LINUX
-	typedef Display XDisplay;
 	XDisplay* openXDisplay(); // open default xdisplay
 #endif
 }
