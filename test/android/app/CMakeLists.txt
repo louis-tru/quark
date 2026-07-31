@@ -36,6 +36,7 @@ add_definitions(
 	-DCHROME_PNG_WRITE_SUPPORT
 	-DPNG_USER_CONFIG
 	-DQk_ENABLE_GL
+	-DQk_ENABLE_VULKAN=1
 )
 
 #set(CMAKE_SHARED_LINKER_FLAGS "-stdlib=libc++")
@@ -111,6 +112,7 @@ add_library(quark SHARED
 	../../../src/render/path.cc
 	../../../src/render/pathv_cache.cc
 	../../../src/render/pixel.cc
+	../../../src/render/plotforms.cc
 	../../../src/render/render.cc
 	../../../src/render/sdf.cc
 	../../../src/render/source.cc
@@ -140,6 +142,15 @@ add_library(quark SHARED
 	../../../src/render/gl/gl_render_linux.cc
 	../../../src/render/gl/gl_shader.cc
 	../../../src/render/gl/glsl_shaders.cc
+	../../../src/render/vulkan/vk_canvas.cc
+	../../../src/render/vulkan/vk_canvas_cmd.cc
+	../../../src/render/vulkan/vk_device.cc
+	../../../src/render/vulkan/vk_render.cc
+	../../../src/render/vulkan/vk_render_linux.cc
+	../../../src/render/vulkan/vk_resource.cc
+	../../../src/render/vulkan/vk_shader.cc
+	../../../src/render/vulkan/vk_shaders.cc
+	../../../src/render/vulkan/vk_util.cc
 	../../../src/ui/app.cc
 	../../../src/ui/screen.cc
 	../../../src/ui/event.cc
@@ -289,6 +300,6 @@ add_library(trial SHARED
 	../../../trial/jsx.cc
 )
 
-target_link_libraries(quark atomic z android log OpenSLES GLESv3 EGL mediandk quark_deps_test)
+target_link_libraries(quark atomic z android log OpenSLES GLESv3 EGL vulkan mediandk quark_deps_test)
 target_link_libraries(trial quark quark_deps_test)
 target_link_libraries(test  quark trial quark_deps_test)

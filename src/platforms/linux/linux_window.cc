@@ -236,7 +236,7 @@ namespace qk {
 
 			auto wmDeleteWindow = XInternAtom(_xdpy, "WM_DELETE_WINDOW", False);
 
-			if (!opts.title.is_empty()) {
+			if (!opts.title.isEmpty()) {
 				XStoreName(_xdpy, xwin, opts.title.c_str());
 			}
 			XSetWMProtocols(_xdpy, xwin, &wmDeleteWindow, True);

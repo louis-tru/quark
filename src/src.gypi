@@ -191,9 +191,7 @@
 							'render/gl/gl_render_linux.cc',
 						],
 						'link_settings': {
-							'libraries': [
-								'-lGLESv3', '-lEGL',
-							],
+							'libraries': [ '-lGLESv3', '-lEGL' ],
 						},
 					}],
 					['os=="linux"', {
@@ -201,9 +199,7 @@
 							'render/gl/gl_render_linux.cc',
 						],
 						'link_settings': {
-							'libraries': [
-								'-lGLESv2', '-lEGL',
-							],
+							'libraries': [ '-lGLESv2', '-lEGL' ],
 						},
 					}],
 					['os=="ios"', {

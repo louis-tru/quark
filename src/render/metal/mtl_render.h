@@ -32,7 +32,7 @@ namespace qk {
 		MSLShaders& shaders() { return _shaders; }
 		MTLDeviceID device() { return _device; }
 	private:
-		explicit MetalRenderResource();
+		explicit MetalRenderResource(MTLDeviceID device, MTLCommandQueueID _commandQueue);
 		MTLFunctionID getShaderFunction(MSLPipelineKind kind, bool vertex);
 	// fields:
 		Mutex _mutex; // protect shared resource
@@ -72,6 +72,7 @@ namespace qk {
 		friend class MetalCanvas;
 	};
 
+	MetalRenderResource* getSharedRenderMetalResource();
 } // namespace qk
 
 #endif

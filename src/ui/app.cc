@@ -40,6 +40,7 @@
 namespace qk {
 	int (*__qk_run_main0__)(int, char**) = nullptr;
 	int (*__qk_run_main__)(int, char**) = nullptr;
+	const RunArguments *runArguments = nullptr;
 
 	// thread helper
 	static auto _run_main_wait = new CondMutex;
@@ -49,6 +50,59 @@ namespace qk {
 
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
+
+	void parseArguments(int argc, char** argv) {
+		Qk_ASSERT(!runArguments, "Start() can only be called once.");
+		String lastKey;
+		static RunArguments args = { argc, argv };
+
+		auto putkv = [](cString& k, cString& v) {
+			String *old;
+			if (args.options.get(k, old)) {
+				if (old->isEmpty())
+					*old = v;
+				else
+					old->append(" ").append(v);
+			} else {
+				args.options[k] = v;
+			}
+		};
+
+		for (int i = 1; i < argc; i++) {
+			String arg(argv[i]);
+			if (arg[0] == '-') {
+				auto kv = arg.split('=');
+				auto k = kv[0].replaceAll('-', '_');
+				auto v = kv.length() > 1 ? kv[1]: String();
+				if (arg.length() > 1 && arg[1] != '-') { // -
+					if (kv.length() > 1)
+						goto val;
+					lastKey = k.substr(1);
+					putkv(lastKey, v);
+					if (lastKey.length() > 1 && kv.length() == 1) {
+						for (auto i = 0u; i < lastKey.length(); i++)
+							putkv(lastKey[i], String());
+					}
+				} else if (arg.length() > 2) { // --
+					putkv(k.substr(2), v);
+					lastKey = String();
+				}
+			} else if (arg.length() > 0) {
+				val:
+				if (lastKey.length()) {
+					putkv(lastKey, arg);
+					lastKey = String();
+				} else if (args.options.has("__main__")) {
+					putkv("__plus__", arg);
+				} else {
+					args.options.set("__main__", arg);
+					args.options.set("__mainIdx__", i);
+				}
+			}
+		}
+
+		runArguments = &args;
+	}
 
 	Application::Application()
 		: Qk_Init_Event(Load)
@@ -143,18 +197,18 @@ namespace qk {
 	}
 
 	void Application::runMain(int argc, char* argv[], bool waitNewApp) {
-		struct Args { int argc; char** argv; };
+		parseArguments(argc, argv);
+
 		// Create a new child worker thread. This function must be called by the main entry
-		thread_new([](auto t, auto arg) {
+		thread_new([](auto) {
 			int rc = 0;
-			auto args = (Args*)arg;
 			auto main = __qk_run_main__ ? __qk_run_main__: __qk_run_main0__;
 			if (main)
-				rc = main(args->argc, args->argv); // Run this custom gui entry function
+				rc = main(runArguments->argc, runArguments->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
 			abort_exit(rc); // if sub thread end then exit
 			Qk_DLog("Application::runMain() thread_new() Exit ok");
-		}, new Args{argc, argv}, "Application::runMain");
+		}, "Application::runMain");
 
 		if (waitNewApp) {
 			// Block this main thread until calling new Application

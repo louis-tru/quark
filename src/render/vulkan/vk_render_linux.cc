@@ -32,6 +32,7 @@
 #include "../plotforms.h"
 #include "../../util/thread.h"
 #include "src/render/vulkan/vk_util.h"
+#include "src/util/macros.h"
 
 #if Qk_ANDROID
 # include <android/native_window.h>
@@ -54,8 +55,8 @@ namespace qk {
 				texture->memory = VK_NULL_HANDLE;
 				texture->unref();
 			}
-			Qk_ASSERT(!tex || tex->refCount.load(std::memory_order_relaxed) > 0,
-				"Vulkan texture reference count is zero");
+			if (tex)
+				tex->ref();
 			texture = tex;
 		}
 		VkTexture* texture = nullptr;
@@ -192,7 +193,7 @@ namespace qk {
 			ScopeLock lock(_mutex);
 			if (!_isRun)
 				return;
-			Qk_ASSERT(_surface && _swapchain, "Vulkan surface must be created before renderDisplay");
+			Qk_ASSERT(_surface, "Vulkan surface must be created before renderDisplay");
 
 			if (!acquireNextImage())
 				return;
@@ -202,10 +203,9 @@ namespace qk {
 			if (commands.isNull())
 				return;
 
-			auto front = _vkCanvas->cmdPackFront();
 			auto &image = _swapchainImages[_imageIndex];
 			commands.push(image.presentCommand);
-			image.texture->layouts[0] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			image.texture->levels[0].layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 			VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
@@ -224,7 +224,7 @@ namespace qk {
 			present.pSwapchains = &_swapchain;
 			present.pImageIndices = &_imageIndex;
 
-			auto result = _resource->submitCommand(&submit, &present, front);
+			auto result = _resource->submitCommand(&submit, &present, _vkCanvas->cmdPackFront());
 			_imageAvailableIndex = (_imageAvailableIndex + 1) & 1;
 			if (result == VK_SUCCESS ||
 				result == VK_SUBOPTIMAL_KHR ||
@@ -299,15 +299,18 @@ namespace qk {
 				return false;
 			};
 
+			Qk_ASSERT_EQ(_swapchainImages.length(), 0,
+				"Vulkan swapchain images must be empty before creation");
+
 			VkResult result;
 			VkSurfaceCapabilitiesKHR capabilities{};
 			vk_call(vkGetPhysicalDeviceSurfaceCapabilitiesKHR,
 				_resource->physicalDevice(), _surface, &capabilities);
 
-			const VkImageUsageFlags imageUsage =
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-				VK_IMAGE_USAGE_SAMPLED_BIT |
-				VK_IMAGE_USAGE_STORAGE_BIT;
+			const VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+				| VK_IMAGE_USAGE_SAMPLED_BIT
+				| VK_IMAGE_USAGE_STORAGE_BIT
+			;
 			if ((capabilities.supportedUsageFlags & imageUsage) != imageUsage) {
 				Qk_DLog("Vulkan swapchain does not support color attachment, sampled and storage images");
 				return false;
@@ -334,7 +337,7 @@ namespace qk {
 			if (!extent.width || !extent.height)
 				return false;
 
-			uint32_t imageCount = capabilities.minImageCount + 1;
+			uint32_t imageCount = capabilities.minImageCount;
 			if (capabilities.maxImageCount)
 				imageCount = U32::min(imageCount, capabilities.maxImageCount);
 
@@ -353,6 +356,10 @@ namespace qk {
 				}
 			}
 
+			Qk_DLog("currentTransform=%u, supportedTransforms=%u",
+							capabilities.currentTransform,
+							capabilities.supportedTransforms);
+
 			VkSwapchainCreateInfoKHR info{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
 			info.surface = _surface;
 			info.minImageCount = imageCount;
@@ -362,7 +369,8 @@ namespace qk {
 			info.imageArrayLayers = 1;
 			info.imageUsage = imageUsage;
 			info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			info.preTransform = capabilities.currentTransform;
+			// info.preTransform = capabilities.currentTransform;
+			info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 			info.compositeAlpha = compositeAlpha;
 			info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 			info.clipped = VK_TRUE;
@@ -384,14 +392,11 @@ namespace qk {
 				texture->image = images[i];
 				texture->extent = extent;
 				texture->format = format.format;
-				texture->mipLevels = 1;
 				texture->usage = imageUsage;
-				texture->layouts = {VK_IMAGE_LAYOUT_UNDEFINED};
+				texture->levels = {{VK_IMAGE_LAYOUT_UNDEFINED}}; // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 				texture->view = vk_createLevelView(_device, texture, 0);
-				if (!texture->view)
-					return fail();
-				if (!createPresentCommand(_swapchainImages[i]))
-					return fail();
+				vk_call_if(bool, texture->view);
+				vk_call_if(createPresentCommand, _swapchainImages[i]);
 				vk_call(vkCreateSemaphore,
 					_device, &semaphoreInfo, nullptr, &_swapchainImages[i].renderFinished);
 			}
@@ -427,6 +432,8 @@ namespace qk {
 		}
 
 		bool createPresentCommand(VulkanSwapchainImage &image) {
+			Qk_ASSERT_EQ(image.presentCommand, VK_NULL_HANDLE,
+				"Vulkan present command must be null before creation");
 			if (vk_beginCommandBuffer(
 				_device, _presentCommandPool, &image.presentCommand, 0) != VK_SUCCESS)
 				return false;
@@ -463,6 +470,8 @@ namespace qk {
 	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
 	Render* make_vulkan_render(Options opts) {
+		if (!getSharedRenderVulkanResource())
+			return nullptr;
 		auto memory = acquireRenderBackendStorage(
 			typeid(LinuxVulkanRender).hash_code(), sizeof(LinuxVulkanRender));
 		return new (memory) LinuxVulkanRender(opts);

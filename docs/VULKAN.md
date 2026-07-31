@@ -13,9 +13,9 @@ The backend has moved beyond the original shell:
   pipelines;
 - most ordinary `GPUCanvas` commands have Vulkan implementations;
 - command submission and non-blocking completion tracking are connected;
-- the first shared Android/Linux surface, swapchain, direct Canvas rendering,
-  submit, and present path is implemented but has not yet had runtime
-  validation;
+- the shared Android/Linux surface, swapchain, direct Canvas rendering, submit,
+  and present path is implemented and has been exercised on multiple Android
+  devices;
 - CAPA is not complete.
 
 The readable Vulkan learning/smoke test remains `test/android/vk/`. It is a
@@ -73,6 +73,13 @@ path.
 the swapchain is out of date, the render tick is discarded. Swapchain reload is
 driven by the external surface lifecycle rather than from `renderDisplay()`.
 
+The current Android path requests `VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR` and
+renders using the native window extent, keeping Qk's surface/matrix behavior
+aligned with GL and Metal after orientation changes. Using
+`capabilities.currentTransform` instead requires a complete pre-rotation model
+(fixed logical extent plus matching render/input transforms); changing only the
+swapchain flag produces incorrectly scaled or rotated output.
+
 ## Device And Queue Model
 
 `VulkanRenderResource` owns the application-wide Vulkan objects:
@@ -86,6 +93,12 @@ driven by the external surface lifecycle rather than from `renderDisplay()`.
 Device selection does not require a window surface. It prefers a performant
 graphics-capable device and can prefer compute capability, while actual
 presentation support remains a platform/surface concern.
+
+On Android, the production backend currently requires Android 10 / API 29 and
+Vulkan 1.1 or newer. Older systems or Vulkan implementations return no shared
+Vulkan resource and fall through to GL. The `--gl` process argument forces GL
+for the whole application so `Render::Make()` and shared image resources always
+select the same backend.
 
 All rendering and upload submissions use the shared queue. Vulkan requires
 external synchronization around queue submit/present calls, so the resource's
@@ -105,8 +118,9 @@ or cross-queue ownership protocol.
 - `VkImage`
 - the all-mip base `VkImageView`
 - `VkDeviceMemory`
-- extent, format, usage, and mip count
-- `Array<VkImageLayout> layouts`, one layout per mip
+- extent, format, and usage
+- `Array<VkTextureLevelInfo> levels`, one record per mip, containing its layout
+  and lazily cached one-level image view/framebuffer
 
 `transitionLayout()` reads the recorded old layout, skips ranges already in the
 target layout, combines adjacent mips with the same old layout into one image
@@ -115,7 +129,7 @@ barrier, records the barrier, and updates the corresponding entries.
 The all-mip base view is suitable only when the operation legitimately addresses
 that full subresource range. A framebuffer attachment always needs a view whose
 level count is exactly one. Sampling a mip whose layout differs from other mips
-should likewise use a single-level view.
+likewise uses the cached single-level view.
 
 Texture creation is generic. `newTexture()` adds color-attachment usage only
 when the format supports it; the caller selecting a texture as a render target
@@ -236,9 +250,9 @@ For `CLEAR` or `DONT_CARE`, the pass can use `UNDEFINED` as the initial layout
 and discard previous contents.
 
 Framebuffer attachments use the texture's base view only when it contains one
-mip. Multi-mip textures use an owned one-level view for every target level,
-including level 0. Cached framebuffer state is identified by image and mip
-level so level views do not force redundant rebuilds.
+mip. Multi-mip textures lazily create and retain one-level views and compatible
+framebuffers per mip. These objects follow the texture lifetime, avoiding the
+former per-pass framebuffer/view creation cost in blur and mip rendering.
 
 ## Submission And Completion
 
@@ -253,11 +267,11 @@ signals. There is no Vulkan command-completion callback equivalent to Metal's
 completed handler in the baseline API.
 
 Command buffers from multiple command pools can be submitted together. The
-pool is not needed by `vkQueueSubmit()`, but it remains the allocator/owner:
-free or reset each command buffer only through its source pool. `commands`
-keeps the flattened parent/child submission order, while `ownCommands` contains
-only handles allocated from that Canvas command pool and is the list freed by
-`VkCmdPack::reset()`.
+pool is not needed by `vkQueueSubmit()`, but it remains the allocator/owner.
+`commands` keeps the flattened parent/child submission order, while
+`ownCommands` contains only handles allocated from that Canvas command pool.
+Each pack retains those handles and reuses them from `nextIdx` after completion
+or discarded recording, avoiding per-frame free/allocate churn.
 
 ## Ownership Contracts
 
@@ -267,8 +281,8 @@ only handles allocated from that Canvas command pool and is the list freed by
 - `_cmdPackFront` is older than `_cmdPack`; deferred destruction recorded into
   a submitted current pack therefore occurs after earlier front work in the
   single shared queue.
-- Framebuffer-owned one-level views are destroyed with their framebuffer state.
-  The texture's base view is only borrowed and must not be destroyed there.
+- Per-level framebuffers and one-level views are owned and destroyed by their
+  `VkTexture`. The texture's all-level base view remains a separate owned view.
 - `VkShader` pipeline entries are borrowed references to resource-owned cached
   pipelines.
 
@@ -289,11 +303,34 @@ only handles allocated from that Canvas command pool and is the list freed by
    `readImageCmd()` must initialize a newly allocated destination before using
    attachment `LOAD`; blend mode alone does not define destination contents.
 
+3. **Mali-G51 driver compatibility candidate**
+
+   One Honor LRA-AL00 / Kirin 710F device terminates the application from inside
+   `vkCreateGraphicsPipelines()` instead of returning a `VkResult` while
+   compiling Qk fragment pipelines that contain the common clip sampling path.
+   Removing only the vector negation does not help; removing the complete clip
+   branch lets the color pipeline pass, after which the image pipeline triggers
+   the same process exit. The exact compiler pattern has not been isolated.
+
+   Record the complete driver signature rather than treating every Mali-G51 as
+   unsupported:
+
+   - `vendorID`: `0x13b5`
+   - `deviceID`: `0x70901010`
+   - `apiVersion`: `VK_MAKE_VERSION(1, 0, 66)`
+   - `driverVersion`: `0x03800000`
+
+   Keep this as a compatibility candidate while testing other devices. If no
+   practical shader workaround is found, reject this exact four-field signature
+   before constructing `VulkanRenderResource` and fall back to GL. Do not wait
+   for pipeline creation to fail because this driver exits the process without
+   returning control to Qk.
+
 ### Missing Work
 
 - Vulkan CAPA pass/resource/descriptor/dispatch encoding;
 - driver/device capability validation and fallback behavior;
-- Android build/runtime bring-up of the new production presentation path;
+- broader Android device/driver profiling beyond the current test devices;
 - Linux/Xlib build/runtime smoke testing and any platform-specific corrections.
 
 ## Review Guardrails

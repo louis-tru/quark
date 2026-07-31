@@ -235,7 +235,7 @@ namespace qk {
 		 * @constructor
 		 * @param opts {Options} create options
 		*/
-		Window(Options &opts);
+		Window(Options &opts, Render* render);
 
 		// props data
 		Painter        *_painter;

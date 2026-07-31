@@ -30,7 +30,7 @@
 
 // ------------------- Metal ------------------
 
-#include "src/util/macros.h"
+#include "../../util/macros.h"
 #if Qk_ENABLE_METAL
 #import "../plotforms.h"
 #import "../metal/mtl_render.h"
@@ -342,6 +342,8 @@ namespace qk {
 	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
 	Render* make_metal_render(Render::Options opts) {
+		if (!getSharedRenderMetalResource())
+			return nullptr; // Metal is not supported on this device
 		auto mem = acquireRenderBackendStorage(typeid(AppleMetalRender).hash_code(), sizeof(AppleMetalRender));
 		auto render = new(mem) AppleMetalRender(opts);
 		return render;

@@ -41,5 +41,5 @@ void main() {
 	fragColor *= aaSideCoverage(flags);
 
 	if ((flags & Qk_FLAG_CLIP) != 0)
-		fragColor *= clipCoverage(vec2(0));
+		fragColor *= clipCoverage(gl_FragCoord.xy);
 }

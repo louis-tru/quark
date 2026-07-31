@@ -37,6 +37,7 @@
 #include "./js.h"
 #include "../util/codec.h"
 #include "../util/fs.h"
+#include "../ui/app.h"
 
 namespace qk { namespace js {
 
@@ -130,16 +131,10 @@ namespace qk { namespace js {
 		String host_name, script_path;
 	};
 
-	struct Arguments {
-		int    argc;
-		char** argv;
-		DictSS options;
-	} extern *arguments;
-
 	void runDebugger(Worker* worker, const DebugOptions &opts);
 	void stopDebugger(Worker* worker);
 	void debuggerBreakNextStatement(Worker* worker);
-	void setFlagsFromCommandLine(const Arguments* args);
+	void setFlagsFromCommandLine(const RunArguments* args);
 	int  startPlatform(int (*exec)(Worker*));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);

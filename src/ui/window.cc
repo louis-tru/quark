@@ -38,6 +38,8 @@
 #include "../render/font/pool.h"
 #include "./app.h"
 #include "../util/thread/inl.h"
+#include "../errno.h"
+#include "src/util/macros.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -78,12 +80,13 @@ namespace qk {
 		}
 	}
 
-	Window::Window(Options &opts)
+	Window::Window(Options &opts, Render* render)
 		: Qk_Init_Event(Change)
 		, Qk_Init_Event(Background)
 		, Qk_Init_Event(Foreground)
 		, Qk_Init_Event(Close)
 		, _host(shared_app())
+		, _render(render)
 		, _painter(nullptr)
 		, _lockSize()
 		, _size(), _scale(1)
@@ -102,13 +105,9 @@ namespace qk {
 		, _debugMode(false)
 		, _fspBlob(nullptr)
 	{
-		Qk_CHECK(_host);
-		check_is_first_loop();
-		_render = Render::Make({
-			.colorType=opts.colorType,
-			.enableCAPA=opts.enableCAPA,
-			.enableCAPAQuantizeCoverage=opts.enableCAPAQuantizeCoverage,
-		}, this);
+		Qk_ASSERT(_host, "Cannot create a window without an application object");
+		Qk_ASSERT(_render, "Failed to create render backend");
+		_render->setDelegate(this);
 		_fspBlob = new TextBlob();
 		_dispatch = new EventDispatch(this);
 		_painter = new Painter(this);
@@ -137,6 +136,16 @@ namespace qk {
 	}
 
 	Window* Window::Make(Options opts) {
+		check_is_first_loop();
+		Qk_IfThrow(!shared_app(), ERR_NOT_FOUND_APPLICATION,
+			"Cannot create a window without an application object");
+		auto render = Render::Make({
+			.colorType=opts.colorType,
+			.enableCAPA=opts.enableCAPA,
+			.enableCAPAQuantizeCoverage=opts.enableCAPAQuantizeCoverage,
+		});
+		Qk_IfThrow(!render, ERR_FAILED_TO_CREATE_RENDER_BACKEND, "Failed to create render backend");
+
 		if (!residentPool) { 
 			// Lazy init global resident window pool.
 			// Windows are never deleted. Memory blocks are reused across lifetimes.
@@ -148,13 +157,14 @@ namespace qk {
 			if (!win->_render) {
 				// Reconstruct the object in-place using placement new.
 				// The memory is persistent; only the object state is rebuilt.
-				return new (win) Window(opts);
+				return new (win) Window(opts, render);
 			}
 		}
 
 		// No reusable instance available, allocate a new persistent window.
-		residentPool->push(new Window(opts));
-		return residentPool->back();
+		auto win = new Window(opts, render);
+		residentPool->push(win);
+		return win;
 	}
 
 	void Window::destroy() {

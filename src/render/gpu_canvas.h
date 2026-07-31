@@ -161,7 +161,7 @@ namespace qk {
 		// flags can be kMipmap_TextureFlags, kComputeWrite_TextureFlags, etc
 		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, Vec2 limit = Vec2(), uint8_t flags = 0);
 		void setBlendMode(BlendMode mode);
-	// fields:
+		// fields:
 		Array<GC_State> _stateStack; // state
 		GC_State    *_state; // state pointer
 		PathvCache *_cache;

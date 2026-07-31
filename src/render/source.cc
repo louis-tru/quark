@@ -216,9 +216,7 @@ namespace qk {
 	void ImageSource::afterDecode(Array<Pixel>& pixels, bool success) {
 		auto self = this;
 		if (success) { // decode image complete
-			// AutoSharedMutexExclusive ame(_onState);
 			self->_onState.lock(); // lock, safe assign `_pixels`
-			self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
 			for (auto &pix: pixels) {
 				if (pix.alphaType() == kUnpremul_AlphaType) {
 					if (self->_premulFlags == kConvert_PremulFlags)
@@ -233,10 +231,10 @@ namespace qk {
 				// kOpaque_AlphaType also as premultiplied, because alpha is 1.0
 				self->_info.alphaType() == kOpaque_AlphaType;
 			self->_pixels = std::move(pixels);
+			self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
 			self->_onState.unlock();
-			if (self->_res) {
+			if (self->_res)
 				self->reloadTexture(self->_res);
-			}
 		} else { // decode fail
 			self->_state = State((self->_state | kSTATE_DECODE_ERROR) & ~kSTATE_LOADING);
 		}

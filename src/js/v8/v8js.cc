@@ -872,7 +872,7 @@ namespace qk { namespace js {
 		WORKER(worker)->debuggerBreakNextStatement();
 	}
 
-	void setFlagsFromCommandLine(const Arguments* args) {
+	void setFlagsFromCommandLine(const RunArguments* args) {
 		if (args->options.has("help")) {
 			Qk_Log("Usage: quark [options] [ script.js ] [arguments]");
 			Qk_Log("       quark --eval|-e [ script ] [arguments]");

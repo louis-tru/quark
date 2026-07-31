@@ -558,61 +558,12 @@ namespace js {
 		return Start(argc, argv.val());
 	}
 
-	Arguments *arguments = nullptr;
-
 	int Start(int argc, char** argv) {
-		Qk_ASSERT(!arguments, "Start() can only be called once.");
-		String lastKey;
-		Arguments args = { argc, argv };
+		Qk_ASSERT(runArguments, "runArguments must be set before calling Start()");
 
-		auto putkv = [&args](cString& k, cString& v) {
-			String *old;
-			if (args.options.get(k, old)) {
-				if (old->isEmpty())
-					*old = v;
-				else
-					old->append(" ").append(v);
-			} else {
-				args.options[k] = v;
-			}
-		};
+		setFlagsFromCommandLine(runArguments);
 
-		for (int i = 1; i < argc; i++) {
-			String arg(argv[i]);
-			if (arg[0] == '-') {
-				auto kv = arg.split('=');
-				auto k = kv[0].replaceAll('-', '_');
-				auto v = kv.length() > 1 ? kv[1]: String();
-				if (arg.length() > 1 && arg[1] != '-') { // -
-					if (kv.length() > 1)
-						goto val;
-					lastKey = k.substr(1);
-					putkv(lastKey, v);
-					if (lastKey.length() > 1 && kv.length() == 1) {
-						for (auto i = 0u; i < lastKey.length(); i++)
-							putkv(lastKey[i], String());
-					}
-				} else if (arg.length() > 2) { // --
-					putkv(k.substr(2), v);
-					lastKey = String();
-				}
-			} else if (arg.length() > 0) {
-				val:
-				if (lastKey.length()) {
-					putkv(lastKey, arg);
-					lastKey = String();
-				} else if (args.options.has("__main__")) {
-					putkv("__plus__", arg);
-				} else {
-					args.options.set("__main__", arg);
-					args.options.set("__mainIdx__", i);
-				}
-			}
-		}
-
-		setFlagsFromCommandLine(&args);
-
-		if (args.options.has("help"))
+		if (runArguments->options.has("help"))
 			return 0;
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
@@ -624,23 +575,21 @@ namespace js {
 
 		Qk_On(Exit, onExitHandle);
 
-		arguments = &args;
-
 		int rc = startPlatform([](Worker* worker) -> int {
-			String *inspect, *mainPath = nullptr;
-			if (!arguments->options.get("__main__", mainPath)) {
-				if (!arguments->options.has("e") && !arguments->options.has("eval")) {
+			const String *inspect, *mainPath = nullptr;
+			if (!runArguments->options.get("__main__", mainPath)) {
+				if (!runArguments->options.has("e") && !runArguments->options.has("eval")) {
 					return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
 				}
 			}
 			if (
-				arguments->options.get("debug", inspect) ||
-				arguments->options.get("inspect", inspect) ||
-				arguments->options.get("inspect_brk", inspect)
+				runArguments->options.get("debug", inspect) ||
+				runArguments->options.get("inspect", inspect) ||
+				runArguments->options.get("inspect_brk", inspect)
 			) {
 				auto script_path = mainPath ?
 					fs_reader()->format(*mainPath): String("eval");
-				bool brk = arguments->options.has("brk") || arguments->options.has("inspect_brk");
+				bool brk = runArguments->options.has("brk") || runArguments->options.has("inspect_brk");
 				// Startup debugger
 				if (inspect->length() == 0) {
 					runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
@@ -654,7 +603,7 @@ namespace js {
 
 				if (brk) {
 #if !DEBUG
-					if (arguments->options.has("inner_brk"))
+					if (runArguments->options.has("inner_brk"))
 #endif
 						debuggerBreakNextStatement(worker);
 				}
@@ -696,7 +645,6 @@ namespace js {
 
 		Qk_Off(Exit, onExitHandle);
 
-		arguments = nullptr;
 		return rc;
 	}
 

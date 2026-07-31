@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "src/render/vulkan/vk_util.h"
 #include "./vk_render.h"
 
 namespace qk {
@@ -461,6 +462,7 @@ namespace qk {
 	VkFramebuffer vk_create_framebuffer(
 		VkDevice device, VkRenderPass renderPass, VkImageView view, VkExtent2D extent
 	) {
+		Qk_ASSERT(view != VK_NULL_HANDLE, "Invalid Vulkan framebuffer view");
 		VkFramebufferCreateInfo info{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
 		info.renderPass = renderPass;
 		info.attachmentCount = 1;
@@ -475,9 +477,10 @@ namespace qk {
 	}
 
 	VkImageView vk_createLevelView(VkDevice device, const VkTexture *texture, uint32_t level) {
-		Qk_ASSERT(texture && level < texture->mipLevels, "Invalid Vulkan texture mip level");
-		if (!texture || level >= texture->mipLevels)
+		Qk_ASSERT(texture && level < texture->mipLevels(), "Invalid Vulkan texture mip level");
+		if (!texture || level >= texture->mipLevels())
 			return VK_NULL_HANDLE;
+		Qk_ASSERT(texture->image != VK_NULL_HANDLE, "Invalid Vulkan texture image");
 
 		VkImageViewCreateInfo info{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
 		info.image = texture->image;
@@ -495,15 +498,20 @@ namespace qk {
 		return view;
 	}
 
-	// A simple Vulkan application that draws a single color to the screen.
-	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd,
-		VkCommandBufferUsageFlags flags) {
+	VkResult vk_allocateCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd) {
 		VkCommandBufferAllocateInfo cmdInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
 		cmdInfo.commandPool = pool;
 		cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		cmdInfo.commandBufferCount = 1;
-		Qk_ASSERT_EQ(VK_SUCCESS, vkAllocateCommandBuffers(device, &cmdInfo, cmd),
-			"Failed to allocate Vulkan command buffer");
+		return vkAllocateCommandBuffers(device, &cmdInfo, cmd);
+	}
+
+	// A simple Vulkan application that draws a single color to the screen.
+	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd,
+		VkCommandBufferUsageFlags flags) {
+		if (!*cmd) // Allocate a new command buffer if not already allocated
+			Qk_ASSERT_EQ(VK_SUCCESS, vk_allocateCommandBuffer(device, pool, cmd),
+				"Failed to allocate Vulkan command buffer");
 		VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 		beginInfo.flags = flags;
 		Qk_ASSERT_EQ(VK_SUCCESS, vkBeginCommandBuffer(*cmd, &beginInfo),
@@ -511,16 +519,8 @@ namespace qk {
 		return VK_SUCCESS;
 	}
 
-	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb) {
-		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
-		info.commandBufferCount = 1;
-		info.pCommandBuffers = cmd;
-		getSharedRenderVulkanResource()->submitCommand(&info, cb);
-		return VK_SUCCESS;
-	}
-
 	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve) {
-		auto &block = cmd->vkAlloc[0].alloc(size, reserve, vk_uniformBufferAlignment);
+		auto &block = cmd->vkAlloc[0].alloc(size, Qk_Max(reserve, size), vk_uniformBufferAlignment);
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val->mapped + block.begin, src, size);
@@ -540,7 +540,7 @@ namespace qk {
 		refCount.fetch_add(1, std::memory_order_relaxed);
 	}
 	void VkRef::unref() {
-		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1)
+		if (refCount.fetch_sub(1, std::memory_order_relaxed) <= 1)
 			delete this;
 	}
 

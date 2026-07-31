@@ -303,6 +303,7 @@ namespace qk {
 		::exit(-1);
 #endif
 		IMMEDIATE_CRASH();
+
 	}
 
 }

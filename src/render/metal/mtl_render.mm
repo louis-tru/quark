@@ -334,11 +334,19 @@ namespace qk {
 	}
 
 	MetalRenderResource* getSharedRenderMetalResource() {
-		static MetalRenderResource *g_sharedRenderResource = new MetalRenderResource();
-		return g_sharedRenderResource;
+		static MetalRenderResource *sharedRenderResource = []()->MetalRenderResource* {
+			id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+			if (!device)
+				return nullptr;
+			id<MTLCommandQueue> commandQueue = [device newCommandQueue];
+			if (!commandQueue)
+				return nullptr;
+			return new MetalRenderResource(device, commandQueue);
+		}();
+		return sharedRenderResource;
 	}
 
-	RenderResource* getSharedRenderResource() {
+	RenderResource* get_shared_metal_render_resource() {
 		return getSharedRenderMetalResource();
 	}
 
@@ -357,16 +365,10 @@ namespace qk {
 		delete block;
 	}
 
-	MetalRenderResource::MetalRenderResource()
-		: _device(nil)
-		, _commandQueue(nil)
+	MetalRenderResource::MetalRenderResource(MTLDeviceID device, MTLCommandQueueID commandQueue)
+		: _device(device)
+		, _commandQueue(commandQueue)
 	{
-		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-		Qk_CHECK(device, "Failed to create Metal device");
-		id<MTLCommandQueue> commandQueue = [device newCommandQueue];
-		Qk_CHECK(commandQueue, "Failed to create Metal command queue");
-		_device = device; // retain device for render resource
-		_commandQueue = commandQueue; // retain command queue for render resource
 		_shaders.buildAll(); // pre-build all shader sources
 	}
 

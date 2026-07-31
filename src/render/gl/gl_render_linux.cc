@@ -382,44 +382,50 @@ namespace qk {
 		}
 	};
 
-	static LinuxRenderResource* g_sharedRenderResource = nullptr;
-
 	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
-	RenderResource* getSharedRenderResource() {
-		return g_sharedRenderResource;
+	RenderResource* get_shared_gl_render_resource() {
+		static LinuxRenderResource* resource = []()->LinuxRenderResource* {
+			EGLDisplay dpy = egl_display();
+			EGLConfig cfg = egl_config(dpy, {});
+			static EGLint attrs[] = {
+				EGL_CONTEXT_CLIENT_VERSION, 3, // opengl es 3
+				EGL_NONE
+			};
+			EGLContext ctx = eglCreateContext(dpy, cfg, nullptr, attrs);
+			if (!ctx)
+				return nullptr;
+			auto res = new LinuxRenderResource(dpy, ctx);
+			res->post_message(Cb([dpy, ctx](auto) {
+				eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx);
+			}));
+			return res;
+		}();
+		return resource;
 	}
 
 	Render* make_gl_render(Options opts) {
-		Render* r = nullptr;
+		auto res = static_cast<LinuxRenderResource*>(get_shared_gl_render_resource());
+		if (!res)
+			return nullptr;
 
 		EGLDisplay dpy = egl_display();
 		EGLConfig cfg = egl_config(dpy, opts);
-
 		static EGLint attrs[] = {
 			EGL_CONTEXT_CLIENT_VERSION, 3, // opengl es 3
 			EGL_NONE
 		};
-
-		if (!g_sharedRenderResource) {
-			auto ctx = eglCreateContext(dpy, cfg, nullptr, attrs);
-			if (!ctx) return nullptr;
-			g_sharedRenderResource = new LinuxRenderResource(dpy, ctx);
-		}
-
-		auto ctx = eglCreateContext(dpy, cfg, g_sharedRenderResource->ctx(), attrs);
-		if ( ctx ) {
-			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
-			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
-			auto mem = acquireRenderBackendStorage(typeid(LinuxGLRender).hash_code(), sizeof(LinuxGLRender));
-			r = new (mem) LinuxGLRender(opts, dpy, cfg, ctx);
-			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
-		}
-
-		g_sharedRenderResource->post_message(Cb([dpy](auto e) {
-			eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, g_sharedRenderResource->ctx());
+		auto ctx = eglCreateContext(dpy, cfg, res->ctx(), attrs);
+		if (!ctx)
+			return nullptr;
+		Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
+		Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
+		auto mem = acquireRenderBackendStorage(typeid(LinuxGLRender).hash_code(), sizeof(LinuxGLRender));
+		auto r = new (mem) LinuxGLRender(opts, dpy, cfg, ctx);
+		Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+		res->post_message(Cb([dpy, res](auto) {
+			eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, res->ctx());
 		}));
-
 		return r;
 	}
 }

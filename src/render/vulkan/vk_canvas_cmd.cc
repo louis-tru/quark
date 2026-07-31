@@ -33,7 +33,7 @@
 #include "../source.h"
 
 #define Qk_useTexture0(paint, dstSlot, ...) bool isYuv = false; \
-	auto set1 = useTexture0(allocateDescriptorSet(shader.sets(1)), paint, dstSlot, &isYuv); \
+	auto set1 = useTexture0(allocDescriptorSet(shader.sets(1)), paint, dstSlot, &isYuv); \
 		if (!set1) return __VA_ARGS__
 
 namespace qk {
@@ -41,10 +41,12 @@ namespace qk {
 
 	void VulkanCanvas::setSurface(const Mat4 &root, Vec2 surfaceSize, Vec2 scale) {
 		Mat4 matrix = root;
-		matrix.scale_y(-1);
-		matrix.translate_y(-surfaceSize.y() / scale.y());
+		// A positive Vulkan viewport maps Qk's surface coordinates directly.
+		// Unlike Metal, no additional Y-axis flip is required here.
+		// translate and scale z to map depth from [-1, 1] to [0, 1]
 		matrix.translate_z(0.5f);
-		matrix.scale_z(0.5f);
+		// matrix.scale_z(0.4f); // z ∈ [0,1] → gl_Position.z ∈ [0,0.8]
+		matrix.scale_z(0.5f); // z ∈ [0,1] → gl_Position.z ∈ [0,1]
 		GPUCanvas::setSurface(matrix, surfaceSize, scale);
 	}
 
@@ -141,7 +143,7 @@ namespace qk {
 		auto coord = Vec4(offset.x(), offset.y(), scale.x(), scale.y());
 		auto cmd = usePipeline(cp, vertex, 12);
 		MSLCp::PcArgs pc{ resolution, resolution, coord, 0, 0 };
-		auto set = allocateDescriptorSet(cp.sets(1));
+		auto set = allocDescriptorSet(cp.sets(1));
 		setTextureParam(set, cp.image.binding, vk_get_texture(src));
 		bindDescriptorSet(set, cp);
 		vkCmdPushConstants(cmd, cp.layout(), cp.pc.stages, 0, sizeof(pc), &pc);
@@ -243,7 +245,7 @@ namespace qk {
 	void VulkanCanvas::drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) {
 		int count = Qk_Min(64, paint->count);
 		auto &shader = _shaders.colorGradient;
-		auto set1 = allocateDescriptorSet(shader.sets(1));
+		auto set1 = allocDescriptorSet(shader.sets(1));
 		auto cmd = usePipeline(shader, vertex);
 		MSLColorGradient::PcArgs pc{
 			.range=*((Vec4*)paint->origin.val),
@@ -374,8 +376,8 @@ namespace qk {
 				makeTextureMipReadable(texA, level); // make texture level readable for shader
 				auto cmd = usePipeline(cp, vertex, 12);
 				vkCmdPushConstants(cmd, cp.layout(), cp.pc.stages, 0, sizeof(pc), &pc);
-				auto set = allocateDescriptorSet(cp.sets(1));
-				setTextureLevelParam(set, cp.image.binding, texA, level++, sampler);
+				auto set = allocDescriptorSet(cp.sets(1));
+				setTextureParam(set, cp.image.binding, texA, sampler, level++);
 				bindDescriptorSet(set, cp);
 				vkCmdDraw(cmd, 4, 1, 0, 0);
 			} while (level < imageLod);
@@ -396,8 +398,8 @@ namespace qk {
 				1.0f/(sample-1), 0, 0 };
 			auto cmd = usePipeline(*blur, vertex, 12);
 			vkCmdPushConstants(cmd, blur->layout(), blur->pc.stages, 0, sizeof(pc), &pc);
-			auto set = allocateDescriptorSet(blur->sets(1));
-			setTextureLevelParam(set, blur->image.binding, texA, imageLod, sampler);
+			auto set = allocDescriptorSet(blur->sets(1));
+			setTextureParam(set, blur->image.binding, texA, sampler, imageLod);
 			bindDescriptorSet(set, *blur);
 			// draw blur to texture B
 			vkCmdDraw(cmd, 4, 1, 0, 0);
@@ -420,8 +422,8 @@ namespace qk {
 				1.0f/(sample-1), 0, 0 };
 			auto cmd = usePipeline(*blur, vertex, 12);
 			vkCmdPushConstants(cmd, blur->layout(), blur->pc.stages, 0, sizeof(pc), &pc);
-			auto set = allocateDescriptorSet(blur->sets(1));
-			setTextureLevelParam(set, blur->image.binding, texB, imageLod, sampler);
+			auto set = allocDescriptorSet(blur->sets(1));
+			setTextureParam(set, blur->image.binding, texB, sampler, imageLod);
 			bindDescriptorSet(set, *blur);
 			vkCmdDraw(cmd, 4, 1, 0, 0);
 		}
@@ -455,7 +457,7 @@ namespace qk {
 		auto coord = Vec4(begin.x(), begin.y(), scale.x(), scale.y());
 		MSLCp::PcArgs pc{ _surfaceSize, dstSize, coord, 0, 0 };
 		vkCmdPushConstants(cmd, cp.layout(), cp.pc.stages, 0, sizeof(pc), &pc);
-		auto set = allocateDescriptorSet(cp.sets(1));
+		auto set = allocDescriptorSet(cp.sets(1));
 		setTextureParam(set, cp.image.binding, srcTex, sampler);
 		bindDescriptorSet(set, cp);
 		vkCmdDraw(cmd, 4, 1, 0, 0);

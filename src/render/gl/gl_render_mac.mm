@@ -250,6 +250,7 @@ private:
 // ----------------------------------------------------------------------------------------------
 
 namespace qk {
+	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
 	class MacRenderResource: public GLRenderResource {
 	public:
@@ -257,60 +258,65 @@ namespace qk {
 		MacRenderResource(NSOpenGLContext* ctx)
 			: GLRenderResource(current_loop()), _ctx(ctx) {
 		}
+		NSOpenGLPixelFormat *pixelFormat() {
+			return _ctx.pixelFormat;
+		}
 	};
 
-	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
+	RenderResource* get_shared_gl_render_resource() {
+		// A shared render resource for all render instances, used to share GL resources like textures, buffers, etc.
+		static MacRenderResource *resource = []()->MacRenderResource* {
+			//	generate the GL display mask for all displays
+			CGDirectDisplayID		dspys[10];
+			CGDisplayCount			count = 0;
+			GLuint							glDisplayMask = 0;
+			if (CGGetActiveDisplayList(10, dspys, &count) == kCGErrorSuccess)	{
+				for (int i = 0; i < count; i++)
+					glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
+			}
+			uint32_t i = 0;
+			NSOpenGLPixelFormatAttribute attrs[32] = {0};
 
-	// A shared render resource for all render instances, used to share GL resources like textures, buffers, etc.
-	static MacRenderResource* g_sharedRenderResource = nullptr;
-
-	RenderResource* getSharedRenderResource() {
-		return g_sharedRenderResource;
+			attrs[i++] = NSOpenGLPFAAccelerated; // Choose a hardware accelerated renderer
+			attrs[i++] = NSOpenGLPFAClosestPolicy;
+			//attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
+			attrs[i++] = NSOpenGLPFAOpenGLProfile; // OpenGL version
+			attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
+			attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
+			attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
+			//attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
+			attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
+			attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display
+			//attrs[i++] = NSOpenGLPFAAllRenderers; // Choose from all available renderers
+			//attrs[i++] = NSOpenGLPFAOffScreen;
+			//attrs[i++] = NSOpenGLPFAAllowOfflineRenderers; // Allow off-screen rendering
+			//attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
+			//if (MSAA > 1) { // use msaa
+			//	attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
+			//	attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
+			//	attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
+			//};
+			auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+			auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
+			if (!ctx)
+				return nullptr;
+			auto result = new MacRenderResource(ctx);
+			result->post_message(Cb([](auto e, auto result) {
+				[result->ctx() makeCurrentContext];
+			}, result));
+			return result;
+		}();
+		return resource;
 	}
 
 	Render* make_gl_render(Render::Options opts) {
-		//	generate the GL display mask for all displays
-		CGDirectDisplayID		dspys[10];
-		CGDisplayCount			count = 0;
-		GLuint							glDisplayMask = 0;
-
-		if (CGGetActiveDisplayList(10, dspys, &count) == kCGErrorSuccess)	{
-			for (int i = 0; i < count; i++)
-				glDisplayMask = glDisplayMask | CGDisplayIDToOpenGLDisplayMask(dspys[i]);
-		}
-
-		uint32_t i = 0;
-		NSOpenGLPixelFormatAttribute attrs[32] = {0};
-
-		attrs[i++] = NSOpenGLPFAAccelerated; // Choose a hardware accelerated renderer
-		attrs[i++] = NSOpenGLPFAClosestPolicy;
-		//attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
-		attrs[i++] = NSOpenGLPFAOpenGLProfile; // OpenGL version
-		attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
-		attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
-		attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
-		//attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
-		attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
-		attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display
-		//attrs[i++] = NSOpenGLPFAAllRenderers; // Choose from all available renderers
-		//attrs[i++] = NSOpenGLPFAOffScreen;
-		//attrs[i++] = NSOpenGLPFAAllowOfflineRenderers; // Allow off-screen rendering
-		//attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24u;//MSAA <= 1 ? 24u: 0u; // number of multi sample buffers
-		//if (MSAA > 1) { // use msaa
-		//	attrs[i++] = NSOpenGLPFAMultisample; // choose multisampling
-		//	attrs[i++] = NSOpenGLPFASampleBuffers; attrs[i++] = 1u; // number of multi sample buffers
-		//	attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
-		//};
-		auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-		if (!g_sharedRenderResource) {
-			static std::once_flag flag;
-			call_once(flag, [format]() {
-				auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-				g_sharedRenderResource = new MacRenderResource(ctx);
-			});
-		}
-		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:g_sharedRenderResource->ctx()];
-
+		auto resource = static_cast<MacRenderResource*>(get_shared_gl_render_resource());
+		if (!resource)
+			return nullptr;
+		auto ctx = [[NSOpenGLContext alloc] initWithFormat:resource->pixelFormat()
+																					shareContext:resource->ctx()];
+		if (!ctx)
+			return nullptr;
 #if DEBUG
 		GLint stencilBits;
 		[ctx.pixelFormat getValues:&stencilBits forAttribute:NSOpenGLPFAStencilSize forVirtualScreen:0];
@@ -330,11 +336,6 @@ namespace qk {
 
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
-
-		g_sharedRenderResource->post_message(Cb([](auto e) {
-			[g_sharedRenderResource->ctx() makeCurrentContext];
-		}));
-
 		return render;
 	}
 

@@ -57,7 +57,7 @@ namespace qk {
 		_rootMatrix.translate_y(-surfaceSize.y() / scale.y());
 		// translate and scale z to map depth from [-1, 1] to [0, 1]
 		_rootMatrix.translate_z(0.5f);
-		_rootMatrix.scale_z(0.5);
+		_rootMatrix.scale_z(0.5f);
 		GPUCanvas::setSurface(_rootMatrix, surfaceSize, scale);
 	}
 

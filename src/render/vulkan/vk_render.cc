@@ -29,35 +29,82 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./vk_render.h"
-#include "src/util/macros.h"
-#include <atomic>
+#if Qk_ANDROID
+# include <android/api-level.h>
+#endif
 
 namespace qk {
 	uint32_t vk_uniformBufferAlignment;
 	uint32_t vk_maxPushConstantsSize;
 
-	VulkanRenderResource::VulkanRenderResource()
-		: _instance(VK_NULL_HANDLE)
-		, _physicalDevice(VK_NULL_HANDLE)
-		, _device(VK_NULL_HANDLE)
+	VulkanRenderResource* getSharedRenderVulkanResource() {
+		static VulkanRenderResource *resource([]() -> VulkanRenderResource* {
+#if Qk_ANDROID
+			auto androidApi = android_get_device_api_level();
+			if (androidApi < 29) {
+				Qk_DLog("Vulkan disabled: Android API level %d is below 29", androidApi);
+				return nullptr;
+			}
+#endif
+			VkInstance instance = VK_NULL_HANDLE;
+			VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+			VkDevice device = VK_NULL_HANDLE;
+			uint32_t queueFamily;
+			bool computeSupport;
+			bool pvrtcSupport;
+			auto fail = [&]() {
+				if (instance)
+					vkDestroyInstance(instance, nullptr);
+				return nullptr;
+			};
+			vk_call_if(vk_createInstance, &instance);
+			vk_call_if(vk_selectBestDevice, instance, &physicalDevice, &queueFamily, &computeSupport);
+			Qk_DEBUGCODE(vk_logDeviceInfo(physicalDevice));
+#if Qk_ANDROID
+			VkPhysicalDeviceProperties properties{};
+			vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+			if (properties.apiVersion < VK_API_VERSION_1_1) {
+				Qk_DLog("Vulkan disabled: device API version %u.%u.%u is below 1.1",
+					VK_VERSION_MAJOR(properties.apiVersion),
+					VK_VERSION_MINOR(properties.apiVersion),
+					VK_VERSION_PATCH(properties.apiVersion));
+				return fail();
+			}
+#endif
+			vk_call_if(vk_createDevice, physicalDevice, queueFamily, &device, &pvrtcSupport);
+
+			auto res = new VulkanRenderResource(
+				instance, physicalDevice, device, queueFamily, computeSupport, pvrtcSupport
+			);
+			// test resource validity by checking if the empty texture is created successfully
+			if (!res->emptyTexture())
+				Releasep(res);
+			return res;
+		}());
+		return resource;
+	}
+
+	RenderResource* get_shared_vulkan_render_resource() {
+		return getSharedRenderVulkanResource();
+	}
+
+	VulkanRenderResource::VulkanRenderResource(VkInstance instance,
+		VkPhysicalDevice physicalDevice, VkDevice device,
+		uint32_t queueFamily, bool computeSupport, bool pvrtcSupport
+	)
+		: _instance(instance)
+		, _physicalDevice(physicalDevice)
+		, _device(device)
 		, _commandQueue(VK_NULL_HANDLE)
-		, _queueFamily(U32::limit_max)
-		, _computeSupport(false)
-		, _pvrtcSupport(false)
+		, _queueFamily(queueFamily)
+		, _computeSupport(computeSupport)
+		, _pvrtcSupport(pvrtcSupport)
 		, _pipelineCache(VK_NULL_HANDLE)
 		, _emptyTexture(nullptr)
 		, _commandPool(VK_NULL_HANDLE)
 		, _nextAsyncWaitCheckTime(0)
 	{
-		Qk_CHECK(vk_createInstance(&_instance), "Unable to create Vulkan instance");
-		Qk_CHECK(vk_selectBestDevice(
-			_instance,
-			&_physicalDevice,
-			&_queueFamily,
-			&_computeSupport
-		), "Unable to select Vulkan physical device");
-
-		createDevice();
+		vkGetDeviceQueue(device, queueFamily, 0, &_commandQueue);
 
 		VkPipelineCacheCreateInfo pipelineInfo{VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO};
 		vk_check("vkCreatePipelineCache", vkCreatePipelineCache(_device, &pipelineInfo, nullptr, &_pipelineCache));
@@ -81,11 +128,15 @@ namespace qk {
 		VkFence fence;
 		VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
 		vk_check("vkCreateFence", vkCreateFence(_device, &info, nullptr, &fence));
-		_submitResults.pushBack({fence, VK_SUCCESS, {0}, {true}});
+		_submitResults.pushBack({fence, VK_SUCCESS, 0, true});
 
+		_shaders.buildAll();
+
+		// test if the pipeline can be created successfully
+		if (!getPipeline(kVkColor_Pipeline, kSrcOver_BlendMode, VK_FORMAT_R8G8B8A8_UNORM))
+			return;
 		_emptyTexture = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		_shaders.buildAll();
 	}
 
 	VulkanRenderResource::~VulkanRenderResource() {
@@ -214,7 +265,7 @@ namespace qk {
 		Qk_ASSERT_NE(VK_FORMAT_UNDEFINED, format, "Vulkan graphics pipeline requires color format");
 		ScopeLock lock(_mutex);
 		auto key = vk_pipeline_key(kind, mode, format);
-		VkPipeline pipeline;
+		VkPipeline pipeline = VK_NULL_HANDLE;
 		if (_pipelines.get(key, pipeline))
 			return pipeline;
 
@@ -298,9 +349,20 @@ namespace qk {
 		info.layout = getPipelineLayoutNoLock(kind)->layout;
 		info.renderPass = vk_create_pipeline_render_pass(_device, format);
 		info.subpass = 0;
-		Qk_ASSERT_EQ(VK_SUCCESS, vkCreateGraphicsPipelines(
-			_device, _pipelineCache, 1, &info, nullptr, &pipeline), "Failed to create Vulkan graphics pipeline");
+		Qk_DLog("Creating Vulkan graphics pipeline: shader=%s, kind=%u, "
+			"blend=%u, format=%u, topology=%u, stride=%u, attributes=%u",
+			shader.source.name, uint32_t(kind), uint32_t(mode), uint32_t(format),
+			uint32_t(inputAssembly.topology), shader.vertexStride, attributes.length());
+
+		auto result = vkCreateGraphicsPipelines(_device, 0, 1, &info, nullptr, &pipeline);
 		vkDestroyRenderPass(_device, info.renderPass, nullptr);
+		if (result != VK_SUCCESS) {
+			Qk_DLog("vkCreateGraphicsPipelines failed: result=%d, shader=%s, kind=%u, "
+			"blend=%u, format=%u, topology=%u, stride=%u, attributes=%u",
+			int(result), shader.source.name, uint32_t(kind), uint32_t(mode),
+			uint32_t(format), uint32_t(inputAssembly.topology),
+			shader.vertexStride, attributes.length());
+		}
 		_pipelines.set(key, pipeline);
 		return pipeline;
 	}
@@ -379,6 +441,13 @@ namespace qk {
 		return submitCommandNoLock(submit, cb)->result;
 	}
 
+	VkResult VulkanRenderResource::submitCommand(const VkCommandBuffer* cmd, Cb cb) {
+		VkSubmitInfo info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+		info.commandBufferCount = 1;
+		info.pCommandBuffers = cmd;
+		return submitCommand(&info, cb);
+	}
+
 	VkSubmitResult* VulkanRenderResource::submitCommandNoLock(const VkSubmitInfo* submit, Cb cb) {
 		auto it = --_submitResults.end();
 		if (it->refCount.load(std::memory_order_relaxed) != 0 || !isSubmitCompleted(it.operator->())) {
@@ -387,12 +456,12 @@ namespace qk {
 			VkFenceCreateInfo info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
 			Qk_ASSERT_EQ(VK_SUCCESS, vkCreateFence(_device, &info, nullptr, &fence),
 				"Failed to create Vulkan fence");
-			it = _submitResults.pushBack({fence, VK_SUCCESS, {0}, {true}});
+			it = _submitResults.pushBack({fence, VK_SUCCESS, 0, true});
 		}
 		Qk_ASSERT_EQ(VK_SUCCESS, vkResetFences(_device, 1, &it->fence),
 			"Failed to reset Vulkan fence");
-		Qk_ASSERT_EQ(VK_SUCCESS, vkQueueSubmit(_commandQueue, 1, submit, it->fence),
-			"Failed to submit Vulkan command");
+		auto result = vkQueueSubmit(_commandQueue, 1, submit, it->fence);
+		Qk_ASSERT_EQ(VK_SUCCESS, result, "Failed to submit Vulkan command");
 
 		it->completed.store(false, std::memory_order_relaxed);
 		_submitResults.splice(_submitResults.begin(), _submitResults, it, _submitResults.end());
@@ -433,6 +502,7 @@ namespace qk {
 		, _device(_resource->device())
 		, _vkCanvas(nullptr)
 	{
+		Qk_ASSERT(_resource, "Failed to get Vulkan render resource");
 		_vkCanvas = NewRetain<VulkanCanvas>(this, _opts);
 		_opts.colorType = _vkCanvas->opts().colorType;
 		_canvas = _vkCanvas;

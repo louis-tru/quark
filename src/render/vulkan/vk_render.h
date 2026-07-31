@@ -69,13 +69,16 @@ namespace qk {
 		VkSampler get_sampler(PaintImage::FilterMode filter, PaintImage::MipmapMode mipmap);
 		VkResult submitCommand(const VkSubmitInfo* submit, VkPresentInfoKHR *present, VkCmdPack *pack);
 		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
+		VkResult submitCommand(const VkCommandBuffer* cmd, Cb cb);
 		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags,
 			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 		void queueWaitIdle();
 		bool isSubmitCompleted(VkSubmitResult* result);
 	private:
-		explicit VulkanRenderResource();
-		void createDevice();
+		explicit VulkanRenderResource(
+			VkInstance instance,
+			VkPhysicalDevice physicalDevice,
+			VkDevice device, uint32_t queueFamily, bool computeSupport, bool pvrtcSupport);
 		VkVertexBuffer* newVertexBuffer(uint32_t size);
 		VkPipelineLayoutData* getPipelineLayoutNoLock(VkPipelineKind kind);
 		void checkAsyncWaitTasks(Array<Cb> *out);

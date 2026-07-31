@@ -591,7 +591,9 @@ namespace qk {
 	typename Dict<K, V, C, B>::Node* Dict<K, V, C, B>::node_(IteratorConst it) {
 		return const_cast<Node*>(it.ptr());
 	}
-	
+
+	typedef Dict<String, String> DictSS;
+	typedef const DictSS         cDictSS;
 }
 
 #endif

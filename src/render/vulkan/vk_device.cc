@@ -39,6 +39,21 @@
 
 namespace qk {
 
+	static const char* vk_deviceTypeName(VkPhysicalDeviceType type) {
+		switch (type) {
+			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+				return "INTEGRATED_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+				return "DISCRETE_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+				return "VIRTUAL_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_CPU:
+				return "CPU";
+			default:
+				return "OTHER";
+		}
+	}
+
 	static const char* vk_platformSurfaceExtension() {
 #if Qk_ANDROID
 		return "VK_KHR_android_surface";
@@ -101,6 +116,45 @@ namespace qk {
 		}
 
 		return false;
+	}
+
+	void vk_logDeviceInfo(VkPhysicalDevice device) {
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(device, &properties);
+
+		Qk_DLog("VK_DEVICE_NAME: %s", properties.deviceName);
+		Qk_DLog("VK_DEVICE_TYPE: %s", vk_deviceTypeName(properties.deviceType));
+		Qk_DLog("VK_VENDOR_ID: 0x%04x", properties.vendorID);
+		Qk_DLog("VK_DEVICE_ID: 0x%08x", properties.deviceID);
+		Qk_DLog("VK_API_VERSION: %u.%u.%u",
+			VK_VERSION_MAJOR(properties.apiVersion),
+			VK_VERSION_MINOR(properties.apiVersion),
+			VK_VERSION_PATCH(properties.apiVersion));
+		Qk_DLog("VK_DRIVER_VERSION: %u (0x%08x)",
+			properties.driverVersion, properties.driverVersion);
+
+		uint32_t count = 0;
+		VkResult result = vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+		if (result != VK_SUCCESS) {
+			Qk_DLog("VK_DEVICE_EXTENSIONS: query failed: %d", int(result));
+			return;
+		}
+
+		Array<VkExtensionProperties> extensions(count);
+		if (count) {
+			result = vkEnumerateDeviceExtensionProperties(
+				device, nullptr, &count, extensions.val());
+			if (result != VK_SUCCESS) {
+				Qk_DLog("VK_DEVICE_EXTENSIONS: query failed: %d", int(result));
+				return;
+			}
+		}
+
+		Qk_DLog("VK_DEVICE_EXTENSIONS: %u", count);
+		for (uint32_t i = 0; i < count; i++) {
+			Qk_DLog("  %s (specVersion=%u)",
+				extensions[i].extensionName, extensions[i].specVersion);
+		}
 	}
 
 	static bool findGraphicsQueueFamily(
@@ -350,25 +404,29 @@ namespace qk {
 		return result == VK_SUCCESS;
 	}
 
-	void VulkanRenderResource::createDevice() {
+	bool vk_createDevice(VkPhysicalDevice physicalDevice, uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport) {
 		uint32_t familyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &familyCount, nullptr);
 		Array<VkQueueFamilyProperties> families(familyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount, families.val());
-		Qk_ASSERT(_queueFamily < familyCount, "Invalid graphics queue family index");
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &familyCount, families.val());
+		Qk_ASSERT(queueFamily < familyCount, "Invalid graphics queue family index");
+		if (queueFamily >= familyCount)
+			return false;
 
-		uint32_t queueCount = std::min(families[_queueFamily].queueCount, 1u);
+		uint32_t queueCount = std::min(families[queueFamily].queueCount, 1u);
 		Qk_ASSERT(queueCount > 0, "No queues available in graphics queue family");
+		if (queueCount == 0)
+			return false;
 
 		float priorities[] = { 1.0f, 1.0f };
 		VkDeviceQueueCreateInfo queueInfo = {};
 		queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueInfo.queueFamilyIndex = _queueFamily;
+		queueInfo.queueFamilyIndex = queueFamily;
 		queueInfo.queueCount = queueCount;
 		queueInfo.pQueuePriorities = priorities;
 
 		VkPhysicalDeviceFeatures supportedFeatures = {};
-		vkGetPhysicalDeviceFeatures(_physicalDevice, &supportedFeatures);
+		vkGetPhysicalDeviceFeatures(physicalDevice, &supportedFeatures);
 		VkPhysicalDeviceFeatures enabledFeatures = {};
 		enabledFeatures.textureCompressionETC2 = supportedFeatures.textureCompressionETC2;
 		enabledFeatures.textureCompressionBC = supportedFeatures.textureCompressionBC;
@@ -377,8 +435,8 @@ namespace qk {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, // PVRTC support
 		};
-		_pvrtcSupport = vk_supportsDeviceExtension(_physicalDevice, extensions[1]);
-		uint32_t extensionCount = _pvrtcSupport ? 2 : 1;
+		*pvrtcSupport = vk_supportsDeviceExtension(physicalDevice, extensions[1]);
+		uint32_t extensionCount = *pvrtcSupport ? 2 : 1;
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
@@ -386,8 +444,9 @@ namespace qk {
 		deviceInfo.enabledExtensionCount = extensionCount;
 		deviceInfo.ppEnabledExtensionNames = extensions;
 		deviceInfo.pEnabledFeatures = &enabledFeatures;
-		vk_check("vkCreateDevice", vkCreateDevice(_physicalDevice, &deviceInfo, nullptr, &_device));
-
-		vkGetDeviceQueue(_device, _queueFamily, 0, &_commandQueue);
+		auto result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, device);
+		if (result != VK_SUCCESS)
+			Qk_DLog("vkCreateDevice failed: %d", int(result));
+		return result == VK_SUCCESS;
 	}
 }

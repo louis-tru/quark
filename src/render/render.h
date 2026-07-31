@@ -34,7 +34,7 @@
 #include "../util/handle.h"
 #include "./path.h"
 #include "./pixel.h"
-#include "src/util/object.h"
+#include "../util/dict.h"
 
 namespace qk {
 	class RenderSurface; // platform render surface
@@ -153,20 +153,20 @@ namespace qk {
 			 *
 			 * @param size New surface size.
 			 */
-			virtual void onRenderBackendReload(Vec2 size) = 0;
+			virtual void onRenderBackendReload(Vec2 size);
 
 			/**
 			 * Called when the backend is ready to display one frame.
 			 *
 			 * @returns true if display should continue.
 			 */
-			virtual bool onRenderBackendDisplay() = 0;
+			virtual bool onRenderBackendDisplay();
 		};
 
 		/**
 		 * Create a new render backend object.
 		 */
-		static RenderBackend* Make(Options opts, Delegate *delegate);
+		static RenderBackend* Make(Options opts);
 
 		/**
 		 * Return backend options.
@@ -271,6 +271,13 @@ namespace qk {
 		 * @thread Rt
 		 */
 		static bool useVertexData(const VertexData::ID *id);
+
+		/**
+		* Set the render backend delegate.
+		*/
+		void setDelegate(Delegate *delegate) {
+			_delegate = delegate;
+		}
 
 	protected:
 		RenderBackend(Options opts);

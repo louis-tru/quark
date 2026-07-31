@@ -51,6 +51,12 @@ namespace qk {
 	class Window;
 	class RootStyleSheets;
 
+	struct RunArguments {
+		int    argc;
+		char** argv;
+		DictSS options;
+	} extern const *runArguments;
+
 	/**
 	 *
 	 * About events in UI:

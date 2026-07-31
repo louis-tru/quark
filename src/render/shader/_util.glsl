@@ -48,7 +48,7 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(vec2 offset) {
-	float coverage = texelFetch(clipTex, ivec2(gl_FragCoord.xy - clipStat.bounds.xy + offset), 0).r;
+	float coverage = texelFetch(clipTex, ivec2(offset - clipStat.bounds.xy), 0).r;
 	if (clipStat.op == 1)
 		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
 	return coverage;
@@ -81,4 +81,4 @@ float aaSideCoverage(const uint flags) {
 
 #define Qk_CLIP() \
 if ((pc.flags & Qk_FLAG_CLIP) != 0) \
-	fragColor *= clipCoverage(vec2(0))
+	fragColor *= clipCoverage(gl_FragCoord.xy)

@@ -80,8 +80,6 @@ namespace qk {
 
 	struct ResponseData;
 	typedef Callback<ResponseData> HttpCb;
-	typedef Dict<String, String> DictSS;
-	typedef const DictSS         cDictSS;
 
 	struct RequestOptions {
 		String     url;

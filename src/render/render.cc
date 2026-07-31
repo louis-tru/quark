@@ -41,6 +41,12 @@ namespace qk {
 		return (uint32_t) powf(2, floor(log2(n)));
 	}
 
+	struct RunArguments {
+		int    argc;
+		char** argv;
+		DictSS options;
+	} extern const *runArguments;
+
 	uint32_t msaaSample(uint32_t n) {
 		// n = integerExp(n);
 		// n = Qk_Min(n, 9); // max sample count is 9
@@ -56,6 +62,9 @@ namespace qk {
 		setTexUnsafe_SourceImage(src.get(), &stat);
 		return src;
 	}
+
+	void RenderBackend::Delegate::onRenderBackendReload(Vec2 size) {}
+	bool RenderBackend::Delegate::onRenderBackendDisplay() { return false; }
 
 	// setting and use gpu vertex data
 	bool RenderBackend::useVertexData(const VertexData::ID *id) {
@@ -77,6 +86,8 @@ namespace qk {
 		, _canvas(nullptr)
 		, _delegate(nullptr)
 	{
+		static Delegate defaultDelegate;
+		_delegate = &defaultDelegate;
 	}
 
 	void RenderBackend::destroy() {
@@ -130,13 +141,43 @@ namespace qk {
 		return mem;
 	}
 
+	// make render backend for each platform
 	Render* make_metal_render(Render::Options opts);
 	Render* make_vulkan_render(Render::Options opts);
 	Render* make_gl_render(Render::Options opts);
 
-	Render* Render::Make(Options opts, Delegate *delegate) {
-		Render* r = nullptr;
+	// get shared render resource for each backend
+	RenderResource* get_shared_metal_render_resource();
+	RenderResource* get_shared_vulkan_render_resource();
+	RenderResource* get_shared_gl_render_resource();
 
+	// get shared render resource for each platform
+	RenderResource* getSharedRenderResource() {
+		RenderResource* r = nullptr;
+#if Qk_ENABLE_GL
+		static bool useGL = runArguments && runArguments->options.has("gl");
+		if (useGL)
+			return get_shared_gl_render_resource();
+#endif
+#if Qk_ENABLE_VULKAN
+		if (!r) r = get_shared_vulkan_render_resource();
+#endif
+#if Qk_ENABLE_METAL
+		if (!r) r = get_shared_metal_render_resource();
+#endif
+#if Qk_ENABLE_GL
+		if (!r) r = get_shared_gl_render_resource();
+#endif
+		return r;
+	}
+
+	// make render backend for each platform
+	Render* Render::Make(Options opts) {
+		Render* r = nullptr;
+#if Qk_ENABLE_GL
+		if (runArguments && runArguments->options.has("gl"))
+			return make_gl_render(opts);
+#endif
 #if Qk_ENABLE_VULKAN
 		if (!r) r = make_vulkan_render(opts);
 #endif
@@ -146,10 +187,9 @@ namespace qk {
 #if Qk_ENABLE_GL
 		if (!r) r = make_gl_render(opts);
 #endif
-		Qk_CHECK(r, "Create render object fail");
-
-		r->_delegate = delegate;
-
+		if (!r) {
+			Qk_DLog("No render backend available for this platform");
+		}
 		return r;
 	}
 }

@@ -32,15 +32,6 @@
 
 namespace qk {
 
-	VulkanRenderResource* getSharedRenderVulkanResource() {
-		static VulkanRenderResource *resource = new VulkanRenderResource();
-		return resource;
-	}
-
-	RenderResource* getSharedRenderResource() {
-		return getSharedRenderVulkanResource();
-	}
-
 	cTexStat* vk_rebuild_texture(Vec2 size, ColorType type, cTexStat* texStat,
 		TexStat &storeStat, uint8_t flags)
 	{
@@ -52,26 +43,17 @@ namespace qk {
 		if (!tex ||
 				tex->size() != size ||
 				tex->format != fmt ||
-				(mipmap && tex->mipLevels <= 1)
+				(mipmap && tex->mipLevels() <= 1)
 		) {
 			uint32_t mipLevels = mipmap ? vk_mipLevelCount(size): 1;
 			tex = getSharedRenderVulkanResource()->newTexture(size, type, mipLevels, flags);
 			if (!tex)
 				return nullptr;
+			tex->ref();
 			texStat = &storeStat;
 			storeStat.set_ptr(tex);
 		}
 		return texStat;
-	}
-
-	VkTexture::~VkTexture() {
-		auto device = getSharedRenderVulkanResource()->device();
-		if (view)
-			vkDestroyImageView(device, view, nullptr);
-		if (image)
-			vkDestroyImage(device, image, nullptr);
-		if (memory)
-			vkFreeMemory(device, memory, nullptr);
 	}
 
 	VkVertexBuffer::~VkVertexBuffer() {
@@ -82,7 +64,60 @@ namespace qk {
 			vkFreeMemory(device, memory, nullptr);
 	}
 
-	void vk_layout_access(VkImageLayout layout,
+	VkTexture::~VkTexture() {
+		auto device = getSharedRenderVulkanResource()->device();
+		for (auto &level: levels) {
+			if (level.framebuffer)
+				vkDestroyFramebuffer(device, level.framebuffer, nullptr);
+			if (level.view)
+				vkDestroyImageView(device, level.view, nullptr);
+		}
+		if (view)
+			vkDestroyImageView(device, view, nullptr);
+		if (image)
+			vkDestroyImage(device, image, nullptr);
+		if (memory)
+			vkFreeMemory(device, memory, nullptr);
+	}
+
+	VkImageView VkTexture::levelView(uint32_t level) {
+		if (levels.length() == 1)
+			return view;
+		auto &info = levels[level];
+		auto v = info.view.load(std::memory_order_relaxed);
+		if (v)
+			return v;
+		auto device = getSharedRenderVulkanResource()->device();
+		auto newView = vk_createLevelView(device, this, level);
+		if (info.view.compare_exchange_strong(
+				v, newView, std::memory_order_release, std::memory_order_acquire))
+			return newView;
+		vkDestroyImageView(device, newView, nullptr);
+		return info.view.load(std::memory_order_relaxed);
+	}
+
+	VkFramebuffer VkTexture::framebuffer(uint32_t level) {
+		auto &info = levels[level];
+		auto fb = info.framebuffer.load(std::memory_order_relaxed);
+		if (fb)
+			return fb;
+		VkExtent2D fbExtent = {
+			std::max(extent.width >> level, 1u),
+			std::max(extent.height >> level, 1u)
+		};
+		auto device = getSharedRenderVulkanResource()->device();
+		auto renderPass = vk_create_pipeline_render_pass(device, format);
+		auto newFb = vk_create_framebuffer(device, renderPass, levelView(level), fbExtent);
+		auto exchanged = info.framebuffer.compare_exchange_strong(
+				fb, newFb, std::memory_order_release, std::memory_order_acquire);
+		vkDestroyRenderPass(device, renderPass, nullptr);
+		if (exchanged)
+			return newFb;
+		vkDestroyFramebuffer(device, newFb, nullptr);
+		return info.framebuffer.load(std::memory_order_relaxed);
+	}
+
+	void vk_layout_access(VkImageLayout layout, bool destination,
 		VkPipelineStageFlags &stage, VkAccessFlags &access)
 	{
 		switch (layout) {
@@ -92,7 +127,7 @@ namespace qk {
 				break;
 			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
 				stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-				access = VK_ACCESS_TRANSFER_READ_BIT;
+				access = destination ? VK_ACCESS_TRANSFER_READ_BIT: 0;
 				break;
 			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
 				stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -100,16 +135,25 @@ namespace qk {
 				break;
 			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
 				stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-				access = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				access = destination
+					? VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+					: VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 				break;
 			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-				stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-				access = VK_ACCESS_SHADER_READ_BIT;
+				stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+				access = destination ? VK_ACCESS_SHADER_READ_BIT: 0;
 				break;
 			case VK_IMAGE_LAYOUT_GENERAL:
-				stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-				access = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+				stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+				access = destination
+					? VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT
+					: VK_ACCESS_SHADER_WRITE_BIT;
+				break;
+			case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+				stage = destination
+					? VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+					: VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				access = 0;
 				break;
 			default:
 				Qk_ASSERT(false, "Unsupported Vulkan image layout transition: %d", layout);
@@ -122,24 +166,24 @@ namespace qk {
 	bool VkTexture::transitionLayout(VkCommandBuffer cmd, VkImageLayout newLayout,
 		uint32_t level, uint32_t levelCount)
 	{
-		Qk_ASSERT(level < mipLevels && levelCount && level + levelCount <= mipLevels,
+		Qk_ASSERT(level < mipLevels() && levelCount && level + levelCount <= mipLevels(),
 			"Invalid Vulkan texture mip range");
 		bool changed = false;
 		auto end = level + levelCount;
 		while (level < end) {
-			auto oldLayout = layouts[level];
+			auto oldLayout = levels[level].layout;
 			if (oldLayout == newLayout) {
 				level++;
 				continue;
 			}
 			auto runEnd = level + 1;
-			while (runEnd < end && layouts[runEnd] == oldLayout)
+			while (runEnd < end && levels[runEnd].layout == oldLayout)
 				runEnd++;
 
 			VkPipelineStageFlags srcStage, dstStage;
 			VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-			vk_layout_access(oldLayout, srcStage, barrier.srcAccessMask);
-			vk_layout_access(newLayout, dstStage, barrier.dstAccessMask);
+			vk_layout_access(oldLayout, false, srcStage, barrier.srcAccessMask);
+			vk_layout_access(newLayout, true, dstStage, barrier.dstAccessMask);
 			barrier.oldLayout = oldLayout;
 			barrier.newLayout = newLayout;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -152,7 +196,7 @@ namespace qk {
 			vkCmdPipelineBarrier(cmd, srcStage, dstStage,
 				0, 0, nullptr, 0, nullptr, 1, &barrier);
 			for (auto i = level; i < runEnd; i++)
-				layouts[i] = newLayout;
+				levels[i].layout = newLayout;
 			changed = true;
 			level = runEnd;
 		}
@@ -160,14 +204,14 @@ namespace qk {
 	}
 
 	void VkTexture::generateMipmaps(VkCommandBuffer cmd) {
-		if (mipLevels == 1) {
+		if (mipLevels() == 1) {
 			transitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			return;
 		}
 
 		int32_t width = int32_t(extent.width);
 		int32_t height = int32_t(extent.height);
-		for (uint32_t i = 1; i < mipLevels; i++) {
+		for (uint32_t i = 1; i < mipLevels(); i++) {
 			transitionLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i - 1);
 			transitionLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i);
 
@@ -189,7 +233,7 @@ namespace qk {
 			width = std::max(width >> 1, 1);
 			height = std::max(height >> 1, 1);
 		}
-		transitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1);
+		transitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels() - 1);
 	}
 
 	VkSampler VulkanRenderResource::get_sampler(const PaintImage* paint) {
@@ -263,11 +307,10 @@ namespace qk {
 		auto tex = new VkTexture();
 		tex->extent = { uint32_t(size.x()), uint32_t(size.y()) };
 		tex->format = format;
-		tex->mipLevels = mipLevels;
 		tex->usage = usage;
-		tex->layouts = Array<VkImageLayout>(mipLevels);
-		for (auto &layout: tex->layouts)
-			layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		tex->levels = Array<VkTextureLevelInfo>(mipLevels);
+		for (auto &level: tex->levels)
+			level.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		auto fail = [&]() {
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
@@ -303,7 +346,7 @@ namespace qk {
 			vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
 			tex->transitionLayout(cmd, initialLayout, 0, mipLevels);
 			vk_call(vkEndCommandBuffer, cmd);
-			vk_call(vk_submitCommand, &cmd, Cb([this,cmd](auto e) {
+			vk_call(submitCommand, &cmd, Cb([this,cmd](auto e) {
 				ScopeLock lock(_mutex);
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
 			}));
@@ -315,7 +358,9 @@ namespace qk {
 		if (size.x() <= 0 || size.y() <= 0)
 			return TexStat();
 		uint32_t levels = flags & kMipmap_TextureFlags ? vk_mipLevelCount(size) : 1;
-		return TexStat(newTexture(size, type, levels, flags));
+		auto tex = newTexture(size, type, levels, flags);
+		tex->ref();
+		return TexStat(tex);
 	}
 
 	bool VulkanRenderResource::uploadTexture(Pixel *pix, int levels, TexStat *out, bool mipmap) {
@@ -345,8 +390,8 @@ namespace qk {
 			generateMipmaps = (properties.optimalTilingFeatures & required) == required;
 		}
 		auto imageLevels = generateMipmaps ? vk_mipLevelCount(pix->size()) : uint32_t(levels);
-		auto vkTex = newTexture(pix->size(), pix->type(), imageLevels, 0);
-		if (!vkTex)
+		auto tex = newTexture(pix->size(), pix->type(), imageLevels, 0);
+		if (!tex)
 			return false;
 
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -359,7 +404,7 @@ namespace qk {
 				vkFreeMemory(_device, stagingMemory, nullptr);
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			vkTex->unref();
+			tex->unref();
 			return false;
 		};
 
@@ -397,7 +442,7 @@ namespace qk {
 		ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
 
 		vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
-		vkTex->transitionLayout(cmd,
+		tex->transitionLayout(cmd,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, generateMipmaps ? 1: imageLevels);
 
 		offset = 0;
@@ -410,19 +455,19 @@ namespace qk {
 			copy.imageSubresource.layerCount = 1;
 			copy.imageExtent = { uint32_t(pix[i].width()), uint32_t(pix[i].height()), 1 };
 			vkCmdCopyBufferToImage(cmd,
-				stagingBuffer, vkTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+				stagingBuffer, tex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 			offset += pix[i].length();
 		}
 
 		if (generateMipmaps) {
-			vkTex->generateMipmaps(cmd);
+			tex->generateMipmaps(cmd);
 		} else {
-			vkTex->transitionLayout(cmd,
+			tex->transitionLayout(cmd,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, imageLevels);
 		}
 
 		vk_call(vkEndCommandBuffer, cmd);
-		vk_call(vk_submitCommand, &cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
+		vk_call(submitCommand, &cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
 			ScopeLock lock(_mutex);
 			vkDestroyBuffer(_device, stagingBuffer, nullptr);
 			vkFreeMemory(_device, stagingMemory, nullptr);
@@ -430,7 +475,8 @@ namespace qk {
 		}));
 
 		VulkanRenderResource::unloadTexture(out);
-		out->set_ptr(vkTex);
+		tex->ref();
+		out->set_ptr(tex);
 		return true;
 	}
 
@@ -541,7 +587,7 @@ namespace qk {
 			0, 0, nullptr, 1, &barrier, 0, nullptr);
 
 		vk_call(vkEndCommandBuffer, cmd);
-		vk_call(vk_submitCommand, &cmd,
+		vk_call(submitCommand, &cmd,
 			Cb([this, stagingBuffer, stagingMemory, cmd](auto e) {
 				ScopeLock lock(_mutex);
 				vkDestroyBuffer(_device, stagingBuffer, nullptr);
@@ -549,6 +595,7 @@ namespace qk {
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
 			})
 		);
+		vertex->ref();
 		id->ptr = vertex;
 		return true;
 	}

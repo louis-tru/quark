@@ -104,7 +104,7 @@ namespace qk {
 		void cancel_marked() {
 			Qk_DLog("IME cancel_marked");
 			if (_isOpen && _ic) {
-				if (!_preeditString.is_empty()) {
+				if (!_preeditString.isEmpty()) {
 					_preeditString = String();
 					_win->dispatch()->onImeUnmark(String());
 				}

@@ -42,17 +42,38 @@
 
 #define vk_call(call, ...) \
 	result = call(__VA_ARGS__); if (result != VK_SUCCESS) return fail()
+#define vk_call_if(call, ...) if (!call(__VA_ARGS__)) return fail()
 
 namespace qk {
 	class VulkanRenderResource;
 	class VulkanRender;
 	struct VkCmdPack;
+	struct VkTexture;
+
+	inline void vk_check(const char *call, VkResult result) {
+		Qk_CHECK(result == VK_SUCCESS, "%s failed: %d", call, int(result));
+	}
 
 	struct VkRef {
-		std::atomic_int refCount{1}; // refCount starts at 1 when created
+		std::atomic_int refCount{0}; // ownership is added explicitly when the handle is published
 		virtual ~VkRef() = default;
 		void ref();
 		void unref();
+	};
+
+	struct VkTextureLevelInfo {
+	private:
+		std::atomic<VkImageView> view;
+		std::atomic<VkFramebuffer> framebuffer;
+	public:
+		VkImageLayout layout;
+		VkTextureLevelInfo(VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED)
+			: layout(layout), view(VK_NULL_HANDLE), framebuffer(VK_NULL_HANDLE) {}
+		VkTextureLevelInfo(VkTextureLevelInfo&& value)
+			: VkTextureLevelInfo(value.layout) {}
+		VkTextureLevelInfo(const VkTextureLevelInfo& value)
+			: VkTextureLevelInfo(value.layout) {}
+		friend class VkTexture;
 	};
 
 	struct VkTexture: VkRef {
@@ -61,10 +82,12 @@ namespace qk {
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VkExtent2D extent;
 		VkFormat format;
-		uint32_t mipLevels;
 		VkImageUsageFlags usage;
-		Array<VkImageLayout> layouts;
+		Array<VkTextureLevelInfo> levels;
 		~VkTexture() override;
+		VkImageView levelView(uint32_t level = 0);
+		VkFramebuffer framebuffer(uint32_t level = 0);
+		uint32_t mipLevels() const { return levels.length(); }
 		Vec2 size() const { return Vec2(extent.width, extent.height); }
 		bool transitionLayout(VkCommandBuffer cmd, VkImageLayout newLayout,
 			uint32_t level = 0, uint32_t levelCount = 1);
@@ -75,12 +98,27 @@ namespace qk {
 	struct ObjectTraits<VkTexture>: ObjectTraitsBase<VkTexture> {
 		static constexpr bool isRef = true;
 		inline static void Retain(VkTexture* tex) {
-			tex->ref();
+			if (tex)
+				tex->ref();
 		}
 		inline static void Release(VkTexture* tex) {
-			tex->unref();
+			if (tex)
+				tex->unref();
 		}
 	};
+
+	template<>
+	inline void ObjectTraitsBase<VkFramebuffer_T>::Retain(VkFramebuffer obj) {}
+	template<>
+	inline void ObjectTraitsBase<VkFramebuffer_T>::Release(VkFramebuffer obj) {
+		Qk_ASSERT(0, "Disable Release VkFramebuffer from ObjectTraitsBase, use vkDestroyFramebuffer instead");
+	}
+	template<>
+	inline void ObjectTraitsBase<VkImageView_T>::Retain(VkImageView obj) {}
+	template<>
+	inline void ObjectTraitsBase<VkImageView_T>::Release(VkImageView obj) {
+		Qk_ASSERT(0, "Disable Release VkImageView from ObjectTraitsBase, use vkDestroyImageView instead");
+	}
 
 	struct VkVertexBuffer: VkRef {
 		VkBuffer buffer = VK_NULL_HANDLE;
@@ -94,6 +132,14 @@ namespace qk {
 		VkResult result;
 		std::atomic_int refCount;
 		std::atomic_bool completed;
+		VkSubmitResult(VkFence fence, VkResult result, int refCount, bool completed)
+			: fence(fence), result(result), refCount(refCount), completed(completed) {}
+		VkSubmitResult(VkSubmitResult&& value)
+			: fence(value.fence)
+			, result(value.result)
+			, refCount(value.refCount.load(std::memory_order_relaxed))
+			, completed(value.completed.load(std::memory_order_relaxed)) {}
+		VkSubmitResult(const VkSubmitResult&) = delete;
 		inline void ref() {
 			refCount.fetch_add(1, std::memory_order_relaxed);
 		}
@@ -115,10 +161,6 @@ namespace qk {
 
 	extern uint32_t vk_uniformBufferAlignment;
 
-	inline void vk_check(const char *call, VkResult result) {
-		Qk_CHECK(result == VK_SUCCESS, "%s failed: %d", call, int(result));
-	}
-
 	inline VkTexture* vk_cast_texture(cTexStat *texStat) {
 		return static_cast<VkTexture*>(texStat->ptr());
 	}
@@ -139,6 +181,11 @@ namespace qk {
 	);
 
 	bool vk_supportsDeviceExtension(VkPhysicalDevice device, const char *extension);
+
+	void vk_logDeviceInfo(VkPhysicalDevice device);
+
+	bool vk_createDevice(VkPhysicalDevice physicalDevice,
+		uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport);
 
 	uint32_t vk_mipLevelCount(Vec2 size);
 
@@ -182,8 +229,6 @@ namespace qk {
 	// A simple Vulkan application that draws a single color to the screen.
 	VkResult vk_beginCommandBuffer(VkDevice device, VkCommandPool pool, VkCommandBuffer *cmd,
 		VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-	VkResult vk_submitCommand(const VkCommandBuffer* cmd, Cb cb);
 
 	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve = 0);
 

@@ -249,17 +249,17 @@ class IosGLRender final: public GLRender, public RenderSurface {
 
 namespace qk {
 
-	static IosGLRender* g_sharedRenderResource = nullptr;
+	static IosGLRender* g_sharedIosGLRender = nullptr;
 
 	void* acquireRenderBackendStorage(size_t typeHash, size_t size);
 
-	RenderResource* getSharedRenderResource() {
-		return g_sharedRenderResource;
+	RenderResource* get_shared_gl_render_resource() {
+		return g_sharedIosGLRender;
 	}
 
 	Render* make_gl_render(Render::Options opts) {
 		// iOS only allows one window and one drawing context
-		Qk_CHECK(!g_sharedRenderResource,
+		Qk_CHECK(!g_sharedIosGLRender,
 			"The iOS system only allows one window and one drawing context"
 		);
 
@@ -276,15 +276,15 @@ namespace qk {
 		auto mem = acquireRenderBackendStorage(typeid(IosGLRender).hash_code(), sizeof(IosGLRender));
 		// iOS only create one window and one drawing context
 		// so we use a render backend as shared render resource
-		g_sharedRenderResource = new(mem) IosGLRender(opts, ctx);
+		g_sharedIosGLRender = new(mem) IosGLRender(opts, ctx);
 
-		g_sharedRenderResource->post_message(Cb([ctx](auto e) {
+		g_sharedIosGLRender->post_message(Cb([ctx](auto e) {
 			// Ensure the GL context is current on the render thread.
 			// (Context binding is thread-local on iOS)
 			[EAGLContext setCurrentContext:ctx];
 		}));
 
-		return g_sharedRenderResource;
+		return g_sharedIosGLRender;
 	}
 }
 #endif // #if Qk_ENABLE_GL
