@@ -78,11 +78,12 @@ namespace qk {
 
 		struct Cmd { // Cmd list
 			uint32_t       size; // cmd size
-			CmdType        type; // cmd type
 			uint32_t       flags; // cmd flags, maybe used for AA, etc
+			CmdType        type; // cmd type
 		};
 
 		struct DrawCmd: Cmd { // draw base cmd
+			Vec2           vPos; // view position
 			VertexData     vertex;
 		};
 
@@ -138,6 +139,7 @@ namespace qk {
 			Rect       rect;
 			float      radius[4];
 			Color4f    color;
+			Vec2       vPos;
 			float      blur;
 		};
 
@@ -169,6 +171,7 @@ namespace qk {
 		};
 
 		struct alignas(void*) TrianglesCmd: Cmd {
+			Vec2           vPos;
 			Triangles      triangles;
 			PaintImage     paint;
 			Color4f        color;

@@ -49,13 +49,11 @@ namespace qk {
 	}
 
 	void setViewMatrixFromEnc(MTLEncoder enc, const Mat &mat, uint32_t index = 2) {
-		float vm4x4[16] = {
-			mat[0], mat[3], 0.0, 0.0,
-			mat[1], mat[4], 0.0, 0.0,
-			0.0,    0.0,    1.0, 0.0,
-			mat[2], mat[5], 0.0, 1.0
+		float vm2x2[4] = {
+			mat[0], mat[3],
+			mat[1], mat[4],
 		}; // transpose matrix
-		[enc setVertexBytes:vm4x4 length: sizeof(vm4x4) atIndex:index];
+		[enc setVertexBytes:vm2x2 length: sizeof(vm2x2) atIndex:index];
 	}
 
 	MetalCanvas::MetalCanvas(MetalRender *render, Render::Options opts)
@@ -182,7 +180,7 @@ namespace qk {
 		setViewMatrixFromEnc(_cmdPack.enc, _state->matrix);
 		// set clip texture for new encoder if clip state exists
 		if (_clipState) {
-			MSLColor::ClipStatBlock clipStat = { *(Vec4*)_clipState->bounds.begin.val, _clipState->op };
+			MSLColor::ClipStatBlock clipStat = { _clipState->bounds.iVec4(), _clipState->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*_clipState->mask) atIndex:0];
 			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];

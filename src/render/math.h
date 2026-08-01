@@ -317,6 +317,10 @@ namespace qk {
 	#undef Qk_Vec_Operator
 
 	// ------------------------------------------
+	typedef Vec<float,4>      Vec4; // typedef vec
+	typedef Vec<int,4>        IVec4;
+	typedef Vec<int,2>        IVec2;
+	typedef Vec<int,3>        IVec3;
 
 	template<typename T> struct MRect { T begin,size; }; // rect
 	template<typename T> struct MRange { // range
@@ -331,6 +335,7 @@ namespace qk {
 		inline MRange join(const MRange &b) const;
 		inline bool isEmpty() const { return begin.x() >= end.x() || begin.y() >= end.y(); }
 		inline MRange offset(T offset) const { return {begin + offset, end + offset}; }
+		inline IVec4 iVec4() const { return IVec4(begin.x(), begin.y(), end.x(), end.y()); }
 	};
 	template<typename T> struct MRegion {
 		// range = (origin+begin, origin+end), size = end - begin
@@ -338,14 +343,10 @@ namespace qk {
 	};
 	template<typename T> struct MLimitRange { T min,max; }; // limit range
 
-	typedef Vec<float,4>      Vec4; // typedef vec
 	typedef MRect<Vec2>       Rect; // typedef rect
 	typedef MRange<Vec2>      Range; // typedef range
 	typedef MRegion<Vec2>     Region; // typedef region
 	typedef MLimitRange<Vec2> LimitRange; // typedef limit range
-	typedef Vec<int,2>        IVec2;
-	typedef Vec<int,3>        IVec3;
-	typedef Vec<int,4>        IVec4;
 	typedef MRect<IVec2>      IRect;
 	typedef MRange<IVec2>     IRange;
 

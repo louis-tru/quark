@@ -261,7 +261,8 @@ namespace qk {
 
 	void VulkanCanvas::setViewMatrixBuffer() {
 		Qk_ASSERT(_cmdPack->renderPass, "Vulkan render pass should be begun before setting view matrix buffer");
-		SpvColor::ViewMatrixBlock view{ .value = Mat4(_state->matrix).transpose() };
+		auto vMat = _state->matrix.val;
+		SpvColor::ViewMatrixBlock view{ .value = Vec4(vMat[0], vMat[3], vMat[1], vMat[4]) };
 		auto oldBuff = _cmdPack->buffers[1].buffer;
 		_cmdPack->buffers[1] = makeBufferInfoT(_cmdPack, &view);
 		if (_cmdPack->buffers[1].buffer != oldBuff)
@@ -369,17 +370,18 @@ namespace qk {
 
 		// Update uniform buffer descriptor sets
 		if (allocBuff) {
+			auto vMat = _state->matrix.val;
 			SpvColor::RootMatrixBlock root{
 				.value = _rootMatrix.transpose(),
 				.noScale = _rootMatrixNoScale.transpose(),
 				.surfaceScale = _surfaceScale,
 			};
 			SpvColor::ViewMatrixBlock view{
-				.value = Mat4(_state->matrix).transpose(),
+				.value = Vec4(vMat[0], vMat[3], vMat[1], vMat[4]),
 			};
 			SpvColor::ClipStatBlock clip{};
 			if (_clipState) {
-				clip.bounds = *(Vec4*)_clipState->bounds.begin.val;
+				clip.bounds = _clipState->bounds.iVec4();
 				clip.op = _clipState->op;
 			}
 			_cmdPack->buffers[0] = makeBufferInfoT(_cmdPack, &root);

@@ -135,6 +135,7 @@ namespace qk {
 		Render* render() { return _render; }
 		uint32_t capaMaxImageCount() const { return _capaMaxImageCount; }
 		inline Color4f premul_alpha(const Color4f &color) const { return color.premul_alpha(); }
+		inline Vec2 vPos() const { return _state->matrix.getTranslate(); }
 	protected:
 		void setCAPAMaxImageCount(uint32_t count);
 		virtual void setSurfaceCmd(bool changeSize) = 0;

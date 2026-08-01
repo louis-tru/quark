@@ -239,7 +239,7 @@ namespace qk {
 						}
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
-							drawColor(c->vertex, c->color, {0}, c->flags);
+							drawColor(c->vertex, c->color, c->vPos, {0}, c->flags);
 							c->~ColorCmd();
 							break;
 						}
@@ -354,15 +354,12 @@ namespace qk {
 		}
 
 		void setMatrixCall(const Mat &mat) {
-			const float m4x4[16] = {
-				mat[0], mat[3], 0.0, 0.0,
-				mat[1], mat[4], 0.0, 0.0,
-				0.0,    0.0,    1.0, 0.0,
-				mat[2], mat[5], 0.0, 1.0
+			const float m2x2[4] = {
+				mat[0], mat[3],
+				mat[1], mat[4],
 			}; // transpose matrix
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubovMat);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 16, m4x4, GL_DYNAMIC_DRAW);
-			// glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float) * 16, m4x4); // for sync
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 4, m2x2, GL_DYNAMIC_DRAW);
 		}
 
 		void switchStateCall(GLenum id, bool isEnable) {
@@ -396,6 +393,7 @@ namespace qk {
 			Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
 
 			glUseProgram(sh->shader); // use shader program
+			glUniform2fv(sh->pc_vPos, 1, cmd->vPos.val);
 			glUniform4fv(sh->pc_color, 1, cmd->color.val);
 			glUniform1f(sh->pc_min_edge, min_edge);
 			glUniform1f(sh->pc_s_inv, 1.0/s); // 1/s blur size reciprocal
@@ -450,6 +448,7 @@ namespace qk {
 						glUniform1i(yuv->pc_format, 0); // yuv420sp
 					}
 					glUniform4fv(yuv->pc_color, 1, cmd->color.val);
+					glUniform2fv(yuv->pc_vPos, 1, cmd->vPos.val);
 					glUniform4fv(yuv->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(yuv->pc_flags, cmd->flags);
 				} else {
@@ -461,6 +460,7 @@ namespace qk {
 					glUniform4fv(s->pc_color, 1, cmd->color.val);
 					glUniform4fv(s->pc_strokeColor, 1,
 						cmd->strokeWidth <= 0 ? cmd->color.val: cmd->strokeColor.val);
+					glUniform2fv(s->pc_vPos, 1, cmd->vPos.val);
 					glUniform1f(s->pc_strokeWidth, cmd->strokeWidth);
 					glUniform4fv(s->pc_texCoords, 1, cmd->paint.coord.begin.val);
 					glUniform1ui(s->pc_flags, cmd->flags
@@ -484,6 +484,7 @@ namespace qk {
 				s->use(cmd->triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), cmd->triangles.verts);
 				glUniform1ui(s->pc_flags, cmd->flags | (cmd->triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0));
 				glUniform4fv(s->pc_color, 1, cmd->color.val);
+				glUniform2fv(s->pc_vPos, 1, cmd->vPos.val);
 				// glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * cmd->triangles.indexCount, cmd->triangles.indices, GL_DYNAMIC_DRAW);
@@ -500,6 +501,7 @@ namespace qk {
 				(cmd->paint.type == PaintGradient::kRadial_Type ? Qk_FLAG_RADIAL_GRADIENT: 0));
 			glUniform4fv(s->pc_color, 1, cmd->color.val);
 			glUniform4fv(s->pc_range, 1, cmd->paint.origin.val);
+			glUniform2fv(s->pc_vPos, 1, cmd->vPos.val);
 			glUniform1i(s->pc_count, count);
 			glBindBuffer(GL_UNIFORM_BUFFER, _render->_ubo0);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(Color4f) * count, (const GLfloat*)cmd->paint.colors, GL_DYNAMIC_DRAW);
@@ -520,14 +522,14 @@ namespace qk {
 
 			auto drawClipMask = [&](bool black, bool clip) {
 				auto scale = Vec2(1) / cmd->surfaceScale;
-				Vec4 surface = {-begin.x(), -begin.y(), scale.x(), scale.y()};
+				Vec4 offset = {-begin.x(), -begin.y(), scale.x(), scale.y()};
 				// Difference clip cannot directly render solid black with AA,
 				// otherwise edge blending becomes incorrect.
 				// Instead, invert the AA coverage curve.
 				// This produces a smooth subtractive mask edge.
 				int flags = black ? Qk_FLAG_AASIDE_Inverted : 0; // Qk_FLAG_AASIDE_Inverted
 				flags |= Qk_CLIP(clip); // set clip flag if have clip
-				drawColor(cmd->vertex, Color4f{1,1,1,1}, surface, flags);
+				drawColor(cmd->vertex, Color4f{1,1,1,1}, cmd->vPos, offset, flags);
 			};
 			if (cmd->rawOp == Canvas::kIntersect_ClipOp || !last) {
 				// clear clipTex with black color
@@ -553,10 +555,7 @@ namespace qk {
 			glActiveTexture(GL_TEXTURE0);
 			glBindSampler(0, 0);
 			if (clip) {
-				GLSLColor::ClipStatBlock clipStat = {
-					*(Vec4*)clip->bounds.begin.val,
-					clip->op,
-				};
+				GLSLColor::ClipStatBlock clipStat = { clip->bounds.iVec4(), clip->op };
 				glBindBuffer(GL_UNIFORM_BUFFER, _render->_uboClip);
 				glBufferData(GL_UNIFORM_BUFFER, sizeof(clipStat), &clipStat, GL_DYNAMIC_DRAW);
 				glBindTexture(GL_TEXTURE_2D, gl_get_texture(clip->mask.get()));
@@ -583,11 +582,12 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 
-		void drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
+		void drawColor(const VertexData &vertex, const Color4f &color, Vec2 vPos, Vec4 offset, uint32_t flags) {
 			auto s = &_render->_shaders.color;
 			useShaderProgram(s, vertex);
 			glUniform4fv(s->pc_color, 1, color.val);
 			glUniform4fv(s->pc_surfaceOffset, 1, offset.val);
+			glUniform2fv(s->pc_vPos, 1, vPos.val);
 			glUniform1ui(s->pc_flags, flags);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 		}
@@ -986,6 +986,7 @@ namespace qk {
 		if (vertex.vertex.length() == 0) {
 #endif
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
+			cmd->vPos = _canvas->vPos();
 			cmd->type = kColor_CmdType;
 			cmd->vertex = vertex;
 			cmd->color = premul_alpha(color);
@@ -1025,19 +1026,11 @@ namespace qk {
 
 				// copy vertex data
 				while (p < p_1) {
-#if DEBUG
-					#define Qk_CopyVec() *p = \
-						*((Vec4*)(cpSrc)); p->val[3] = subcmd; p++,cpSrc++
-#else
-					#define Qk_CopyVec() *p = {\
-						cpSrc->val[0],cpSrc->val[1],cpSrc->val[2],subcmd\
-					}; p++,cpSrc++
-#endif
-					Qk_CopyVec();
-					Qk_CopyVec();
-					Qk_CopyVec();
-					Qk_CopyVec();
-					#undef Qk_CopyVec
+					*p = {
+						cpSrc->val[0], cpSrc->val[1], cpSrc->val[2], subcmd
+					};
+					p++;
+					cpSrc++;
 				}
 				cmd->vCount += cpLen;
 				cmd->subcmd++;
@@ -1049,6 +1042,7 @@ namespace qk {
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
 		cmd->type = kRRectBlurColor_CmdType;
+		cmd->vPos = _canvas->vPos();
 		cmd->rect = rect;
 		cmd->radius[0] = radius[0];
 		cmd->radius[1] = radius[1];
@@ -1062,6 +1056,7 @@ namespace qk {
 		_this->flushSubcanvas(info.paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
+		cmd->vPos = _canvas->vPos();
 		cmd->vertex = vertex;
 		cmd->color = premul_alpha(info.color);
 		cmd->strokeColor = premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor);
@@ -1077,6 +1072,7 @@ namespace qk {
 		_this->flushSubcanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
 		cmd->type = kTriangles_CmdType;
+		cmd->vPos = _canvas->vPos();
 		cmd->triangles = triangles;
 		cmd->paint = *paint;
 		cmd->color = color;
@@ -1107,6 +1103,7 @@ namespace qk {
 			colors[i] = premul_alpha(colors[i]); // premul alpha
 		}
 		cmd->type = kGradient_CmdType;
+		cmd->vPos = _canvas->vPos();
 		cmd->vertex = vertex;
 		cmd->color = premul_alpha(color);
 		cmd->paint = *paint;
@@ -1118,6 +1115,7 @@ namespace qk {
 			GC_State::Clip *lastClip, GC_State::Clip *clip, Canvas::ClipOp rawOp) {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
+		cmd->vPos = _canvas->vPos();
 		cmd->vertex = vertex;
 		cmd->lastClip = lastClip; // last clip state
 		cmd->clip = clip;

@@ -176,9 +176,9 @@ namespace qk {
 		}
 
 		/**
-		 * @method set_fullscreen(fullscreen)
+		 * @method requestFullscreen(fullscreen)
 		*/
-		void setFullscreen(bool fullscreen);
+		void requestFullscreen(bool fullscreen);
 
 		/**
 		* @method setCursorStyle

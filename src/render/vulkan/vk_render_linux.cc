@@ -294,11 +294,11 @@ namespace qk {
 				return false;
 
 			auto fail = [&]() {
-				if (_swapchain)
-					destroySwapchain();
+				destroySwapchain();
 				return false;
 			};
 
+			Qk_ASSERT_EQ(_swapchain, VK_NULL_HANDLE, "Vulkan swapchain must be null before creation");
 			Qk_ASSERT_EQ(_swapchainImages.length(), 0,
 				"Vulkan swapchain images must be empty before creation");
 
@@ -338,8 +338,6 @@ namespace qk {
 				return false;
 
 			uint32_t imageCount = capabilities.minImageCount;
-			if (capabilities.maxImageCount)
-				imageCount = U32::min(imageCount, capabilities.maxImageCount);
 
 			VkCompositeAlphaFlagBitsKHR compositeAlpha =
 				VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -408,6 +406,8 @@ namespace qk {
 		}
 
 		void destroySwapchain(bool waitIdle = false) {
+			if (!_swapchain)
+				return;
 			if (waitIdle)
 				_resource->queueWaitIdle();
 			for (auto &image: _swapchainImages) {

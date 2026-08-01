@@ -1,14 +1,13 @@
 Qk_CONSTANT(
 	vec4 color;
-	vec4 surfaceOffset;
+	highp vec4 surfaceOffset;
+	highp vec2 vPos;
 );
 
 #vert
 void main() {
 	aaSide = aaSideIn;
-	vec4 pos = vMat.value * vec4(vertexIn.xy, 0.0, 1.0);
-	pos.xy += pc.surfaceOffset.xy * pc.surfaceOffset.zw;
-	gl_Position = rMat.value * pos;
+	gl_Position = rMat.value * vPosition(pc.vPos + pc.surfaceOffset.xy * pc.surfaceOffset.zw);
 }
 
 #frag
@@ -22,7 +21,7 @@ void main() {
 
 	// apply clipping if enabled
 	if ((pc.flags & Qk_FLAG_CLIP) != 0)
-		coverage *= clipCoverage(gl_FragCoord.xy-pc.surfaceOffset.xy);
+		coverage *= clipCoverage(ivec2(gl_FragCoord.xy - pc.surfaceOffset.xy));
 
 	fragColor = pc.color * coverage;
 }

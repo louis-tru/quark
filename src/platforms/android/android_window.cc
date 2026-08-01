@@ -511,7 +511,7 @@ namespace qk {
 		}), false);
 	}
 
-	void Window::setFullscreen(bool fullscreen) {
+	void Window::requestFullscreen(bool fullscreen) {
 		Android_set_fullscreen(fullscreen);
 	}
 

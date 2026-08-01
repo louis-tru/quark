@@ -215,15 +215,6 @@ namespace qk {
 		 */
 		void wheel(Vec2 delta);
 
-		/**
-		 * Get the current scroll transformation matrix.
-		 *
-		 * @return Reference to the scroll matrix
-		 */
-		const Mat& scrollMatrix() {
-			return _scrollMatrix;
-		}
-
 	protected:
 		ScrollView(Box *host);
 		~ScrollView();
@@ -249,9 +240,6 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 		friend class Painter;
-
-		/** Scroll offset transformation matrix, self matrix + scroll offset */
-		Mat _scrollMatrix;
 
 		/** Active animation/momentum tasks */
 		List<Task*> _tasks;

@@ -1,5 +1,6 @@
 Qk_CONSTANT(
 	vec4 color;
+	highp vec2 vPos;
 );
 
 #vert
@@ -13,7 +14,7 @@ layout(location=2) out vec4 light;
 layout(location=3) out vec4 dark;
 
 void main() {
-	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	gl_Position = rMat.value * vPosition(pc.vPos);
 	texCoords = texCoordsIn;
 	light = lightColorIn * pc.color;
 	dark = darkColorIn;

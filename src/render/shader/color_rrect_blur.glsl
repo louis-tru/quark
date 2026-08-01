@@ -5,6 +5,7 @@
 // https://en.wikipedia.org/wiki/Squircle
 
 Qk_CONSTANT(
+	highp vec2 vPos;
 	vec2  horn; // horn pos, left/top,right/top,right/bottom,left/bottom
 	vec4  color;
 	vec3  consts; // consts
@@ -15,8 +16,8 @@ Qk_CONSTANT(
 #vert
 layout(location=1) out vec2 pos_f;
 void main() {
-	pos_f = vertexIn.xy;
-	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	pos_f = vertexIn;
+	gl_Position = rMat.value * vPosition(pc.vPos);
 }
 
 #frag

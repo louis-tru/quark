@@ -134,7 +134,7 @@ namespace qk {
 		if (_cmdPack.enc == nil)
 			return;
 		if (clip) {
-			MSLColor::ClipStatBlock clipStat = { *(Vec4*)clip->bounds.begin.val, clip->op };
+			MSLColor::ClipStatBlock clipStat = { clip->bounds.iVec4(), clip->op };
 			[_cmdPack.enc setFragmentBytes:&clipStat length:sizeof(clipStat) atIndex:3];
 			[_cmdPack.enc setFragmentTexture:mtl_get_texture_from(*clip->mask) atIndex:0];
 			[_cmdPack.enc setFragmentSamplerState:_mtlrender->_nearestSampler atIndex:0];
@@ -164,7 +164,7 @@ namespace qk {
 	void MetalCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
 		auto enc = usePipeline(_shaders.color, vertex); // use shader and set vertex buffer for vertex data
 		// set color and other args for shader push constants
-		MSLColor::PcArgs pc{ color, offset, flags };
+		MSLColor::PcArgs pc{ color, offset, vPos(), flags };
 		[enc setVertexBytes:&pc length: sizeof(pc) atIndex:0];
 		[enc setFragmentBytes:&pc length: sizeof(pc) atIndex:0];
 		// draw a full-screen triangle for clear
@@ -254,6 +254,7 @@ namespace qk {
 			MSLImageYuv::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
+				.vPos=vPos(),
 				.format=format,
 				.flags=_flags
 			};
@@ -267,6 +268,7 @@ namespace qk {
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
 				.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
+				.vPos=vPos(),
 				.strokeWidth=info.stroke,
 				.alphaIndex=info.kind == kMask_DrawKind ?
 					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
@@ -291,6 +293,7 @@ namespace qk {
 		MSLColorGradient::PcArgs pc{
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),
+			.vPos=vPos(),
 			.count=count,
 			.flags=_flags |
 				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
@@ -327,6 +330,7 @@ namespace qk {
 			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
 			float n = 2.0 * r1 / r0;
 			MSLColorRrectBlur::PcArgs pc{
+				vPos(),
 				horn,
 				color,
 				{ Vec3(r1, n, 1.0 / n), 0 },
@@ -359,8 +363,9 @@ namespace qk {
 			return;
 
 		MSLTriangles::PcArgs pc{
-			color,
-			_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
+			.color=color,
+			.vPos=vPos(),
+			.flags=_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
 		};
 		[enc setVertexBuffer:vbuf offset:0 atIndex:shader.bufferIndex];
 		[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];

@@ -93,7 +93,7 @@ namespace qk {
 			_origin = origin;
 		}
 		inline Rect getRect(Box* v) {
-			return {_origin, {v->_client_size[0], v->_client_size[1]}};
+			return {_origin, v->_client_size};
 		}
 		inline void resetBoxData() {
 			_boxData = BoxData(); // reset box data
@@ -104,13 +104,8 @@ namespace qk {
 		inline View::Container& reuseContainer() {
 			return _reuseContainer;
 		}
-		inline Vec2 getTranslate() {
-			return Vec2(_matrix->val[2], _matrix->val[5]);
-		}
 		inline void setPosition(Vec2 pos) {
-			// set origin from position, because the matrix may have been translated,
-			// so we need to subtract the translation value
-			set_origin(pos - getTranslate());
+			_canvas->setTranslate(pos);
 		}
 	private:
 		Render     *_render;

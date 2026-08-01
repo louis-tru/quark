@@ -163,13 +163,10 @@ namespace qk {
 			vkDestroyFence(_device, result.fence, nullptr);
 		}
 		_emptyTexture = nullptr;
-		if (_commandPool)
-			vkDestroyCommandPool(_device, _commandPool, nullptr);
-		if (_pipelineCache)
-			vkDestroyPipelineCache(_device, _pipelineCache, nullptr);
+		vkDestroyCommandPool(_device, _commandPool, nullptr);
+		vkDestroyPipelineCache(_device, _pipelineCache, nullptr);
 		vkDestroyDevice(_device, nullptr);
-		if (_instance)
-			vkDestroyInstance(_instance, nullptr);
+		vkDestroyInstance(_instance, nullptr);
 	}
 
 	inline VkShader& VulkanRenderResource::getShader(VkPipelineKind kind) {

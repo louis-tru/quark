@@ -2,6 +2,7 @@ Qk_CONSTANT(
 	highp vec4 texCoords; /* offset, scale */
 	vec4 color;
 	vec4 strokeColor;
+	highp vec2 vPos;
 	float strokeWidth;
 	int alphaIndex;
 );
@@ -16,11 +17,11 @@ layout(location=3) out vec2 coords; // texture coordinates uv for fragment shade
 
 void main() {
 	aaSide = aaSideIn;
-	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	gl_Position = rMat.value * vPosition(pc.vPos);
 	// Qk uses screen-space coordinates internally.
 	// Intermediate render targets keep the same memory orientation as uploaded images.
 	// Do not flip Y here; backend-specific Y correction is applied only at final present.
-	coords = (pc.texCoords.xy + vertexIn.xy) / pc.texCoords.zw; // coord uv
+	coords = (pc.texCoords.xy + vertexIn) / pc.texCoords.zw; // coord uv
 }
 
 #frag
@@ -31,7 +32,7 @@ void main() {
 	if ((pc.flags & Qk_FLAG_IMAGE_SDF_MASK) != 0) {
 		float dist = texture(image, coords).r;
 		float width = max(fwidth(dist), 1e-4);
-		float alpha = smoothstep(pc.strokeWidth + width, pc.strokeWidth, dist);
+		float alpha = 1.0 - smoothstep(pc.strokeWidth, pc.strokeWidth + width, dist);
 		fragColor = mix(pc.color, pc.strokeColor, dist) * alpha;
 	} else if ((pc.flags & Qk_FLAG_IMAGE_MASK) != 0) {
 		fragColor = pc.color * texture(image, coords)[pc.alphaIndex];

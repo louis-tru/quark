@@ -39,11 +39,11 @@ class TestCanvas0: public Box {
 		// -------- clip ------
 		canvas->save();
 
-		if (1) { // clip
+		if (0) { // clip
 			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
-		if (1) { // gradient
+		if (0) { // gradient
 			Paint paint;
 			Color4f colors[] = {Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
 			float   pos[]    = {0,0.5,1};
@@ -60,7 +60,7 @@ class TestCanvas0: public Box {
 			canvas->restore();
 		}
 
-		if (1) { // Circle
+		if (0) { // Circle
 			paint.fill.gradient = nullptr;
 			paint.fill.color = Color4f(0, 0, 1, 0.5);
 			canvas->drawPath(Path::MakeCircle(0, 100), paint);
@@ -68,7 +68,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(Path::MakeOval({0, {100, 200}}), paint);
 		}
 
-		if (1) { // -------- clip ------
+		if (0) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
 			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
@@ -76,7 +76,7 @@ class TestCanvas0: public Box {
 
 		canvas->translate(size*-0.5);
 
-		if (1) { // polygon
+		if (0) { // polygon
 			paint.fill.color = Color4f(0, 0, 0, 0.5);
 			Path path(   Vec2(110, size.y() - 150) );
 			path.lineTo( Vec2(size.x()*0.5, 0) );
@@ -89,7 +89,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(path, paint);
 		}
 
-		if (1) { // Arc
+		if (0) { // Arc
 			paint.fill.color = Color4f(0, 1, 0, 0.8);
 			canvas->drawPath(Path::MakeArc({Vec2(500, 420), Vec2(200, 100)}, 0, 4.5, 1), paint);
 			paint.fill.color = Color4f(1, 0, 1, 0.8);
@@ -99,7 +99,7 @@ class TestCanvas0: public Box {
 		}
 
 		if (1) { // font blob
-			paint.fill.color = Color4f(255,0,255);
+			paint.fill.color = Color4f(0,0,0);
 			paint.stroke.color = Color4f(0,0,0);
 			paint.strokeWidth = 5;
 			paint.style = Paint::kStroke_Style;
@@ -129,7 +129,7 @@ class TestCanvas0: public Box {
 			}
 		}
 
-		if (1) { // outline
+		if (0) { // outline
 			// paint.antiAlias = false;
 			paint.style = Paint::kStrokeAndFill_Style;
 			paint.stroke.color = Color4f(0,0,0,0.3);

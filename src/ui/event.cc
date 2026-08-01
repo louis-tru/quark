@@ -896,7 +896,7 @@ namespace qk {
 					if ( code == KEYCODE_ENTER ) {
 						_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, **evt);
 					} else if (code == KEYCODE_ESC) {
-						host->window()->setFullscreen(false);
+						host->window()->requestFullscreen(false);
 					} else if ( code == KEYCODE_VOLUME_UP ) {
 						host->setVolumeUp();
 					} else if ( code == KEYCODE_VOLUME_DOWN ) {

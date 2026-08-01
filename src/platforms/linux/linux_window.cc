@@ -259,7 +259,7 @@ namespace qk {
 			setXwindowAttributes();
 		}
 
-		void setFullscreen(bool fullscreen) {
+		void requestFullscreen(bool fullscreen) {
 			if (fullscreen) {
 				if (_xset.override_redirect == False) {
 					auto screen = DefaultScreen(_xdpy);
@@ -420,10 +420,10 @@ namespace qk {
 	void Window::pending() {
 	}
 
-	void Window::setFullscreen(bool fullscreen) {
+	void Window::requestFullscreen(bool fullscreen) {
 		post_message_main(Cb([this, fullscreen](auto e) {
 			if (!_impl) return;
-			_platform(_impl)->setFullscreen(fullscreen);
+			_platform(_impl)->requestFullscreen(fullscreen);
 		}, this), false);
 	}
 

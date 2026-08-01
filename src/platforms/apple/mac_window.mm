@@ -403,7 +403,7 @@ void Window::pending() {
 	// Noop
 }
 
-void Window::setFullscreen(bool fullscreen) {
+void Window::requestFullscreen(bool fullscreen) {
 	post_message_main(Cb([this,fullscreen](auto e) {
 		if (!_impl) return;
 		auto uiwin = _impl->delegate().uiwin;

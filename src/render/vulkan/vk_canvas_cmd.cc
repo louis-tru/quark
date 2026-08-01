@@ -126,7 +126,7 @@ namespace qk {
 		if (_cmdPack->renderPass == VK_NULL_HANDLE)
 			return; // no render pass, no need to set clip
 		if (clip) {
-			MSLColor::ClipStatBlock clipStat = { *(Vec4*)clip->bounds.begin.val, clip->op };
+			MSLColor::ClipStatBlock clipStat = { clip->bounds.iVec4(), clip->op };
 			_cmdPack->buffers[2] = makeBufferInfoT(_cmdPack, &clipStat);
 			_clipState = clip; // set current clip state
 			updateCommonDescriptorSet(false);
@@ -153,7 +153,7 @@ namespace qk {
 	void VulkanCanvas::drawColor(const VertexData &vertex, const Color4f &color, Vec4 offset, uint32_t flags) {
 		auto &shader = _shaders.color;
 		auto cmd = usePipeline(shader, vertex);
-		SpvColor::PcArgs pc{color, offset, flags};
+		SpvColor::PcArgs pc{color, offset, vPos(), flags};
 		vkCmdPushConstants(cmd, shader.layout(), shader.pc.stages, 0, sizeof(pc), &pc);
 		vkCmdDraw(cmd, vertex.vCount, 1, 0, 0);
 	}
@@ -215,6 +215,7 @@ namespace qk {
 			MSLImageYuv::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
+				.vPos=vPos(),
 				.format=format,
 				.flags=_flags
 			};
@@ -229,6 +230,7 @@ namespace qk {
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
 				.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
+				.vPos=vPos(),
 				.strokeWidth=info.stroke,
 				.alphaIndex=info.kind == kMask_DrawKind ?
 					(type == kAlpha_8_ColorType ? 0 : type == kLuminance_Alpha_88_ColorType ? 1 : 3): 0,
@@ -250,6 +252,7 @@ namespace qk {
 		MSLColorGradient::PcArgs pc{
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),
+			.vPos=vPos(),
 			.count=count,
 			.flags=_flags |
 				(count == 2 ? Qk_FLAG_GRADIENT_COUNT2: 0) |
@@ -289,12 +292,13 @@ namespace qk {
 			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
 			float n = 2.0 * r1 / r0;
 			MSLColorRrectBlur::PcArgs pc{
-				horn,
-				color,
-				{ Vec3(r1, n, 1.0 / n), 0 },
-				min_edge,
-				s_inv,
-				_flags,
+				.vPos=vPos(),
+				.horn=horn,
+				.color=color,
+				.consts={ Vec3(r1, n, 1.0 / n), 0 },
+				.min_edge=min_edge,
+				.s_inv=s_inv,
+				.flags=_flags,
 			};
 			auto buf = makeBufferInfoT(_cmdPack, v, 12);
 			vkCmdBindVertexBuffers(cmd, 0, 1, &buf.buffer, &buf.offset);
@@ -317,8 +321,9 @@ namespace qk {
 		bindDescriptorSet(set1, shader); // bind texture descriptor set to pipeline
 
 		MSLTriangles::PcArgs pc{
-			color,
-			_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
+			.color=color,
+			.vPos=vPos(),
+			.flags=_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
 		};
 		vkCmdPushConstants(cmd, shader.layout(), shader.pc.stages, 0, sizeof(pc), &pc);
 		vkCmdBindVertexBuffers(cmd, 0, 1, &vbuf.buffer, &vbuf.offset);

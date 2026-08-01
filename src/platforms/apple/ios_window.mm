@@ -321,7 +321,7 @@ void Window::pending() {
 	// Exit app
 }
 
-void Window::setFullscreen(bool fullscreen) {
+void Window::requestFullscreen(bool fullscreen) {
 	[_impl->delegate() set_visible_status_bar:!fullscreen];
 }
 

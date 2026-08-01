@@ -922,16 +922,6 @@ namespace qk {
 			}
 			_host->unmark(View::kScroll);
 		}
-
-		if (mark & View::kTransform) {
-			auto v = parent->layout_offset_inside();
-			v += _host->layout_offset();
-			v += Vec2(_host->margin_left(), _host->margin_top());
-			v -= Vec2(scroll_left(), scroll_top());
-			auto scrollPos =
-				mat.mul_vec2_no_translate(v) + parent->position();
-			_scrollMatrix = Mat(mat).set_translate(scrollPos);
-		}
 	}
 
 	void ScrollView::set_scroll_size_rt(Vec2 size) {

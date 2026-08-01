@@ -160,9 +160,10 @@ declare class NativeWindow extends Notification<WEvent> {
 	pending(): void;
 
 	/**
-	 * Setting whether the window is displayed in full screen mode
+	 * Request to enter or exit full screen mode
+	 * @param fullscreen - true: enter full screen, false: exit full screen
 	*/
-	setFullscreen(fullscreen: boolean): void;
+	requestFullscreen(fullscreen: boolean): void;
 
 	/**
 	 * Setting the mouse cursor style

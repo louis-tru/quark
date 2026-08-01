@@ -306,12 +306,10 @@ namespace qk {
 
 	void GPUCanvas::translate(Vec2 val) {
 		_state->matrix.translate(val);
-		setMatrixCmd();
 	}
 
 	void GPUCanvas::setTranslate(Vec2 val) {
 		_state->matrix.set_translate(val);
-		setMatrixCmd();
 	}
 
 	void GPUCanvas::scale(Vec2 val) {

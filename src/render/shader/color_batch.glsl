@@ -2,7 +2,7 @@
 
 #vert
 struct Option {
-	float m0,m1,m2,m3,m4,m5; // 2d mat2x3
+	highp float m0,m1,m2,m3,m4,m5; // 2d mat2x3
 	uint  flags; // flags maybe used for AA, etc
 	int  _pad; // padding for std140
 	vec4  color; // color
@@ -28,7 +28,7 @@ void main() {
 	aaSide = aaSideIn;
 	color = opt.color;
 	flags = opt.flags;
-	gl_Position = _matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	gl_Position = _matrix * vec4(vertexIn, 0.0, 1.0);
 }
 
 #frag
@@ -41,5 +41,5 @@ void main() {
 	fragColor *= aaSideCoverage(flags);
 
 	if ((flags & Qk_FLAG_CLIP) != 0)
-		fragColor *= clipCoverage(gl_FragCoord.xy);
+		fragColor *= clipCoverage(ivec2(gl_FragCoord.xy));
 }

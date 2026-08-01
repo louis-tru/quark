@@ -33,7 +33,6 @@
 #ifndef __quark_render_vulkan_vk_util__
 #define __quark_render_vulkan_vk_util__
 
-#include "../../util/cb.h"
 #include "../mem_allocator.h"
 #include "../pixel.h"
 #include "../paint.h"

@@ -76,6 +76,7 @@ void layout_scroll(Window* win) {
 	b->set_width({ 0, BoxSizeKind::Match });
 	b->set_height({ 100 });
 	b->set_background_color(Color(0,255,0));
+	b->set_border_radius({50});
 
 	auto c = v->append_new<Box>();
 	c->set_margin_top(10);
@@ -112,6 +113,7 @@ void layout_scroll(Window* win) {
 	h->set_width({ 0, BoxSizeKind::Match });
 	h->set_height({ 100 });
 	h->set_background_color(Color(128,0,255));
+	h->set_border_radius({50});
 
 	for (int i = 0; i < 10; i++) {
 		auto g = v->append_new<Box>();

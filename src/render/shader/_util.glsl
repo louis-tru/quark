@@ -6,7 +6,8 @@
 #define Qk_FLAG_AASIDE_LINE (1u << 2)
 #define Qk_FLAG_CGAA (1u << 3)
 
-#define matrix (rMat.value * vMat.value)
+// view matrix linear part
+#define vMatL mat2(vMat.value.xy, vMat.value.zw)
 
 #define Qk_CONSTANT(block) layout(push_constant) uniform PcArgs {\
 	block \
@@ -24,11 +25,15 @@ layout(binding=1, set=0, std140) uniform RootMatrixBlock {
 	highp vec2 _pad; // pad to 16-byte alignment
 } rMat;
 layout(binding=2, set=0, std140) uniform ViewMatrixBlock {
-	highp mat4 value;
+	highp vec4 value;
 } vMat;
 layout(location=0) in highp vec2  vertexIn;
 layout(location=1) in highp float aaSideIn; // anti alias side
 layout(location=0) out mediump float aaSide;
+
+highp vec4 vPosition(highp vec2 pos) {
+	return vec4(vMatL * vertexIn + pos, 0.0, 1.0);
+}
 
 #frag
 precision highp int;
@@ -39,7 +44,7 @@ layout(location=0) in  mediump float aaSide;
 layout(location=0) out mediump vec4  fragColor;
 layout(binding=0, set=0) uniform sampler2D clipTex; // clip texture buffer
 layout(binding=3, set=0, std140) uniform ClipStatBlock {
-	vec4 bounds; // x:left, y:top, z:right, w:bottom
+	ivec4 bounds; // x:left, y:top, z:right, w:bottom
 	// Clip sampling mode used by fragment shader:
 	// 0: intersect  -> keep masked area
 	// 1: difference -> reject masked area
@@ -47,8 +52,8 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 } clipStat;
 
 // clipStat.op: 0 for intersect, 1 for difference
-float clipCoverage(vec2 offset) {
-	float coverage = texelFetch(clipTex, ivec2(offset - clipStat.bounds.xy), 0).r;
+float clipCoverage(ivec2 fragCoord) {
+	float coverage = texelFetch(clipTex, fragCoord - clipStat.bounds.xy, 0).r;
 	if (clipStat.op == 1)
 		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
 	return coverage;
@@ -71,9 +76,9 @@ float aaSideCoverage(const uint flags) {
 #if 1 // branch
 	if (w == 0.0)
 		return 1.0;
-	return smoothstep(w, -w, aaSide * max(w, 1.0));
+	return 1.0 - smoothstep(-w, w, aaSide * max(w, 1.0));
 #else // branchless
-	return mix(smoothstep(w, -w, aaSide), 1.0, step(w, 0.0));
+	return mix(1.0 - smoothstep(-w, w, aaSide), 1.0, step(w, 0.0));
 #endif
 }
 
@@ -81,4 +86,4 @@ float aaSideCoverage(const uint flags) {
 
 #define Qk_CLIP() \
 if ((pc.flags & Qk_FLAG_CLIP) != 0) \
-	fragColor *= clipCoverage(gl_FragCoord.xy)
+	fragColor *= clipCoverage(ivec2(gl_FragCoord.xy))

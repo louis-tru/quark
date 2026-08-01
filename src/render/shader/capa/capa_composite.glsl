@@ -161,7 +161,7 @@ vec4 capa_sample_image(uint pathIndex, uint paintIndex, vec2 local, vec4 color) 
 	if (paint.kind == CAPA_IMAGE_SDF_MASK) {
 		float dist = tex.r;
 		float width = capa_sdf_width(pathIndex, paint.size, paint.coord.zw);
-		float alpha = smoothstep(paint.stroke + width, paint.stroke, dist);
+		float alpha = 1.0 - smoothstep(paint.stroke, paint.stroke + width, dist);
 		return mix(color, paint.strokeColor, dist) * alpha;
 	} else if (paint.kind == CAPA_IMAGE_MASK) {
 		return color * tex[paint.alphaIndex];

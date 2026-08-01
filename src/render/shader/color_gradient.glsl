@@ -1,6 +1,7 @@
 Qk_CONSTANT(
 	vec4 range; /* linear: origin/end, radial: center/radius */
 	vec4 color;
+	highp vec2 vPos;
 	int count;
 );
 
@@ -12,12 +13,12 @@ layout(location=3) out vec2 gradientValue;
 
 void main() {
 	aaSide = aaSideIn;
-	gl_Position = matrix * vec4(vertexIn.xy, 0.0, 1.0);
+	gl_Position = rMat.value * vPosition(pc.vPos);
 	if ((pc.flags & Qk_FLAG_RADIAL_GRADIENT) != 0) {
-		gradientValue = vertexIn.xy;
+		gradientValue = vertexIn;
 	} else {
 		vec2 axis = pc.range.zw - pc.range.xy;
-		float weight = dot(axis, vertexIn.xy - pc.range.xy) / dot(axis, axis);
+		float weight = dot(axis, vertexIn - pc.range.xy) / dot(axis, axis);
 		gradientValue = vec2(weight, 0.0);
 	}
 }

@@ -151,14 +151,14 @@ namespace qk { namespace js {
 				self->pending();
 			});
 
-			Js_Class_Method(setFullscreen, {
+			Js_Class_Method(requestFullscreen, {
 				if (!args.length()) {
 					Js_Throw(
-						"@method Window.setFullscreen(fullscreen)\n"
+						"@method Window.requestFullscreen(fullscreen)\n"
 						"@param fullscreen {bool}\n"
 					);
 				}
-				self->setFullscreen(args[0]->toBoolean(worker));
+				self->requestFullscreen(args[0]->toBoolean(worker));
 			});
 
 			Js_Class_Method(setCursorStyle, {

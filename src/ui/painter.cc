@@ -693,17 +693,7 @@ namespace qk {
 	}
 
 	void Scroll::draw(Painter *draw) {
-		draw->resetBoxData(); // reset box data
-		draw->setPosition(_position);
-		draw->drawBoxBasic(this);
-		// Scroll keeps ordinary child positions out of the canvas matrix and only
-		// applies the scroll transform at this boundary. If scroll offsets grow to
-		// very large values, e.g. millions of pixels, shader precision can suffer.
-		// A future fix can clamp scrollMatrix.translate to a coarse range such as
-		// 100k and let child draw coordinates compensate for the truncated part.
-		// That keeps matrix values bounded while only forcing path cache updates
-		// when the coarse origin changes.
-		draw->visitBox(this, &scrollMatrix());
+		Box::draw(draw);
 		draw->setPosition(_position);
 		draw->drawScrollBar(this);
 	}
@@ -852,11 +842,13 @@ namespace qk {
 	void Morph::draw(Painter *painter) {
 		painter->resetBoxData();
 		auto lastMatrix = painter->matrix();
+		auto lastOrigin = painter->origin();
 		painter->set_matrix(&matrix());
 		painter->set_origin(-_origin_value);
 		painter->drawBoxBasic(this);
 		if (clip())
 			painter->getInsideRectPath(this);
+		painter->set_origin(lastOrigin); // restore origin
 		painter->visitBox(this); // clip box
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
@@ -882,6 +874,7 @@ namespace qk {
 				canvas->clearColor(background_color().mul_color4f(painter->_color));
 				painter->drawBoxFill(this);
 				painter->drawBoxBorder(this);
+				painter->set_origin({}); // reset origin
 				painter->visitView(this);
 				painter->flushDelayDrawCommands(); // flush delay draw commands
 			} else {
