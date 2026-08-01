@@ -70,22 +70,9 @@ namespace qk {
 		));
 	}
 
-	void Painter::set_matrix(const Mat* mat) {
-		_matrix = mat;
-		_canvas->setMatrix(*mat);
-	}
-
-	void Painter::set_origin(Vec2 origin) {
-		_origin = origin;
-	}
-
 	inline static bool is_not_Zero(const float radius[4]) {
 		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
 			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
-	}
-
-	Rect Painter::getRect(Box* box) {
-		return {_origin, {box->_client_size[0], box->_client_size[1]}};
 	}
 
 	void Painter::getInsideRectPath(Box *v) {
@@ -677,14 +664,14 @@ namespace qk {
 
 	void Box::draw(Painter *draw) {
 		draw->resetBoxData(); // reset box data
-		draw->setOriginFromPos(_position);
+		draw->setPosition(_position);
 		draw->drawBoxBasic(this);
 		draw->visitBox(this);
 	}
 
 	void Image::draw(Painter *draw) {
 		draw->resetBoxData();
-		draw->setOriginFromPos(_position);
+		draw->setPosition(_position);
 		draw->drawBoxBasic(this);
 
 		auto src = source();
@@ -707,7 +694,7 @@ namespace qk {
 
 	void Scroll::draw(Painter *draw) {
 		draw->resetBoxData(); // reset box data
-		draw->setOriginFromPos(_position);
+		draw->setPosition(_position);
 		draw->drawBoxBasic(this);
 		// Scroll keeps ordinary child positions out of the canvas matrix and only
 		// applies the scroll transform at this boundary. If scroll offsets grow to
@@ -717,13 +704,13 @@ namespace qk {
 		// That keeps matrix values bounded while only forcing path cache updates
 		// when the coarse origin changes.
 		draw->visitBox(this, &scrollMatrix());
-		draw->setOriginFromPos(_position);
+		draw->setPosition(_position);
 		draw->drawScrollBar(this);
 	}
 
 	void Text::draw(Painter *painter) {
 		painter->resetBoxData(); // reset box data
-		painter->setOriginFromPos(_position);
+		painter->setPosition(_position);
 		painter->drawBoxBasic(this);
 
 		struct Fn {
@@ -756,7 +743,7 @@ namespace qk {
 	void Input::draw(Painter *draw) {
 		draw->resetBoxData();
 		auto canvas = draw->canvas();
-		draw->setOriginFromPos(_position);
+		draw->setPosition(_position);
 		draw->drawBoxBasic(this);
 
 		auto lines = *_lines;
@@ -856,7 +843,7 @@ namespace qk {
 
 	void Label::draw(Painter *painter) {
 		if (_blob_visible.length()) {
-			painter->setOriginFromPos(_position);
+			painter->setPosition(_position);
 			painter->drawTextBlob(this, {}, *_lines, _blob, _blob_visible);
 		}
 		painter->visitView(this);

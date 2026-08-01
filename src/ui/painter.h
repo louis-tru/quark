@@ -38,6 +38,7 @@
 #include "../render/canvas.h"
 #include "./filter.h"
 #include "./text/text_blob.h"
+#include "./view/box.h"
 #include <map>
 #include <deque>
 
@@ -60,11 +61,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(Canvas*, canvas);
 		Qk_DEFINE_PROP_GET(PathvCache*, cache);
-		Qk_DEFINE_PROPERTY(cMat*, matrix); // current matrix
-		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin
+		Qk_DEFINE_PROP_GET(cMat*, matrix); // current matrix
+		Qk_DEFINE_PROP_GET(Vec2, origin);  // box origin
 		Qk_DEFINE_PROP_GET(Color4f, color); // current color
 		Painter(Window *window);
-		Rect getRect(Box* v);
 		void getInsideRectPath(Box *v);
 		void getOutsideRectPath(Box *v);
 		void getRRectOutlinePath(Box *v);
@@ -79,13 +79,22 @@ namespace qk {
 		void drawBoxBorder(Box *v);
 		void drawScrollBar(ScrollView *v);
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
-			TextLinesCore *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
-		);
+			TextLinesCore *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible);
 		void visitView(View* v);
 		void visitView(View* v, cMat *mat);
 		void visitBox(Box *v, cMat *mat = nullptr);
 		void visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v), cMat *mat = nullptr);
 		void flushDelayDrawCommands();
+		inline void set_matrix(const Mat* mat) {
+			_matrix = mat;
+			_canvas->setMatrix(*mat);
+		}
+		inline void set_origin(Vec2 origin) {
+			_origin = origin;
+		}
+		inline Rect getRect(Box* v) {
+			return {_origin, {v->_client_size[0], v->_client_size[1]}};
+		}
 		inline void resetBoxData() {
 			_boxData = BoxData(); // reset box data
 		}
@@ -98,7 +107,7 @@ namespace qk {
 		inline Vec2 getTranslate() {
 			return Vec2(_matrix->val[2], _matrix->val[5]);
 		}
-		inline void setOriginFromPos(Vec2 pos) {
+		inline void setPosition(Vec2 pos) {
 			// set origin from position, because the matrix may have been translated,
 			// so we need to subtract the translation value
 			set_origin(pos - getTranslate());
