@@ -31,8 +31,10 @@ namespace qk {
 		const CAPABuffer *buffers, uint32_t count)
 	{
 		auto set = allocDescriptorSet(shader.sets(0));
-		Array<VkDescriptorBufferInfo> infos(count);
-		Array<VkWriteDescriptorSet> writes(count);
+		Array<VkDescriptorBufferInfo> infos(&_cmdPack->allocator);
+		infos.extend(count);
+		Array<VkWriteDescriptorSet> writes(&_cmdPack->allocator);
+		writes.extend(count);
 		for (uint32_t i = 0; i < count; i++) {
 			auto &block = *buffers[i].buffer;
 			infos[i].buffer = block.val->buffer;
