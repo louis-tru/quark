@@ -36,16 +36,11 @@ namespace qk {
 		for (uint32_t i = 0; i < count; i++) {
 			auto &block = *buffers[i].buffer;
 			infos[i].buffer = block.val->buffer;
-			if (block.begin == block.end) {
-				// A descriptor range cannot be zero. Empty CAPA tables are never
-				// indexed by the shader. makeBufferT() reserves one element at
-				// block.begin, so expose a valid byte without allocating fake data.
-				infos[i].offset = block.begin;
-				infos[i].range = 1;
-			} else {
-				infos[i].offset = block.begin;
-				infos[i].range = block.end - block.begin;
-			}
+			infos[i].offset = block.begin;
+			// A descriptor range cannot be zero. Empty CAPA tables are never
+			// indexed by the shader. makeBufferT() reserves one element at
+			// block.begin, so expose a valid byte without allocating fake data.
+			infos[i].range = U32::max(1, block.end - block.begin);
 			writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writes[i].pNext = nullptr;
 			writes[i].dstSet = set;
