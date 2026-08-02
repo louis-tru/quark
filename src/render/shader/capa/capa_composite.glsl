@@ -54,7 +54,7 @@ layout(binding=12,set=0,std430) readonly buffer ClipStatBlock {
 	int op;
 } clipStat;
 
-layout(binding=0,set=1,r8) uniform readonly image2D clipTex; // clip texture buffer
+layout(binding=0,set=1) uniform sampler2D clipTex; // read-only clip texture
 layout(binding=1,set=1,rgba8) uniform image2D dstImage;
 layout(binding=0,set=2) uniform texture2D images[];
 layout(binding=0,set=3) uniform sampler samplers[];
@@ -65,7 +65,7 @@ const float CAPA_GROUP_COVERAGE_QUANTIZE_STEPS = 8.0;
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(ivec2 fragCoord) {
-	float coverage = imageLoad(clipTex, fragCoord - clipStat.begin).r;
+	float coverage = texelFetch(clipTex, fragCoord - clipStat.begin, 0).r;
 	if (clipStat.op == 1)
 		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
 	return coverage;

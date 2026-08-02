@@ -229,15 +229,15 @@ namespace qk {
 			.matrixX = Vec4(mat[0], mat[1], mat[2]),
 			.matrixY = Vec4(mat[3], mat[4], mat[5]),
 			.clip = Vec4(clip.begin, clip.end),
-			.bounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff),
 			.color = premul_alpha(color), // premultiplied color for solid fill
-			.edgeOffset = edgeOffset,
-			.edgeCount = info.edges.length() >> 1,
-			.blendMode = uint32_t(_owner->_blendMode),
-			.fillRule = uint32_t(fillRule),
-			.tileOffset = 0,
+			.bounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff),
 			.tileRect = IVec4(0, 0, 0, 0),
 			.tileEnd = IVec2(0, 0),
+			.fillRule = uint32_t(fillRule),
+			.blendMode = uint32_t(_owner->_blendMode),
+			.tileOffset = 0,
+			.edgeOffset = edgeOffset,
+			.edgeCount = info.edges.length() >> 1,
 			.paintType = kCAPA_PAINT_SOLID,
 		};
 		steupPaint(path, paint, mat);

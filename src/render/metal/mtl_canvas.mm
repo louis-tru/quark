@@ -72,7 +72,6 @@ namespace qk {
 		_supportsSamplerClampToZero = mtl_supports_sampler_clamp_to_zero(_device);
 		_commandQueue = _mtlrender->_commandQueue; // share command queue with render
 		_shaders = _mtlrender->_resource->shaders(); // copy shader cache reference for render thread use
-		setCAPAMaxImageCount(mtl_capa_max_image_count(_device));
 		_cmdPack.current = [_commandQueue commandBuffer]; // create command buffer for this canvas
 		_cmdPack.allocator = new MemBlockAllocator<MTLBufferID>();
 		_cmdPackFront.allocator = new MemBlockAllocator<MTLBufferID>();
@@ -81,6 +80,8 @@ namespace qk {
 			_capaBuilder = new CAPABuilder(this);
 
 		if (_capaBuilder) {
+			_capaMaxImageCount = mtl_capa_max_image_count(_device);
+			_capaEnabled = true;
 			// create argument encoder for capa composite shader to bind images and samplers
 			auto &shader = _shaders.capaComposite;
 			auto imagesDesc = [MTLArgumentDescriptor argumentDescriptor];

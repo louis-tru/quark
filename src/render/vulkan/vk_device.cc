@@ -393,7 +393,7 @@ namespace qk {
 		app.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		app.pApplicationName = "Quark Render Backend for Vulkan";
 		app.pEngineName = "Quark";
-		app.apiVersion = VK_API_VERSION_1_0;
+		app.apiVersion = VK_API_VERSION_1_1;
 
 		VkInstanceCreateInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -404,7 +404,88 @@ namespace qk {
 		return result == VK_SUCCESS;
 	}
 
-	bool vk_createDevice(VkPhysicalDevice physicalDevice, uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport) {
+	static bool vk_capaSupport(VkPhysicalDevice physicalDevice,
+		VkPhysicalDeviceDescriptorIndexingFeaturesEXT *enabledDescriptorFeatures,
+		uint32_t *maxImageCount
+	) {
+		*maxImageCount = 1;
+		if (!vk_supportsDeviceExtension(
+			physicalDevice, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME))
+			return false;
+
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+		if (properties.apiVersion < VK_API_VERSION_1_1)
+			return false;
+
+		VkPhysicalDeviceDescriptorIndexingFeaturesEXT supportedDescriptorFeatures{
+			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT};
+		VkPhysicalDeviceFeatures2 features{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+		features.pNext = &supportedDescriptorFeatures;
+		vkGetPhysicalDeviceFeatures2(physicalDevice, &features);
+
+		VkFormatProperties r8{}, rgba8{};
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_R8_UNORM, &r8);
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &rgba8);
+		auto &limits = properties.limits;
+		// CAPA keeps sampled images and samplers in two variable-length descriptor arrays.
+		// Clamp their shared length against every descriptor limit involved. The
+		// fixed clip sampler consumes one sampled-image and one sampler slot first.
+		auto sampledImages = limits.maxPerStageDescriptorSampledImages > 1 ?
+			limits.maxPerStageDescriptorSampledImages - 1: 0;
+		auto setSampledImages = limits.maxDescriptorSetSampledImages > 1 ?
+			limits.maxDescriptorSetSampledImages - 1: 0;
+		auto samplers = limits.maxPerStageDescriptorSamplers > 1 ?
+			limits.maxPerStageDescriptorSamplers - 1: 0;
+		auto setSamplers = limits.maxDescriptorSetSamplers > 1 ?
+			limits.maxDescriptorSetSamplers - 1: 0;
+		*maxImageCount = U32::min(512, sampledImages);
+		*maxImageCount = U32::min(*maxImageCount, setSampledImages);
+		*maxImageCount = U32::min(*maxImageCount, samplers);
+		*maxImageCount = U32::min(*maxImageCount, setSamplers);
+		// capa_composite currently has 12 fixed resources: 10 storage buffers,
+		// one sampled clip and one destination storage image. Reserve 16 slots so
+		// a few future fixed bindings do not silently make the runtime image arrays
+		// exceed maxPerStageResources.
+		// Each CAPA image consumes two more resources: one image and one sampler.
+		constexpr uint32_t fixedResourceReserve = 16;
+		auto arrayResources = limits.maxPerStageResources > fixedResourceReserve ?
+			(limits.maxPerStageResources - fixedResourceReserve) >> 1: 0;
+		*maxImageCount = U32::min(*maxImageCount, arrayResources);
+
+		// CAPA needs non-uniform indexing into runtime image/sampler arrays. Both
+		// arrays use a variable descriptor count chosen from maxImageCount above.
+		auto supported =
+			supportedDescriptorFeatures.runtimeDescriptorArray &&
+			supportedDescriptorFeatures.shaderSampledImageArrayNonUniformIndexing &&
+			supportedDescriptorFeatures.descriptorBindingVariableDescriptorCount &&
+			// clipTex is sampled R8; only the RGBA8 destination is a storage image.
+			(r8.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) &&
+			(rgba8.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) &&
+			// capa_composite uses descriptor sets 0..3, ten storage buffers and one
+			// storage image in the compute stage.
+			limits.maxBoundDescriptorSets >= 4 &&
+			limits.maxPerStageDescriptorStorageBuffers >= 10 &&
+			limits.maxDescriptorSetStorageBuffers >= 10 &&
+			limits.maxPerStageDescriptorStorageImages >= 1 &&
+			limits.maxDescriptorSetStorageImages >= 1 &&
+			// Current CAPA kernels require at most 32 threads on X, 8 on Y, and
+			// 64 total invocations for the 8x8 composite kernel.
+			limits.maxComputeWorkGroupInvocations >= 64 &&
+			limits.maxComputeWorkGroupSize[0] >= 32 &&
+			limits.maxComputeWorkGroupSize[1] >= 8 &&
+			*maxImageCount;
+		if (!supported)
+			return false;
+
+		enabledDescriptorFeatures->runtimeDescriptorArray = VK_TRUE;
+		enabledDescriptorFeatures->shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+		enabledDescriptorFeatures->descriptorBindingVariableDescriptorCount = VK_TRUE;
+		return true;
+	}
+
+	bool vk_createDevice(VkPhysicalDevice physicalDevice, uint32_t queueFamily, VkDevice *device,
+		bool *pvrtcSupport, bool *capaSupport, uint32_t *capaMaxImageCount) {
 		uint32_t familyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &familyCount, nullptr);
 		Array<VkQueueFamilyProperties> families(familyCount);
@@ -431,22 +512,33 @@ namespace qk {
 		enabledFeatures.textureCompressionETC2 = supportedFeatures.textureCompressionETC2;
 		enabledFeatures.textureCompressionBC = supportedFeatures.textureCompressionBC;
 
-		const char *extensions[] = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, // PVRTC support
-		};
-		*pvrtcSupport = vk_supportsDeviceExtension(physicalDevice, extensions[1]);
-		uint32_t extensionCount = *pvrtcSupport ? 2 : 1;
+		VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptorFeatures{
+			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT};
+		*capaSupport = vk_capaSupport(
+			physicalDevice, &descriptorFeatures, capaMaxImageCount);
+		Array<const char*> extensions;
+		extensions.push(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		*pvrtcSupport = vk_supportsDeviceExtension(
+			physicalDevice, VK_IMG_FORMAT_PVRTC_EXTENSION_NAME);
+		if (*pvrtcSupport)
+			extensions.push(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME);
+		if (*capaSupport)
+			extensions.push(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		deviceInfo.pNext = *capaSupport ? &descriptorFeatures: nullptr;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &queueInfo;
-		deviceInfo.enabledExtensionCount = extensionCount;
-		deviceInfo.ppEnabledExtensionNames = extensions;
+		deviceInfo.enabledExtensionCount = extensions.length();
+		deviceInfo.ppEnabledExtensionNames = extensions.val();
 		deviceInfo.pEnabledFeatures = &enabledFeatures;
 		auto result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, device);
 		if (result != VK_SUCCESS)
 			Qk_DLog("vkCreateDevice failed: %d", int(result));
+		if (result == VK_SUCCESS) {
+			Qk_DLog("Vulkan CAPA: %s, max images=%u",
+				*capaSupport ? "supported": "unsupported", *capaMaxImageCount);
+		}
 		return result == VK_SUCCESS;
 	}
 }

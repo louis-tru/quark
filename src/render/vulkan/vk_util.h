@@ -158,7 +158,7 @@ namespace qk {
 	typedef VkMemBufferAllocator::MemBlock VkMemBlock;
 	typedef const VkMemBlock cVkMemBlock;
 
-	extern uint32_t vk_uniformBufferAlignment;
+	extern uint32_t vk_minBufferAlignment;
 
 	inline VkTexture* vk_cast_texture(cTexStat *texStat) {
 		return static_cast<VkTexture*>(texStat->ptr());
@@ -184,7 +184,8 @@ namespace qk {
 	void vk_logDeviceInfo(VkPhysicalDevice device);
 
 	bool vk_createDevice(VkPhysicalDevice physicalDevice,
-		uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport);
+		uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport,
+		bool *capaSupport, uint32_t *capaMaxImageCount);
 
 	uint32_t vk_mipLevelCount(Vec2 size);
 

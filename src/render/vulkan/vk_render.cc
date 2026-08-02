@@ -34,7 +34,7 @@
 #endif
 
 namespace qk {
-	uint32_t vk_uniformBufferAlignment;
+	uint32_t vk_minBufferAlignment;
 	uint32_t vk_maxPushConstantsSize;
 
 	VulkanRenderResource* getSharedRenderVulkanResource() {
@@ -52,6 +52,8 @@ namespace qk {
 			uint32_t queueFamily;
 			bool computeSupport;
 			bool pvrtcSupport;
+			bool capaSupport;
+			uint32_t capaMaxImageCount;
 			auto fail = [&]() {
 				if (instance)
 					vkDestroyInstance(instance, nullptr);
@@ -71,13 +73,14 @@ namespace qk {
 				return fail();
 			}
 #endif
-			vk_call_if(vk_createDevice, physicalDevice, queueFamily, &device, &pvrtcSupport);
+			vk_call_if(vk_createDevice, physicalDevice, queueFamily, &device, &pvrtcSupport,
+				&capaSupport, &capaMaxImageCount);
 
 			auto res = new VulkanRenderResource(
-				instance, physicalDevice, device, queueFamily, computeSupport, pvrtcSupport
+				instance, physicalDevice, device, queueFamily, computeSupport, pvrtcSupport,
+				computeSupport && capaSupport, capaMaxImageCount
 			);
-			// test resource validity by checking if the empty texture is created successfully
-			if (!res->emptyTexture())
+			if (!res->valid())
 				Releasep(res);
 			return res;
 		}());
@@ -90,7 +93,8 @@ namespace qk {
 
 	VulkanRenderResource::VulkanRenderResource(VkInstance instance,
 		VkPhysicalDevice physicalDevice, VkDevice device,
-		uint32_t queueFamily, bool computeSupport, bool pvrtcSupport
+		uint32_t queueFamily, bool computeSupport, bool pvrtcSupport,
+		bool capaSupport, uint32_t capaMaxImageCount
 	)
 		: _instance(instance)
 		, _physicalDevice(physicalDevice)
@@ -99,8 +103,10 @@ namespace qk {
 		, _queueFamily(queueFamily)
 		, _computeSupport(computeSupport)
 		, _pvrtcSupport(pvrtcSupport)
+		, _capaSupport(capaSupport)
+		, _valid(false)
+		, _capaMaxImageCount(capaMaxImageCount)
 		, _pipelineCache(VK_NULL_HANDLE)
-		, _emptyTexture(nullptr)
 		, _commandPool(VK_NULL_HANDLE)
 		, _nextAsyncWaitCheckTime(0)
 	{
@@ -117,9 +123,9 @@ namespace qk {
 
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
-		vk_uniformBufferAlignment = (uint32_t)std::max<VkDeviceSize>(
-			16, properties.limits.minUniformBufferOffsetAlignment
-		);
+		vk_minBufferAlignment = U32::max(16, properties.limits.minTexelBufferOffsetAlignment);
+		vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minUniformBufferOffsetAlignment);
+		vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minStorageBufferOffsetAlignment);
 		vk_maxPushConstantsSize = U32::min(256, properties.limits.maxPushConstantsSize);
 
 		_nearestSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
@@ -132,11 +138,9 @@ namespace qk {
 
 		_shaders.buildAll();
 
-		// test if the pipeline can be created successfully
-		if (!getPipeline(kVkColor_Pipeline, kSrcOver_BlendMode, VK_FORMAT_R8G8B8A8_UNORM))
-			return;
-		_emptyTexture = newTexture(Vec2(1), kRGBA_8888_ColorType, 1, kNone_TextureFlags,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		// Test whether the basic graphics pipeline can be created successfully.
+		_valid = getPipeline(kVkColor_Pipeline, kSrcOver_BlendMode,
+			VK_FORMAT_R8G8B8A8_UNORM) != VK_NULL_HANDLE;
 	}
 
 	VulkanRenderResource::~VulkanRenderResource() {
@@ -162,7 +166,6 @@ namespace qk {
 		for (auto &result: _submitResults) {
 			vkDestroyFence(_device, result.fence, nullptr);
 		}
-		_emptyTexture = nullptr;
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyPipelineCache(_device, _pipelineCache, nullptr);
 		vkDestroyDevice(_device, nullptr);
@@ -226,21 +229,34 @@ namespace qk {
 				setCount = std::max(setCount, binding->set + 1);
 		}
 		Array<Array<VkDescriptorSetLayoutBinding>> descriptorBindings(setCount);
+		Array<Array<VkDescriptorBindingFlagsEXT>> descriptorBindingFlags(setCount);
 		for (auto binding: shader.bindings) {
 			if (binding->set != UINT32_MAX) {
 				descriptorBindings[binding->set].push({
 					binding->binding,
 					binding->descriptorType,
-					binding->arrayCount ? binding->arrayCount : 1,
+					binding->runtimeArray ? _capaMaxImageCount:
+						(binding->arrayCount ? binding->arrayCount : 1),
 					binding->stages,
 					nullptr,
 				});
+				descriptorBindingFlags[binding->set].push(binding->runtimeArray ?
+					VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT: 0);
 			}
 		}
 		setLayouts = Array<VkDescriptorSetLayout>(descriptorBindings.length());
 		for (uint32_t i = 0; i < descriptorBindings.length(); i++) {
 			auto &bindings = descriptorBindings[i];
+			auto &bindingFlags = descriptorBindingFlags[i];
+			bool hasVariableCount = false;
+			for (auto flags: bindingFlags)
+				hasVariableCount |= flags != 0;
+			VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flagsInfo{
+				VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT};
+			flagsInfo.bindingCount = bindingFlags.length();
+			flagsInfo.pBindingFlags = bindingFlags.val();
 			VkDescriptorSetLayoutCreateInfo info{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+			info.pNext = hasVariableCount ? &flagsInfo: nullptr;
 			info.bindingCount = bindings.length();
 			info.pBindings = bindings.val();
 			auto result = vkCreateDescriptorSetLayout(_device, &info, nullptr, &setLayouts[i]);

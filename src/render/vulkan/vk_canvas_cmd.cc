@@ -54,6 +54,10 @@ namespace qk {
 		Qk_ASSERT(tex, "Failed to create Vulkan canvas output texture");
 		_outTex = tex;
 		_target = tex; // set current render target to default output texture
+		if (_capaBuilder) {
+			_capaEnabled = tex->format == VK_FORMAT_R8G8B8A8_UNORM &&
+				(tex->usage & VK_IMAGE_USAGE_STORAGE_BIT);
+		}
 	}
 
 	void VulkanCanvas::setSurfaceCmd(bool changeSize) {
@@ -65,7 +69,8 @@ namespace qk {
 
 		// create new output texture if size changed
 		if (changeSize) {
-			setDefaultTarget(_resource->newTexture(_surfaceSize, _opts.colorType, 1, kNone_TextureFlags));
+			auto flags = _capaBuilder ? kComputeWrite_TextureFlags: kNone_TextureFlags;
+			setDefaultTarget(_resource->newTexture(_surfaceSize, _opts.colorType, 1, flags));
 		}
 	}
 
@@ -185,13 +190,6 @@ namespace qk {
 	void VulkanCanvas::clearColorCmd(const Color4f &color, GC_ClearFlags) {
 		endPass(); // end current pass if exist
 		beginPass(0, false, &color);
-	}
-
-	bool VulkanCanvas::drawCAPACmd(CAPADrawData& data) {
-		auto edgeCount = data.edges.length();
-		if (!edgeCount)
-			return false;
-		return false;
 	}
 
 	void VulkanCanvas::drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) {
@@ -441,6 +439,8 @@ namespace qk {
 
 		TexStat storeStat;
 		uint8_t flags = dst->mipmap() ? kMipmap_TextureFlags: 0;
+		if (_capaBuilder)
+			flags |= kComputeWrite_TextureFlags;
 		auto texStat = vk_rebuild_texture(dstSize, dst->type(), dst->texture(0), storeStat, flags);
 		if (!texStat)
 			return;
@@ -484,6 +484,8 @@ namespace qk {
 		auto s = _surfaceSize; // surface size
 		TexStat storeStat;
 		uint8_t flags = dst->mipmap() ? kMipmap_TextureFlags: 0;
+		if (_capaBuilder)
+			flags |= kComputeWrite_TextureFlags;
 		auto tex = vk_rebuild_texture(s, _opts.colorType, dst->texture(0), storeStat, flags);
 		if (!tex) {
 			// texture rebuild failed after current pass was ended.
@@ -493,6 +495,10 @@ namespace qk {
 			return;
 		}
 		_target = vk_cast_texture(tex);
+		if (_capaBuilder) {
+			_capaEnabled = _target->format == VK_FORMAT_R8G8B8A8_UNORM &&
+				(_target->usage & VK_IMAGE_USAGE_STORAGE_BIT);
+		}
 		setTex_SourceImage(dst, {int(s[0]),int(s[1]),_opts.colorType,dst->info().alphaType()}, tex);
 	}
 
@@ -500,6 +506,10 @@ namespace qk {
 		endPass(); // end current pass, change outTex back to canvas's own texture for next pass
 		// restore output color texture for next pass
 		_target = vk_get_texture_from(_state->output.get(), _outTex.get());
+		if (_capaBuilder) {
+			_capaEnabled = _target->format == VK_FORMAT_R8G8B8A8_UNORM &&
+				(_target->usage & VK_IMAGE_USAGE_STORAGE_BIT);
+		}
 		auto tex = vk_get_texture(exit);
 		Qk_ASSERT(tex, "outputImageEndCmd exit texture is null");
 		if (exit->mipmap()) {

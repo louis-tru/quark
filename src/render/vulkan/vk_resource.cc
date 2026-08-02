@@ -309,8 +309,6 @@ namespace qk {
 		tex->format = format;
 		tex->usage = usage;
 		tex->levels = Array<VkTextureLevelInfo>(mipLevels);
-		for (auto &level: tex->levels)
-			level.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		auto fail = [&]() {
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
@@ -341,7 +339,7 @@ namespace qk {
 		viewInfo.subresourceRange.layerCount = 1;
 		vk_call(vkCreateImageView, _device, &viewInfo, nullptr, &tex->view);
 
-		if (initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		if (initialLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
 			ScopeLock lock(_mutex);
 			vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
 			tex->transitionLayout(cmd, initialLayout, 0, mipLevels);

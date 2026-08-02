@@ -336,6 +336,7 @@ namespace qk {
 		inline bool isEmpty() const { return begin.x() >= end.x() || begin.y() >= end.y(); }
 		inline MRange offset(T offset) const { return {begin + offset, end + offset}; }
 		inline IVec4 iVec4() const { return IVec4(begin.x(), begin.y(), end.x(), end.y()); }
+		inline IVec2 iBegin() const { return IVec2(begin.x(), begin.y()); }
 	};
 	template<typename T> struct MRegion {
 		// range = (origin+begin, origin+end), size = end - begin

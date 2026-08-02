@@ -4,18 +4,37 @@
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
  *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Louis.chu nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  * ***** END LICENSE BLOCK ***** */
 
 #import "./mtl_canvas.h"
-#include "src/render/math.h"
-#include "src/render/render.h"
-#include "src/render/source.h"
 #import "./mtl_render.h"
 
 namespace qk {
 
-	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t minSize = 0) {
-		auto &block = cmd.allocator->alloc(size, minSize);
+	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0) {
+		auto &block = cmd.allocator->alloc(size, reserve);
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val.contents + block.begin, src, size);
@@ -32,6 +51,8 @@ namespace qk {
 		auto edgeCount = data.edges.length();
 		if (!edgeCount)
 			return false;
+		Qk_ASSERT(_target.usage & MTLTextureUsageShaderWrite,
+			"Metal CAPA target must support shader writes");
 		Color4f clearColor;
 		bool clearDst = onlyEndEncoderPass(clearColor);
 
@@ -39,7 +60,7 @@ namespace qk {
 		auto pathCount = data.paths.length();
 		// The CPU allocates conservative pools once. GPU passes publish real
 		// counts into env and then use indirect dispatch for the dependent passes.
-		auto env = _cmdPack.allocator->alloc<MSLCapaPrepare::CAPAEnvironment>(1);
+		auto env = _cmdPack.alloc<MSLCapaPrepare::CAPAEnvironment>(1);
 		auto envData = (MSLCapaPrepare::CAPAEnvironment*)((char*)env.val.contents + env.begin);
 		envData->globalTileBounds = IVec4(0x7fffffff, 0x7fffffff, -0x7fffffff, -0x7fffffff);
 		envData->globalTileCount = 0;
@@ -63,8 +84,8 @@ namespace qk {
 		}
 		// Upload path metadata and path-space edges. The remaining buffers are
 		// GPU-owned staging/final pools for the 12-pass CAPA pipeline.
-		auto paths = makeBuffer(_cmdPack, data.paths.val(), data.paths.size());
-		auto edges = makeBuffer(_cmdPack, data.edges.val(), data.edges.size());
+		auto paths = makeBufferT(_cmdPack, data.paths.val(), data.paths.length());
+		auto edges = makeBufferT(_cmdPack, data.edges.val(), data.edges.length());
 		auto gradientPaints = makeBufferT(_cmdPack, data.gradientPaints.val(), data.gradientPaints.length());
 		auto imagePaints = makeBufferT(_cmdPack, data.imagePaints.val(), data.imagePaints.length());
 		auto colors = makeBufferT(_cmdPack, data.colors.val(), data.colors.length());
@@ -332,13 +353,12 @@ namespace qk {
 			[enc setBuffer:imagePaints.val offset:imagePaints.begin atIndex:shader.compute.imagePaints];
 			[enc setBuffer:colors.val offset:colors.begin atIndex:shader.compute.colors];
 			[enc setBuffer:positions.val offset:positions.begin atIndex:shader.compute.positions];
-			[enc setBuffer:positions.val offset:positions.begin atIndex:shader.compute.positions];
 			if (_clipState) {
-				float *v = _clipState->bounds.begin.val;
-				MSLCapaComposite::ClipStatBlock block{ IVec2(v[0], v[1]), _clipState->op };
-				auto clipStat = makeBuffer(_cmdPack, &block, sizeof(block));
+				MSLCapaComposite::ClipStatBlock block{ _clipState->bounds.iBegin(), _clipState->op };
+				auto clipStat = makeBufferT(_cmdPack, &block, 1);
 				[enc setBuffer:clipStat.val offset:clipStat.begin atIndex:shader.compute.clipStat];
 				[enc setTexture:mtl_get_texture_from(_clipState->mask.get()) atIndex:shader.compute.clipTex];
+				[enc setSamplerState:_mtlrender->_nearestSampler atIndex:shader.compute.clipTex];
 			} else {
 				[enc setBuffer:_mtlrender->_emptyBuffer offset:0 atIndex:shader.compute.clipStat];
 			}

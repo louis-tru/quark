@@ -48,7 +48,7 @@ Immediate correctness work:
 Still incomplete:
 
 - Android and Linux runtime validation of platform presentation;
-- Vulkan CAPA command encoding (`drawCAPACmd()` still returns `false`);
+- Vulkan CAPA command encoding and runtime validation;
 - runtime validation across Android and desktop Vulkan drivers.
 
 ## Deferred Non-Vulkan Work

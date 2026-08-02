@@ -144,6 +144,7 @@ add_library(quark SHARED
 	../../../src/render/gl/glsl_shaders.cc
 	../../../src/render/vulkan/vk_canvas.cc
 	../../../src/render/vulkan/vk_canvas_cmd.cc
+	../../../src/render/vulkan/vk_canvas_capa.cc
 	../../../src/render/vulkan/vk_device.cc
 	../../../src/render/vulkan/vk_render.cc
 	../../../src/render/vulkan/vk_render_linux.cc

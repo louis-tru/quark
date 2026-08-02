@@ -110,7 +110,7 @@ namespace qk {
 				info = { &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale};
 			}
 
-			if (filter || !_capaBuilder || !_capaBuilder->buildImage(_cache->getRectPath(rect), info)) {
+			if (filter || !_capaEnabled || !_capaBuilder->buildImage(_cache->getRectPath(rect), info)) {
 				flushCAPABatch(); // flush current CAPA batch before draw text image
 				drawImageCmd(_cache->getPathTriangles(rect), info);
 			}
@@ -134,7 +134,7 @@ namespace qk {
 		}
 
 		bool fillPathCAPA(const Path &rawPath, const Paint &paint, const PaintStyle& style, bool stroke) {
-			if (!_capaBuilder)
+			if (!_capaEnabled)
 				return false;
 			auto &path = stroke ?
 				_cache->getStrokePath(rawPath, paint.strokeWidth, paint.cap, paint.join, 0) : rawPath;
@@ -155,7 +155,7 @@ namespace qk {
 		}
 
 		void fillPathColor(const Path &path, const Color4f &color, float aaRadius, bool aa) {
-			if (_capaBuilder && _capaBuilder->build(path, color))
+			if (_capaEnabled && _capaBuilder->build(path, color))
 				return;
 			flushCAPABatch();
 			drawColorCmd(buildVertex(path, aaRadius, aa), color);
@@ -233,6 +233,7 @@ namespace qk {
 		, _clipState(nullptr)
 		, _opts(opts)
 		, _capaBuilder(nullptr)
+		, _capaEnabled(false)
 	{
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
@@ -245,10 +246,7 @@ namespace qk {
 	GPUCanvas::~GPUCanvas() {
 		_texPools.clear();
 		Releasep(_cache);
-	}
-
-	void GPUCanvas::setCAPAMaxImageCount(uint32_t count) {
-		_capaMaxImageCount = count ? count : 1;
+		_capaBuilder = nullptr;
 	}
 
 	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, Vec2 limit, uint8_t flags) {

@@ -230,6 +230,7 @@
 					'render/vulkan/vk_canvas.h',
 					'render/vulkan/vk_canvas.cc',
 					'render/vulkan/vk_canvas_cmd.cc',
+					'render/vulkan/vk_canvas_capa.cc',
 					'render/vulkan/vk_device.cc',
 					'render/vulkan/vk_render.h',
 					'render/vulkan/vk_render.cc',

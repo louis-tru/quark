@@ -44,7 +44,8 @@ namespace qk {
 		List<VkDescriptorPool> pools;
 		List<VkDescriptorPool>::Iterator iter;
 		VkDescriptorPool createDescriptorPool(VkDevice device);
-		VkDescriptorSet allocDescriptorSet(VkDevice device, VkDescriptorSetLayout setLayout);
+		VkDescriptorSet allocDescriptorSet(VkDevice device, VkDescriptorSetLayout setLayout,
+			uint32_t variableCount = 0);
 		inline ~VkDescriptorPools() {
 			Qk_ASSERT(pools.isNull(), "Vulkan descriptor pools should be released before destruction");
 		}
@@ -63,14 +64,19 @@ namespace qk {
 			ref->ref();
 			refs.push(ref);
 		}
+		template <typename U>
+		inline cVkMemBlock alloc(uint32_t size, uint32_t select = 0) {
+			return vkAllocator[select].alloc<U>(size, vk_minBufferAlignment);
+		}
 		VkCmdPack(VkDevice device);
 		~VkCmdPack();
 		void clearAllocator();
 		void reset(VulkanCanvas *host, Lock* lock = 0, bool finished = false);
 		void finish();
 		std::atomic<VkSubmitResult*> completion{nullptr};
-		LinearAllocator alloc; // linear allocator
-		VkMemBufferAllocator vkAlloc[2]{{},{4096,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT}}; // 0: host visible, 1: device local
+		LinearAllocator allocator; // linear allocator
+		// 0: host visible, 1: device local
+		VkMemBufferAllocator vkAllocator[2]{{},{4096,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT}};
 		Array<VkRef*> refs; // reference objects
 		Array<Cb> completeCallbacks; // complete callbacks
 		Array<Sp<VulkanCanvas>> subCanvas; // sub canvas ref
@@ -108,6 +114,16 @@ namespace qk {
 		void beginRenderPass();
 		void beginPass(int level = 0, bool loadColor = true, const Color4f *clearColor = nullptr);
 		void endPass();
+		bool onlyEndEncoderPass(Color4f &color);
+		struct CAPABuffer;
+		void bindCAPABuffers(VkShader &shader,
+			const CAPABuffer *bindings, uint32_t count);
+		void useComputePipeline(VkShader &shader);
+		template<typename T>
+		inline void pushConstants(VkShader &shader, const T *value) {
+			vkCmdPushConstants(_cmdPack->current, shader.layout(),
+				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(T), value);
+		}
 		void setRootMatrixBuffer();
 		void setViewMatrixBuffer();
 		void setBuffer(VkDescriptorSet set, uint32_t binding, cVkMemBlock& buffer);
@@ -122,8 +138,8 @@ namespace qk {
 			VkSampler sampler = nullptr, uint32_t level = 0);
 		void makeTextureMipReadable(VkTexture *tex, uint32_t level = 0);
 		VkDescriptorSet useTexture0(VkDescriptorSet set, const PaintImage *paint, int dstSlot, bool* isYuv);
-		inline VkDescriptorSet allocDescriptorSet(VkDescriptorSetLayout setLayout) {
-			return _cmdPack->descPools.allocDescriptorSet(_device, setLayout);
+		inline VkDescriptorSet allocDescriptorSet(VkDescriptorSetLayout setLayout, uint32_t variableCount = 0) {
+			return _cmdPack->descPools.allocDescriptorSet(_device, setLayout, variableCount);
 		}
 		VkCommandBuffer usePipeline(VkShader &shader);
 		VkCommandBuffer usePipeline(VkShader &shader, float vertex[], uint32_t vCount);
@@ -171,7 +187,7 @@ namespace qk {
 		VkCommandPool _commandPool; // owned by this canvas; all local command buffers come from it
 		VkTexture *_target; // current render target
 		Sp<VkTexture> _outTex; // default output texture
-		Sp<VkTexture> _emptyTex; // empty texture for fallback
+		Sp<VkTexture> _emptyTexture, _emptyR8Texture; // canvas-local descriptor placeholders
 		VkCmdPack *_cmdPack, *_cmdPackFront; // current and front command pack for render
 		VkShaders _shaders; // canvas-local reflection and pipeline handle cache
 		Dict<uint32_t, VkSampler> _texSamplers;

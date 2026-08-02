@@ -16,7 +16,8 @@ The backend has moved beyond the original shell:
 - the shared Android/Linux surface, swapchain, direct Canvas rendering, submit,
   and present path is implemented and has been exercised on multiple Android
   devices;
-- CAPA is not complete.
+- CAPA pass/resource/descriptor/dispatch encoding is implemented; device and
+  driver runtime validation is still pending.
 
 The readable Vulkan learning/smoke test remains `test/android/vk/`. It is a
 NativeActivity test independent of the production backend and deliberately uses
@@ -34,6 +35,8 @@ simple synchronization.
 - `vk_canvas.*`: command packs, descriptor pools, render passes, framebuffers,
   descriptors, pipelines, submission assembly, and Canvas state.
 - `vk_canvas_cmd.cc`: backend implementations of the `GPUCanvas` command hooks.
+- `vk_canvas_capa.cc`: Vulkan CAPA compute passes, storage buffers, runtime
+  image/sampler descriptor arrays, barriers, and ordered composite dispatch.
 - `vk_render_linux.cc`: shared Android/Linux platform surface, swapchain,
   acquire semaphores, swapchain-image targets, and present flow.
 - `vk_util.*`: Vulkan format, memory, sampler, render-pass, framebuffer, image
@@ -328,7 +331,7 @@ or discarded recording, avoiding per-frame free/allocate churn.
 
 ### Missing Work
 
-- Vulkan CAPA pass/resource/descriptor/dispatch encoding;
+- Vulkan CAPA runtime validation and driver-specific corrections;
 - driver/device capability validation and fallback behavior;
 - broader Android device/driver profiling beyond the current test devices;
 - Linux/Xlib build/runtime smoke testing and any platform-specific corrections.

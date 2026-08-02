@@ -520,7 +520,7 @@ namespace qk {
 	}
 
 	cVkMemBlock& makeBuffer(VkCmdPack *cmd, const void *src, uint32_t size, uint32_t reserve) {
-		auto &block = cmd->vkAlloc[0].alloc(size, Qk_Max(reserve, size), vk_uniformBufferAlignment);
+		auto &block = cmd->vkAllocator[0].alloc(size, Qk_Max(reserve, size), vk_minBufferAlignment);
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val->mapped + block.begin, src, size);

@@ -137,7 +137,6 @@ namespace qk {
 		inline Color4f premul_alpha(const Color4f &color) const { return color.premul_alpha(); }
 		inline Vec2 vPos() const { return _state->matrix.getTranslate(); }
 	protected:
-		void setCAPAMaxImageCount(uint32_t count);
 		virtual void setSurfaceCmd(bool changeSize) = 0;
 		virtual void setMatrixCmd() = 0;
 		virtual void setBlendModeCmd() = 0;
@@ -176,7 +175,6 @@ namespace qk {
 		Mat4   _rootMatrix, _rootMatrixNoScale; // root matrix and root matrix with scale removed
 		uint32_t _flags; // flags for current state, such as anti-aliasing, etc
 		BlendMode _blendMode; // blend mode state
-		uint32_t _capaMaxImageCount; // backend CAPA image/sampler table size
 		GC_State::Clip  *_clipState; // clip state
 		Render::Options _opts;
 		Mutex _mutex; // submit swap mutex
@@ -184,6 +182,8 @@ namespace qk {
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
 		Sp<CAPABuilder> _capaBuilder; // compute shader batch builder for CAPA
+		uint32_t _capaMaxImageCount; // backend CAPA image/sampler table size
+		bool _capaEnabled; // true if CAPA is enabled, false if disabled
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
 		friend class CAPABuilder;

@@ -40,6 +40,10 @@ namespace qk {
 		VkDescriptorPoolSize sizes[] = {
 			{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 2048},
 			{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2048},
+			{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16384},
+			{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 2048},
+			{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 4096},
+			{VK_DESCRIPTOR_TYPE_SAMPLER, 4096},
 		};
 		VkDescriptorPoolCreateInfo info{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
 		info.maxSets = 2048;
@@ -50,8 +54,15 @@ namespace qk {
 		return pool;
 	}
 
-	VkDescriptorSet VkDescriptorPools::allocDescriptorSet(VkDevice device, VkDescriptorSetLayout setLayout) {
+	VkDescriptorSet VkDescriptorPools::allocDescriptorSet(VkDevice device,
+		VkDescriptorSetLayout setLayout, uint32_t variableCount
+	) {
+		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT variableInfo{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT};
+		variableInfo.descriptorSetCount = 1;
+		variableInfo.pDescriptorCounts = &variableCount;
 		VkDescriptorSetAllocateInfo info{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+		info.pNext = variableCount ? &variableInfo: nullptr;
 		info.descriptorPool = *iter;
 		info.descriptorSetCount = 1;
 		info.pSetLayouts = &setLayout;
@@ -91,10 +102,10 @@ namespace qk {
 	VkCmdPack::VkCmdPack(VkDevice device) {
 		descPools.pools.pushBack(descPools.createDescriptorPool(device));
 		descPools.iter = descPools.pools.begin();
-		refs = Array<VkRef*>(&alloc);
-		completeCallbacks = Array<Cb>(&alloc);
-		subCanvas = Array<Sp<VulkanCanvas>>(&alloc);
-		commands = Array<VkCommandBuffer>(&alloc);
+		refs = Array<VkRef*>(&allocator);
+		completeCallbacks = Array<Cb>(&allocator);
+		subCanvas = Array<Sp<VulkanCanvas>>(&allocator);
+		commands = Array<VkCommandBuffer>(&allocator);
 		ownCommands = Array<VkCommandBuffer>();
 	}
 
@@ -108,8 +119,8 @@ namespace qk {
 
 	void VkCmdPack::clearAllocator() {
 		addCompleteCallback(Cb([](auto, auto self) {
-			self->vkAlloc[0].clear();
-			self->vkAlloc[1].clear();
+			self->vkAllocator[0].clear();
+			self->vkAllocator[1].clear();
 		}, this));
 	}
 
@@ -121,11 +132,11 @@ namespace qk {
 		beginPass = false;
 		recorded = false;
 		commonSetDirty = false;
-		vkAlloc[0].reset();
-		vkAlloc[1].reset();
+		vkAllocator[0].reset();
+		vkAllocator[1].reset();
 
 		if (finished)
-			alloc.reset(); // reset linear allocator if finished, otherwise keep the memory
+			allocator.reset(); // reset linear allocator if finished, otherwise keep the memory
 		if (lock)
 			lock->unlock();
 
@@ -160,7 +171,7 @@ namespace qk {
 		, _commandPool(VK_NULL_HANDLE)
 		, _target(nullptr)
 		, _outTex(nullptr)
-		, _emptyTex(_resource->emptyTexture())
+		, _emptyTexture(nullptr), _emptyR8Texture(nullptr)
 		, _cmdPack(nullptr), _cmdPackFront(nullptr)
 		, _shaders(_resource->shaders()) // copy shared shader resource
 	{
@@ -178,6 +189,13 @@ namespace qk {
 		_cmdPack = new VkCmdPack(_device);
 		_cmdPack->reset(this);
 		_cmdPackFront = new VkCmdPack(_device);
+		_emptyTexture = _resource->newTexture(Vec2(1), kRGBA_8888_ColorType);
+		_emptyR8Texture = _resource->newTexture(Vec2(1), kLuminance_8_ColorType);
+
+		if (opts.enableCAPA && _resource->capaSupport()) {
+			_capaMaxImageCount = _resource->capaMaxImageCount();
+			_capaBuilder = new CAPABuilder(this);
+		}
 	}
 
 	VulkanCanvas::~VulkanCanvas() {
@@ -189,7 +207,8 @@ namespace qk {
 		Releasep(_cmdPack);
 		Releasep(_cmdPackFront);
 		_outTex = nullptr;
-		_emptyTex = nullptr;
+		_emptyTexture = nullptr;
+		_emptyR8Texture = nullptr;
 		_commandPool = VK_NULL_HANDLE;
 		_device = VK_NULL_HANDLE;
 	}
@@ -357,7 +376,8 @@ namespace qk {
 		// Update image sampler descriptor sets
 		VkWriteDescriptorSet writes[4]{};
 		VkDescriptorImageInfo image{_resource->nearestSampler()};
-		auto clipTex = _clipState ? vk_get_texture(_clipState->mask.get()): _emptyTex.get();
+		auto clipTex = _clipState ? vk_get_texture(_clipState->mask.get()): _emptyTexture.get();
+		clipTex->transitionLayout(_cmdPack->current, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		_cmdPack->ref(clipTex); // ref clip texture for this pack
 		image.imageView = clipTex->view;
 		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -440,6 +460,19 @@ namespace qk {
 			_cmdPack->recorded = true;
 			_cmdPack->renderPass = VK_NULL_HANDLE;
 		}
+	}
+
+	bool VulkanCanvas::onlyEndEncoderPass(Color4f &color) {
+		if (_cmdPack->beginPass && !_cmdPack->renderPass) {
+			if (_cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR) {
+				auto clr = _cmdPack->clearColor;
+				color = Color4f(clr.float32[0], clr.float32[1], clr.float32[2], clr.float32[3]);
+				_cmdPack->beginPass = false;
+				return true;
+			}
+		}
+		endPass();
+		return false;
 	}
 
 	void VulkanCanvas::beginRenderPassReady() {
@@ -550,6 +583,10 @@ namespace qk {
 			_capaBuilder->flush();
 		endPass(); // end current pass
 
+		if (_cmdPack->recorded) {
+			_target->transitionLayout(_cmdPack->current,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, _cmdPack->level);
+		}
 		Qk_ASSERT_EQ(VK_SUCCESS,
 			vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
 

@@ -58,7 +58,9 @@ namespace qk {
 		uint32_t queueFamily() const { return _queueFamily; }
 		bool computeSupport() const { return _computeSupport; }
 		bool pvrtcSupport() const { return _pvrtcSupport; }
-		VkTexture* emptyTexture() { return _emptyTexture.get(); }
+		bool capaSupport() const { return _capaSupport; }
+		bool valid() const { return _valid; }
+		uint32_t capaMaxImageCount() const { return _capaMaxImageCount; }
 		VkSampler nearestSampler() { return _nearestSampler; }
 		VkSampler linearSampler() { return _linearSampler; }
 		VkShaders& shaders() { return _shaders; }
@@ -70,7 +72,7 @@ namespace qk {
 		VkResult submitCommand(const VkSubmitInfo* submit, VkPresentInfoKHR *present, VkCmdPack *pack);
 		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
 		VkResult submitCommand(const VkCommandBuffer* cmd, Cb cb);
-		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags,
+		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels = 1, uint8_t flags = 0,
 			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 		void queueWaitIdle();
 		bool isSubmitCompleted(VkSubmitResult* result);
@@ -78,7 +80,8 @@ namespace qk {
 		explicit VulkanRenderResource(
 			VkInstance instance,
 			VkPhysicalDevice physicalDevice,
-			VkDevice device, uint32_t queueFamily, bool computeSupport, bool pvrtcSupport);
+			VkDevice device, uint32_t queueFamily, bool computeSupport, bool pvrtcSupport,
+			bool capaSupport, uint32_t capaMaxImageCount);
 		VkVertexBuffer* newVertexBuffer(uint32_t size);
 		VkPipelineLayoutData* getPipelineLayoutNoLock(VkPipelineKind kind);
 		void checkAsyncWaitTasks(Array<Cb> *out);
@@ -93,9 +96,9 @@ namespace qk {
 		VkDevice _device;
 		VkQueue _commandQueue;
 		uint32_t _queueFamily;
-		bool _computeSupport, _pvrtcSupport;
+		bool _computeSupport, _pvrtcSupport, _capaSupport, _valid;
+		uint32_t _capaMaxImageCount;
 		VkPipelineCache _pipelineCache;
-		Sp<VkTexture> _emptyTexture;
 		VkSampler _nearestSampler; // sampler state for nearest filter mode
 		VkSampler _linearSampler; // sampler state for linear filter mode
 		VkShaders _shaders;

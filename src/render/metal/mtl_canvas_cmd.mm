@@ -69,8 +69,9 @@ namespace qk {
 		_cmdPackFront.allocator->clear();
 
 		if (changeSize) {
+			auto flags = _capaBuilder ? kComputeWrite_TextureFlags: kNone_TextureFlags;
 			_outTex = mtl_new_texture(
-				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), kComputeWrite_TextureFlags);
+				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), flags);
 		}
 		_target = _outTex; // set to main texture by default
 	}
@@ -560,6 +561,8 @@ namespace qk {
 		auto s = _surfaceSize; // surface size
 		TexStat storeStat;
 		uint8_t flags = dst->mipmap() ? kMipmap_TextureFlags: 0;
+		if (_capaBuilder)
+			flags |= kComputeWrite_TextureFlags;
 		auto tex = mtl_rebuild_texture(_device, s, _opts.colorType, dst->texture(0), storeStat, flags);
 		if (!tex) {
 			// texture rebuild failed after current pass was ended.
@@ -569,6 +572,8 @@ namespace qk {
 			return;
 		}
 		_target = mtl_get_texture(tex); // set new output color texture for next pass
+		if (_capaBuilder)
+			_capaEnabled = (_target.usage & MTLTextureUsageShaderWrite) != 0;
 		setTex_SourceImage(dst, {int(s[0]),int(s[1]),_opts.colorType,dst->info().alphaType()}, tex);
 	}
 
@@ -576,6 +581,8 @@ namespace qk {
 		endPass(); // end current pass, change outTex back to canvas's own texture for next pass
 		// restore output color texture for next pass
 		_target = mtl_get_texture_from(*_state->output, _outTex);
+		if (_capaBuilder)
+			_capaEnabled = (_target.usage & MTLTextureUsageShaderWrite) != 0;
 		if (exit->mipmap()) {
 			auto tex = mtl_get_texture(exit->texture(0));
 			Qk_ASSERT(tex, "outputImageEndCmd exit texture is null");

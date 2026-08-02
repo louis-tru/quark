@@ -207,7 +207,9 @@ namespace qk {
 			commands.push(image.presentCommand);
 			image.texture->levels[0].layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-			VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			VkPipelineStageFlags waitStage =
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 			VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
 			submit.waitSemaphoreCount = 1;
 			submit.pWaitSemaphores = _imageAvailable + _imageAvailableIndex;

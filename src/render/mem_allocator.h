@@ -104,7 +104,7 @@ namespace qk {
 				}
 				if (!block) {
 					uint32_t capacity = std::max(_current->capacity << 1, reserve);
-					capacity = upPow2(capacity); // ensure new block can fit reserve
+					capacity = alignUp(upPow2(capacity), alignment); // ensure new block can fit reserve
 					block = createBlock(capacity);
 					_blocks++;
 					_capacity += block->capacity;
