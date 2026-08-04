@@ -30,6 +30,7 @@
 
 #include "./pathv_cache.h"
 #include "./render.h"
+#include "../os/os.h"
 
 namespace qk {
 
@@ -45,7 +46,10 @@ namespace qk {
 	}
 
 	PathvCache::PathvCache(uint32_t maxCapacity, Render *render)
-		: _render(render), _capacity(0), _maxCapacity(maxCapacity)
+		: _render(render), _capacity(0)
+		, _maxCapacity(uint32_t(U64::clamp(
+			maxCapacity ? maxCapacity: os_memory() >> 8, // 2GB:8MB, 4GB:16MB, 8GB:32MB
+			uint64_t(8 * 1024 * 1024), uint64_t(128 * 1024 * 1024))))
 	{}
 
 	PathvCache::~PathvCache() {

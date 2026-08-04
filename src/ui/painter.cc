@@ -51,7 +51,7 @@
 #define _IfNotBorderReturn(v, ...) _IfNotBorder(v) { __VA_ARGS__ return; }
 
 namespace qk {
-	constexpr BlendMode defaultBlendMode = kSrcOver_BlendMode;
+	constexpr BlendMode defaultBlend = kSrcOver_BlendMode;
 
 	typedef Painter::BoxData BoxData;
 
@@ -133,7 +133,7 @@ namespace qk {
 		}
 	}
 
-	void Painter::drawBoxBasic1(Box *v) {
+	void Painter::drawBoxBasicTest(Box *v) {
 		if (!v->_color.a())
 			return;
 		drawBoxShadow(v);
@@ -186,7 +186,7 @@ namespace qk {
 		if (_pathvs.total) {
 			for (int i = 0; i < _pathvs.total; i++) {
 				auto & it = _pathvs.indexed[i];
-				_canvas->drawPathColors(it.pathv, it.count, it.color.mul_color4f(_color), defaultBlendMode, v->_aa);
+				_canvas->drawPathColors(it.pathv, it.count, it.color.mul_color4f(_color), defaultBlend, v->_aa);
 			}
 			_pathvs = {0}; // reset batch
 		}
@@ -201,7 +201,7 @@ namespace qk {
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) { // top
 					auto pv = &_boxData.outline->top + i;
-					_canvas->drawPathColor(*pv, _border->color[i].mul_color4f(_color), defaultBlendMode, v->_aa);
+					_canvas->drawPathColor(*pv, _border->color[i].mul_color4f(_color), defaultBlend, v->_aa);
 				}
 			}
 		}
@@ -410,21 +410,35 @@ namespace qk {
 		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
+	static bool validBoxShadow(BoxShadow *shadow) {
+		while(shadow) {
+			if (shadow->type() != BoxFilter::kShadow)
+				break;
+			if (!shadow->value().isZero())
+				return true;
+			shadow = static_cast<BoxShadow*>(shadow->next());
+		}
+		return false;
+	}
+
 	void Painter::drawBoxShadow(Box *v) {
 		auto shadow = v->box_shadow();
-		if (!shadow)
+		if (!validBoxShadow(shadow))
 			return;
 		getOutsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPath(*_boxData.outside, Canvas::kDifference_ClipOp, false);
+		_canvas->clipPath(*_boxData.outside, Canvas::kDifference_ClipOp, true);
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
+			if (shadow->value().isZero())
+				continue;
 			auto s = shadow->value();
-			auto &o = _boxData.outside->rect.begin;
-			_canvas->drawRRectBlurColor({
-				{o.x()+s.x, o.y()+s.y}, _boxData.outside->rect.size,
-			},&v->_border_top_left_radius, s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
+			auto rect = _boxData.outside->rect;
+			rect.begin += {s.x, s.y};
+			_canvas->drawRRectBlurColor(rect,
+				&v->_border_top_left_radius,
+				s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
@@ -447,29 +461,26 @@ namespace qk {
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().mul_alpha_only(v->_scrollbar_opacity).mul(_color);
 			auto _border = b->_border.load();
+			float radius[] = {width,width,width,width};
 
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
-				float radius[] = {width,width,width,width};
-				Rect rect = {
-					Vec2{v->_scrollbar_position_h[0], size[1] - width - margin} + _origin,
-					Vec2{v->_scrollbar_position_h[1], width}
-				};
-				if (_border) {
-					rect.begin += {_border->width[3], -_border->width[0]};
-				}
-				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				auto begin = Vec2{v->_scrollbar_position_h[0], size[1] - width - margin};
+				begin += _origin + v->host()->position();
+				if (_border)
+					begin += {_border->width[3], -_border->width[0]};
+				setPosition(begin);
+				Rect rect = {0, {v->_scrollbar_position_h[1], width} };
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlend, true);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
-				float radius[] = {width,width,width,width};
-				Rect rect = {
-					Vec2{size[0] - width - margin, v->_scrollbar_position_v[0]} + _origin,
-					Vec2{width,                    v->_scrollbar_position_v[1]}
-				};
-				if (_border) {
-					rect.begin += {-_border->width[3], _border->width[0]};
-				}
-				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
+				auto begin = Vec2{size[0] - width - margin, v->_scrollbar_position_v[0]};
+				begin += _origin + v->host()->position();
+				if (_border)
+					begin += {-_border->width[3], _border->width[0]};
+				setPosition(begin);
+				Rect rect = { 0, {width, v->_scrollbar_position_v[1]} };
+				_canvas->drawPathColor(_cache->getRRectPath(rect, radius), color, defaultBlend, true);
 			}
 		}
 	}
@@ -498,7 +509,7 @@ namespace qk {
 					},
 					{blob.blob.offset.back().x()-offset_x, blob.height},
 				});
-				_canvas->drawPathColor(rect, color, defaultBlendMode, true);
+				_canvas->drawPathColor(rect, color, defaultBlend, true);
 			}
 		}
 
@@ -756,7 +767,7 @@ namespace qk {
 				auto offset_x = blob.blob.offset.front().x();
 				auto width = blob.blob.offset.back().x();
 				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
-				canvas->drawPathColor(rect, color, defaultBlendMode, true);
+				canvas->drawPathColor(rect, color, defaultBlend, true);
 			};
 			auto size = font_size().value;
 			auto shadow = text_shadow().value;
@@ -819,7 +830,7 @@ namespace qk {
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
-			canvas->drawPathColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlendMode, true);
+			canvas->drawPathColor(rect, _cursor_color.mul_color4f(draw->color()), defaultBlend, true);
 		}
 
 		if (clip) {

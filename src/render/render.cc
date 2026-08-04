@@ -28,24 +28,21 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// #include <math.h>
 #include "../util/thread.h"
 #include "./render.h"
 #include "./source.h"
 #include "./pathv_cache.h"
+#include "./arguments.h"
 
 namespace qk {
+	// application run arguments, set by main() and used by RenderBackend and RenderResource.
+	const RunArguments *runArguments = nullptr;
+	// settings Image Sources internal texture stat, used by Render Resource to create GPU texture.
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 
 	static uint32_t integerExp(uint32_t n) {
 		return (uint32_t) powf(2, floor(log2(n)));
 	}
-
-	struct RunArguments {
-		int    argc;
-		char** argv;
-		DictSS options;
-	} extern const *runArguments;
 
 	uint32_t msaaSample(uint32_t n) {
 		// n = integerExp(n);

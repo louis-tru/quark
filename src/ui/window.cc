@@ -394,7 +394,6 @@ namespace qk {
 			_fspTick = 0;
 			_fspTime = _time;
 		}
-		_fspTick++;
 
 		_root->draw(_painter); // start drawing
 
@@ -414,6 +413,7 @@ namespace qk {
 		solveNextFrame(); // solve frame
 
 		if (_render->getCanvas()->swapBuffer()) {
+			_fspTick++;
 			delayTaskMark();
 		}
 

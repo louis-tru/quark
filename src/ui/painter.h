@@ -69,7 +69,7 @@ namespace qk {
 		void getOutsideRectPath(Box *v);
 		void getRRectOutlinePath(Box *v);
 		void drawBoxBasic(Box *v);
-		void drawBoxBasic1(Box *v);
+		void drawBoxBasicTest(Box *v);
 		void drawBoxFill(Box *v);
 		void drawBoxFillImage(Box *v, FillImage *fill);
 		void drawBoxFillLinear(Box *v, FillGradientLinear *fill);

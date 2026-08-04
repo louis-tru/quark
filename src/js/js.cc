@@ -39,7 +39,8 @@
 #endif
 
 namespace qk {
-	extern int (*__qk_run_main0__)(int, char**);
+	DictSS parseArgvOptions(int argc, char** argv);
+	extern int (*__qkRunMain0__)(int, char**);
 	bool is_exit();
 namespace js {
 	std::atomic_int workers_count(0);
@@ -558,12 +559,16 @@ namespace js {
 		return Start(argc, argv.val());
 	}
 
+	RunArguments *jsArguments = nullptr;
+
 	int Start(int argc, char** argv) {
-		Qk_ASSERT(runArguments, "runArguments must be set before calling Start()");
+		Qk_ASSERT(!jsArguments, "jsArguments has been set, can't call Start() twice");
+		RunArguments arguments{argc, argv, parseArgvOptions(argc, argv)};
+		jsArguments = &arguments;
 
-		setFlagsFromCommandLine(runArguments);
+		setFlagsFromCommandLine(jsArguments);
 
-		if (runArguments->options.has("help"))
+		if (jsArguments->options.has("help"))
 			return 0;
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
@@ -577,19 +582,19 @@ namespace js {
 
 		int rc = startPlatform([](Worker* worker) -> int {
 			const String *inspect, *mainPath = nullptr;
-			if (!runArguments->options.get("__main__", mainPath)) {
-				if (!runArguments->options.has("e") && !runArguments->options.has("eval")) {
-					return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+				if (!jsArguments->options.get("__main__", mainPath)) {
+					if (!jsArguments->options.has("e") && !jsArguments->options.has("eval")) {
+						return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+					}
 				}
-			}
 			if (
-				runArguments->options.get("debug", inspect) ||
-				runArguments->options.get("inspect", inspect) ||
-				runArguments->options.get("inspect_brk", inspect)
+				jsArguments->options.get("debug", inspect) ||
+				jsArguments->options.get("inspect", inspect) ||
+				jsArguments->options.get("inspect_brk", inspect)
 			) {
 				auto script_path = mainPath ?
 					fs_reader()->format(*mainPath): String("eval");
-				bool brk = runArguments->options.has("brk") || runArguments->options.has("inspect_brk");
+				bool brk = jsArguments->options.has("brk") || jsArguments->options.has("inspect_brk");
 				// Startup debugger
 				if (inspect->length() == 0) {
 					runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
@@ -603,7 +608,7 @@ namespace js {
 
 				if (brk) {
 #if !DEBUG
-					if (runArguments->options.has("inner_brk"))
+					if (jsArguments->options.has("inner_brk"))
 #endif
 						debuggerBreakNextStatement(worker);
 				}
@@ -645,12 +650,13 @@ namespace js {
 
 		Qk_Off(Exit, onExitHandle);
 
+		jsArguments = nullptr;
 		return rc;
 	}
 
 	// Default main function
 	Qk_Init_Func(set_default_main) {
-		__qk_run_main0__ = [](int argc, char** argv) {
+		__qkRunMain0__ = [](int argc, char** argv) {
 			return argc > 1 ? Start(argc, argv): 0;
 		};
 	};

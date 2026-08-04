@@ -148,6 +148,7 @@ add_library(quark SHARED
 	../../../src/render/vulkan/vk_device.cc
 	../../../src/render/vulkan/vk_render.cc
 	../../../src/render/vulkan/vk_render_linux.cc
+	../../../src/render/vulkan/vk_mem_allocator.cc
 	../../../src/render/vulkan/vk_resource.cc
 	../../../src/render/vulkan/vk_shader.cc
 	../../../src/render/vulkan/vk_shaders.cc

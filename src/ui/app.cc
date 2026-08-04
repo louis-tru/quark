@@ -36,14 +36,14 @@
 #include "./text/text_opts.h"
 #include "./event.h"
 #include "./css/css.h"
+#include "../render/arguments.h"
 
 namespace qk {
-	int (*__qk_run_main0__)(int, char**) = nullptr;
-	int (*__qk_run_main__)(int, char**) = nullptr;
-	const RunArguments *runArguments = nullptr;
+	int (*__qkRunMain0__)(int, char**) = nullptr;
+	int (*__qkRunMain__)(int, char**) = nullptr;
 
 	// thread helper
-	static auto _run_main_wait = new CondMutex;
+	static auto _runMainWait = new CondMutex;
 
 	void view_prop_acc_init();
 	cArray<Window*>* getWindowResidentPool();
@@ -51,58 +51,7 @@ namespace qk {
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
 
-	void parseArguments(int argc, char** argv) {
-		Qk_ASSERT(!runArguments, "Start() can only be called once.");
-		String lastKey;
-		static RunArguments args = { argc, argv };
-
-		auto putkv = [](cString& k, cString& v) {
-			String *old;
-			if (args.options.get(k, old)) {
-				if (old->isEmpty())
-					*old = v;
-				else
-					old->append(" ").append(v);
-			} else {
-				args.options[k] = v;
-			}
-		};
-
-		for (int i = 1; i < argc; i++) {
-			String arg(argv[i]);
-			if (arg[0] == '-') {
-				auto kv = arg.split('=');
-				auto k = kv[0].replaceAll('-', '_');
-				auto v = kv.length() > 1 ? kv[1]: String();
-				if (arg.length() > 1 && arg[1] != '-') { // -
-					if (kv.length() > 1)
-						goto val;
-					lastKey = k.substr(1);
-					putkv(lastKey, v);
-					if (lastKey.length() > 1 && kv.length() == 1) {
-						for (auto i = 0u; i < lastKey.length(); i++)
-							putkv(lastKey[i], String());
-					}
-				} else if (arg.length() > 2) { // --
-					putkv(k.substr(2), v);
-					lastKey = String();
-				}
-			} else if (arg.length() > 0) {
-				val:
-				if (lastKey.length()) {
-					putkv(lastKey, arg);
-					lastKey = String();
-				} else if (args.options.has("__main__")) {
-					putkv("__plus__", arg);
-				} else {
-					args.options.set("__main__", arg);
-					args.options.set("__mainIdx__", i);
-				}
-			}
-		}
-
-		runArguments = &args;
-	}
+	DictSS parseArgvOptions(int argc, char** argv);
 
 	Application::Application()
 		: Qk_Init_Event(Load)
@@ -132,7 +81,7 @@ namespace qk {
 		_fontPool = shared_fontPool();
 		_imgPool = shared_imgPool();
 		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
-		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
+		_runMainWait->lock_and_notify_all(); // The external thread continues to run
 
 		Inl_Application(this)->initPlatform();
 
@@ -193,18 +142,20 @@ namespace qk {
 	}
 
 	void Application::setMain(int (*main)(int, char**)) {
-		__qk_run_main__ = main;
+		__qkRunMain__ = main;
 	}
 
 	void Application::runMain(int argc, char* argv[], bool waitNewApp) {
-		parseArguments(argc, argv);
+		Qk_ASSERT(!runArguments, "runArguments must be nullptr before calling runMain()");
+		static RunArguments arguments{argc, argv, parseArgvOptions(argc, argv)};
+		runArguments = &arguments;
 
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](auto) {
 			int rc = 0;
-			auto main = __qk_run_main__ ? __qk_run_main__: __qk_run_main0__;
+			auto main = __qkRunMain__ ? __qkRunMain__: __qkRunMain0__;
 			if (main)
-				rc = main(runArguments->argc, runArguments->argv); // Run this custom gui entry function
+				rc = main(arguments.argc, arguments.argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
 			abort_exit(rc); // if sub thread end then exit
 			Qk_DLog("Application::runMain() thread_new() Exit ok");
@@ -213,7 +164,7 @@ namespace qk {
 		if (waitNewApp) {
 			// Block this main thread until calling new Application
 			while (!_shared) {
-				_run_main_wait->lock_and_wait_for();
+				_runMainWait->lock_and_wait_for();
 			}
 		}
 	}

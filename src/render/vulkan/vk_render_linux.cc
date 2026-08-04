@@ -52,7 +52,6 @@ namespace qk {
 		void setTexture(VkTexture* tex) {
 			if (texture) {
 				texture->image = VK_NULL_HANDLE;
-				texture->memory = VK_NULL_HANDLE;
 				texture->unref();
 			}
 			if (tex)

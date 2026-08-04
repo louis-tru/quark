@@ -234,6 +234,8 @@
 					'render/vulkan/vk_device.cc',
 					'render/vulkan/vk_render.h',
 					'render/vulkan/vk_render.cc',
+					'render/vulkan/vk_mem_allocator.h',
+					'render/vulkan/vk_mem_allocator.cc',
 					'render/vulkan/vk_resource.cc',
 					'render/vulkan/vk_shader.h',
 					'render/vulkan/vk_shader.cc',

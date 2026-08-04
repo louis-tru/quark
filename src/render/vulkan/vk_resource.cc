@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./vk_render.h"
+#include "./vk_mem_allocator.h"
 
 namespace qk {
 
@@ -65,7 +66,8 @@ namespace qk {
 	}
 
 	VkTexture::~VkTexture() {
-		auto device = getSharedRenderVulkanResource()->device();
+		auto resource = getSharedRenderVulkanResource();
+		auto device = resource->device();
 		for (auto &level: levels) {
 			if (level.framebuffer)
 				vkDestroyFramebuffer(device, level.framebuffer, nullptr);
@@ -77,7 +79,11 @@ namespace qk {
 		if (image)
 			vkDestroyImage(device, image, nullptr);
 		if (memory)
-			vkFreeMemory(device, memory, nullptr);
+			resource->releaseMemory(memory);
+	}
+
+	void VulkanRenderResource::releaseMemory(cVkMemory *memory) {
+		_memoryAllocator->release(memory);
 	}
 
 	VkImageView VkTexture::levelView(uint32_t level) {
@@ -267,8 +273,7 @@ namespace qk {
 		return get_sampler(&image);
 	}
 
-	VkTexture* VulkanRenderResource::newTexture(Vec2 size, ColorType type, uint32_t mipLevels,
-		uint8_t flags, VkImageLayout initialLayout)
+	VkTexture* VulkanRenderResource::newTexture(Vec2 size, ColorType type, uint32_t mipLevels, uint8_t flags)
 	{
 		VkFormat format = vk_pixelFormat(type);
 		if (format == VK_FORMAT_UNDEFINED || size.x() <= 0 || size.y() <= 0)
@@ -323,12 +328,14 @@ namespace qk {
 		vkGetImageMemoryRequirements(_device, tex->image, &requirements);
 		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryType);
+		Qk_ASSERT(requirements.size <= U32::limit_max,
+			"Vulkan texture memory exceeds the Qk allocation limit");
 
-		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-		memoryInfo.allocationSize = requirements.size;
-		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &tex->memory);
-		vk_call(vkBindImageMemory, _device, tex->image, tex->memory, 0);
+		tex->memory = _memoryAllocator->alloc(uint32_t(requirements.size), memoryType,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, !(flags & kLongLife_TextureFlags));
+		if (!tex->memory)
+			return fail();
+		vk_call(vkBindImageMemory, _device, tex->image, tex->memory->handle, 0);
 
 		VkImageViewCreateInfo viewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
 		viewInfo.image = tex->image;
@@ -339,16 +346,6 @@ namespace qk {
 		viewInfo.subresourceRange.layerCount = 1;
 		vk_call(vkCreateImageView, _device, &viewInfo, nullptr, &tex->view);
 
-		if (initialLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
-			ScopeLock lock(_mutex);
-			vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
-			tex->transitionLayout(cmd, initialLayout, 0, mipLevels);
-			vk_call(vkEndCommandBuffer, cmd);
-			vk_call(submitCommand, &cmd, Cb([this,cmd](auto e) {
-				ScopeLock lock(_mutex);
-				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-			}));
-		}
 		return tex;
 	}
 
@@ -393,13 +390,13 @@ namespace qk {
 			return false;
 
 		VkBuffer stagingBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+		cVkMemory *stagingMemory = nullptr;
 		VkCommandBuffer cmd = VK_NULL_HANDLE;
 		auto fail = [&]() {
 			if (stagingBuffer)
 				vkDestroyBuffer(_device, stagingBuffer, nullptr);
 			if (stagingMemory)
-				vkFreeMemory(_device, stagingMemory, nullptr);
+				releaseMemory(stagingMemory);
 			if (cmd)
 				vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
 			tex->unref();
@@ -421,13 +418,15 @@ namespace qk {
 		vk_call(vk_findMemoryType, _physicalDevice, requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryType
 		);
-		void *mapped;
-		VkMemoryAllocateInfo memoryInfo = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-		memoryInfo.allocationSize = requirements.size;
-		memoryInfo.memoryTypeIndex = memoryType;
-		vk_call(vkAllocateMemory, _device, &memoryInfo, nullptr, &stagingMemory);
-		vk_call(vkBindBufferMemory, _device, stagingBuffer, stagingMemory, 0);
-		vk_call(vkMapMemory, _device, stagingMemory, 0, uploadSize, 0, &mapped);
+		Qk_ASSERT(requirements.size <= U32::limit_max,
+			"Vulkan staging memory exceeds the Qk allocation limit");
+		stagingMemory = _memoryAllocator->alloc(uint32_t(requirements.size), memoryType,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		if (!stagingMemory)
+			return fail();
+		vk_call(vkBindBufferMemory, _device, stagingBuffer, stagingMemory->handle, 0);
+		auto mapped = stagingMemory->mapped;
+		Qk_ASSERT(mapped, "Vulkan staging memory must be host visible");
 
 		VkDeviceSize offset = 0;
 		for (int i = 0; i < levels; i++) {
@@ -435,42 +434,48 @@ namespace qk {
 			memcpy(static_cast<uint8_t*>(mapped) + offset, pix[i].val(), pix[i].length());
 			offset += pix[i].length();
 		}
-		vkUnmapMemory(_device, stagingMemory);
+		{
+			ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
 
-		ScopeLock lock(_mutex); // Lock the mutex to ensure thread safety during texture upload
+			result = vk_beginCommandBuffer(_device, _commandPool, &cmd);
+			if (result == VK_SUCCESS) {
+				tex->transitionLayout(cmd,
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, generateMipmaps ? 1: imageLevels);
 
-		vk_call(vk_beginCommandBuffer, _device, _commandPool, &cmd);
-		tex->transitionLayout(cmd,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, generateMipmaps ? 1: imageLevels);
+				offset = 0;
+				for (int i = 0; i < levels; i++) {
+					offset = (offset + 15) & ~VkDeviceSize(15); // align to 16 bytes for optimal transfer
+					VkBufferImageCopy copy = {};
+					copy.bufferOffset = offset;
+					copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+					copy.imageSubresource.mipLevel = i;
+					copy.imageSubresource.layerCount = 1;
+					copy.imageExtent = { uint32_t(pix[i].width()), uint32_t(pix[i].height()), 1 };
+					vkCmdCopyBufferToImage(cmd,
+						stagingBuffer, tex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+					offset += pix[i].length();
+				}
 
-		offset = 0;
-		for (int i = 0; i < levels; i++) {
-			offset = (offset + 15) & ~VkDeviceSize(15); // align to 16 bytes for optimal transfer
-			VkBufferImageCopy copy = {};
-			copy.bufferOffset = offset;
-			copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			copy.imageSubresource.mipLevel = i;
-			copy.imageSubresource.layerCount = 1;
-			copy.imageExtent = { uint32_t(pix[i].width()), uint32_t(pix[i].height()), 1 };
-			vkCmdCopyBufferToImage(cmd,
-				stagingBuffer, tex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
-			offset += pix[i].length();
+				if (generateMipmaps) {
+					tex->generateMipmaps(cmd);
+				} else {
+					tex->transitionLayout(cmd,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, imageLevels);
+				}
+				result = vkEndCommandBuffer(cmd);
+			}
+
+			if (result == VK_SUCCESS) {
+				result = submitCommand(&cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
+					vkDestroyBuffer(_device, stagingBuffer, nullptr);
+					_memoryAllocator->release(stagingMemory);
+					ScopeLock lock(_mutex);
+					vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
+				}));
+			}
 		}
-
-		if (generateMipmaps) {
-			tex->generateMipmaps(cmd);
-		} else {
-			tex->transitionLayout(cmd,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, imageLevels);
-		}
-
-		vk_call(vkEndCommandBuffer, cmd);
-		vk_call(submitCommand, &cmd, Cb([this,stagingBuffer,stagingMemory,cmd](auto e) {
-			ScopeLock lock(_mutex);
-			vkDestroyBuffer(_device, stagingBuffer, nullptr);
-			vkFreeMemory(_device, stagingMemory, nullptr);
-			vkFreeCommandBuffers(_device, _commandPool, 1, &cmd);
-		}));
+		if (result != VK_SUCCESS)
+			return fail();
 
 		VulkanRenderResource::unloadTexture(out);
 		tex->ref();

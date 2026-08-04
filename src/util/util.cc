@@ -242,4 +242,56 @@ namespace qk {
 		}
 		return argv.length();
 	}
+
+	DictSS parseArgvOptions(int argc, char** argv) {
+		String lastKey;
+		DictSS opts;
+
+		auto putkv = [&](cString& k, cString& v) {
+			String *old;
+			if (opts.get(k, old)) {
+				if (old->isEmpty())
+					*old = v;
+				else
+					old->append(" ").append(v);
+			} else {
+				opts[k] = v;
+			}
+		};
+
+		for (int i = 1; i < argc; i++) {
+			String arg(argv[i]);
+			if (arg[0] == '-') {
+				auto kv = arg.split('=');
+				auto k = kv[0].replaceAll('-', '_');
+				auto v = kv.length() > 1 ? kv[1]: String();
+				if (arg.length() > 1 && arg[1] != '-') { // -
+					if (kv.length() > 1)
+						goto val;
+					lastKey = k.substr(1);
+					putkv(lastKey, v);
+					if (lastKey.length() > 1 && kv.length() == 1) {
+						for (auto i = 0u; i < lastKey.length(); i++)
+							putkv(lastKey[i], String());
+					}
+				} else if (arg.length() > 2) { // --
+					putkv(k.substr(2), v);
+					lastKey = String();
+				}
+			} else if (arg.length() > 0) {
+				val:
+				if (lastKey.length()) {
+					putkv(lastKey, arg);
+					lastKey = String();
+				} else if (opts.has("__main__")) {
+					putkv("__plus__", arg);
+				} else {
+					opts.set("__main__", arg);
+					opts.set("__mainIdx__", i);
+				}
+			}
+		}
+
+		Qk_ReturnLocal(opts);
+	}
 }

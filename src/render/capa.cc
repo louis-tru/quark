@@ -83,13 +83,6 @@ namespace qk {
 		reset();
 	}
 
-	int CAPABuilder::findImageTexture(const PaintImage *paint) const {
-		for (uint32_t i = 0; i < _data.imageSources.length(); i++)
-			if (_data.imageSources[i].get() == paint->image)
-				return i;
-		return -1;
-	}
-
 	int CAPABuilder::findImageSampler(const PaintImage *paint) const {
 		for (uint32_t i = 0; i < _data.imageSamplers.length(); i++)
 			if (_data.imageSamplers[i].bitfields == paint->bitfields)
@@ -100,8 +93,7 @@ namespace qk {
 	bool CAPABuilder::canAddImageTexture(const PaintImage *paint) const {
 		auto limit = _owner->capaMaxImageCount();
 		if (_data.imageSources.length() >= limit)
-			if (findImageTexture(paint) == -1)
-				return false;
+			return false;
 		if (_data.imageSamplers.length() >= limit)
 			if (findImageSampler(paint) == -1)
 				return false;
@@ -109,10 +101,7 @@ namespace qk {
 	}
 
 	uint32_t CAPABuilder::addImageTexture(const PaintImage *paint) {
-		int index = findImageTexture(paint);
-		if (index >= 0)
-			return index;
-		index = _data.imageSources.length();
+		uint32_t index = _data.imageSources.length();
 		_data.imageSources.push(paint->image);
 		return index;
 	}

@@ -72,8 +72,8 @@ namespace qk {
 		VkResult submitCommand(const VkSubmitInfo* submit, VkPresentInfoKHR *present, VkCmdPack *pack);
 		VkResult submitCommand(const VkSubmitInfo* submit, Cb cb);
 		VkResult submitCommand(const VkCommandBuffer* cmd, Cb cb);
-		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels = 1, uint8_t flags = 0,
-			VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+		VkTexture* newTexture(Vec2 size, ColorType type, uint32_t mipLevels = 1, uint8_t flags = 0);
+		void releaseMemory(cVkMemory *memory);
 		void queueWaitIdle();
 		bool isSubmitCompleted(VkSubmitResult* result);
 	private:
@@ -84,7 +84,7 @@ namespace qk {
 			bool capaSupport, uint32_t capaMaxImageCount);
 		VkVertexBuffer* newVertexBuffer(uint32_t size);
 		VkPipelineLayoutData* getPipelineLayoutNoLock(VkPipelineKind kind);
-		void checkAsyncWaitTasks(Array<Cb> *out);
+		bool checkAsyncWaitTasks(Array<Cb> *out);
 		VkShader& getShader(VkPipelineKind kind);
 		VkShaderModule getShaderModule(VkPipelineKind kind, VkShaderStageFlagBits stage);
 		void refSubmitResult(VkSubmitResult* result, VkCmdPack *pack);
@@ -110,6 +110,7 @@ namespace qk {
 		List<Pair<VkSubmitResult*, Cb>> _asyncWaitTasks;
 		int64_t _nextAsyncWaitCheckTime;
 		VkCommandPool _commandPool;
+		VkMemoryAllocator *_memoryAllocator;
 		friend VulkanRenderResource* getSharedRenderVulkanResource();
 		friend class VulkanRender;
 	};

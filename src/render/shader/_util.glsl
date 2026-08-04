@@ -53,10 +53,11 @@ layout(binding=3, set=0, std140) uniform ClipStatBlock {
 
 // clipStat.op: 0 for intersect, 1 for difference
 float clipCoverage(ivec2 fragCoord) {
-	float coverage = texelFetch(clipTex, fragCoord - clipStat.bounds.xy, 0).r;
-	if (clipStat.op == 1)
-		coverage = 1.0 - coverage; /* difference mode: invert coverage*/
-	return coverage;
+	// float coverage = texelFetch(clipTex, fragCoord - clipStat.bounds.xy, 0).r;
+	// if (clipStat.op == 1)
+	// 	coverage = 1.0 - coverage; /* difference mode: invert coverage*/
+	// return coverage;
+	return 1.0;
 }
 
 // GLSL built-in functions:

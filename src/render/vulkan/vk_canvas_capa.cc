@@ -316,7 +316,7 @@ namespace qk {
 			bindDescriptorSet(set1, shader, 1, 0, VK_PIPELINE_BIND_POINT_COMPUTE);
 
 			auto imageCount = data.imageSources.length();
-			auto set2 = allocDescriptorSet(shader.sets(2), imageCount);
+			auto set2 = allocDescriptorSet(shader.sets(2), &imageCount);
 			if (imageCount) {
 				Array<VkDescriptorImageInfo> imageInfos(&_cmdPack->allocator);
 				imageInfos.extend(imageCount);
@@ -340,7 +340,7 @@ namespace qk {
 			bindDescriptorSet(set2, shader, 2, 0, VK_PIPELINE_BIND_POINT_COMPUTE);
 
 			auto samplerCount = data.imageSamplers.length();
-			auto set3 = allocDescriptorSet(shader.sets(3), samplerCount);
+			auto set3 = allocDescriptorSet(shader.sets(3), &samplerCount);
 			if (samplerCount) {
 				Array<VkDescriptorImageInfo> samplerInfos(&_cmdPack->allocator);
 				samplerInfos.extend(samplerCount);

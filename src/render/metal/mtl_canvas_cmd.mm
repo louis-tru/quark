@@ -69,7 +69,9 @@ namespace qk {
 		_cmdPackFront.allocator->clear();
 
 		if (changeSize) {
-			auto flags = _capaBuilder ? kComputeWrite_TextureFlags: kNone_TextureFlags;
+			uint8_t flags = kLongLife_TextureFlags;
+			if (_capaBuilder)
+				flags |= kComputeWrite_TextureFlags;
 			_outTex = mtl_new_texture(
 				_device, _surfaceSize, mtl_pixel_format(_opts.colorType), flags);
 		}

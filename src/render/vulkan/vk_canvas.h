@@ -45,7 +45,7 @@ namespace qk {
 		List<VkDescriptorPool>::Iterator iter;
 		VkDescriptorPool createDescriptorPool(VkDevice device);
 		VkDescriptorSet allocDescriptorSet(VkDevice device, VkDescriptorSetLayout setLayout,
-			uint32_t variableCount = 0);
+			uint32_t *variableCount = nullptr);
 		inline ~VkDescriptorPools() {
 			Qk_ASSERT(pools.isNull(), "Vulkan descriptor pools should be released before destruction");
 		}
@@ -138,7 +138,7 @@ namespace qk {
 			VkSampler sampler = nullptr, uint32_t level = 0);
 		void makeTextureMipReadable(VkTexture *tex, uint32_t level = 0);
 		VkDescriptorSet useTexture0(VkDescriptorSet set, const PaintImage *paint, int dstSlot, bool* isYuv);
-		inline VkDescriptorSet allocDescriptorSet(VkDescriptorSetLayout setLayout, uint32_t variableCount = 0) {
+		inline VkDescriptorSet allocDescriptorSet(VkDescriptorSetLayout setLayout, uint32_t *variableCount = nullptr) {
 			return _cmdPack->descPools.allocDescriptorSet(_device, setLayout, variableCount);
 		}
 		VkCommandBuffer usePipeline(VkShader &shader);

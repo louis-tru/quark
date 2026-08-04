@@ -37,7 +37,7 @@
 #include "./js.h"
 #include "../util/codec.h"
 #include "../util/fs.h"
-#include "../ui/app.h"
+#include "../render/arguments.h"
 
 namespace qk { namespace js {
 
@@ -124,6 +124,8 @@ namespace qk { namespace js {
 		JSObject* console() { return *_console; }
 		void     initGlobalAPIs();
 	};
+
+	extern RunArguments *jsArguments;
 
 	struct DebugOptions {
 		bool waiting_for_connect;

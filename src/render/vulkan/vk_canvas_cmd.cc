@@ -69,7 +69,9 @@ namespace qk {
 
 		// create new output texture if size changed
 		if (changeSize) {
-			auto flags = _capaBuilder ? kComputeWrite_TextureFlags: kNone_TextureFlags;
+			uint8_t flags = kLongLife_TextureFlags;
+			if (_capaBuilder)
+				flags |= kComputeWrite_TextureFlags;
 			setDefaultTarget(_resource->newTexture(_surfaceSize, _opts.colorType, 1, flags));
 		}
 	}
@@ -121,7 +123,7 @@ namespace qk {
 			drawClipMask(black, true);
 		}
 		endPass();
-		makeTextureMipReadable(_target); // make clip mask texture readable for shader
+		// makeTextureMipReadable(_target); // make clip mask texture readable for shader
 		// restore framebuffer and blend mode
 		_blendMode = blend;
 		_target = lastTarget;

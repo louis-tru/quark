@@ -34,7 +34,7 @@
 namespace qk {
 
 	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0) {
-		auto &block = cmd.allocator->alloc(size, reserve);
+		auto &block = cmd.allocator->alloc(size, Qk_Max(reserve, size));
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
 			memcpy((char*)block.val.contents + block.begin, src, size);

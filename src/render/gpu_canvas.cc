@@ -158,13 +158,16 @@ namespace qk {
 			if (_capaEnabled && _capaBuilder->build(path, color))
 				return;
 			flushCAPABatch();
-			drawColorCmd(buildVertex(path, aaRadius, aa), color);
+			auto &vertex = buildVertex(path, aaRadius, aa);
+			if (!vertex.vCount)
+				return;
+			drawColorCmd(vertex, color);
 		}
 
-		void strokePath(const Path &path, const Paint& paint, float aaRadius) {
+		void strokePath(const Path &path, const Paint& paint, float aaRadius, bool useCapa) {
 			auto width = paint.strokeWidth - _1pxSize;
 			bool boldStroke = paint.strokeWidth > _1pxSize * 1.8;
-			if (boldStroke && fillPathCAPA(path, paint, paint.stroke, true))
+			if (boldStroke && useCapa && fillPathCAPA(path, paint, paint.stroke, true))
 				return;
 			if (!paint.antiAlias) {
 				auto &stroke = _cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join, 0);
@@ -200,7 +203,7 @@ namespace qk {
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
 			auto fillPath = [&]() {
-				if (fillPathCAPA(path, paint, paint.fill, false))
+				if (!filter && fillPathCAPA(path, paint, paint.fill, false))
 					return;
 				fillPathAASide(buildVertex(path, aaRadius, paint.antiAlias), paint, paint.fill);
 			};
@@ -211,7 +214,7 @@ namespace qk {
 				case Paint::kStrokeAndFill_Style:
 					fillPath();
 				case Paint::kStroke_Style:
-					strokePath(path, paint, aaRadius); break;
+					strokePath(path, paint, aaRadius, !filter); break;
 			}
 		}
 	};
@@ -235,10 +238,7 @@ namespace qk {
 		, _capaBuilder(nullptr)
 		, _capaEnabled(false)
 	{
-		auto capacity = opts.maxCapacityForPathvCache ?
-			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
-		capacity = U32::clamp(capacity, 1024000/*1mb*/, 512000000/*512mb*/);
-		_cache = new PathvCache(capacity, render);
+		_cache = new PathvCache(opts.maxCapacityForPathvCache, render);
 		_stateStack.push({ .matrix=Mat() });
 		_state = &_stateStack.back();
 	}
@@ -250,6 +250,9 @@ namespace qk {
 	}
 
 	Sp<ImageSource> GPUCanvas::getTextureFromPool(Vec2 size, ColorType type, Vec2 limit, uint8_t flags) {
+		// TexturePool owns these textures for the canvas lifetime. Their backend
+		// memory should not remain in another cache after the pool releases them.
+		flags |= kLongLife_TextureFlags;
 		if (limit.is_zero_axis()) {
 			limit = _surfaceSize; // default limit to surface size if not provided
 		}

@@ -55,12 +55,12 @@ namespace qk {
 	}
 
 	VkDescriptorSet VkDescriptorPools::allocDescriptorSet(VkDevice device,
-		VkDescriptorSetLayout setLayout, uint32_t variableCount
+		VkDescriptorSetLayout setLayout, uint32_t *variableCount
 	) {
 		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT variableInfo{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT};
 		variableInfo.descriptorSetCount = 1;
-		variableInfo.pDescriptorCounts = &variableCount;
+		variableInfo.pDescriptorCounts = variableCount;
 		VkDescriptorSetAllocateInfo info{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
 		info.pNext = variableCount ? &variableInfo: nullptr;
 		info.descriptorPool = *iter;
@@ -481,6 +481,10 @@ namespace qk {
 		auto target = _cmdPack->target;
 		Qk_ASSERT_LT(_cmdPack->level, target->mipLevels(), "Invalid Vulkan render target mip level");
 
+		// CLEAR/DONT_CARE may discard the previous contents by using UNDEFINED.
+		// TODO: If CAPA/compute has just written this target, add an explicit
+		// compute-to-color-attachment barrier before beginning this pass; discarding
+		// the contents does not by itself synchronize the two GPU writes.
 		auto initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		if (_cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_LOAD) {
 			target->transitionLayout(_cmdPack->current,
@@ -587,8 +591,8 @@ namespace qk {
 			_target->transitionLayout(_cmdPack->current,
 				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, _cmdPack->level);
 		}
-		Qk_ASSERT_EQ(VK_SUCCESS,
-			vkEndCommandBuffer(_cmdPack->current), "Failed to end command buffer");
+		auto result = vkEndCommandBuffer(_cmdPack->current);
+		Qk_ASSERT_EQ(VK_SUCCESS, result, "Failed to end command buffer");
 
 		Lock lock(_mutex);
 		bool canSwap = _cmdPackFront->isRecorded() == false;

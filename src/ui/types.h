@@ -329,6 +329,9 @@ namespace qk {
 		inline bool operator!=(const Shadow& val) const {
 			return !operator==(val);
 		}
+		bool isZero() const {
+			return color.a() == 0 || (x == 0 && y == 0 && size == 0);
+		}
 		float x, y, size;
 		Color color;
 	};

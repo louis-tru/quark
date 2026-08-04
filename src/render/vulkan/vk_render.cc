@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./vk_render.h"
+#include "./vk_mem_allocator.h"
 #if Qk_ANDROID
 # include <android/api-level.h>
 #endif
@@ -61,10 +62,10 @@ namespace qk {
 			};
 			vk_call_if(vk_createInstance, &instance);
 			vk_call_if(vk_selectBestDevice, instance, &physicalDevice, &queueFamily, &computeSupport);
-			Qk_DEBUGCODE(vk_logDeviceInfo(physicalDevice));
-#if Qk_ANDROID
+
 			VkPhysicalDeviceProperties properties{};
 			vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+			Qk_DEBUGCODE(vk_logDeviceInfo(physicalDevice, properties));
 			if (properties.apiVersion < VK_API_VERSION_1_1) {
 				Qk_DLog("Vulkan disabled: device API version %u.%u.%u is below 1.1",
 					VK_VERSION_MAJOR(properties.apiVersion),
@@ -72,9 +73,14 @@ namespace qk {
 					VK_VERSION_PATCH(properties.apiVersion));
 				return fail();
 			}
-#endif
-			vk_call_if(vk_createDevice, physicalDevice, queueFamily, &device, &pvrtcSupport,
+			vk_call_if(vk_createDevice, physicalDevice, properties,
+				queueFamily, &device, &pvrtcSupport,
 				&capaSupport, &capaMaxImageCount);
+
+			vk_minBufferAlignment = U32::max(16, properties.limits.minTexelBufferOffsetAlignment);
+			vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minUniformBufferOffsetAlignment);
+			vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minStorageBufferOffsetAlignment);
+			vk_maxPushConstantsSize = U32::min(256, properties.limits.maxPushConstantsSize);
 
 			auto res = new VulkanRenderResource(
 				instance, physicalDevice, device, queueFamily, computeSupport, pvrtcSupport,
@@ -107,8 +113,9 @@ namespace qk {
 		, _valid(false)
 		, _capaMaxImageCount(capaMaxImageCount)
 		, _pipelineCache(VK_NULL_HANDLE)
-		, _commandPool(VK_NULL_HANDLE)
 		, _nextAsyncWaitCheckTime(0)
+		, _commandPool(VK_NULL_HANDLE)
+		, _memoryAllocator(new VkMemoryAllocator(physicalDevice, device))
 	{
 		vkGetDeviceQueue(device, queueFamily, 0, &_commandQueue);
 
@@ -120,13 +127,6 @@ namespace qk {
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 		poolInfo.queueFamilyIndex = _queueFamily;
 		vk_check("vkCreateCommandPool", vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool));
-
-		VkPhysicalDeviceProperties properties{};
-		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
-		vk_minBufferAlignment = U32::max(16, properties.limits.minTexelBufferOffsetAlignment);
-		vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minUniformBufferOffsetAlignment);
-		vk_minBufferAlignment = U32::max(vk_minBufferAlignment, properties.limits.minStorageBufferOffsetAlignment);
-		vk_maxPushConstantsSize = U32::min(256, properties.limits.maxPushConstantsSize);
 
 		_nearestSampler = get_sampler(PaintImage::kNearest_FilterMode, PaintImage::kNearest_MipmapMode);
 		_linearSampler = get_sampler(PaintImage::kLinear_FilterMode, PaintImage::kNearest_MipmapMode);
@@ -166,6 +166,7 @@ namespace qk {
 		for (auto &result: _submitResults) {
 			vkDestroyFence(_device, result.fence, nullptr);
 		}
+		delete _memoryAllocator;
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyPipelineCache(_device, _pipelineCache, nullptr);
 		vkDestroyDevice(_device, nullptr);
@@ -217,6 +218,9 @@ namespace qk {
 		Array<VkPushConstantRange> pushConstants;
 		for (auto binding: shader.bindings) {
 			if (binding->set == UINT32_MAX) {
+				Qk_ASSERT(binding->sizeOf <= vk_maxPushConstantsSize,
+					"Vulkan push constant exceeds limit: shader=%s, size=%u, limit=%u",
+					shader.source.name, binding->sizeOf, vk_maxPushConstantsSize);
 				pushConstants.push({binding->stages, 0, binding->sizeOf});
 			}
 		}
@@ -434,18 +438,21 @@ namespace qk {
 	{
 		VkResult result = VK_SUCCESS;
 		Array<Cb> callbacks;
+		bool cleanupMemory = false;
 		{
 			ScopeLock lock(_commitMutex);
 			auto submitResult = submitCommandNoLock(submit, nullptr);
 			if (present)
 				result = vkQueuePresentKHR(_commandQueue, present);
 			if (pack) {
-				checkAsyncWaitTasks(&callbacks);
+				cleanupMemory = checkAsyncWaitTasks(&callbacks);
 				refSubmitResult(submitResult, pack);
 			}
 		}
 		for (auto &cb: callbacks)
 			cb->resolve();
+		if (cleanupMemory)
+			_memoryAllocator->cleanup();
 		return result;
 	}
 
@@ -486,14 +493,13 @@ namespace qk {
 		return it.operator->();
 	}
 
-	void VulkanRenderResource::checkAsyncWaitTasks(Array<Cb> *out) {
-		if (_asyncWaitTasks.isNull())
-			return;
-
+	bool VulkanRenderResource::checkAsyncWaitTasks(Array<Cb> *out) {
+		if (_asyncWaitTasks.length() == 0 && !_memoryAllocator->cleanupRequired())
+			return false;
 		int64_t now = time_monotonic();
 		// 16ms 真正检查一次
 		if (now < _nextAsyncWaitCheckTime)
-			return;
+			return false;
 		_nextAsyncWaitCheckTime = now + 16 * 1000;
 
 		for (auto it = _asyncWaitTasks.begin(); it != _asyncWaitTasks.end(); ) {
@@ -505,6 +511,7 @@ namespace qk {
 				++it;
 			}
 		}
+		return true;
 	}
 
 	// -----------------------------------------------------------------------

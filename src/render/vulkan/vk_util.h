@@ -47,6 +47,9 @@ namespace qk {
 	class VulkanRenderResource;
 	class VulkanRender;
 	struct VkCmdPack;
+	struct VkMemoryAllocator;
+	struct VkMemory;
+	typedef const VkMemory cVkMemory;
 	struct VkTexture;
 
 	inline void vk_check(const char *call, VkResult result) {
@@ -78,7 +81,7 @@ namespace qk {
 	struct VkTexture: VkRef {
 		VkImage image = VK_NULL_HANDLE;
 		VkImageView view = VK_NULL_HANDLE;
-		VkDeviceMemory memory = VK_NULL_HANDLE;
+		cVkMemory *memory = nullptr;
 		VkExtent2D extent;
 		VkFormat format;
 		VkImageUsageFlags usage;
@@ -179,11 +182,10 @@ namespace qk {
 		uint32_t *selectedQueueFamily, bool *selectedComputeSupport
 	);
 
-	bool vk_supportsDeviceExtension(VkPhysicalDevice device, const char *extension);
-
-	void vk_logDeviceInfo(VkPhysicalDevice device);
+	void vk_logDeviceInfo(VkPhysicalDevice device, const VkPhysicalDeviceProperties &properties);
 
 	bool vk_createDevice(VkPhysicalDevice physicalDevice,
+		const VkPhysicalDeviceProperties &properties,
 		uint32_t queueFamily, VkDevice *device, bool *pvrtcSupport,
 		bool *capaSupport, uint32_t *capaMaxImageCount);
 

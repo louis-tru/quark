@@ -484,14 +484,14 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Qk_ASSERT(runArguments);
+			Qk_ASSERT(jsArguments);
 			auto argv = worker->newArray();
-			for (uint32_t i = 0; i < runArguments->argc; i++) {
-				argv->set(worker, i, worker->newValue(String(runArguments->argv[i])));
+			for (uint32_t i = 0; i < jsArguments->argc; i++) {
+				argv->set(worker, i, worker->newValue(String(jsArguments->argv[i])));
 			}
 
 			Js_Property(argv, argv);
-			Js_Property(options, worker->newValue(runArguments->options));
+			Js_Property(options, worker->newValue(jsArguments->options));
 
 			Js_Method(version, {
 				Js_Return( qk::version() );

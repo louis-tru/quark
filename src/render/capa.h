@@ -122,7 +122,6 @@ namespace qk {
 		FillRule fillRule = kNonZero_FillRule;
 	private:
 		void steupPaint(CAPAPath &path, CAPAPaint* paint, const Mat& mat);
-		int findImageTexture(const PaintImage *paint) const;
 		int findImageSampler(const PaintImage *paint) const;
 		uint32_t addImageTexture(const PaintImage *paint);
 		uint32_t addImageSampler(const PaintImage *paint);

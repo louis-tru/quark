@@ -11,6 +11,7 @@
 #import "./mtl_render.h"
 #import "../source.h"
 #import "../pixel.h"
+#import "../arguments.h"
 
 namespace qk {
 	MTLPixelFormat mtl_pixel_format(ColorType type);
@@ -34,6 +35,8 @@ namespace qk {
 	}
 
 	static bool mtl_capa_supported(MTLDeviceID device) {
+		if (runArguments && runArguments->options.has("aaside"))
+			return false; // disable CAPA for AASide test
 		if (@available(macOS 10.13, iOS 11.0, *))
 			return device.argumentBuffersSupport == MTLArgumentBuffersTier2;
 		return false;

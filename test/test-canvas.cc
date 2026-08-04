@@ -68,7 +68,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(Path::MakeOval({0, {100, 200}}), paint);
 		}
 
-		if (0) { // -------- clip ------
+		if (1) { // -------- clip ------
 			auto clip = Path::MakeCircle(0, 105);
 			auto aa = 1;
 			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
@@ -76,7 +76,7 @@ class TestCanvas0: public Box {
 
 		canvas->translate(size*-0.5);
 
-		if (0) { // polygon
+		if (1) { // polygon
 			paint.fill.color = Color4f(0, 0, 0, 0.5);
 			Path path(   Vec2(110, size.y() - 150) );
 			path.lineTo( Vec2(size.x()*0.5, 0) );
@@ -89,7 +89,7 @@ class TestCanvas0: public Box {
 			canvas->drawPath(path, paint);
 		}
 
-		if (0) { // Arc
+		if (1) { // Arc
 			paint.fill.color = Color4f(0, 1, 0, 0.8);
 			canvas->drawPath(Path::MakeArc({Vec2(500, 420), Vec2(200, 100)}, 0, 4.5, 1), paint);
 			paint.fill.color = Color4f(1, 0, 1, 0.8);

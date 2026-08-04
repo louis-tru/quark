@@ -49,6 +49,7 @@ namespace qk {
 		kNone_TextureFlags = 0,
 		kMipmap_TextureFlags = 1 << 0,
 		kComputeWrite_TextureFlags = 1 << 1,
+		kLongLife_TextureFlags = 1 << 2,
 	};
 
 	/**
@@ -80,8 +81,6 @@ namespace qk {
 		 *       Backend-local texture handles or pointers are stored inside tex.
 		 *
 		 *       Backend implementations may defer actual GPU upload.
-		 *
-		 * @thread Rt
 		 */
 		virtual bool uploadTexture(Pixel *pix, int levels, TexStat *tex, bool mipmap) = 0;
 
@@ -97,8 +96,6 @@ namespace qk {
 		 *       and is not deleted by this method.
 		 *
 		 *       Actual GPU destruction may be deferred.
-		 *
-		 * @thread Rt
 		 */
 		virtual void unloadTexture(TexStat *tex) = 0;
 
@@ -108,6 +105,8 @@ namespace qk {
 				- kMipmap_TextureFlags: whether mipmap levels should be generated for this texture.
 				- kComputeWrite_TextureFlags: whether the texture will be written by compute shaders,
 					which may require special usage flags or memory properties on some platforms.
+				- kLongLife_TextureFlags: whether the texture is expected to remain alive for a long time,
+					so its memory should not occupy a recyclable backend memory pool.
 		 */
 		Sp<ImageSource> createTexture(Vec2 size, ColorType type, uint8_t flags);
 
@@ -140,7 +139,7 @@ namespace qk {
 	public:
 		struct Options {
 			ColorType colorType = kInvalid_ColorType; ///< Preferred framebuffer / surface color type.
-			uint32_t  maxCapacityForPathvCache = 0; ///< Max path vertex cache size, default 128 MB.
+			uint32_t  maxCapacityForPathvCache = 0; ///< Max path vertex cache size; 0 selects a system-memory-based default.
 			bool      mipmap = false; ///< Whether some color-buffer commands should generate mipmaps.
 			bool      enableCAPA = true; ///< Whether to enable CAPA for GPU rendering.
 			bool      enableCAPAQuantizeCoverage = false; ///< Whether to enable CAPA quantized coverage for GPU rendering.
@@ -230,8 +229,6 @@ namespace qk {
 		 *         - OpenGL VBO / VAO
 		 *         - Metal buffers
 		 *         - Vulkan vertex buffers
-		 *
-		 * @thread Rt
 		 */
 		virtual bool uploadVertexData(VertexData::ID *id) = 0;
 
@@ -245,8 +242,6 @@ namespace qk {
 		 *
 		 *       The VertexData::ID container itself is owned by the caller
 		 *       and is not deleted by this method.
-		 *
-		 * @thread Rt
 		 */
 		virtual void unloadVertexData(VertexData::ID *id) = 0;
 
@@ -267,8 +262,6 @@ namespace qk {
 		 *
 		 * @note This function may modify VertexData::ID and may clear
 		 *       id->data->vertex after successful upload.
-		 *
-		 * @thread Rt
 		 */
 		static bool useVertexData(const VertexData::ID *id);
 

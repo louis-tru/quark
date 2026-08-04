@@ -189,6 +189,38 @@ Most ordinary non-CAPA drawing commands are implemented. Framebuffer mip views,
 discarded-pack layout state, platform presentation, and CAPA remain active work.
 See [`VULKAN.md`](VULKAN.md) for the authoritative architecture and backlog.
 
+### Geometry And Memory Cache Policy
+
+`TexturePool` and `PathvCache` are high-level semantic caches. Their normal
+contents are expected to remain alive and be reused for a long time; they are
+not equivalent to the low-level Vulkan memory-allocation cache.
+
+The intended future policy for Vulkan path vertices is:
+
+- ordinary `PathvCache` entries are long-lived by default, analogous to
+  textures carrying `kLongLife_TextureFlags`;
+- long-lived final vertex allocations should not also occupy the reusable
+  `VkMemoryAllocator` pool, because `PathvCache` already owns their caching
+  policy;
+- transient staging memory should continue to use `VkMemoryAllocator`, where
+  reuse avoids repeated `vkAllocateMemory` calls;
+- if dynamic SVG/path animation later produces continuously changing geometry,
+  add an explicit dynamic cache policy rather than treating every path as
+  transient; dynamic entries may be cleaned preferentially by `PathvCache`,
+  and their released Vulkan memory may use the low-level allocator pool;
+- do not reuse the texture-specific `kLongLife_TextureFlags` directly for
+  vertices. Introduce a generic cache policy or a vertex-specific flag when
+  this distinction is implemented.
+
+`PathvCache` currently defaults to 1/256 of system memory (2GB -> 8MB,
+4GB -> 16MB, 8GB -> 32MB), clamped to 8MB-128MB. This deliberately keeps the
+high-level per-Canvas cache substantially smaller than the application-wide
+Vulkan allocator. The first priority remains a high `PathvCache` semantic hit
+rate; the Vulkan allocator is only a lower-level allocation-cost optimization.
+
+This long-lived/dynamic distinction is a design note only. No dynamic-path
+cache flag is implemented yet.
+
 ## Texture And Image Lifecycle
 
 `ImageSource` manages image state and texture handles. It can represent decoded CPU pixels or a backend GPU texture.
