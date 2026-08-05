@@ -444,6 +444,16 @@ async function install_check(app, cmdObj, variables) {
 			cmds = cmdObj.cmds || [];
 		}
 	}
+	const resolveCommand = command=>{
+		const res = execSync(`which ${command}`);
+		if (res.code != 0) {
+			return false;
+		}
+		if (defOpt) {
+			variables[app] = res.first.trim();
+		}
+		return true;
+	};
 
 	if (isLib) {
 		if (pkgm == 'apt-get') {
@@ -470,17 +480,13 @@ async function install_check(app, cmdObj, variables) {
 			return;
 		}
 	} else {
-		if (defOpt) {
-			let def = opts[optName];
-			if (def) {
-				const res = execSync(`which ${def}`);
-				util.assert(res.code == 0, `not found ${app} at ${def}; install and source the LunarG Vulkan SDK, `+
-					`or pass --${app}=/path/to/${app}`);
-				variables[app] = def;
-				return;
-			}
+		let def = defOpt ? opts[optName]: '';
+		if (def) {
+			util.assert(resolveCommand(def),
+				`invalid --${app}=${def}: executable not found`);
+			return;
 		}
-		if (execSync(`which ${app}`).code == 0) {
+		if (resolveCommand(app)) {
 			return;
 		}
 	}
@@ -516,11 +522,8 @@ async function install_check(app, cmdObj, variables) {
 	}
 
 	if (!isLib) {
-		let res = execSync(`which ${app}`)
-		util.assert(res.code == 0, `not found ${app}`);
-		if (defOpt) {
-			variables[app] = res.stdout.trim();
-		}
+		util.assert(resolveCommand(app),
+			`failed to install ${app}: executable not found in PATH`);
 	}
 }
 
