@@ -87,6 +87,7 @@ function getIndexCode() {
 			'# [`Quark`]',
 			'',
 			'* [`About`](README.md)',
+			'* [`Guides`](docs/guides/README.md)',
 			'* [`Tools`](https://www.npmjs.com/package/qkmake)',
 			'* [`Examples`](https://github.com/louis-tru/quark/tree/master/examples)',
 			'',
@@ -120,6 +121,24 @@ function genHtml(src, target) {
 		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
 		var r = marked_html.gen_html(md, indexeds[src] || 'Quark API Documentation', tmp);
 		fs.writeFileSync(save, r.html);
+	} else {
+		fs.copyFileSync(output_md + src, target);
+	}
+}
+
+function validateGuideTranslations(dir) {
+	for (let name of fs.readdirSync(dir)) {
+		var pathname = path.join(dir, name);
+		var stat = fs.statSync(pathname);
+		if (stat.isDirectory()) {
+			validateGuideTranslations(pathname);
+		} else if (path.extname(name).toLowerCase() == '.md') {
+			var english = name.endsWith('-cn.md') ? name.slice(0, -6) + '.md': name;
+			var chinese = english.slice(0, -3) + '-cn.md';
+			if (!fs.existsSync(path.join(dir, english)) || !fs.existsSync(path.join(dir, chinese))) {
+				throw new Error(`Guide translations must be paired: ${pathname}`);
+			}
+		}
 	}
 }
 
@@ -150,6 +169,10 @@ genReadme(source, output_md);
 
 fs.copyFileSync(`${__dirname}/../README.md`, `${output_md}/README.md`);
 fs.copyFileSync(`${__dirname}/../README-cn.md`, `${output_md}/README-cn.md`);
+fs.copyFileSync(`${__dirname}/../LICENSE`, `${output_md}/LICENSE`);
+fs.mkdir_p_sync(`${output_md}/docs`);
+validateGuideTranslations(`${__dirname}/../docs/guides`);
+fs.cp_sync(`${__dirname}/../docs/guides`, `${output_md}/docs/guides`, { replace: true });
 
 makeIndexed();
 eachGenHtml('', output_html);

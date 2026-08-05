@@ -44,7 +44,7 @@ const GlobalStates: Dict = {};
 
 /**
  * Event triggered when any state is changed.
- * @event State:EventNoticer<Event<void,Dict>>
+ * @event onState:EventNoticer<Event<void,Dict>>
 */
 export const onState = new EventNoticer<Event<void,Dict>>('State', void 0);
 

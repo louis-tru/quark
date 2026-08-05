@@ -1,61 +1,45 @@
-Quark
-=============
+# Quark
 
-Quark is a cross-platform GUI framework (`Android` / `iOS` / `macOS` / `Linux`)
-designed for building high-performance, interactive applications with a
-clear and predictable runtime model.
+[中文](README-cn.md) · [Guides](docs/guides/README.md) · [API documentation](https://quarks.cc/doc/)
 
-Quark is implemented primarily in **C++**, with a custom GPU renderer,
-a lightweight **layout engine**, and an embedded **JavaScript / JSX runtime**
-for application logic and UI description. The renderer has **OpenGL**,
-**Metal**, and **Vulkan** backends; OpenGL remains the portable fallback,
-while Metal and Vulkan support the newer compute-driven rendering work.
+Quark is a cross-platform GUI framework for Android, iOS, macOS, and Linux.
+It combines a C++ core, a native GPU renderer, a lightweight layout engine,
+and an embedded JavaScript/JSX runtime.
 
-Unlike browser-based frameworks, Quark is **not a web runtime**.
-Its architecture and APIs are designed specifically for GUI view trees,
-with explicit structure, deterministic behavior, and controllable
-performance characteristics.
+Quark is not a browser runtime. It has its own view tree, style and layout
+system, event model, rendering pipeline, and platform integration. Its APIs
+favor explicit structure, predictable behavior, and controllable performance.
 
-### Core Capabilities
+## Core capabilities
 
-- **Cross-platform GUI rendering**
-  - Android / iOS / macOS / Linux
-  - Unified rendering and layout behavior across platforms
-  - OpenGL is the portable compatibility path
-  - Metal is the primary Apple backend
-  - Vulkan presentation and rendering are implemented for Android and Linux;
-    broader device and driver validation is ongoing
+- Native GUI rendering on Android, iOS, macOS, and Linux.
+- C++ for performance-sensitive systems, with JavaScript/JSX for application
+  logic and UI declaration.
+- An explicit layout engine with no dependency on a browser DOM or browser CSS.
+- A class-driven, CSS-like style subset with continuous class, descendant, and
+  direct child selectors plus `:normal`, `:hover`, and `:active` states.
+- Images, text, gradients, clipping, filters, animation, media, scrolling,
+  input, and world/entity views in one view and event model.
 
-- **C++ core with JS / JSX integration**
-  - Native performance–critical logic in C++
-  - High-level UI and interaction logic written in JavaScript / JSX
+## Platform and renderer status
 
-- **Lightweight layout engine**
-  - Explicit layout models optimized for GUI applications
-  - No dependency on browser DOM or CSS layout engines
+| Target | Host/toolchain | Renderer availability | Status |
+|---|---|---|---|
+| iOS | macOS + Xcode | OpenGL ES or Metal | Metal and GL paths are implemented and used in current test scenes. |
+| macOS | macOS + Xcode | OpenGL or Metal | Both backends are implemented. |
+| Android | macOS/Linux + JDK, Android SDK/NDK | OpenGL ES; optional Vulkan | Vulkan presentation and Canvas/CAPA encoding are implemented; wider device validation continues. |
+| Linux | Linux native toolchain | OpenGL ES; optional Vulkan/Xlib | Vulkan presentation is implemented; Linux runtime validation continues. |
 
-- **Class-driven style system (CSS-like subset)**
-  - Supports continuous class selectors (`.a.b`), descendant selectors
-    (`.a .b`), and direct child selectors (`.a > .b`)
-  - Supports the pseudo-state suffixes `:normal`, `:hover`, and `:active`
-  - Designed for predictable performance and efficient propagation
-  - Optimized for GUI usage rather than full web CSS compatibility
+Source configuration currently enables GL by default. Apple builds select
+Metal when GL is disabled; Android/Linux builds can enable Vulkan alongside
+GL. When both Vulkan and GL are present, Vulkan is attempted first and `--gl`
+forces the GL backend. Android Vulkan requires Android 10/API 29 and Vulkan 1.1
+or newer; unsupported devices fall back to GL.
 
-- **Deterministic runtime model**
-  - Explicit view hierarchy
-  - Explicit event handling and state propagation
-  - No implicit browser-style reflow or style invalidation
+## Rendering system
 
-Quark is intended for developers who want **fine-grained control over UI
-structure and performance**, without sacrificing development efficiency.
-
-### Rendering System
-
-Quark has its own GPU rendering stack. It does not rely on browser DOM,
-Canvas, CSS painting, or Web compositing.
-
-The renderer is organized around a shared `GPUCanvas` layer and backend
-command implementations:
+Quark owns its GPU rendering stack; it does not use browser Canvas, CSS
+painting, or Web compositing.
 
 ```txt
 Canvas API
@@ -64,447 +48,163 @@ Canvas API
   -> platform surface or offscreen image
 ```
 
-The current renderer combines multiple antialiasing strategies instead of
-forcing every shape through a single algorithm:
+The renderer uses two complementary antialiasing strategies:
 
-- **AASide** is the fast geometric edge-band path. It remains useful for
-  hairlines, text, and simple edges where a slightly wider perceptual edge
-  ramp looks better than strict area coverage.
+- **AASide** is the fast geometric edge-band path used for text, hairlines,
+  simple edges, and the GL/GLES compatibility path.
 - **CAPA** (Coverage Area Pipeline Anti-Aliasing) is the compute path for
-  complex filled paths on Metal/Vulkan-class backends. It batches path draws,
-  bins edges into tiles, computes area coverage, plans ordered tile layers,
-  and composites front-to-back to avoid the background seams that appear when
-  adjacent primitives are antialiased independently. Metal is the established
-  runtime path; Vulkan command encoding is implemented and remains under
-  broader runtime validation.
-- **Clip, image, gradient, blend mode, render target, and readback paths**
-  remain integrated with the Canvas state model. Expensive or stateful
-  operations may flush a CAPA batch when they cannot be represented inside the
-  current compute pass.
+  complex ordered fills on Metal/Vulkan-class backends. It bins edges into
+  tiles, computes area coverage, and composites ordered layers without the
+  background seams caused by independently antialiased adjacent primitives.
 
-CAPA is designed for complex GUI scenes with overlapping paths, nested
-layers, and shared boundaries. AASide is intentionally kept for the cases
-where distance-band antialiasing is visually preferable or cheaper.
+Metal is the established CAPA runtime path. Vulkan CAPA command encoding is
+implemented and remains under broader runtime validation.
 
-* From here, [`Go API Index`](http://quarks.cc/doc/) takes you to the API Documentation Index.
+At runtime, pass `--gl` to force the GL renderer, or `--aaside` to disable
+CAPA and force the AASide antialiasing path on Metal/Vulkan.
 
 | ![Screenshot](http://quarks.cc/img/000.jpg) | ![Screenshot](http://quarks.cc/img/001.jpg) | ![Screenshot](http://quarks.cc/img/002.jpg) |
 |--|--|--|
 
-Source Code Build
-===============
+## Quick start with qkmake
 
-1. Install `nodejs` and `python`, plus the toolchain required by the target:
-   `Xcode` for Apple platforms, `JDK` / `Android SDK` / `Android NDK` for
-   Android, or the native Linux compiler and development packages for Linux.
+The supported host workflows are macOS and Linux. Apple targets require
+macOS/Xcode. Windows is not currently supported.
 
-2. For Android builds, set the `ANDROID_SDK` and `NDK` environment variables.
+Install Node.js and Python, then install the published toolkit:
 
-3. From an existing checkout, synchronize the repository and its submodules:
+```sh
+sudo npm install -g qkmake
+```
+
+Create a project:
+
+```sh
+mkdir myproj
+cd myproj
+qkmake init
+```
+
+### Minimal application
+
+```tsx
+import { Jsx, Application, Window } from 'quark'
+
+new Application()
+new Window().render(
+	<text value="Hello world" fontSize={48} align="centerMiddle" />
+)
+```
+
+More complete applications are available in the [examples].
+
+### Build application code and resources
+
+`qkmake build` installs project dependencies, transforms TypeScript/JavaScript,
+and packages application resources:
+
+```sh
+qkmake build
+```
+
+A newly initialized project can be exported before running this command; the
+export flow builds missing application output when needed.
+
+### Export or open a platform project
+
+```sh
+qkmake export ios
+qkmake export mac
+qkmake export android
+qkmake export linux
+```
+
+Generated projects are placed under `project/<platform>`. Apple projects use
+Xcode, Android exports use Android Studio/CMake, and Linux exports use the
+native Make-based project. Use `qkmake open <platform>` to generate when needed
+and open the project with the host's available tool.
+
+### Run and debug
+
+Run an application with:
+
+```sh
+qkmake start .
+qkmake start . --gl
+qkmake start . --aaside
+```
+
+`--gl` forces the GL renderer. `--aaside` keeps the selected Metal/Vulkan
+renderer but forces its AASide antialiasing path instead of CAPA. These options
+are useful for compatibility checks and renderer comparisons.
+
+Start the development server and file watcher with:
+
+```sh
+qkmake watch
+```
+
+The watcher serves the application (port `1026` by default), notifies connected
+devices when TS/TSX files change, and lets debug builds reload without a full
+application restart.
+
+## Building Quark from source
+
+Source builds require Node.js and Python plus the selected platform toolchain:
+
+- Xcode for iOS and macOS;
+- JDK, Android SDK, and Android NDK for Android;
+- the native compiler and development packages for Linux.
+
+For Android, set `ANDROID_SDK` and `NDK` to the installed SDK/NDK paths.
+
+From an existing checkout, synchronize the current branch and all submodules:
 
 ```sh
 make sync
 ```
 
-`make all` builds the platform products and can take a long time. `make install`
-also installs the locally built `qkmake`; use `make install-only` when the
-products are already available under `out/qkmake`.
-
-Get the [`Source code`] from `Github` here.
-
-# Simple Example
-
-This is a simple program that displays "Hello world" on the screen.
-
-```tsx
-import { Jsx, Application, Window } from 'quark'
-new Application();
-new Window().render(
-	<text value="Hello world" fontSize={48} align="centerMiddle" />
-);
-```
-
-You can get more detailed [`Examples`]
-
-# Getting Started
-
-If you've never used Quark before, you can start here and build your Quark program step by step.
-
-## Installing qkmake from npm
-
-First, you need to install the Quark toolkit.
-
-* Install `qkmake` using the nodejs `npm` command.
-* Open Terminal and execute the following command:
-
-```sh
-# shell
-$ sudo npm install -g qkmake
-```
-* Running `qkmake` requires `nodejs` and `python`.
-
-* The supported host workflows are macOS and Linux. Apple-platform exports
-  require macOS/Xcode. Windows is not currently supported.
-
-## Creating a New Project Using the qkmake Tool
-
-Use the following `shell` command to create a new `Quark` project:
-
-```sh
-# shell
-$ mkdir myproj
-$ cd myproj
-$ qkmake init
-```
-
-## Building the Project
-
-This step compresses and packages the JavaScript code and resource files within the project.
-
-If this is a new project, you can skip this step and proceed directly to the next one.
-
-```sh
-# shell
-$ qkmake build
-```
-
-## Export Project
-
-This step exports the [`Xcode`] or [`Android Studio`] project, as the final release will be a ``.apk`` or `.ipa`.
-
-```sh
-# shell
-# export xcode ios project
-$ qkmake export ios
-# export android studio project
-$ qkmake export android
-```
-
-After exporting the project, `project/ios` and `project/android` will be generated in the project root directory, corresponding to the [`Xcode`] and [`Android Studio`] projects, respectively.
-
-## Test HTTP Server
-
-`qkmake` provides a test HTTP server. Every time you modify `ts` or `tsx` code, it notifies devices connected to the server and sets the app's launch address to the debug server address. This allows the interface to automatically update when code changes are made, without having to restart the app.
-
-When you export a project, the startup address is automatically set to this debug address. In most cases, you don't need to modify it unless you want to connect to a different location.
-
-Start the server by executing the following code:
-
-```sh
-# shell
-$ qkmake watch
-# Start web server:
-# http://192.168.1.200:1026/
-# Watching files change:
-```
-
-# View Layout
-
-Views describe all visible elements on the screen and are also responders to events triggered by the hardware and operating system.
-
-For detailed API documentation, please visit [View].
-
-The public classes declared in `libs/quark/view.ts` currently have this
-inheritance structure. `MorphView`, `TextOptions`, `ScrollView`, and `Player`
-are interfaces/behavior contracts, so they are shown as `implements`
-annotations instead of base-class nodes:
-
-* [View]
-	* [Br]
-	* [Box]
-		* [Flex]
-			* [Flow]
-		* [Free]
-		* [Image]
-			* [Video] — implements `Player`
-		* [Morph] — implements [MorphView]
-			* [World]
-			* [Root]
-		* [Text] — implements [TextOptions]
-			* [Button]
-		* [Input] — implements [TextOptions]
-			* [Textarea] — implements [ScrollView]
-		* [Scroll] — implements [ScrollView]
-	* [Entity] — implements [MorphView]
-		* [Agent] — abstract
-			* [Sprite]
-			* [Spine]
-	* [Label] — implements [TextOptions]
-	* [InputSink]
-
-
-This is a bit like HTML layout:
-```tsx
-import {Jsx,Application,Window} from 'quark'
-new Application()
-new Window().render(
-	<flex width="100%" height="50%" itemsAlign="centerCenter">
-		<button
-			minWidth="10%"
-			maxWidth="40%"
-			height="100%"
-			paddingLeft={5}
-			lineHeight={1} // 100%
-			fontSize={18}
-			fontFamily="iconfont"
-			backgroundColor="#f00"
-			whiteSpace="noWrap"
-			textAlign="center"
-		>
-			<label fontFamily="default" fontSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
-		</button>
-		<text
-			weight={[0,1]}
-			height="100%"
-			textColor="#00f"
-			lineHeight={1}
-			fontSize={16}
-			whiteSpace="noWrap"
-			weight="bold"
-			textOverflow="ellipsisCenter"
-			textAlign="center"
-			value="Title"
-			backgroundColor="#0f0"
-		/>
-		<text
-			minWidth="10%"
-			maxWidth="40%"
-			height="100%"
-			textColor="#f0f"
-			lineHeight={1}
-			backgroundColor="#0ff"
-			textAlign="center"
-			value="A"
-			opacity={0.5}
-		/>
-	</flex>
-)
-```
-
-# CSS Stylesheet
-
-Quark provides a class-driven style system inspired by CSS and designed for
-GUI view hierarchies. It is not a complete browser CSS selector engine: only
-class selectors, the supported hierarchy operators, and the three built-in
-pseudo states participate in matching.
-
-
-### Supported selector syntax
-
-- Descendant selectors use spaces. `.a .b .c` matches `.b` and `.c` at any
-  deeper descendant level in sequence.
-- Direct child selectors use `>`. `.a > .b > .c` requires each following
-  match to be an immediate child of the previous one.
-- Continuous class selectors have no spaces. `.a.b.c` matches one View that
-  has all three classes.
-- The supported pseudo states are `:normal`, `:hover`, and `:active`. A pseudo
-  state must be the final suffix of its continuous class segment:
-  `.a.b:active .c.d` is valid, while `.a:active.b` is invalid.
-- Multiple selector expressions may be grouped with commas.
-
-For example, `.div_cls.div_cls2:active .aa.bb.cc` selects a descendant with
-classes `aa`, `bb`, and `cc` under an active ancestor that has both `div_cls`
-and `div_cls2`.
-
-### Style transitions
-
-Each style rule may specify a `time` value (in milliseconds)
-to indicate the transition duration when switching into that rule.
-If `time` is not specified, the style change is applied immediately.
-
-When a transition is triggered, an action is created internally
-and played automatically.
-
-### Pseudo states
-
-The style system supports three pseudo states:
-
-1. `normal`  
-   Applied when the pointer or touch leaves the view.
-2. `hover`  
-   Applied when the pointer enters the view or the view gains focus.
-3. `active`  
-   Applied when the pointer or touch is pressed.
-
-Pseudo states are resolved at runtime based on view interaction events.
-
-### CSS Stylesheet Examples
-
-Here is how to write the stylesheet:
-```tsx
-import { Jsx, createCss } from 'quark';
-createCss({
-	'.a': {
-		width: 'match',
-		lineHeight: 45,
-		whiteSpace: 'pre',
-		fontSize: 16,
-	},
-	'.a:normal': {
-		textColor: '#0f0',
-	},
-	'.a:hover': {
-		textColor: '#f0f',
-	},
-	'.a:active': {
-		textColor: '#f00',
-	},
-	'.a .b': {
-		fontSize: 20,
-	},
-	'.a > .c': {
-		width: 100,
-	},
-	'.a.b:active .c.d': {
-		opacity: 0.8,
-	},
-	'.a:normal .b': {
-		time: 500, // Set a transition time
-		textColor: '#000',
-	},
-	'.a:hover .b': {
-		time: 500,
-		textColor: '#f00',
-	},
-});
-const vx = (
-	<text class="a" >
-		<label value="Hello A!" />
-		<label class="b" value="Hello B!" />
-	</text>
-);
-```
-
-# Actions
-
-What is an action? As the name suggests, it's the central hub for managing all actions in the runtime environment, or more simply, animations. It's also one of the core components of the entire framework, providing the ability to create, delete, and insert actions, as well as various operations on keyframes and transitions. Keyframe transitions can use cubic Bezier curves or built-in curves like `linear`/`ease`/`easeIn`/`easeOut`/`easeInOut`, similar to most mainstream frameworks and game engines.
-
-## How do actions work?
-How do actions drive smooth view movement? The principle is simple. Think of the action system as an independent system, completely unrelated to the view or rendering. The relationship between them is that changes in the action itself are ultimately reflected in the view. This process is accomplished by calling public methods or properties exposed by the view. It's a completely one-way process, and the view doesn't issue any instructions to the action.
-
-For example, let's create a new keyframe action with two keyframes, and set the x value to change from 0 to 100 over one second. When an action changes, it calls the bound view's API to modify the view's layout properties. In this process, the view is passive, while the action is active.
-
-```ts
-import { Application, Window, Box, KeyframeAction } from 'quark'
-var app = new Application();
-var win = new Window();
-var box = new Box(win);
-var act = new KeyframeAction(win);
-act.add({ x: 0, time: 0 });
-act.add({ x: 100, time: 1e3/*milliseconds*/ });
-box.width = 50;
-box.height = 50;
-box.backgroundColor = '#f00';
-box.action = act;
-box.appendTo(win.root);
-act.loop = 1000;
-act.play();
-```
-
-## Action Types
-
-The following are several types provided by the framework and their inheritance relationships.
-
-* [Action]
-	* [SpawnAction]
-	* [SequenceAction]
-	* [KeyframeAction]
-
-## Action
-
-This is the base type for all actions. It's an abstract type and cannot be instantiated directly.
-
-It provides some basic API operations, such as `Play`, `Stop`, and `Seek`. See the API manual for details.
-
-## SpawnAction
-
-As the name suggests, a parallel action runs its sub-actions in parallel. The duration of the longest sub-action is used as the duration of the action itself, while sub-actions with shorter durations wait for the end of the action or the end of a loop.
-
-## SequenceAction
-
-Sequential actions are relatively easy to understand. Sub-actions execute one after another, ending or starting a new loop after all of them complete.
-
-# KeyframeAction and Keyframe
-
-Keyframe actions are the core of the action system. All actions are implemented here, making them the fundamental unit of the action system. The previous [SpawnAction] and [SpawnAction] only have real meaning when they contain actions of the [KeyframeAction] type. Keyframe actions, in turn, contain the more fundamental element [Keyframe]. Keyframe properties have the same names as CSS properties and include all properties that can be changed on a view. For example, [Matrix] has an `x` property, and [Keyframe] also has an `x` property. However, if a property on a [Keyframe] doesn't exist on a view, then that property will have no effect on the view. For example, there's no `width` property on a [View], so changes to `width` won't affect the [View]. However, if the bound view is a [Box], changes to `width` will affect it, similar to a `CSS` style sheet.
-
-See the following example:
-```js
-// This is a valid action
-var act1 = new KeyframeAction(win);
-var box1 = new Box(win);
-box1.backgroundColor = '#f00';
-act1.add({ width: 10, height: 10 });
-act1.add({ width: 100, height: 100, time: 1e3 });
-box1.action = act1;
-act1.play();
-// This is invalid
-var act2 = new KeyframeAction(win);
-var view = new View(win);
-act2.add({ width: 10, height: 10 });
-act2.add({ width: 100, height: 100, time: 1e3 });
-view.action = act2;
-act2.play();
-```
-
-# View.onActionKeyframe and View.onActionLoop
-
-These two events are generated and sent by actions.
-
-* `View.onActionKeyframe` fires when an action reaches a keyframe. Because the rendering frame rate is fixed, the event is always triggered when the frame is rendered, so it may be earlier or later than the ideal time. This delay is stored in the `delay` field of the event data. Early is a negative number, and late is a positive number.
-
-* `View.onActionLoop` fires at the beginning of an action loop; it is not triggered for the first time an action is executed. It also has a delay, which is also recorded in `delay`.
-
-
-
-
-
-
-[`Examples`]: https://github.com/louis-tru/quark/tree/master/examples
-[`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
-[`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/quark/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/qkmake
-[`Source code`]: https://github.com/louis-tru/quark
-
-[Action]: https://quarks.cc/doc/action.html#class-action
-[SpawnAction]: https://quarks.cc/doc/action.html#class-spawnaction
-[SequenceAction]: https://quarks.cc/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://quarks.cc/doc/action.html#class-keyframeaction
-[Keyframe]: https://quarks.cc/doc/action.html#class-keyframe
-
-[View]: https://quarks.cc/doc/view.html#view
-[Box]: https://quarks.cc/doc/view.html#box
-[View.action]: https://quarks.cc/doc/view.html#view-action
-[View.transition()]: https://quarks.cc/doc/view.html#view-transition-to-from-cb-actioncb-
-
-[Notification]: https://quarks.cc/doc/_event.html#class-notification
-[Br]: https://quarks.cc/doc/view.html#class-br
-[ScrollView]: https://quarks.cc/doc/view.html#scrollview
-[MorphView]: https://quarks.cc/doc/view.html#morphview
-[TextOptions]: https://quarks.cc/doc/view.html#textoptions
-[View]: https://quarks.cc/doc/view.html#class-view
-[Free]: https://quarks.cc/doc/view.html#class-free
-[Box]: https://quarks.cc/doc/view.html#class-box
-[Flex]: https://quarks.cc/doc/view.html#class-flex
-[Flow]: https://quarks.cc/doc/view.html#class-flow
-[Image]:  https://quarks.cc/doc/view.html#class-image
-[Root]:  https://quarks.cc/doc/view.html#class-root
-[Scroll]: https://quarks.cc/doc/view.html#class-scroll
-[Button]: https://quarks.cc/doc/view.html#class-button
-[Text]: https://quarks.cc/doc/view.html#class-text
-[Input]: https://quarks.cc/doc/view.html#class-input
-[Textarea]: https://quarks.cc/doc/view.html#class-textarea
-[Label]: https://quarks.cc/doc/view.html#class-label
-[Video]: http://quarks.cc/doc/view.html#class-video
-[Morph]: http://quarks.cc/doc/view.html#class-morph
-[World]: http://quarks.cc/doc/view.html#class-world
-[Entity]: http://quarks.cc/doc/view.html#class-entity
-[Agent]: http://quarks.cc/doc/view.html#class-agent
-[InputSink]: http://quarks.cc/doc/view.html#class-inputsink
-[Sprite]: http://quarks.cc/doc/view.html#class-sprite
-[Spine]: http://quarks.cc/doc/view.html#class-spine
-
+`make sync` runs both `git pull` and `git submodule update --init --recursive`,
+so use it only when updating the current checkout is intended.
+
+The root Makefile provides `make ios`, `make mac`, `make android`, and
+`make linux`. `make all` builds the full product set and may use the configured
+`REMOTE_COMPILE_HOST` for targets that cannot be built locally. `make install`
+builds that set and installs the local qkmake package; `make install-only`
+installs an existing `out/qkmake` product.
+
+## Documentation
+
+- [User guides](docs/guides/README.md): task-oriented tutorials in English and
+  Chinese. Chinese guide filenames use the `-cn.md` suffix.
+- [Generated API reference](https://quarks.cc/doc/): modules, classes,
+  interfaces, properties, methods, and events generated from `libs/quark`.
+- [View layout and styles](docs/guides/VIEW_STYLE.md): view inheritance, JSX
+  layout, class selectors, pseudo states, and style transitions.
+- [Actions and keyframes](docs/guides/ACTIONS.md): animation composition,
+  keyframes, playback, and events.
+
+`make doc` runs `tools/gen_html_doc.js`. It generates the API Markdown from
+TypeScript sources, validates the bilingual guide pairs, includes both root
+READMEs, `docs/guides/`, guide assets, and the license, then renders the
+complete publishable HTML tree under `out/doc/html`.
+
+## Project status and contributing
+
+The GL and Metal paths are established, while Vulkan is in its runtime
+validation and stabilization phase across Android and Linux drivers. Focused
+issues and pull requests are welcome in the [GitHub repository]. Keep backend
+changes behavior-aligned and include the smallest relevant validation.
+
+Documentation-only changes should at minimum pass `git diff --check`; changes
+that affect published documentation should also run `make doc`.
+
+## License
+
+Quark is distributed under the BSD license. See [LICENSE](LICENSE).
+
+[examples]: https://github.com/louis-tru/quark/tree/master/examples
+[GitHub repository]: https://github.com/louis-tru/quark
 
 <script>
 	<!--

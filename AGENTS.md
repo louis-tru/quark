@@ -70,6 +70,8 @@ quark/
 - 渲染相关改动要注意命令编码器、纹理所有权、mipmap、blend mode、clip 和 z depth 的状态恢复。
 - 未经用户明确要求，不运行 C++ 构建、全量工程构建或其他耗时编译；优先做源码检查、定向搜索、`git diff --check` 和必要的生成器校验。
 - 完成重要改动后，必要时更新 `docs/CURRENT_WORK.md` 或相关模块文档，让下一次 AI 会话能接上。
+- 面向用户的教程放在 `docs/guides/`，英文文件无语言后缀，中文对应文件统一使用 `-cn.md`；新增或修改教程时保持中英文成对更新。
+- `tools/gen_html_doc.js` 会把根 README、`docs/guides/` 和自动生成的 API reference 一起发布；移动公开文档时必须保持 Markdown 链接与生成后的 HTML 路径都可用。
 - 用户说“提交”时，默认含义是提交并推送到服务器；只有用户明确说“不推送”时才只本地提交。
 
 ## 渲染代码提示
