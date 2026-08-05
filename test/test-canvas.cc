@@ -10,6 +10,7 @@
 #include <src/render/canvas.h>
 #include <src/render/font/pool.h>
 #include <src/ui/text/text_blob.h>
+#include <src/util/fs.h>
 #include "./test.h"
 
 using namespace qk;
@@ -43,7 +44,7 @@ class TestCanvas0: public Box {
 			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
-		if (0) { // gradient
+		if (1) { // gradient
 			Paint paint;
 			Color4f colors[] = {Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
 			float   pos[]    = {0,0.5,1};
@@ -60,7 +61,7 @@ class TestCanvas0: public Box {
 			canvas->restore();
 		}
 
-		if (0) { // Circle
+		if (1) { // Circle
 			paint.fill.gradient = nullptr;
 			paint.fill.color = Color4f(0, 0, 1, 0.5);
 			canvas->drawPath(Path::MakeCircle(0, 100), paint);
@@ -129,13 +130,20 @@ class TestCanvas0: public Box {
 			}
 		}
 
-		if (0) { // outline
+		if (1) { // outline
 			// paint.antiAlias = false;
 			paint.style = Paint::kStrokeAndFill_Style;
 			paint.stroke.color = Color4f(0,0,0,0.3);
 			paint.strokeWidth = 8;
-			paint.fill.color = Color4f(0.5,0,0.3);
+			// paint.fill.color = Color4f(0.5,0,0.3);
+			paint.fill.color = Color4f(1,1,1);
+			PaintImage image;
+			image.filterMode = PaintImage::kLinear_FilterMode;
+			image.mipmapMode = PaintImage::kLinear_MipmapMode;
+			image.setImage(shared_imgPool()->load(fs_resources("jsapi/res/0.jpg")), {{180,150}, 200});
+			paint.fill.image = &image;
 			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
+			paint.fill.image = nullptr;
 			paint.style = Paint::kStroke_Style;
 			paint.fill.color = Color4f(0, 1, 1);
 			paint.stroke.color = Color4f(0,0,0);

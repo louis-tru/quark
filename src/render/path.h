@@ -95,8 +95,8 @@ namespace qk {
 													float sweepAngle, bool useCenter = false, bool close = true);
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
-		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
-		static Path MakeRRectOutline(const Rect &outside, const Rect &inside, const BorderRadius &radius);
+		static Path MakeRRect(const Rect& rect, const BorderRadius &radii);
+		static Path MakeRRectOutline(const Rect &outside, const Rect &inside, const BorderRadius &radii);
 
 		Path();
 		Path(Vec2 move);
@@ -205,6 +205,15 @@ namespace qk {
 		bool _IsNormalized, _sealed, _isBoundaryPath;
 		friend class RectPath;
 		friend class RectOutlinePath;
+	};
+
+	/**
+	* RRect is a rectangle with rounded corners, used for path filling and clipping.
+	*/
+	struct RRect {
+		Rect rect; ///< Rectangle bounds.
+		Vec4 radii; ///< Border-radius corner radii,
+		// in the order of left-top, right-top, right-bottom, left-bottom.
 	};
 
 	/**

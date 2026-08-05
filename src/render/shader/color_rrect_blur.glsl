@@ -5,12 +5,13 @@
 // https://en.wikipedia.org/wiki/Squircle
 
 Qk_CONSTANT(
-	highp vec2 vPos;
-	vec2  horn; // horn pos, left/top,right/top,right/bottom,left/bottom
 	vec4  color;
-	vec3  consts; // consts
-	float min_edge; // rect min edge size
-	float s_inv; // 1/s, blur size reciprocal
+	highp vec4 consts; // consts
+	highp vec4 rect; // rect begin/size
+	highp vec4 clipRect; // clip rect, begin/size
+	highp vec4 clipRadii; // clip round
+	highp vec2 vPos;
+	highp float min_edge; // rect min edge size
 );
 
 #vert
@@ -21,6 +22,8 @@ void main() {
 }
 
 #frag
+#define Qk_FLAG_USE_DIFF_CLIP (1u << 16)
+
 layout(location=1) in vec2 pos_f;
 // blur radius
 #define r1 pc.consts.x
@@ -28,6 +31,10 @@ layout(location=1) in vec2 pos_f;
 #define n pc.consts.y
 // 1/n
 #define n_inv pc.consts.z
+// 1/s blur size reciprocal
+#define s_inv pc.consts.w
+// min w or h
+#define min_edge pc.min_edge
 
 float erf(float x) {
 	float s = sign(x), a = abs(x);
@@ -43,13 +50,29 @@ float sqLen(vec2 p) { // squircle length
 }
 
 float sdf(vec2 p, float r) {
-	vec2 q = p - pc.horn + r;
-	return /*min(max(q.x,q.y),0.0) + */sqLen(p)-r;
+	vec2 halfSize = pc.rect.zw * 0.5;
+	vec2 q = abs(p - (pc.rect.xy + halfSize)) - halfSize;
+	return sqLen(q+r) - r;
+}
+
+float clipRRectSdf(vec2 p) {
+	vec2 halfSize = pc.clipRect.zw * 0.5;
+	vec2 center = pc.clipRect.xy + halfSize;
+	vec2 radii = mix(pc.clipRadii.xw, pc.clipRadii.yz, step(center.x, p.x));
+	float radius = mix(radii.x, radii.y, step(center.y, p.y));
+	radius = min(radius, min(halfSize.x, halfSize.y));
+	vec2 q = abs(p - center) - halfSize + radius;
+	return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
 }
 
 void main() {
 	float d = sdf(pos_f, r1);
-	float z = (erf(pc.s_inv * (d + pc.min_edge)) - erf(pc.s_inv * d)) * 0.5;
+	float z = (erf(s_inv * (d + min_edge)) - erf(s_inv * d)) * 0.5;
+	if ((pc.flags & Qk_FLAG_USE_DIFF_CLIP) != 0) {
+		float clipDistance = clipRRectSdf(pos_f);
+		float aa = max(fwidth(clipDistance), 1e-4);
+		z *= smoothstep(-aa*1.5, aa*0.5, clipDistance);
+	}
 	fragColor = pc.color;
 	fragColor *= z; // premultiplied alpha
 

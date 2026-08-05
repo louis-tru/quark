@@ -469,14 +469,14 @@ namespace qk {
 		}}, color);
 	}
 
-	void GPUCanvas::drawRRectBlurColor(const Rect& rect,
-		const float radius[4], float blur, const Color4f &color, BlendMode mode)
+	void GPUCanvas::drawRRectBlurColor(const RRect& rrect, float blur, const Color4f &color,
+		const RRect* clip, BlendMode mode)
 	{
-		if (rect.size.is_zero_axis())
+		if (rrect.rect.size.is_zero_axis())
 			return;
 		_this->setBlendMode(mode); // switch blend mode
 		_this->flushCAPABatch();
-		drawRRectBlurColorCmd(rect, radius, blur, color);
+		drawRRectBlurColorCmd(rrect, blur, color, clip, mode);
 	}
 
 	void GPUCanvas::drawPathColor(const Path& path, const Color4f &color, BlendMode mode, bool antiAlias) {

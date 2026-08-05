@@ -112,7 +112,7 @@ namespace qk {
 			std::max(extent.height >> level, 1u)
 		};
 		auto device = getSharedRenderVulkanResource()->device();
-		auto renderPass = vk_create_pipeline_render_pass(device, format);
+		auto renderPass = vk_create_compatible_render_pass(device, format);
 		auto newFb = vk_create_framebuffer(device, renderPass, levelView(level), fbExtent);
 		auto exchanged = info.framebuffer.compare_exchange_strong(
 				fb, newFb, std::memory_order_release, std::memory_order_acquire);

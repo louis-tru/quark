@@ -141,6 +141,7 @@ namespace qk {
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
 #if Qk_APPLE
+		/*
 		GLenum format = gl_get_texture_format(dst->type());
 		GLenum type = gl_get_texture_data_type(dst->type());
 		if (format && dst->bytes() != dst->buffer().length())
@@ -150,7 +151,8 @@ namespace qk {
 		flushBuffer(); // commit gl cmd first to ensure the data is ready for reading
 		glReadPixels(srcX, srcY, dst->width(), dst->height(), format, type, dst->val());
 		_render->unlock();
-		return true;
+		 */
+		return false;
 #else
 		// Disable non-macOS systems temporarily,
 		// as the GL context cannot be bing to multiple threads on Linux.
@@ -204,9 +206,10 @@ namespace qk {
 		_cmdPack->drawColor(vertex, color);
 	}
 
-	void GLCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
+	void GLCanvas::drawRRectBlurColorCmd(const RRect& rect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) {
 		checkMatrix();
-		_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
+		_cmdPack->drawRRectBlurColor(rect, blur, color, clip, mode);
 	}
 
 	void GLCanvas::blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) {

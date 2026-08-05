@@ -136,8 +136,8 @@ namespace qk {
 		};
 
 		struct alignas(void*) ColorRRectBlurCmd: Cmd { //!
-			Rect       rect;
-			float      radius[4];
+			RRect      rrect;
+			RRect      clip;
 			Color4f    color;
 			Vec2       vPos;
 			float      blur;
@@ -227,7 +227,8 @@ namespace qk {
 		void setBlendMode();
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor(const VertexData &vertex, const Color4f &color); // add cmd
-		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
+		void drawRRectBlurColor(const RRect& rect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode);
 		void drawImage(const VertexData &vertex, const GC_ImageDrawInfo &info);
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color, bool copyData);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color);

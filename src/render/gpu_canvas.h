@@ -56,6 +56,8 @@
 #define Qk_FLAG_IMAGE_CLAMP_TO_ZERO_Y (1u << 19)
 // triangles shader
 #define Qk_FLAGS_DARK_COLOR (1u << 16)
+// color rrect blur shader
+#define Qk_FLAG_USE_DIFF_CLIP (1u << 16)
 
 namespace qk {
 
@@ -118,7 +120,8 @@ namespace qk {
 		void drawPath(const Path& path, const Paint& paint) override;
 		void drawPathColor(const Path &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
 		void drawPathColors(const Path* path[4], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
-		void drawRRectBlurColor(const Rect& rect, const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
+		void drawRRectBlurColor(const RRect& rect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) override;
 		void drawRect(const Rect& rect, const Paint& paint) override;
 		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
 		void drawRectPath(const RectPath& path, const Paint& paint) override;
@@ -146,7 +149,8 @@ namespace qk {
 		virtual void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) = 0;
 		virtual void drawColorCmd(const VertexData &vertex, const Color4f &color) = 0;
 		virtual bool drawCAPACmd(CAPADrawData &data) = 0;
-		virtual void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) = 0;
+		virtual void drawRRectBlurColorCmd(const RRect& rect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) = 0;
 		virtual void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) = 0;
 		virtual void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) = 0;

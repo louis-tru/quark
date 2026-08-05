@@ -364,7 +364,7 @@ namespace qk {
 		info.pColorBlendState = &blend;
 		info.pDynamicState = &dynamic;
 		info.layout = getPipelineLayoutNoLock(kind)->layout;
-		info.renderPass = vk_create_pipeline_render_pass(_device, format);
+		info.renderPass = vk_create_compatible_render_pass(_device, format);
 		info.subpass = 0;
 		Qk_DLog("Creating Vulkan graphics pipeline: shader=%s, kind=%u, "
 			"blend=%u, format=%u, topology=%u, stride=%u, attributes=%u",

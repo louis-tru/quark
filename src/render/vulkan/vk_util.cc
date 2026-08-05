@@ -452,10 +452,10 @@ namespace qk {
 		return renderPass;
 	}
 
-	VkRenderPass vk_create_pipeline_render_pass(VkDevice device, VkFormat format) {
+	VkRenderPass vk_create_compatible_render_pass(VkDevice device, VkFormat format) {
 		return vk_create_render_pass(
-			device, format, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
-			VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+			device, format, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		);
 	}
 

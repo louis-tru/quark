@@ -410,38 +410,25 @@ namespace qk {
 		_canvas->drawPath(*_boxData.inside, paint);
 	}
 
-	static bool validBoxShadow(BoxShadow *shadow) {
-		while(shadow) {
-			if (shadow->type() != BoxFilter::kShadow)
-				break;
-			if (!shadow->value().isZero())
-				return true;
-			shadow = static_cast<BoxShadow*>(shadow->next());
-		}
-		return false;
-	}
-
 	void Painter::drawBoxShadow(Box *v) {
 		auto shadow = v->box_shadow();
-		if (!validBoxShadow(shadow))
+		if (!shadow)
 			return;
 		getOutsideRectPath(v);
-		_canvas->save();
-		_canvas->clipPath(*_boxData.outside, Canvas::kDifference_ClipOp, true);
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
 			if (shadow->value().isZero())
 				continue;
 			auto s = shadow->value();
-			auto rect = _boxData.outside->rect;
-			rect.begin += {s.x, s.y};
-			_canvas->drawRRectBlurColor(rect,
-				&v->_border_top_left_radius,
-				s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
+			auto color = s.color.mul_color4f(_color);
+			RRect rrect{_boxData.outside->rect, *(Vec4*)&v->_border_top_left_radius};
+			RRect clip = rrect;
+			rrect.rect.begin += {s.x, s.y};
+			_canvas->drawRRectBlurColor(rrect,
+				s.size, color, &clip, kSrcOver_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
-		_canvas->restore();
 	}
 
 	void Painter::drawBoxColor(Box *v) {

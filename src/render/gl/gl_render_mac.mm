@@ -110,7 +110,7 @@ class MacGLRender final: public GLRender, public RenderSurface {
 
 	void resolvedMsg(bool destroy) {
 		if (destroy) {
-			ScopeLock lock(_mutexMsg);
+			ScopeLock sLock(_mutexMsg);
 			if (_msg.length()) {
 				lock();
 				for (auto &i : _msg) i->resolve();

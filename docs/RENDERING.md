@@ -185,9 +185,11 @@ state explicit:
 - submit/present calls on the shared queue require external synchronization,
   while command recording can use independent Canvas pools.
 
-Most ordinary non-CAPA drawing commands are implemented. Framebuffer mip views,
-discarded-pack layout state, platform presentation, and CAPA remain active work.
-See [`VULKAN.md`](VULKAN.md) for the authoritative architecture and backlog.
+The original Vulkan implementation milestone is complete: ordinary Canvas
+commands, framebuffer mip views, command-pack ownership, Android/Linux
+presentation, and CAPA command encoding are present. Linux presentation, CAPA,
+and broader driver coverage still require runtime validation. See
+[`VULKAN.md`](VULKAN.md) for the authoritative architecture and backlog.
 
 ### Geometry And Memory Cache Policy
 

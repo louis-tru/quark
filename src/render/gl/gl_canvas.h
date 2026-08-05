@@ -61,7 +61,8 @@ namespace qk {
 		void drawImageCmd(const VertexData &vertex, const GC_ImageDrawInfo &info) override;
 		void drawGradientCmd(const VertexData &vertex, const PaintGradient *paint, const Color4f &color) override;
 		void drawColorCmd(const VertexData &vertex, const Color4f &color) override;
-		void drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) override;
+		void drawRRectBlurColorCmd(const RRect& rect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) override;
 		void blurFilterBeginCmd(Range bounds, Mat4 &rootMat, ImageSource *tmpA) override;
 		void blurFilterEndCmd(Range bounds, Mat4 &recoverRootMat, float radius, float clearPad,
 				int sample, int imageLod, ImageSource *tmpA, ImageSource *tmpB) override;

@@ -311,35 +311,40 @@ namespace qk {
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vertex.vCount];
 	}
 
-	void MetalCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur, const Color4f &color) {
+	void MetalCanvas::drawRRectBlurColorCmd(const RRect& rrect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) {
 		blur = Qk_Max(blur, 0.5);
-		float s1 = blur * 1.15, s2 = blur * 2.0;
+		auto rect = rrect.rect;
+		float s0 = blur * 1.15, s1 = blur * 2.0; // size0 size1
 		float min_edge = Qk_Min(rect.size[0], rect.size[1]);
 		float rmax = 0.5 * min_edge;
-		Vec2 size = rect.size * 0.5;
-		Vec2 c = rect.begin + size;
-		float w = size[0] + blur, h = size[1] + blur;
-		float x1 = c[0] - w, x2 = c[0] + w;
-		float y1 = c[1] - h, y2 = c[1] + h;
+		auto end = rect.begin + rect.size;
+		float x1 = rect.begin.x() - s1, x2 = end.x() + s1;
+		float y1 = rect.begin.y() - s1, y2 = end.y() + s1;
+		auto halfSize = rect.size * 0.5;
+		auto c = rect.begin + halfSize;
 		Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
+		float s_inv = 1.0/blur; // 1/s blur size reciprocal
+		auto premul_color = premul_alpha(color);
 		auto& sh = _shaders.colorRrectBlur;
 		auto enc = usePipeline(sh);
-		float s_inv = 1.0f / blur;
 
 		for (int i = 0; i < 4; i++) {
 			auto horn = horns[i];
-			float v[] = { c[0],c[1],0, horn[0],c[1],0, horn[0],horn[1],0, c[0],horn[1],0 };
-			float r0 = F32::min(Vec2(radius[i], s1).length(), rmax);
-			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
+			float v[] = { c[0],c[1],0, horn[0],c[1],0, c[0],horn[1],0, horn[0],horn[1],0 };
+			float r0 = F32::min(Vec2(rrect.radii[i], s0).length(), rmax);
+			float r1 = F32::min(Vec2(rrect.radii[i], s1).length(), rmax);
 			float n = 2.0 * r1 / r0;
+			float n_inv = 1.0/n; // 1/exponent
 			MSLColorRrectBlur::PcArgs pc{
-				vPos(),
-				horn,
-				color,
-				{ Vec3(r1, n, 1.0 / n), 0 },
-				min_edge,
-				s_inv,
-				_flags,
+				.color=premul_color,
+				.consts={ r1, n, n_inv, s_inv },
+				.rect=*(Vec4*)rect.begin.val,
+				.clipRect=clip ? *(Vec4*)clip->rect.begin.val: Vec4(0),
+				.clipRadii=clip ? clip->radii: Vec4(0),
+				.vPos=vPos(),
+				.min_edge=min_edge,
+				.flags=_flags | (clip ? Qk_FLAG_USE_DIFF_CLIP: 0),
 			};
 			[enc setVertexBytes:v length:sizeof(v) atIndex:sh.bufferIndex];
 			[enc setVertexBytes:&pc length:sizeof(pc) atIndex:0];

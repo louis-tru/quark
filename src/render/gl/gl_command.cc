@@ -377,38 +377,41 @@ namespace qk {
 		}
 
 		void drawRRectBlurColorCall(ColorRRectBlurCmd *cmd) {
-			auto rect = cmd->rect;
-			auto r = cmd->radius;
+			auto &rrect = cmd->rrect;
+			auto &rect = rrect.rect;
 			auto s = cmd->blur;
 			s = Qk_Max(s, 0.5);
-			float s1 = s * 1.15, s2 = s * 2.0;
+			float s0 = s * 1.15, s1 = s * 2.0; // size0 size1
 			auto sh = &_render->_shaders.colorRrectBlur;
 			float min_edge = Qk_Min(rect.size[0],rect.size[1]); // min w or h
 			float rmax = 0.5 * min_edge; // max r
-			Vec2 size = rect.size * 0.5;
-			Vec2 c = rect.begin + size; // rect center
-			float w = size[0] + s, h = size[1] + s;
-			float x1 = c[0] - w, x2 = c[0] + w;
-			float y1 = c[1] - h, y2 = c[1] + h;
+			auto end = rect.begin + rect.size;
+			float x1 = rect.begin.x() - s1, x2 = end.x() + s1;
+			float y1 = rect.begin.y() - s1, y2 = end.y() + s1;
+			auto halfSize = rect.size * 0.5;
+			auto c = rect.begin + halfSize;
 			Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
+			float s_inv = 1.0/s; // 1/s blur size reciprocal
 
 			glUseProgram(sh->shader); // use shader program
 			glUniform2fv(sh->pc_vPos, 1, cmd->vPos.val);
 			glUniform4fv(sh->pc_color, 1, cmd->color.val);
+			glUniform4fv(sh->pc_rect, 1, rect.begin.val);
+			glUniform4fv(sh->pc_clipRect, 1, cmd->clip.rect.begin.val);
+			glUniform4fv(sh->pc_clipRadii, 1, cmd->clip.radii.val);
 			glUniform1f(sh->pc_min_edge, min_edge);
-			glUniform1f(sh->pc_s_inv, 1.0/s); // 1/s blur size reciprocal
 			glUniform1ui(sh->pc_flags, cmd->flags); // clip flag
 			glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
 			glBindVertexArray(sh->vao);
 
 			for (int i = 0; i < 4; i++) {
 				auto horn = horns[i];
-				float v[] = { c[0],c[1],0, horn[0],c[1],0, horn[0],horn[1],0, c[0],horn[1],0 };
-				float r0 = F32::min(Vec2(r[i], s1).length(), rmax); // len
-				float r1 = F32::min(Vec2(r[i], s2).length(), rmax);
+				float v[] = { c[0],c[1],0, horn[0],c[1],0, c[0],horn[1],0, horn[0],horn[1],0 };
+				float r0 = F32::min(Vec2(rrect.radii[i], s0).length(), rmax); // len
+				float r1 = F32::min(Vec2(rrect.radii[i], s1).length(), rmax);
 				float n = 2.0 * r1 / r0;
-				glUniform3f(sh->pc_consts, r1, n, 1.0/n);
-				glUniform2f(sh->pc_horn, horn[0], horn[1]);
+				float n_inv = 1.0/n; // 1/exponent
+				glUniform4f(sh->pc_consts, r1, n, n_inv, s_inv);
 				glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			}
@@ -1039,17 +1042,16 @@ namespace qk {
 #endif
 	}
 
-	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
+	void GLC_CmdPack::drawRRectBlurColor(const RRect& rrect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) {
 		auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
 		cmd->type = kRRectBlurColor_CmdType;
 		cmd->vPos = _canvas->vPos();
-		cmd->rect = rect;
-		cmd->radius[0] = radius[0];
-		cmd->radius[1] = radius[1];
-		cmd->radius[2] = radius[2];
-		cmd->radius[3] = radius[3];
+		cmd->rrect = rrect;
+		cmd->clip = clip ? *clip: RRect{};
 		cmd->color = premul_alpha(color);
 		cmd->blur = blur;
+		cmd->flags |= clip ? Qk_FLAG_USE_DIFF_CLIP: 0;
 	}
 
 	void GLC_CmdPack::drawImage(const VertexData &vertex, const GC_ImageDrawInfo &info) {

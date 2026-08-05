@@ -203,7 +203,7 @@ namespace qk {
 
 	void vk_set_sampler_min_mip_filter(VkSamplerCreateInfo *info, PaintImage::MipmapMode mode);
 
-	VkRenderPass vk_create_pipeline_render_pass(VkDevice device, VkFormat format);
+	VkRenderPass vk_create_compatible_render_pass(VkDevice device, VkFormat format);
 
 	VkRenderPass vk_create_render_pass(
 		VkDevice device, VkFormat format, VkAttachmentLoadOp loadOp,

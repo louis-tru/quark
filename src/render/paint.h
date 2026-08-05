@@ -119,10 +119,10 @@ namespace qk {
 
 		union {
 			uint32_t bitfields = (
-				(kClamp_TileMode << 8) |
-				(kClamp_TileMode << 10) |
-				(kNone_MipmapMode << 12) |
-				(kNearest_FilterMode << 13)
+				(kClamp_TileMode << 8) | // tileModeX to clamp
+				(kClamp_TileMode << 10) | // tileModeY to clamp
+				(kNearest_FilterMode << 12) | // filterMode to none
+				(kNone_MipmapMode << 13) // mipmapMode to none
 			);
 			struct {
 				uint8_t     srcIndex: 8;     //!< Source pixel offset (reserved, usually 0).

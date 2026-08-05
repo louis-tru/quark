@@ -376,6 +376,7 @@ namespace qk {
 		// Update image sampler descriptor sets
 		VkWriteDescriptorSet writes[4]{};
 		VkDescriptorImageInfo image{_resource->nearestSampler()};
+		// auto clipTex = _emptyTexture.get();
 		auto clipTex = _clipState ? vk_get_texture(_clipState->mask.get()): _emptyTexture.get();
 		clipTex->transitionLayout(_cmdPack->current, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		_cmdPack->ref(clipTex); // ref clip texture for this pack
@@ -460,6 +461,7 @@ namespace qk {
 			_cmdPack->recorded = true;
 			_cmdPack->renderPass = VK_NULL_HANDLE;
 		}
+		// _cmdPack->pipeline = VK_NULL_HANDLE;
 	}
 
 	bool VulkanCanvas::onlyEndEncoderPass(Color4f &color) {
@@ -534,17 +536,16 @@ namespace qk {
 		Qk_ASSERT(pipeline, "Vulkan pipeline should not be null");
 		bool pipelineChanged = _cmdPack->pipeline != pipeline;
 
-		if (_cmdPack->pipeline != pipeline) {
+		if (pipelineChanged) {
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 			_cmdPack->pipeline = pipeline;
 		}
-
 		if (pipelineChanged || _cmdPack->commonSetDirty) {
 			uint32_t dynamicOffsets[3] = {
 				uint32_t(_cmdPack->buffers[0].offset),
 				uint32_t(_cmdPack->buffers[1].offset), uint32_t(_cmdPack->buffers[2].offset),
 			};
-			vkCmdBindDescriptorSets(_cmdPack->current, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.layout(),
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.layout(),
 				0, 1, &_cmdPack->set0, 3, dynamicOffsets);
 			_cmdPack->commonSetDirty = false;
 		}

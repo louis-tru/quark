@@ -6,16 +6,13 @@ in the backend/topic documents, and diagnosed failures belong in
 
 ## Active Theme
 
-The active renderer task is completing the Vulkan backend on `master`.
+The Vulkan implementation milestone on `master` is complete. The backend now
+has shared device/resource management, ordinary Canvas commands, Android/Linux
+presentation, and CAPA command encoding. Further work is stabilization and
+runtime validation rather than filling out the original backend skeleton.
 
-- Shared Vulkan device/resource management is implemented.
-- Most non-CAPA `VulkanCanvas` commands now have Metal-aligned implementations.
-- Framebuffer/mip-view and command-pack completion ownership have been handled.
-- A shared Android/Linux surface/swapchain/present implementation now exists;
-  Android build/runtime bring-up is the immediate next checkpoint, followed by
-  Linux validation and CAPA.
-- Detailed architecture, invariants, and the Vulkan backlog live in
-  [`VULKAN.md`](VULKAN.md).
+Detailed architecture, invariants, and the remaining Vulkan backlog live in
+[`VULKAN.md`](VULKAN.md).
 
 ## Vulkan Checkpoint
 
@@ -34,7 +31,14 @@ Implemented:
 - per-mip `VkTexture::layouts` state and redundant-transition elimination;
 - Android/Xlib surface creation, FIFO swapchain management, nonblocking acquire,
   direct Canvas rendering into acquired images, shared-queue
-  submission/present, and externally driven surface reload.
+  submission/present, and externally driven surface reload;
+- Android runtime bring-up on multiple devices;
+- Vulkan CAPA resource, descriptor, pass, barrier, dispatch, and ordered
+  composite encoding;
+- shader-reflection type cleanup, compatible render-pass creation, descriptor
+  rebinding fixes, and clip-mask layout/readability fixes;
+- rounded-rectangle shadow blur with shader-side difference clipping, aligned
+  across GL, Metal, and Vulkan.
 
 Immediate correctness work:
 
@@ -45,11 +49,13 @@ Immediate correctness work:
    shader-readable texture; add synchronization only when a real
    conflicting-writer path appears.
 
-Still incomplete:
+Remaining validation/stabilization:
 
-- Android and Linux runtime validation of platform presentation;
-- Vulkan CAPA command encoding and runtime validation;
-- runtime validation across Android and desktop Vulkan drivers.
+- Linux runtime validation of platform presentation;
+- Vulkan CAPA runtime validation;
+- broader runtime validation across Android and desktop Vulkan drivers;
+- re-enable the currently disabled macOS GL `readPixels()` path only after its
+  behavior is validated.
 
 ## Deferred Non-Vulkan Work
 

@@ -123,7 +123,7 @@ namespace qk {
 			drawClipMask(black, true);
 		}
 		endPass();
-		// makeTextureMipReadable(_target); // make clip mask texture readable for shader
+		makeTextureMipReadable(_target); // make clip mask texture readable for shader
 		// restore framebuffer and blend mode
 		_blendMode = blend;
 		_target = lastTarget;
@@ -133,7 +133,7 @@ namespace qk {
 		if (_cmdPack->renderPass == VK_NULL_HANDLE)
 			return; // no render pass, no need to set clip
 		if (clip) {
-			MSLColor::ClipStatBlock clipStat = { clip->bounds.iVec4(), clip->op };
+			SpvColor::ClipStatBlock clipStat = { clip->bounds.iVec4(), clip->op };
 			_cmdPack->buffers[2] = makeBufferInfoT(_cmdPack, &clipStat);
 			_clipState = clip; // set current clip state
 			updateCommonDescriptorSet(false);
@@ -149,7 +149,7 @@ namespace qk {
 		auto offset = (srcOffset - dst.begin) / src->size();
 		auto coord = Vec4(offset.x(), offset.y(), scale.x(), scale.y());
 		auto cmd = usePipeline(cp, vertex, 12);
-		MSLCp::PcArgs pc{ resolution, resolution, coord, 0, 0 };
+		SpvCp::PcArgs pc{ resolution, resolution, coord, 0, 0 };
 		auto set = allocDescriptorSet(cp.sets(1));
 		setTextureParam(set, cp.image.binding, vk_get_texture(src));
 		bindDescriptorSet(set, cp);
@@ -179,7 +179,7 @@ namespace qk {
 			auto &clear = _shaders.clear;
 			auto cmd = usePipeline(clear); // use pipeline state for clear shader
 			// set color and other args for shader push constants
-			MSLClear::PcArgs pc{ color, 0 };
+			SpvClear::PcArgs pc{ color, 0 };
 			vkCmdPushConstants(cmd, clear.layout(), clear.pc.stages, 0, sizeof(pc), &pc);
 			vkCmdDraw(cmd, 4, 1, 0, 0);
 		}
@@ -212,7 +212,7 @@ namespace qk {
 					// image_v is still evaluated by mix(); bind a valid placeholder for YUV420SP.
 					setTextureParam(set1, yuv.image_v.binding, vk_get_texture(src));
 				}
-			MSLImageYuv::PcArgs pc{
+			SpvImageYuv::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
 				.vPos=vPos(),
@@ -226,7 +226,7 @@ namespace qk {
 			auto cmd = usePipeline(shader, vertex);
 			auto type = info.paint->_isCanvas ? kRGBA_8888_ColorType: info.paint->image->type();
 			// set color and other args for shader push constants
-			MSLImage::PcArgs pc{
+			SpvImage::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),
 				.strokeColor=premul_alpha(info.stroke <= 0 ? info.color: info.strokeColor),
@@ -249,7 +249,7 @@ namespace qk {
 		auto &shader = _shaders.colorGradient;
 		auto set1 = allocDescriptorSet(shader.sets(1));
 		auto cmd = usePipeline(shader, vertex);
-		MSLColorGradient::PcArgs pc{
+		SpvColorGradient::PcArgs pc{
 			.range=*((Vec4*)paint->origin.val),
 			.color=premul_alpha(color),
 			.vPos=vPos(),
@@ -269,36 +269,40 @@ namespace qk {
 		vkCmdDraw(cmd, vertex.vCount, 1, 0, 0);
 	}
 
-	void VulkanCanvas::drawRRectBlurColorCmd(const Rect& rect, const float *radius, float blur,
-			const Color4f &color) {
+	void VulkanCanvas::drawRRectBlurColorCmd(const RRect& rrect, float blur, const Color4f &color,
+			const RRect* clip, BlendMode mode) {
 		blur = Qk_Max(blur, 0.5);
-		float s1 = blur * 1.15, s2 = blur * 2.0;
+		auto rect = rrect.rect;
+		float s0 = blur * 1.15, s1 = blur * 2.0; // size0 size1
 		float min_edge = Qk_Min(rect.size[0], rect.size[1]);
 		float rmax = 0.5 * min_edge;
-		Vec2 size = rect.size * 0.5;
-		Vec2 c = rect.begin + size;
-		float w = size[0] + blur, h = size[1] + blur;
-		float x1 = c[0] - w, x2 = c[0] + w;
-		float y1 = c[1] - h, y2 = c[1] + h;
+		auto end = rect.begin + rect.size;
+		float x1 = rect.begin.x() - s1, x2 = end.x() + s1;
+		float y1 = rect.begin.y() - s1, y2 = end.y() + s1;
+		auto halfSize = rect.size * 0.5;
+		auto c = rect.begin + halfSize;
 		Vec2 horns[] = { {x1,y1}, {x2,y1}, {x2,y2}, {x1,y2} };
+		float s_inv = 1.0/blur; // 1/s blur size reciprocal
+		auto premul_color = premul_alpha(color);
 		auto& sh = _shaders.colorRrectBlur;
 		auto cmd = usePipeline(sh);
-		float s_inv = 1.0f / blur;
 
 		for (int i = 0; i < 4; i++) {
 			auto horn = horns[i];
-			float v[] = { c[0],c[1],0, horn[0],c[1],0, horn[0],horn[1],0, c[0],horn[1],0 };
-			float r0 = F32::min(Vec2(radius[i], s1).length(), rmax);
-			float r1 = F32::min(Vec2(radius[i], s2).length(), rmax);
+			float v[] = { c[0],c[1],0, horn[0],c[1],0, c[0],horn[1],0, horn[0],horn[1],0 };
+			float r0 = F32::min(Vec2(rrect.radii[i], s0).length(), rmax);
+			float r1 = F32::min(Vec2(rrect.radii[i], s1).length(), rmax);
 			float n = 2.0 * r1 / r0;
-			MSLColorRrectBlur::PcArgs pc{
+			float n_inv = 1.0/n; // 1/exponent
+			SpvColorRrectBlur::PcArgs pc{
+				.color=premul_color,
+				.consts={ r1, n, n_inv, s_inv },
+				.rect=*(Vec4*)rect.begin.val,
+				.clipRect=clip ? *(Vec4*)clip->rect.begin.val: Vec4(0),
+				.clipRadii=clip ? clip->radii: Vec4(0),
 				.vPos=vPos(),
-				.horn=horn,
-				.color=color,
-				.consts={ Vec3(r1, n, 1.0 / n), 0 },
 				.min_edge=min_edge,
-				.s_inv=s_inv,
-				.flags=_flags,
+				.flags=_flags | (clip ? Qk_FLAG_USE_DIFF_CLIP: 0),
 			};
 			auto buf = makeBufferInfoT(_cmdPack, v, 12);
 			vkCmdBindVertexBuffers(cmd, 0, 1, &buf.buffer, &buf.offset);
@@ -320,7 +324,7 @@ namespace qk {
 
 		bindDescriptorSet(set1, shader); // bind texture descriptor set to pipeline
 
-		MSLTriangles::PcArgs pc{
+		SpvTriangles::PcArgs pc{
 			.color=color,
 			.vPos=vPos(),
 			.flags=_flags | (triangles.isDarkColor ? Qk_FLAGS_DARK_COLOR : 0)
@@ -376,7 +380,7 @@ namespace qk {
 			float vertex[] = { x1,y1,0, x2,y1,0, x1,y2,0, x2,y2,0 };
 			do { // Copy the image to smaller texture for next level
 				oRw >>= 1; oRh >>= 1;
-				MSLCp::PcArgs pc{ iR, Vec2(oRw, oRh), { 0, 0, 1, 1 }, 0, 0};
+				SpvCp::PcArgs pc{ iR, Vec2(oRw, oRh), { 0, 0, 1, 1 }, 0, 0};
 				beginPass(level+1, false); // begin new pass for next level
 				makeTextureMipReadable(texA, level); // make texture level readable for shader
 				auto cmd = usePipeline(cp, vertex, 12);
@@ -399,7 +403,7 @@ namespace qk {
 			makeTextureMipReadable(texA, imageLod);
 			// Making blur of the x-axis direction
 			float vertex[] = { x1+radius,y1,0, x2-radius,y1,0, x1+radius,y2,0, x2-radius,y2,0 };
-			MSLBlur::PcArgs pc{ iR, Vec2(oRw, oRh), Vec2(radius2 / iR.x(), 0), {0,0},
+			SpvBlur::PcArgs pc{ iR, Vec2(oRw, oRh), Vec2(radius2 / iR.x(), 0), {0,0},
 				1.0f/(sample-1), 0, 0 };
 			auto cmd = usePipeline(*blur, vertex, 12);
 			vkCmdPushConstants(cmd, blur->layout(), blur->pc.stages, 0, sizeof(pc), &pc);
@@ -423,7 +427,7 @@ namespace qk {
 			_blendMode = blend;
 			beginPass(); // begin new pass for main render target
 			makeTextureMipReadable(texB, imageLod);
-			MSLBlur::PcArgs pc = { iR, iR, Vec2(0, radius2 / iR.y()), uv_offset,
+			SpvBlur::PcArgs pc = { iR, iR, Vec2(0, radius2 / iR.y()), uv_offset,
 				1.0f/(sample-1), 0, 0 };
 			auto cmd = usePipeline(*blur, vertex, 12);
 			vkCmdPushConstants(cmd, blur->layout(), blur->pc.stages, 0, sizeof(pc), &pc);
@@ -462,7 +466,7 @@ namespace qk {
 		auto begin = srcRect.begin / _surfaceSize;
 		auto scale = srcRect.size / _surfaceSize;
 		auto coord = Vec4(begin.x(), begin.y(), scale.x(), scale.y());
-		MSLCp::PcArgs pc{ _surfaceSize, dstSize, coord, 0, 0 };
+		SpvCp::PcArgs pc{ _surfaceSize, dstSize, coord, 0, 0 };
 		vkCmdPushConstants(cmd, cp.layout(), cp.pc.stages, 0, sizeof(pc), &pc);
 		auto set = allocDescriptorSet(cp.sets(1));
 		setTextureParam(set, cp.image.binding, srcTex, sampler);

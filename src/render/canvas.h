@@ -36,6 +36,7 @@
 #include "./pathv_cache.h"
 #include "./pixel.h"
 #include "./paint.h"
+#include "src/render/blend.h"
 
 namespace qk {
 
@@ -227,14 +228,15 @@ namespace qk {
 		/**
 		 * Optimized rounded-rect blur drawing using solid color fill.
 		 * 
-		 * @param rect Target bounds
-		 * @param radius Corner radius per-corner
-		 * @param blur   Blur radius
-		 * @param color  Fill color
+		 * @param rrect The rounded rectangle to draw.
+		 * @param blur   Blur radius in pixels.
+		 * @param color  The fill color.
+		 * @param clip   Optional clip region; if null, no clipping is applied.
 		 * @param mode   Blend mode
 		 */
-		virtual void drawRRectBlurColor(const Rect& rect,
-			const float radius[4], float blur, const Color4f &color, BlendMode mode) = 0;
+		virtual void drawRRectBlurColor(const RRect& rect,
+			float blur, const Color4f &color, const RRect* clip = nullptr,
+			BlendMode mode = kSrcOver_BlendMode) = 0;
 
 		// ---------------------------------------------------------------------
 		//  Readback
