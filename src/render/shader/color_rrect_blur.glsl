@@ -15,7 +15,7 @@ Qk_CONSTANT(
 );
 
 #vert
-layout(location=1) out vec2 pos_f;
+layout(location=1) out highp vec2 pos_f;
 void main() {
 	pos_f = vertexIn;
 	gl_Position = rMat.value * vPosition(pc.vPos);
@@ -24,7 +24,7 @@ void main() {
 #frag
 #define Qk_FLAG_USE_DIFF_CLIP (1u << 16)
 
-layout(location=1) in vec2 pos_f;
+layout(location=1) in highp vec2 pos_f;
 // blur radius
 #define r1 pc.consts.x
 // squircle exponent
@@ -43,21 +43,21 @@ float erf(float x) {
 	return s - s / (x * x);
 }
 
-float sqLen(vec2 p) { // squircle length
+highp float sqLen(highp vec2 p) { // squircle length
 	// https://en.wikipedia.org/wiki/Squircle
-	vec2 q = max(p,0.0);
+	highp vec2 q = max(p,0.0);
 	return pow(pow(q.x,n) + pow(q.y,n), n_inv);
 }
 
-float sdf(vec2 p, float r) {
-	vec2 halfSize = pc.rect.zw * 0.5;
-	vec2 q = abs(p - (pc.rect.xy + halfSize)) - halfSize;
+highp float sdf(highp vec2 p, highp float r) {
+	highp vec2 halfSize = pc.rect.zw * 0.5;
+	highp vec2 q = abs(p - (pc.rect.xy + halfSize)) - halfSize;
 	return sqLen(q+r) - r;
 }
 
-float clipRRectSdf(vec2 p) {
-	vec2 halfSize = pc.clipRect.zw * 0.5;
-	vec2 center = pc.clipRect.xy + halfSize;
+float clipRRectSdf(highp vec2 p) {
+	highp vec2 halfSize = pc.clipRect.zw * 0.5;
+	highp vec2 center = pc.clipRect.xy + halfSize;
 	vec2 radii = mix(pc.clipRadii.xw, pc.clipRadii.yz, step(center.x, p.x));
 	float radius = mix(radii.x, radii.y, step(center.y, p.y));
 	radius = min(radius, min(halfSize.x, halfSize.y));

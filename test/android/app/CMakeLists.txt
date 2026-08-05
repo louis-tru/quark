@@ -42,8 +42,8 @@ add_definitions(
 #set(CMAKE_SHARED_LINKER_FLAGS "-stdlib=libc++")
 #set(ANDROID_STL "c++_shared")
 
-#add_compile_options(-O2)
-add_definitions(-DDEBUG)
+add_compile_options(-O2)
+#add_definitions(-DDEBUG)
 add_definitions(-DUSE_JS)
 
 add_library(quark SHARED

@@ -418,15 +418,15 @@ namespace qk {
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
-			if (shadow->value().isZero())
-				continue;
-			auto s = shadow->value();
-			auto color = s.color.mul_color4f(_color);
-			RRect rrect{_boxData.outside->rect, *(Vec4*)&v->_border_top_left_radius};
-			RRect clip = rrect;
-			rrect.rect.begin += {s.x, s.y};
-			_canvas->drawRRectBlurColor(rrect,
-				s.size, color, &clip, kSrcOver_BlendMode);
+			if (!shadow->value().isZero()) {
+				auto s = shadow->value();
+				auto color = s.color.mul_color4f(_color);
+				RRect rrect{_boxData.outside->rect, *(Vec4*)&v->_border_top_left_radius};
+				RRect clip = rrect;
+				rrect.rect.begin += {s.x, s.y};
+				_canvas->drawRRectBlurColor(rrect,
+					s.size, color, &clip, kSrcOver_BlendMode);
+			}
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 	}

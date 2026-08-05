@@ -504,8 +504,8 @@ namespace qk {
 		info.renderPass = _cmdPack->renderPass;
 		info.framebuffer = target->framebuffer(_cmdPack->level);
 
+		VkClearValue clearValue{.color = _cmdPack->clearColor};
 		if (_cmdPack->loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR) {
-			VkClearValue clearValue{.color = _cmdPack->clearColor};
 			info.clearValueCount = 1;
 			info.pClearValues = &clearValue;
 		}
