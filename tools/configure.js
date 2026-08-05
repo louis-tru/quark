@@ -429,15 +429,17 @@ async function install_check(app, cmdObj, variables) {
 	let pkgm = getPkgm();
 	let optName = app.replace('-', '_');
 
-	let cmds, isBuild = false, isLib = false;
+	let cmds, build = false, isLib = false;
 	let defOpt = false;
+	let tryBefore;
 
 	if (typeof cmdObj == 'string') {
 		cmds = [cmdObj];
 	} else if (typeof cmdObj == 'object') {
-		isBuild = !!cmdObj.build;
+		build = cmdObj.build;
 		defOpt = !!cmdObj.defOpt;
 		isLib = !!cmdObj.lib;
+		tryBefore = cmdObj.tryBefore;
 		if (Array.isArray(cmdObj)) {
 			cmds = cmdObj;
 		} else {
@@ -449,8 +451,11 @@ async function install_check(app, cmdObj, variables) {
 		if (res.code != 0) {
 			return false;
 		}
+		const execPath = res.first.trim();
+		if (cmdObj.check && !cmdObj.check(execPath))
+			return false;
 		if (defOpt) {
-			variables[app] = res.first.trim();
+			variables[app] = execPath;
 		}
 		return true;
 	};
@@ -491,15 +496,27 @@ async function install_check(app, cmdObj, variables) {
 		}
 	}
 
+	if (tryBefore) {
+		try {
+			for (let key in tryBefore)
+				await install_check(key, tryBefore[key], variables);
+			if (resolveCommand(app))
+				return;
+		} catch (e) {
+			console.error(`tryBefore install ${app} fail: ${e.message}`);
+		}
+	}
+
 	if (cmdObj.deps) {
 		for (var i in cmdObj.deps)
 			await install_check(i, cmdObj.deps[i], variables);
 	}
 
 	let cd = '';
-	if (isBuild) {
-		cd = `${__dirname}/deps/${app}`;
-		await exec2(`git submodule update --init --checkout --recursive --depth 1 tools/deps/${app}`);
+	if (build) {
+		let dir = typeof build == 'string' ? build: app;
+		cd = `${__dirname}/deps/${dir}`;
+		await exec2(`git submodule update --init --checkout --recursive --depth 1 tools/deps/${dir}`);
 	}
 
 	for (let cmd of cmds) {
@@ -516,8 +533,7 @@ async function install_check(app, cmdObj, variables) {
 		}
 		// process.stdin.setRawMode(true);
 		process.stdin.resume();
-		console.log('Install depe', app, 'Run:', cmd);
-
+		console.log(cmd);
 		await exec2(cmd);
 	}
 
@@ -525,6 +541,18 @@ async function install_check(app, cmdObj, variables) {
 		util.assert(resolveCommand(app),
 			`failed to install ${app}: executable not found in PATH`);
 	}
+}
+
+function version_compare(v1, v2) {
+	var v1s = v1.trim().split('.').map(a=>parseInt(a));
+	var v2s = v2.trim().split('.').map(a=>parseInt(a));
+	for (let i = 0; i < Math.max(v1s.length, v2s.length); i++) {
+		const a = v1s[i] || 0;
+		const b = v2s[i] || 0;
+		if (a > b) return 1;
+		if (a < b) return -1;
+	}
+	return 0;
 }
 
 async function install_depe(opts, variables) {
@@ -538,9 +566,26 @@ async function install_depe(opts, variables) {
 		dpkg['g++'] = getPkgmCmds('g++'); // x86 or x64
 	}
 
+	let cmake = {
+		build: true,
+		tryBefore: {
+			'cmake': getPkgmCmds('cmake'), // first try install cmake from pkg manager
+		},
+		deps: {
+			'libssl-dev': { lib: 1, cmds: [getPkgmCmds('libssl-dev')] },
+		},
+		cmds: [ `./configure --parallel=4`, `make -j4`, `*make install` ],
+		check: (execPath)=>{
+			let res = execSync(`${execPath} --version`);
+			util.assert(res.code == 0, `cmake not found in ${execPath}`);
+			// cmake version 4.4.2
+			let version = res.first.replace(/cmake version /, '');
+			console.log(`check cmake version: ${version}`);
+			return version_compare(version, '3.22.1') >= 0;
+		},
+	};
 	// yasm default install
 	var yasm = getPkgmCmds('yasm');
-
 	var isBuildYasm = false; // whether build yasm from source
 	var isNinja = false; // whether use ninja build system
 	if (isBuildYasm) {
@@ -553,17 +598,19 @@ async function install_depe(opts, variables) {
 		};
 	}
 	if (isNinja) {
-		// var cmake = { cmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
 		dpkg.ninja = {
 			build: true,
-			deps: { cmake: getPkgmCmds('cmake') },
+			deps: {cmake},
 			cmds: [ 'cmake . -DCMAKE_BUILD_TYPE=Release', 'make -j4', '*make install' ],
 		};
 	}
 
 	dpkg['glslc'] = host_os == 'linux' ? {
-		build: true,
-		deps: { cmake: getPkgmCmds('cmake') },
+		build: 'shaderc',
+		tryBefore: {
+			glslc: getPkgmCmds('glslc'),
+		},
+		deps: {cmake},
 		cmds: [
 			'./utils/git-sync-deps',
 			'cmake . -B out '+
@@ -573,13 +620,21 @@ async function install_depe(opts, variables) {
 			'make -C out glslc -j4',
 			'*make -C out install',
 		],
+		check: (execPath)=>{
+			let res = execSync(`${execPath} --version`);
+			// shaderc v2026.3
+			let version = res.first.match(/^shaderc v(\d+\.\d+)/);
+			version = version ? version[1] : '';
+			console.log(`check glslc version: ${version}`);
+			return version_compare(version, '2026.3') >= 0;
+		},
 	}: {
-		cmds: [getPkgmCmds('shaderc')],
+		cmds: [ getPkgmCmds('shaderc') ],
 	};
 
 	dpkg['spirv-cross'] = host_os == 'linux' ? {
 		build: true,
-		deps: { cmake: getPkgmCmds('cmake') },
+		deps: {cmake},
 		cmds: [ 'cmake . -B out -DCMAKE_BUILD_TYPE=Release', 'make -C out -j4', '*make -C out install' ],
 	}: {
 		cmds: [getPkgmCmds('spirv-cross')],
