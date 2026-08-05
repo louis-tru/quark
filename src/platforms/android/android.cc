@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./android.h"
+#include "../../util/codec.h"
 
 namespace qk {
 	typedef JNI::MethodInfo MethodInfo;
@@ -53,6 +54,10 @@ namespace qk {
 			set_volume_up,
 			set_volume_down,
 			open_url,
+			clipboard_get_text,
+			clipboard_set_text,
+			clipboard_has_text,
+			clipboard_clear,
 			send_email,
 			startup_argv,
 			version,
@@ -89,6 +94,10 @@ namespace qk {
 			set_volume_up      = JNI::find_static_method(clazz, "set_volume_up", "()V");
 			set_volume_down    = JNI::find_static_method(clazz, "set_volume_down", "()V");
 			open_url           = JNI::find_static_method(clazz, "open_url", "(Ljava/lang/String;)V");
+			clipboard_get_text = JNI::find_static_method(clazz, "clipboard_get_text", "()Ljava/lang/String;");
+			clipboard_set_text = JNI::find_static_method(clazz, "clipboard_set_text", "(Ljava/lang/String;)V");
+			clipboard_has_text = JNI::find_static_method(clazz, "clipboard_has_text", "()Z");
+			clipboard_clear    = JNI::find_static_method(clazz, "clipboard_clear", "()V");
 			send_email         = JNI::find_static_method(clazz, "send_email",
 																										"(Ljava/lang/String;Ljava/lang/String;"
 																										"Ljava/lang/String;Ljava/lang/String;"
@@ -116,6 +125,23 @@ namespace qk {
 
 	#define api _api
 	#define clazz _api->clazz
+
+	static jstring string_to_jstring(cString& value, JNIEnv *env) {
+		auto utf8 = value.array();
+		auto utf16 = codec_utf8_to_utf16(utf8.buffer());
+		return env->NewString(reinterpret_cast<const jchar*>(*utf16), utf16.length());
+	}
+
+	static String jstring_to_utf8(jstring value, JNIEnv *env) {
+		if (!value)
+			return String();
+		auto length = env->GetStringLength(value);
+		auto chars = env->GetStringChars(value, nullptr);
+		auto utf16 = ArrayWeak<uint16_t>(reinterpret_cast<const uint16_t*>(chars), length);
+		auto result = codec_utf16_to_utf8(utf16.buffer()).collapseString();
+		env->ReleaseStringChars(value, chars);
+		return result;
+	}
 
 	void Android_ime_keyboard_open(bool clear, int type, int return_type) {
 		ScopeENV env;
@@ -180,6 +206,28 @@ namespace qk {
 	void Android_open_url(cString& url) {
 		ScopeENV env;
 		env->CallStaticVoidMethod(clazz, api->open_url, env->NewStringUTF(*url));
+	}
+	String Android_clipboard_get_text() {
+		ScopeENV env;
+		auto value = (jstring)env->CallStaticObjectMethod(clazz, api->clipboard_get_text);
+		auto result = jstring_to_utf8(value, *env);
+		if (value)
+			env->DeleteLocalRef(value);
+		return result;
+	}
+	void Android_clipboard_set_text(cString& text) {
+		ScopeENV env;
+		auto value = string_to_jstring(text, *env);
+		env->CallStaticVoidMethod(clazz, api->clipboard_set_text, value);
+		env->DeleteLocalRef(value);
+	}
+	bool Android_clipboard_has_text() {
+		ScopeENV env;
+		return env->CallStaticBooleanMethod(clazz, api->clipboard_has_text);
+	}
+	void Android_clipboard_clear() {
+		ScopeENV env;
+		env->CallStaticVoidMethod(clazz, api->clipboard_clear);
 	}
 	void Android_send_email(cString& recipient,
 											cString& subject,

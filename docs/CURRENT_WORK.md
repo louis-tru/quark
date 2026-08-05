@@ -33,6 +33,7 @@ Implemented:
   direct Canvas rendering into acquired images, shared-queue
   submission/present, and externally driven surface reload;
 - Android runtime bring-up on multiple devices;
+- Android system clipboard plain-text read, write, presence, and clear support;
 - Vulkan CAPA resource, descriptor, pass, barrier, dispatch, and ordered
   composite encoding;
 - shader-reflection type cleanup, compatible render-pass creation, descriptor
@@ -66,6 +67,9 @@ Remaining validation/stabilization:
 - Android GLES can spend substantial CPU time uploading dynamic R8 text/image
   textures. Treat GL/GLES as the correctness fallback; optimize only with new
   profiling evidence.
+- Linux clipboard has a build-wired placeholder. A real implementation should
+  integrate with the active window-system backend; the current Xlib path needs
+  X11 selection ownership and asynchronous request/notify handling.
 - CAPA is functionally closed enough for stabilization. Keep AASide for
   hairlines/text and use CAPA for complex ordered fills where batching makes
   sense. Algorithm and pass details live in

@@ -28,21 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../ui/clipboard.h"
+#include "../../ui/clipboard.h"
+#include "./android.h"
 
 namespace qk {
 
 	String Clipboard::get_text() {
-		return String();
+		return Android_clipboard_get_text();
 	}
 
 	void Clipboard::set_text(cString& text) {
+		Android_clipboard_set_text(text);
 	}
 
 	bool Clipboard::has_text() {
-		return false;
+		return Android_clipboard_has_text();
 	}
 
 	void Clipboard::clear() {
+		Android_clipboard_clear();
 	}
 }

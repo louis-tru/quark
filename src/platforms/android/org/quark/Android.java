@@ -31,6 +31,8 @@
 package org.quark;
 
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -209,6 +211,49 @@ public class Android {
 		activity.post(new Runnable() {
 			public void run() {
 				api.open_url(url);
+			}
+		});
+	}
+
+	private static ClipboardManager clipboard_manager() {
+		return (ClipboardManager)activity.getSystemService(Context.CLIPBOARD_SERVICE);
+	}
+
+	private static String clipboard_get_text() {
+		ClipboardManager manager = clipboard_manager();
+		ClipData clip = manager.getPrimaryClip();
+		if (clip == null || clip.getItemCount() == 0)
+			return "";
+		CharSequence text = clip.getItemAt(0).getText();
+		return text == null ? "" : text.toString();
+	}
+
+	private static void clipboard_set_text(final String text) {
+		activity.post(new Runnable() {
+			public void run() {
+				clipboard_manager().setPrimaryClip(
+					ClipData.newPlainText("", text == null ? "" : text));
+			}
+		});
+	}
+
+	private static boolean clipboard_has_text() {
+		ClipData clip = clipboard_manager().getPrimaryClip();
+		if (clip == null || clip.getItemCount() == 0)
+			return false;
+		CharSequence text = clip.getItemAt(0).getText();
+		return text != null && text.length() != 0;
+	}
+
+	private static void clipboard_clear() {
+		activity.post(new Runnable() {
+			public void run() {
+				ClipboardManager manager = clipboard_manager();
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+					manager.clearPrimaryClip();
+				} else {
+					manager.setPrimaryClip(ClipData.newPlainText("", ""));
+				}
 			}
 		});
 	}
