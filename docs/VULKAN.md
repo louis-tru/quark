@@ -5,7 +5,8 @@ renderer. Short-lived priorities belong in `CURRENT_WORK.md`.
 
 ## Status
 
-The backend has moved beyond the original shell:
+The implementation milestone is complete. The backend is now in runtime
+validation and stabilization rather than initial feature bring-up:
 
 - shared device/resource management is implemented;
 - texture and vertex resources can be created, uploaded, used, and destroyed;
@@ -101,7 +102,10 @@ On Android, the production backend currently requires Android 10 / API 29 and
 Vulkan 1.1 or newer. Older systems or Vulkan implementations return no shared
 Vulkan resource and fall through to GL. The `--gl` process argument forces GL
 for the whole application so `Render::Make()` and shared image resources always
-select the same backend.
+select the same backend. The `--aaside` argument keeps Vulkan selected but
+disables CAPA capability enablement, forcing Canvas antialiasing through the
+AASide path. This is useful for compatibility checks and Vulkan AASide/CAPA
+comparisons.
 
 All rendering and upload submissions use the shared queue. Vulkan requires
 external synchronization around queue submit/present calls, so the resource's
@@ -306,7 +310,14 @@ or discarded recording, avoiding per-frame free/allocate churn.
    `readImageCmd()` must initialize a newly allocated destination before using
    attachment `LOAD`; blend mode alone does not define destination contents.
 
-3. **Mali-G51 driver compatibility candidate**
+3. **Compute-to-color attachment synchronization**
+
+   If CAPA/compute has written a target and an ordinary graphics pass writes the
+   same target next, beginning the color-attachment pass needs an explicit
+   compute-to-color-attachment memory barrier. Selecting `CLEAR` or `DONT_CARE`
+   and discarding the previous contents does not synchronize the two GPU writes.
+
+4. **Mali-G51 driver compatibility candidate**
 
    One Honor LRA-AL00 / Kirin 710F device terminates the application from inside
    `vkCreateGraphicsPipelines()` instead of returning a `VkResult` while
