@@ -56,8 +56,9 @@ fs.cp_sync(root + '/libs/qkmake/out/qkmake', target, {ignore_hide:0,symlink: 0})
 fs.cp_sync(root + '/libs/qkmake/gyp-next', target + '/gyp-next', {ignore_hide:1,replace:0});
 
 fs.chmodSync(target + '/gyp-next/gyp', 0o755);
-fs.chmodSync(target + '/shell.js', 0o755);
 fs.chmodSync(target + '/gyp.sh', 0o755);
+fs.chmodSync(target + '/shell.js', 0o755);
+fs.chmodSync(target + '/qktsc.js', 0o755);
 fs.chmodSync(target + '/quark', 0o755);
 
 copy_header(root + '/src', `${include}/quark`);

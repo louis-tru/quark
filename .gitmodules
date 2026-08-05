@@ -55,6 +55,32 @@
 [submodule "deps/spine"]
 	path = deps/spine
 	url = https://github.com/louis-tru/spine_4.0.git
-[submodule "deps/lmdb"]
-	path = deps/lmdb
-	url =  https://github.com/louis-tru/lmdb.git
+##################################################
+[submodule "tools/deps/autoconf"]
+	path = tools/deps/autoconf
+	url = https://github.com/louis-tru/autoconf.git
+	update = none
+[submodule "tools/deps/automake"]
+	path = tools/deps/automake
+	url = https://github.com/louis-tru/automake.git
+	update = none
+[submodule "tools/deps/cmake"]
+	path = tools/deps/cmake
+	url = https://github.com/louis-tru/cmake.git
+	update = none
+[submodule "tools/deps/ninja"]
+	path = tools/deps/ninja
+	url = https://github.com/louis-tru/ninja.git
+	update = none
+[submodule "tools/deps/yasm"]
+	path = tools/deps/yasm
+	url = https://github.com/louis-tru/yasm.git
+	update = none
+[submodule "tools/deps/shaderc"]
+	path = tools/deps/shaderc
+	url = https://github.com/louis-tru/shaderc.git
+	update = none
+[submodule "tools/deps/spirv-cross"]
+	path = tools/deps/spirv-cross
+	url = https://github.com/louis-tru/SPIRV-Cross.git
+	update = none

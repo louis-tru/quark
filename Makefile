@@ -64,24 +64,24 @@ install: all
 # It can only run in MAC system.
 ios:
 	@$(call check,mac,$(HOST_OS),$@)
-	@./configure --os=ios --arch=arm64 && $(MAKE) build
-	@./configure --os=ios --arch=arm64 -v8 && $(MAKE) build
-	@./configure --os=ios --arch=arm64 -em -v8 && $(MAKE) build # simulator for mac
-	@./configure --os=ios --arch=x64 -em && $(MAKE) build
+	@./configure --os=ios --arch=arm64 --gl=0  && $(MAKE) build
+	@./configure --os=ios --arch=arm64 --gl=0 -v8 && $(MAKE) build # debug for arm64
+	@./configure --os=ios --arch=arm64 --gl=0 -em -v8 && $(MAKE) build # simulator for mac
+	@./configure --os=ios --arch=x64   --gl=0 -em && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 
 mac:
 	@$(call check,mac,$(HOST_OS),$@)
-	@./configure --os=mac --arch=arm64 -v8 && $(MAKE) build
-	@./configure --os=mac --arch=x64       && $(MAKE) build
+	@./configure --os=mac --arch=arm64 --gl=0 -v8 && $(MAKE) build
+	@./configure --os=mac --arch=x64   --gl=0     && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) mac
 
 # build all android platform and output to product dir
 android:
 	@$(call check,x64 arm64,$(HOST_ARCH),$@)
-	@./configure --os=android --arch=arm64 && $(MAKE) build
+	@./configure --os=android --arch=arm64 -vk && $(MAKE) build
 	@$(call check,x64,$(HOST_ARCH),$@)
-	@./configure --os=android --arch=x64   && $(MAKE) build
+	@./configure --os=android --arch=x64 -vk && $(MAKE) build
 	@$(MAKE) $(ANDROID_JAR)
 
 linux:
@@ -119,3 +119,11 @@ watch:
 sync: # init git submodule
 	@git pull
 	@git submodule update --init --recursive
+
+clean-all:
+	rm -rf out
+	rm -rf libs/qkmake/out
+	rm -rf libs/qkmake/node_modules
+	rm -rf libs/qktool/out
+	rm -rf libs/qktool/node_modules
+	rm -rf libs/quark/out

@@ -41,6 +41,7 @@ var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
 var android_api_level = 28; // android-9.0
+var vulkan_sdk_bin = process.env.VULKAN_SDK ? path.join(process.env.VULKAN_SDK, 'bin'): '';
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -80,6 +81,11 @@ def_opts('without-embed-bitcode', 1,
 def_opts(['use-gl', 'gl'], 1,   '--use-gl,-gl enable opengl backend [{0}]');
 def_opts(['use-vk', 'vk'], 0,   '--use-vk,-vk enable vulkan backend [{0}]');
 def_opts(['use-js', 'js'], 1,   '--use-js,-js enable javascript modules [{0}]');
+def_opts('glslc', process.env.GLSLC || (vulkan_sdk_bin ? path.join(vulkan_sdk_bin, 'glslc'): ''),
+															'--glslc=PATH    use a specific glslc executable');
+def_opts('spirv-cross', process.env.SPIRV_CROSS ||
+	(vulkan_sdk_bin ? path.join(vulkan_sdk_bin, 'spirv-cross'): ''),
+															'--spirv-cross=PATH use a specific spirv-cross executable');
 
 function isApple(os) {
 	return ['mac', 'ios'].indexOf(os) >= 0;
@@ -380,11 +386,17 @@ function getPkgm() {
 		if (execSync(`which apt-get`).code == 0) {
 			_pkgManager = 'apt-get';
 		} else if (execSync(`which yum`).code == 0) {
-			_pkgManager = 'yum';
+			// _pkgManager = 'yum';
+			// The dependency mapping below is retained for future validation, but
+			// Quark's yum-based Linux build has not been exercised yet.
+			throw new Error('Linux builds using yum are not supported yet; use a tested Ubuntu/Debian host with apt-get');
 		} else if (execSync(`which apk`).code == 0) {
-			_pkgManager = 'apk';
+			// _pkgManager = 'apk';
+			// The dependency mapping below is retained for future validation, but
+			// Quark's apk/musl-based Linux build has not been exercised yet.
+			throw new Error('Linux builds using apk are not supported yet; use a tested Ubuntu/Debian host with apt-get');
 		} else {
-			throw new Error(pkgmErrMsg('apt-get or yum'));
+			throw new Error(pkgmErrMsg('apt-get'));
 		}
 	} else if (host_os == 'mac') {
 		if (execSync(`which brew`).code == 0) {
@@ -412,13 +424,28 @@ function getPkgmCmds(cmd) {
 	}
 }
 
-async function install_check(app, cmd) {
+async function install_check(app, cmdObj, variables) {
 	console.log('check', app);
-	var pkgm = getPkgm();
-	var isLib = app.indexOf('*') == 0;
+	let pkgm = getPkgm();
+	let optName = app.replace('-', '_');
+
+	let cmds, isBuild = false, isLib = false;
+	let defOpt = false;
+
+	if (typeof cmdObj == 'string') {
+		cmds = [cmdObj];
+	} else if (typeof cmdObj == 'object') {
+		isBuild = !!cmdObj.build;
+		defOpt = !!cmdObj.defOpt;
+		isLib = !!cmdObj.lib;
+		if (Array.isArray(cmdObj)) {
+			cmds = cmdObj;
+		} else {
+			cmds = cmdObj.cmds || [];
+		}
+	}
 
 	if (isLib) {
-		app = app.substring(1);
 		if (pkgm == 'apt-get') {
 			if (execSync(`dpkg -s "${app}"`).code == 0) {
 				return; // already installed
@@ -443,36 +470,33 @@ async function install_check(app, cmd) {
 			return;
 		}
 	} else {
+		if (defOpt) {
+			let def = opts[optName];
+			if (def) {
+				const res = execSync(`which ${def}`);
+				util.assert(res.code == 0, `not found ${app} at ${def}; install and source the LunarG Vulkan SDK, `+
+					`or pass --${app}=/path/to/${app}`);
+				variables[app] = def;
+				return;
+			}
+		}
 		if (execSync(`which ${app}`).code == 0) {
 			return;
 		}
 	}
 
-	var cmds, isBuild = false;
-
-	if (typeof cmd == 'string') {
-		cmds = [cmd];
-	} else if (Array.isArray(cmd)) {
-		cmds = cmd;
-	} else if (typeof cmd == 'object') {
-		for (var i in cmd.deps) {
-			await install_check(i, cmd.deps[i]);
-		}
-		cmds = cmd.cmds || [];
-		if (cmd.build && cmd.build.length) {
-			isBuild = true;
-			cmds = cmds.concat(cmd.build);
-		}
+	if (cmdObj.deps) {
+		for (var i in cmdObj.deps)
+			await install_check(i, cmdObj.deps[i], variables);
 	}
 
-	var cd = '';
-
+	let cd = '';
 	if (isBuild) {
-		cd = `${__dirname}/../out/${app}`;
-		await exec2(`tar xfz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
+		cd = `${__dirname}/deps/${app}`;
+		await exec2(`git submodule update --init --checkout --recursive --depth 1 tools/deps/${app}`);
 	}
 
-	for (var cmd of cmds) {
+	for (let cmd of cmds) {
 		if (cmd[0] == '*') {
 			if (process.env.USER != 'root') {
 				console.log(`Please input sudo password of execing ${cmd.substr(1)}`);
@@ -489,6 +513,14 @@ async function install_check(app, cmd) {
 		console.log('Install depe', app, 'Run:', cmd);
 
 		await exec2(cmd);
+	}
+
+	if (!isLib) {
+		let res = execSync(`which ${app}`)
+		util.assert(res.code == 0, `not found ${app}`);
+		if (defOpt) {
+			variables[app] = res.stdout.trim();
+		}
 	}
 }
 
@@ -509,24 +541,49 @@ async function install_depe(opts, variables) {
 	var isBuildYasm = false; // whether build yasm from source
 	var isNinja = false; // whether use ninja build system
 	if (isBuildYasm) {
-		var autoconf = { build: [ `./configure`, `make`, `*make install` ] };
-		var automake = { build: [ `./configure`, `make -j1`, `*make install` ] };
+		var autoconf = { build: 1, cmds: [ `./configure`, `make`, `*make install` ] };
+		var automake = { build: 1, cmds: [ `./configure`, `make`, `*make install` ] };
 		yasm = {
+			build: true,
 			deps: { autoconf, automake },
-			build: [ './autogen.sh', 'make -j2', '*make install' ],
+			cmds: [ './autogen.sh', 'make -j4', '*make install' ],
 		};
 	}
 	if (isNinja) {
-		// var cmake = { build: [ `./configure`, `make -j2`, `*make -j1 install` ] };
-		var cmake = getPkgmCmds('cmake');
+		// var cmake = { cmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
 		dpkg.ninja = {
-			deps: { cmake },
-			build: [ 'cmake .', 'make -j2', '*make install' ],
+			build: true,
+			deps: { cmake: getPkgmCmds('cmake') },
+			cmds: [ 'cmake . -DCMAKE_BUILD_TYPE=Release', 'make -j4', '*make install' ],
 		};
 	}
 
-	dpkg['glslc'] = getPkgmCmds('shaderc'); // glslc shader compiler for vulkan
-	dpkg['spirv-cross'] = getPkgmCmds('spirv-cross'); // spirv-cross for vulkan shader cross compiling
+	dpkg['glslc'] = host_os == 'linux' ? {
+		build: true,
+		deps: { cmake: getPkgmCmds('cmake') },
+		cmds: [
+			'./utils/git-sync-deps',
+			'cmake . -B out '+
+				'-DCMAKE_BUILD_TYPE=Release '+
+				'-DSHADERC_SKIP_TESTS=ON '+
+				'-DSHADERC_SKIP_EXAMPLES=ON',
+			'make -C out glslc -j4',
+			'*make -C out install',
+		],
+	}: {
+		cmds: [getPkgmCmds('shaderc')],
+	};
+
+	dpkg['spirv-cross'] = host_os == 'linux' ? {
+		build: true,
+		deps: { cmake: getPkgmCmds('cmake') },
+		cmds: [ 'cmake . -B out -DCMAKE_BUILD_TYPE=Release', 'make -C out -j4', '*make -C out install' ],
+	}: {
+		cmds: [getPkgmCmds('spirv-cross')],
+	};
+
+	dpkg['glslc'].defOpt = true;
+	dpkg['spirv-cross'].defOpt = true;
 
 	if (host_os == 'linux') {
 		if (pkgm == 'apt-get') {
@@ -558,37 +615,31 @@ async function install_depe(opts, variables) {
 				`libbz2-dev:${suffix}`,
 				`libwebp-dev:${suffix}`,
 			]) {
-				dpkg[`*${lib}`] = getPkgmCmds(lib); // add common linux lib dependencies
+				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] }; // add common linux lib dependencies
 			}
-		} else if (pkgm == 'yum') {
+		}
+		// Reserved for possible future Fedora/Alpine support. These yum/apk
+		// package mappings have not been build-tested; keep them disabled until
+		// their package names, toolchain compatibility, and CI coverage are verified.
+		/*else if (pkgm == 'yum') {
 			for (let lib of [
-				'mesa-libGLES-devel',
-				'mesa-libEGL-devel',
-				'libX11-devel',
-				'libXi-devel',
-				'libXcursor-devel',
-				'alsa-lib-devel',
-				'fontconfig-devel',
-				'zlib-devel',
-				'bzip2-devel',
+				'mesa-libGLES-devel', 'mesa-libEGL-devel',
+				'libX11-devel', 'libXi-devel',
+				'libXcursor-devel', 'alsa-lib-devel',
+				'fontconfig-devel', 'zlib-devel', 'bzip2-devel',
 			]) {
-				dpkg[`*${lib}`] = getPkgmCmds(lib);
+				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
 			}
 		}
 		else if (pkgm == 'apk') {
 			for (let lib of [
-				'mesa-dev',
-				'libx11-dev',
-				'libxi-dev',
-				'libxcursor-dev',
-				'alsa-lib-dev',
-				'fontconfig-dev',
-				'zlib-dev',
-				'bz2-dev',
+				'mesa-dev', 'libx11-dev',
+				'libxi-dev', 'libxcursor-dev',
+				'alsa-lib-dev', 'fontconfig-dev', 'zlib-dev', 'bz2-dev',
 			]) {
-				dpkg[`*${lib}`] = getPkgmCmds(lib);
+				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
 			}
-		}
+		}*/
 
 		if (arch == 'x86' || arch == 'x64') {
 			if (typeof yasm != 'string')
@@ -621,13 +672,7 @@ async function install_depe(opts, variables) {
 	}
 
 	for (var i in dpkg) {
-		await install_check(i, dpkg[i]);
-	}
-
-	for (var i of ['glslc', 'spirv-cross']) {
-		const res = execSync(`which ${i}`);
-		util.assert(res.code == 0, `not found ${i} shader compiler, please install shaderc or ${i} for vulkan shader compiling`);
-		variables[i] = res.first.trim(); // set glslc and spirv-cross path for later use
+		await install_check(i, dpkg[i], variables);
 	}
 }
 
