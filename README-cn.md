@@ -5,10 +5,10 @@ Quark 是一个跨平台 GUI 开发框架，支持
 `Android` / `iOS` / `macOS` / `Linux`，
 用于构建高性能、交互式的应用程序，并提供清晰、可预测的运行时模型。
 
-Quark 的核心使用 **C++** 实现，底层采用基于 **OpenGL 的渲染管线**，
-并包含正在完善中的 compute-driven **Metal 渲染路径**。在此之上，
-Quark 构建了精简的 **布局引擎**，并嵌入了 **JavaScript / JSX 运行环境**
-用于描述界面结构和业务逻辑。
+Quark 的核心使用 **C++** 实现，拥有自研 GPU 渲染器、精简的
+**布局引擎**，并嵌入 **JavaScript / JSX 运行环境**用于描述界面结构和
+业务逻辑。渲染器包含 **OpenGL**、**Metal** 和 **Vulkan** 后端；OpenGL
+保留为可移植兼容路径，Metal 与 Vulkan 承载新的 compute-driven 渲染工作。
 
 与基于浏览器的前端框架不同，Quark **不是 Web 运行时**。
 其架构和 API 是围绕 GUI 视图树设计的，强调显式结构、确定性行为
@@ -19,8 +19,9 @@ Quark 构建了精简的 **布局引擎**，并嵌入了 **JavaScript / JSX 运�
 - **跨平台 GUI 渲染**
   - Android / iOS / macOS / Linux
   - 各平台统一的渲染与布局行为
-  - OpenGL 仍然是可移植基线路径
-  - Metal 用于新的 compute-oriented 渲染器工作
+  - OpenGL 是可移植兼容路径
+  - Metal 是 Apple 平台的主要后端
+  - Android/Linux 的 Vulkan 渲染与呈现已经实现，仍在扩展设备与驱动验证
 
 - **C++ 核心 + JS / JSX 集成**
   - 性能关键部分使用 C++ 实现
@@ -31,9 +32,9 @@ Quark 构建了精简的 **布局引擎**，并嵌入了 **JavaScript / JSX 运�
   - 不依赖浏览器 DOM 或 CSS 布局系统
 
 - **基于 class 的样式系统（CSS-like 子集）**
-  - 支持 class 选择器（如 `.a`、`.a.b`、`.a .b`）
-  - 支持层级选择器和有限的伪状态
-    （`:normal`、`:hover`、`:active`）
+  - 支持连续 class 选择器（`.a.b`）、后代选择器（`.a .b`）和直接子级
+    选择器（`.a > .b`）
+  - 支持 `:normal`、`:hover`、`:active` 三种伪状态后缀
   - 以性能可预测性和高效传播为设计目标
   - 面向 GUI 使用场景，而非完整 Web CSS 兼容
 
@@ -55,7 +56,7 @@ Web 合成模型。
 ```txt
 Canvas API
   -> GPUCanvas 共享状态、裁剪、path/image/text 分发
-  -> OpenGL command pack 或 Metal command encoder
+  -> OpenGL command pack、Metal command encoder 或 Vulkan command buffer
   -> 平台 surface 或离屏 image
 ```
 
@@ -63,10 +64,11 @@ Canvas API
 
 - **AASide** 是快速几何边沿带路径。它仍然适合 hairline、文本和简单边缘，
   因为稍宽的感知边沿 ramp 在这些场景中通常比严格面积 coverage 更好看。
-- **CAPA**（Coverage Area Pipeline Anti-Aliasing）是新的 Metal-class
-  compute 路径，用于填充 color/image/gradient path。它批量收集 path draw，
-  将边分配到 tile，计算面积 coverage，规划有序 tile layer，并从前到后合成，
-  用来避免相邻图元独立反走样时出现的背景漏光缝隙。
+- **CAPA**（Coverage Area Pipeline Anti-Aliasing）是 Metal/Vulkan-class
+  后端用于复杂填充 path 的 compute 路径。它批量收集 path draw，将边分配到
+  tile，计算面积 coverage，规划有序 tile layer，并从前到后合成，用来避免
+  相邻图元独立反走样时出现的背景漏光缝隙。Metal 是已经稳定使用的运行时
+  路径；Vulkan 命令编码已经实现，仍在进行更广泛的运行时验证。
 - **裁剪、图片、渐变、混合模式、render target 和 readback** 仍然与 Canvas
   状态模型集成。某些昂贵或强状态相关的操作如果不能表达在当前 compute pass
   内，可能会刷新当前 CAPA batch。
@@ -83,11 +85,18 @@ CAPA 面向复杂 GUI 场景中的重叠路径、嵌套 layer 和共享边界；
 源码构建
 ===============
 
-1. 构建必须依赖的 `Xcode` / `JDK` / `Android-SDK` / `python` / `nodejs`
-2. 设置环境变量 `ANDROID_SDK` 和 `NDK` 目录
-3. 拉取依赖库，执行 `make sync`
+1. 安装 `nodejs` 和 `python`，并按目标平台准备工具链：Apple 平台需要
+   `Xcode`，Android 需要 `JDK` / `Android SDK` / `Android NDK`，Linux
+   需要本机编译器与开发包。
+2. 构建 Android 时，设置 `ANDROID_SDK` 和 `NDK` 环境变量。
+3. 在已有 checkout 中同步仓库与 submodule：
 
-编译安装qkmake，执行`make all`或者`make install`，需要比较长的时间。
+```sh
+make sync
+```
+
+`make all` 会构建各平台产物，耗时较长；`make install` 还会安装本地构建的
+`qkmake`。如果 `out/qkmake` 中已经有产物，可使用 `make install-only`。
 
 这里获取 [`Source code`] 从 `Github`。
 
@@ -123,7 +132,8 @@ $ sudo npm install -g qkmake
 
 * 运行 `qkmake` 需要依赖 `nodejs` 和 `python`
 
-* 目前不支持 `windows` 系统，需要在 `mac` 系统下使用
+* 当前支持的宿主开发环境是 macOS 和 Linux；导出 Apple 平台工程需要
+  macOS/Xcode。Windows 暂不支持。
 
 ## 使用qkmake工具创建新项目
 
@@ -182,28 +192,32 @@ $ qkmake watch
 
 详细的API文档请大家去这里[View]查阅。
 
-以下是现在提供的所有[View]与继承关系：
+`libs/quark/view.ts` 当前公开类的继承关系如下。`MorphView`、`TextOptions`、
+`ScrollView` 和 `Player` 是接口/行为约定，因此以 `implements` 标注，而不作为
+基类节点列出：
 
-* [ScrollView]
-* [MorphView]
-* [TextOptions]
 * [View]
-	* [Sprite]<[MorphView]>
-	* [Spine]<[MorphView]>
+	* [Br]
 	* [Box]
 		* [Flex]
 			* [Flow]
 		* [Free]
 		* [Image]
-			* [Video]
-		* [Input]<[TextOptions]>
-			* [Textarea]<[ScrollView]>
-		* [Scroll]<[ScrollView]>
-		* [Text]<[TextOptions]>
-			* [Button]
-		* [Morph]<[MorphView]>
+			* [Video] — implements `Player`
+		* [Morph] — implements [MorphView]
+			* [World]
 			* [Root]
-	* [Label]
+		* [Text] — implements [TextOptions]
+			* [Button]
+		* [Input] — implements [TextOptions]
+			* [Textarea] — implements [ScrollView]
+		* [Scroll] — implements [ScrollView]
+	* [Entity] — implements [MorphView]
+		* [Agent] — 抽象类
+			* [Sprite]
+			* [Spine]
+	* [Label] — implements [TextOptions]
+	* [InputSink]
 
 
 这有点像HTML布局：
@@ -256,21 +270,24 @@ new Window().render(
 
 # CSS样式表
 
-Quark 提供了一个受 CSS 启发的类驱动样式系统，专为 GUI 视图层级结构而设计。
+Quark 提供了一个受 CSS 启发、面向 GUI 视图层级的 class 驱动样式系统。
+它不是完整的浏览器 CSS 选择器引擎；只有 class、受支持的层级操作符和三种
+内置伪状态参与匹配。
 
-* 该样式系统基于树状结构选择器模型：每个命名样式规则都可以有以空格分隔的子规则，形成与视图树一致的层级关系。
+### 支持的选择器语法
 
-* 样式表数据结构实际上是一棵树。每个命名样式表都可以有以空格分隔的子样式表。子样式表的数量没有限制，但理论上，层级越多，查询速度越慢。
+- 后代选择器使用空格。`.a .b .c` 按顺序匹配任意更深层级的 `.b` 和 `.c`。
+- 直接子级选择器使用 `>`。`.a > .b > .c` 要求后一个匹配项必须是前一个
+  匹配项的直接子 View。
+- 连续 class 选择器之间没有空格。`.a.b.c` 匹配同时拥有这三个 class 的
+  同一个 View。
+- 支持 `:normal`、`:hover`、`:active` 三种伪状态。伪状态必须是当前连续
+  class 段的最后后缀：`.a.b:active .c.d` 合法，`.a:active.b` 非法。
+- 多个选择器表达式可以使用逗号组合。
 
-### 支持的选择器功能
-
-- 类选择器（例如 `.a`、`.a.b`）
-- 层级选择器（例如 `.a .b`）
-- 直接子级选择器（例如 `.a > .b`）
-- 伪状态：
-	- `normal`
-	- `hover`
-	- `active`
+例如，`.div_cls.div_cls2:active .aa.bb.cc` 会匹配一个同时具有 `aa`、`bb`、
+`cc` 三个 class 的后代；它的祖先同时具有 `div_cls`、`div_cls2`，且处于
+`active` 状态。
 
 ### 样式过渡
 
@@ -317,6 +334,9 @@ createCss({
 	'.a > .c': {
 		width: 100,
 	},
+	'.a.b:active .c.d': {
+		opacity: 0.8,
+	},
 	'.a:normal .b': {
 		time: 500,  // 设置一个过渡时间
 		textColor: '#000',
@@ -325,10 +345,6 @@ createCss({
 		time: 500,
 		textColor: '#f00',
 	},
-	'.a:action .b:action': { // 这条规则无效，伪类不能存在子伪类
-		time: 500,
-		textColor: '#f0f',
-	}, 
 });
 const vx = (
 	<text class="a" >
@@ -442,6 +458,7 @@ act2.paly();
 [View.transition()]: https://quarks.cc/doc/view.html#view-transition-to-from-cb-actioncb-
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
+[Br]: https://quarks.cc/doc/view.html#class-br
 [ScrollView]: https://quarks.cc/doc/view.html#scrollview
 [MorphView]: https://quarks.cc/doc/view.html#morphview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
@@ -460,6 +477,10 @@ act2.paly();
 [Label]: https://quarks.cc/doc/view.html#class-label
 [Video]: http://quarks.cc/doc/view.html#class-video
 [Morph]: http://quarks.cc/doc/view.html#class-morph
+[World]: http://quarks.cc/doc/view.html#class-world
+[Entity]: http://quarks.cc/doc/view.html#class-entity
+[Agent]: http://quarks.cc/doc/view.html#class-agent
+[InputSink]: http://quarks.cc/doc/view.html#class-inputsink
 [Sprite]: http://quarks.cc/doc/view.html#class-sprite
 [Spine]: http://quarks.cc/doc/view.html#class-spine
 

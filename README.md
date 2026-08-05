@@ -5,10 +5,11 @@ Quark is a cross-platform GUI framework (`Android` / `iOS` / `macOS` / `Linux`)
 designed for building high-performance, interactive applications with a
 clear and predictable runtime model.
 
-Quark is implemented primarily in **C++**, with a custom **OpenGL-based
-rendering pipeline**, an in-progress compute-driven **Metal rendering path**,
+Quark is implemented primarily in **C++**, with a custom GPU renderer,
 a lightweight **layout engine**, and an embedded **JavaScript / JSX runtime**
-for application logic and UI description.
+for application logic and UI description. The renderer has **OpenGL**,
+**Metal**, and **Vulkan** backends; OpenGL remains the portable fallback,
+while Metal and Vulkan support the newer compute-driven rendering work.
 
 Unlike browser-based frameworks, Quark is **not a web runtime**.
 Its architecture and APIs are designed specifically for GUI view trees,
@@ -20,8 +21,10 @@ performance characteristics.
 - **Cross-platform GUI rendering**
   - Android / iOS / macOS / Linux
   - Unified rendering and layout behavior across platforms
-  - OpenGL remains the portable baseline
-  - Metal is used for the newer compute-oriented renderer work
+  - OpenGL is the portable compatibility path
+  - Metal is the primary Apple backend
+  - Vulkan presentation and rendering are implemented for Android and Linux;
+    broader device and driver validation is ongoing
 
 - **C++ core with JS / JSX integration**
   - Native performance–critical logic in C++
@@ -32,9 +35,9 @@ performance characteristics.
   - No dependency on browser DOM or CSS layout engines
 
 - **Class-driven style system (CSS-like subset)**
-  - Supports class-based selectors (e.g. `.a`, `.a.b`, `.a .b`)
-  - Supports hierarchical selectors and limited pseudo states
-    (`:normal`, `:hover`, `:active`)
+  - Supports continuous class selectors (`.a.b`), descendant selectors
+    (`.a .b`), and direct child selectors (`.a > .b`)
+  - Supports the pseudo-state suffixes `:normal`, `:hover`, and `:active`
   - Designed for predictable performance and efficient propagation
   - Optimized for GUI usage rather than full web CSS compatibility
 
@@ -57,7 +60,7 @@ command implementations:
 ```txt
 Canvas API
   -> GPUCanvas shared state, clipping, path/image/text dispatch
-  -> OpenGL command pack or Metal command encoder
+  -> OpenGL command pack, Metal command encoder, or Vulkan command buffer
   -> platform surface or offscreen image
 ```
 
@@ -67,11 +70,13 @@ forcing every shape through a single algorithm:
 - **AASide** is the fast geometric edge-band path. It remains useful for
   hairlines, text, and simple edges where a slightly wider perceptual edge
   ramp looks better than strict area coverage.
-- **CAPA** (Coverage Area Pipeline Anti-Aliasing) is the newer Metal-class
-  compute path for filled color/image/gradient paths. It batches path draws,
+- **CAPA** (Coverage Area Pipeline Anti-Aliasing) is the compute path for
+  complex filled paths on Metal/Vulkan-class backends. It batches path draws,
   bins edges into tiles, computes area coverage, plans ordered tile layers,
   and composites front-to-back to avoid the background seams that appear when
-  adjacent primitives are antialiased independently.
+  adjacent primitives are antialiased independently. Metal is the established
+  runtime path; Vulkan command encoding is implemented and remains under
+  broader runtime validation.
 - **Clip, image, gradient, blend mode, render target, and readback paths**
   remain integrated with the Canvas state model. Expensive or stateful
   operations may flush a CAPA batch when they cannot be represented inside the
@@ -89,13 +94,21 @@ where distance-band antialiasing is visually preferable or cheaper.
 Source Code Build
 ===============
 
-1. Build the required dependencies `Xcode` / `JDK` / `Android-SDK` / `python` / `nodejs`
+1. Install `nodejs` and `python`, plus the toolchain required by the target:
+   `Xcode` for Apple platforms, `JDK` / `Android SDK` / `Android NDK` for
+   Android, or the native Linux compiler and development packages for Linux.
 
-2. Set the `ANDROID_SDK` and `NDK` environment variables
+2. For Android builds, set the `ANDROID_SDK` and `NDK` environment variables.
 
-3. Pull down the dependent libraries and run `make sync`
+3. From an existing checkout, synchronize the repository and its submodules:
 
-Compiling and installing qkmake and running `make all` or `make install` will take a long time.
+```sh
+make sync
+```
+
+`make all` builds the platform products and can take a long time. `make install`
+also installs the locally built `qkmake`; use `make install-only` when the
+products are already available under `out/qkmake`.
 
 Get the [`Source code`] from `Github` here.
 
@@ -130,7 +143,8 @@ $ sudo npm install -g qkmake
 ```
 * Running `qkmake` requires `nodejs` and `python`.
 
-* Currently not supported on Windows; you need to use it on a Mac.
+* The supported host workflows are macOS and Linux. Apple-platform exports
+  require macOS/Xcode. Windows is not currently supported.
 
 ## Creating a New Project Using the qkmake Tool
 
@@ -190,28 +204,33 @@ Views describe all visible elements on the screen and are also responders to eve
 
 For detailed API documentation, please visit [View].
 
-Here are all the [View] classes currently available and their inheritance relationships:
+The public classes declared in `libs/quark/view.ts` currently have this
+inheritance structure. `MorphView`, `TextOptions`, `ScrollView`, and `Player`
+are interfaces/behavior contracts, so they are shown as `implements`
+annotations instead of base-class nodes:
 
-* [ScrollView]
-* [MorphView]
-* [TextOptions]
 * [View]
-	* [Sprite]<[MorphView]>
-	* [Spine]<[MorphView]>
+	* [Br]
 	* [Box]
 		* [Flex]
 			* [Flow]
 		* [Free]
 		* [Image]
-			* [Video]
-		* [Input]<[TextOptions]>
-			* [Textarea]<[ScrollView]>
-		* [Scroll]<[ScrollView]>
-		* [Text]<[TextOptions]>
-			* [Button]
-		* [Morph]<[MorphView]>
+			* [Video] — implements `Player`
+		* [Morph] — implements [MorphView]
+			* [World]
 			* [Root]
-	* [Label]
+		* [Text] — implements [TextOptions]
+			* [Button]
+		* [Input] — implements [TextOptions]
+			* [Textarea] — implements [ScrollView]
+		* [Scroll] — implements [ScrollView]
+	* [Entity] — implements [MorphView]
+		* [Agent] — abstract
+			* [Sprite]
+			* [Spine]
+	* [Label] — implements [TextOptions]
+	* [InputSink]
 
 
 This is a bit like HTML layout:
@@ -264,25 +283,28 @@ new Window().render(
 
 # CSS Stylesheet
 
-Quark provides a class-driven style system inspired by CSS,
-designed specifically for GUI view hierarchies.
-
-* The style system is based on a tree-structured selector model:
-each named style rule may have descendant rules separated by spaces,
-forming a hierarchical relationship aligned with the view tree.
-
-* The stylesheet data structure is actually a tree. Each named stylesheet can have child stylesheets, separated by spaces. There is no limit to the number of child stylesheets, but in theory, the more levels there are, the slower the query speed.
+Quark provides a class-driven style system inspired by CSS and designed for
+GUI view hierarchies. It is not a complete browser CSS selector engine: only
+class selectors, the supported hierarchy operators, and the three built-in
+pseudo states participate in matching.
 
 
-### Supported selector features
+### Supported selector syntax
 
-- Class selectors (e.g. `.a`, `.a.b`)
-- Hierarchical selectors (e.g. `.a .b`)
-- Direct child selectors (e.g. `.a > .b`)
-- Pseudo states:
-  - `normal`
-  - `hover`
-  - `active`
+- Descendant selectors use spaces. `.a .b .c` matches `.b` and `.c` at any
+  deeper descendant level in sequence.
+- Direct child selectors use `>`. `.a > .b > .c` requires each following
+  match to be an immediate child of the previous one.
+- Continuous class selectors have no spaces. `.a.b.c` matches one View that
+  has all three classes.
+- The supported pseudo states are `:normal`, `:hover`, and `:active`. A pseudo
+  state must be the final suffix of its continuous class segment:
+  `.a.b:active .c.d` is valid, while `.a:active.b` is invalid.
+- Multiple selector expressions may be grouped with commas.
+
+For example, `.div_cls.div_cls2:active .aa.bb.cc` selects a descendant with
+classes `aa`, `bb`, and `cc` under an active ancestor that has both `div_cls`
+and `div_cls2`.
 
 ### Style transitions
 
@@ -333,6 +355,9 @@ createCss({
 	'.a > .c': {
 		width: 100,
 	},
+	'.a.b:active .c.d': {
+		opacity: 0.8,
+	},
 	'.a:normal .b': {
 		time: 500, // Set a transition time
 		textColor: '#000',
@@ -341,10 +366,6 @@ createCss({
 		time: 500,
 		textColor: '#f00',
 	},
-	'.a:action .b:action': { // This rule is invalid; pseudo-classes cannot have sub-pseudo-classes.
-		time: 500,
-		textColor: '#f0f',
-	}, 
 });
 const vx = (
 	<text class="a" >
@@ -458,6 +479,7 @@ These two events are generated and sent by actions.
 [View.transition()]: https://quarks.cc/doc/view.html#view-transition-to-from-cb-actioncb-
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
+[Br]: https://quarks.cc/doc/view.html#class-br
 [ScrollView]: https://quarks.cc/doc/view.html#scrollview
 [MorphView]: https://quarks.cc/doc/view.html#morphview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
@@ -476,6 +498,10 @@ These two events are generated and sent by actions.
 [Label]: https://quarks.cc/doc/view.html#class-label
 [Video]: http://quarks.cc/doc/view.html#class-video
 [Morph]: http://quarks.cc/doc/view.html#class-morph
+[World]: http://quarks.cc/doc/view.html#class-world
+[Entity]: http://quarks.cc/doc/view.html#class-entity
+[Agent]: http://quarks.cc/doc/view.html#class-agent
+[InputSink]: http://quarks.cc/doc/view.html#class-inputsink
 [Sprite]: http://quarks.cc/doc/view.html#class-sprite
 [Spine]: http://quarks.cc/doc/view.html#class-spine
 

@@ -7,11 +7,15 @@ AI 助手进入项目后，先读：
 1. `docs/AI_CONTEXT.md`：长期项目记忆和工作规则
 2. `docs/ENGINEERING_RULES.md`：工程决策必须遵守的长期硬性规则
 3. `docs/CURRENT_WORK.md`：当前正在推进的改动和风险
-4. `docs/RENDERING.md`：渲染系统结构和 GL/Metal 对齐规则
+4. `docs/RENDERING.md`：渲染系统结构和 GL/Metal/Vulkan 对齐规则
 
-如果任务涉及 GPU 2D 反走样 / AADist / coverage，请再读：
+如果任务涉及 Vulkan，请再读：
 
-5. `docs/GPU_2D_ANTIALIASING.md`：GPU AA 研究记录、AADist 语义和后续方向
+5. `docs/VULKAN.md`：Vulkan 架构、资源与队列约束、平台呈现和待验证项
+
+如果任务涉及 GPU 2D 反走样 / AASide / CAPA / coverage，请再读：
+
+6. `docs/GPU_2D_ANTIALIASING.md`：GPU AA 研究记录、coverage 语义和后续方向
 
 不要默认阅读这些依赖/产物目录，通常会浪费上下文：
 
@@ -27,7 +31,8 @@ AI 助手进入项目后，先读：
 
 **Quark** 是一个跨平台 GUI 框架，支持 Android / iOS / macOS / Linux。
 
-- 核心用 **C++** 实现，底层以自定义 **OpenGL** 渲染管线为主，仓库中也包含正在完善的 **Metal** 后端
+- 核心用 **C++** 实现，自研 GPU 渲染器包含 **OpenGL**、**Metal** 和 **Vulkan** 后端
+- OpenGL 是可移植兼容路径，Metal 是 Apple 平台主要后端；Android/Linux 的 Vulkan 渲染与呈现已实现，仍需扩大运行时验证
 - 嵌入 **JavaScript / JSX** 运行时，用于 UI 描述和业务逻辑
 - 不是 Web 运行时，有独立布局引擎，不依赖浏览器 DOM
 - 类 CSS 样式系统，支持 class 选择器、层级选择器和伪状态
@@ -54,7 +59,7 @@ quark/
 - 构建：`qkmake build`
 - 导出：`qkmake export ios` / `qkmake export android`
 - 调试服务器：`qkmake watch`
-- README 说明目前工具链主要面向 macOS，Windows 暂不支持
+- 宿主开发环境支持 macOS 和 Linux；Apple 平台导出需要 macOS/Xcode，Windows 暂不支持
 
 ## AI 协作约定
 
@@ -63,17 +68,18 @@ quark/
 - 工作区经常有未提交改动，除非明确要求，不要回滚、删除或覆盖别人的修改。
 - 新增实现时优先沿用项目已有类型、宏和资源生命周期管理方式，例如 `ImageSource` / `TexStat` / `RenderResource`。
 - 渲染相关改动要注意命令编码器、纹理所有权、mipmap、blend mode、clip 和 z depth 的状态恢复。
-- 如果只是补 TODO 或修局部 bug，避免跑过重检查；能做轻量编译或局部 grep 验证即可。
+- 未经用户明确要求，不运行 C++ 构建、全量工程构建或其他耗时编译；优先做源码检查、定向搜索、`git diff --check` 和必要的生成器校验。
 - 完成重要改动后，必要时更新 `docs/CURRENT_WORK.md` 或相关模块文档，让下一次 AI 会话能接上。
 - 用户说“提交”时，默认含义是提交并推送到服务器；只有用户明确说“不推送”时才只本地提交。
 
 ## 渲染代码提示
 
-- GL 后端通常是行为参考；Metal 后端实现应尽量对齐 GL 的语义，但不要照搬 GL 的状态机做法。
+- GL 后端通常是既有行为参考；Metal/Vulkan 后端应尽量对齐其 Canvas 语义，但不要照搬 GL 的隐式状态机做法。
 - `Canvas` 公共逻辑在 `src/render/gpu_canvas.*`，后端只实现 `*Cmd` 方法。
-- 纹理传递通过 `ImageSource::texture()` 和 `setTex_SourceImage()` 维护，Metal 指针需要正确 retain/release。
+- 纹理传递通过 `ImageSource::texture()` 和 `setTex_SourceImage()` 维护；Metal 指针需要正确 retain/release，Vulkan 使用引用计数的 `VkTexture` 包装。
 - Metal 中切换 render target 需要结束当前 `MTLRenderCommandEncoder`，但不一定需要新建 `MTLCommandBuffer`。
-- 采样槽位优先使用 shader 结构里的 `fragment.*` 索引，不要硬编码。
+- Vulkan 使用应用级共享队列和每 Canvas command pool；submit/present 需要遵守共享队列的外部同步约束。
+- shader 槽位、descriptor binding 和 push-constant 结构应使用生成的 reflection 信息，不要硬编码。
 
 ## 负责人
 
