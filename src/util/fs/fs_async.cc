@@ -683,30 +683,35 @@ namespace qk {
 		ls(path, cb, LOOP);
 	}
 
+	template<class T>
+	static Cb& CastCb(Callback<T>& cb) {
+		return *reinterpret_cast<Cb*>(&cb);
+	}
+
 	void fs_stat(cString& path, Callback<FileStat> cb) {
-		file_stat(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		file_stat(path, CastCb(cb), LOOP);
 	}
 
 	void fs_exists(cString& path, Callback<Bool> cb) {
-		exists(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		exists(path, CastCb(cb), LOOP);
 	}
 
 	void fs_is_file(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_stat(loop->uv_loop(),
-							New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
+							New<FileReq>(CastCb(cb), loop)->req(),
 							fs_fallback_c(path),
 							&is_file_cb);
 	}
 
 	void fs_is_directory(cString& path, Callback<Bool> cb) {
-		is_dir(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		is_dir(path, CastCb(cb), LOOP);
 	}
 
 	void fs_readable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
+								New<FileReq>(CastCb(cb), loop)->req(),
 								fs_fallback_c(path),
 								R_OK, &uv_fs_access_cb);
 	}
@@ -714,7 +719,7 @@ namespace qk {
 	void fs_writable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
+								New<FileReq>(CastCb(cb), loop)->req(),
 								fs_fallback_c(path),
 								W_OK, &uv_fs_access_cb);
 	}
@@ -722,7 +727,7 @@ namespace qk {
 	void fs_executable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
+								New<FileReq>(CastCb(cb), loop)->req(),
 								fs_fallback_c(path),
 								X_OK, &uv_fs_access_cb);
 	}
@@ -958,7 +963,7 @@ namespace qk {
 			}
 		};
 
-		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, size, offset }));
+		Data::start(new FileReq(CastCb(cb), LOOP, { path, size, offset }));
 	}
 
 	// write file
@@ -1014,7 +1019,7 @@ namespace qk {
 		};
 
 		uint32_t size = buffer.length();
-		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, Data({ path, size, buffer })));
+		Data::start(new FileReq(CastCb(cb), LOOP, Data({ path, size, buffer })));
 	}
 
 	void fs_write_file(cString& path, cString& str, Callback<Buffer> cb) {
@@ -1053,7 +1058,7 @@ namespace qk {
 			}
 		};
 
-		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, flag }));
+		Data::start(new FileReq(CastCb(cb), LOOP, { path, flag }));
 	}
 
 	void fs_open(cString& path, Callback<I32> cb) {
@@ -1126,7 +1131,7 @@ namespace qk {
 			}
 		};
 		
-		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { fd, offset, buffer }));
+		Data::start(new FileReq(CastCb(cb), LOOP, { fd, offset, buffer }));
 	}
 
 	void fs_write(int fd, Buffer buffer, Callback<Buffer> cb) {
@@ -1164,6 +1169,6 @@ namespace qk {
 			}
 		};
 
-		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { fd, offset, buffer }));
+		Data::start(new FileReq(CastCb(cb), LOOP, { fd, offset, buffer }));
 	}
 }

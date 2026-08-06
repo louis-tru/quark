@@ -74,9 +74,6 @@
 typedef QkTypeface_FreeType::Scanner Scanner;
 typedef QkTypeface_FreeType::FaceRec FaceRec;
 
-template<class T>
-static void Noop(T* obj) {}
-
 template<typename T, void (*Dtor)(T*) = ObjectTraits<T>::Release>
 using SpFT = Sp<T, ObjectTraitsFrom<T, Dtor, Noop<T>>>;
 
@@ -423,7 +420,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 	const String& name,
 	const FontArguments::VariationPosition::Coordinate* current)
 {
-	for (int i = 0; i < axisDefinitions.length(); ++i) {
+	for (uint32_t i = 0; i < axisDefinitions.length(); ++i) {
 		const Scanner::AxisDefinition& axisDefinition = axisDefinitions[i];
 		const QkScalar axisMin = QkFixedToScalar(axisDefinition.fMinimum);
 		const QkScalar axisMax = QkFixedToScalar(axisDefinition.fMaximum);
@@ -433,7 +430,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 
 		// Then the current value.
 		if (current) {
-			for (int j = 0; j < axisDefinitions.length(); ++j) {
+			for (uint32_t j = 0; j < axisDefinitions.length(); ++j) {
 				const auto& coordinate = current[j];
 				if (axisDefinition.fTag == coordinate.axis) {
 					const QkScalar axisValue = qk::F32::clamp(coordinate.value, axisMin, axisMax);
@@ -473,7 +470,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 		for (int i = 0; i < position.coordinateCount; ++i) {
 			FontByteTag skTag = position.coordinates[i].axis;
 			bool found = false;
-			for (int j = 0; j < axisDefinitions.length(); ++j) {
+			for (uint32_t j = 0; j < axisDefinitions.length(); ++j) {
 				if (skTag == axisDefinitions[j].fTag) {
 					found = true;
 					break;

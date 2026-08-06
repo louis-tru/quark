@@ -41,9 +41,9 @@
 #undef Bool
 #undef None
 
-#include "./linux_app.h"
 #include "../../render/plotforms.h"
 #include "../../ui/ui.h"
+#include "./linux_app.h"
 
 namespace qk {
 	typedef const Window::Options cOptions;

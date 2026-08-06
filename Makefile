@@ -114,7 +114,7 @@ help:
 	@echo
 
 watch:
-	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST) -i .tmp -i tools/deps
+	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST) -i .tmp -i tools/deps -i tools/linux
 
 sync: # init git submodule
 	@git pull

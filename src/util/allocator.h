@@ -211,7 +211,7 @@ namespace qk {
 		 * @brief Access the default shared allocator.
 		 * @return Pointer to the global Allocator instance.
 		 */
-		inline static Allocator* shared() { return &_shared; }
+		static Allocator* shared();
 
 		/**
 		* @brief Access the current thread-local allocator.
@@ -258,10 +258,7 @@ namespace qk {
 		*/
 		void extend_(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf);
 
-		static Allocator _shared; ///< Default global allocator.
 		static thread_local Allocator* _current; ///< Thread-local current allocator for push/pop.
-
-		friend Allocator* sharedAllocator();
 
 		void* (Allocator::*_malloc)(uint32_t size); ///< malloc function pointer
 		void* (Allocator::*_mrealloc)(void* ptr, uint32_t size); ///< realloc function pointer
@@ -274,7 +271,7 @@ namespace qk {
 	};
 
 	inline Allocator* sharedAllocator() {
-		return &Allocator::_shared;
+		return Allocator::shared();
 	}
 
 	/**

@@ -475,9 +475,9 @@ namespace qk {
 			char* str = Xutf8ResetIC(_ic);
 
 			if (str != nullptr) {
-				setPreeditString(str, 0, 0);
+				setPreeditString(str, 0, 0, 0);
 			}
-			setPreeditString(nullptr, 0, 0);
+			setPreeditString(nullptr, 0, 0, 0);
 
 			XDestroyIC(_ic);
 			_ic = nullptr;

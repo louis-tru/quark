@@ -129,7 +129,7 @@
 							'./jsapi/out/jsapi',
 							'../examples/out/examples',
 						],
-					}, { # android linux
+					}, { # linux
 						'copies': [{
 							'destination': '<(output)',
 							'files': [
@@ -201,7 +201,7 @@
 					'libraries': [ '-lz' ],
 				},
 				'ldflags': [
-					'-s',
+					'-s', # strip debug info
 					'-Wl,--version-script,<(source)/tools/v_all.ver',
 					'-Wl,--whole-archive',
 					'<(output)/obj.target/ffmpeg/libffmpeg.a',

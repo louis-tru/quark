@@ -37,9 +37,8 @@
 #include <alsa/asoundlib.h>
 
 #include "../../render/plotforms.h"
-
-#include "./linux_app.h"
 #include "../../util/thread/inl.h"
+#include "./linux_app.h"
 #include "../../util/http.h"
 #include "../../ui/ui.h"
 
@@ -238,7 +237,7 @@ namespace qk
 
 		void addMsg(Cb& cb) {
 			_msgMutex.lock();
-			_msg.push_back(cb);
+			_msg.pushBack(cb);
 			_msgMutex.unlock();
 
 			XEvent event;

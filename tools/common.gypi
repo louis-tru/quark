@@ -253,9 +253,9 @@
 				],
 			}],
 			['os=="linux"', {
-				'include_dirs': [
-					'linux/usr/include',
-				],
+				# 'include_dirs': [
+				# 	'linux/usr/include',
+				# ],
 				'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
 					'-fPIC',

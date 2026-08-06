@@ -154,20 +154,30 @@ function clangd_platform_flags(os) {
 		define = [
 			`--target=${android_target_triple()}`,
 			`--sysroot=${sdk}`,
+			`-U__APPLE__`,
 			`-D__ANDROID_API__=${android_api_level}`,
 			'-D__ANDROID__', '-DANDROID', '-DQk_ENABLE_VULKAN=1', '-DQk_ANDROID=1',
 			`-I${path.join(android_ndk_root(), 'sources/android/native_app_glue')}`,
 		];
 	} else if (os == 'linux') {
 		sdk = path.resolve(__dirname, 'linux');
-		define = ['-D__linux__', '-DQk_ENABLE_VULKAN=1', '-DQk_LINUX=1'];
+		define = [
+			'--target=x86_64-linux-gnu',
+			`--sysroot=${sdk}`,
+			`-isystem${path.join(sdk, 'usr/include/c++/9')}`,
+			`-isystem${path.join(sdk, 'usr/include/c++/9/x86_64-linux-gnu')}`,
+			`-isystem${path.join(sdk, 'usr/include/c++/9/backward')}`,
+			`-isystem${path.join(sdk, 'usr/include/c')}`,
+			`-isystem${path.join(sdk, 'usr/include/c/x86_64-linux-gnu')}`,
+			`-U__APPLE__`, '-D__linux__', '-DQk_ENABLE_VULKAN=1', '-DQk_LINUX=1'
+		];
 	}
 
 	var flags = [];
 	if (define) {
 		flags.push(...define);
 	}
-	if (sdk && os != 'android') {
+	if (sdk && os != 'android' && os != 'linux') {
 		flags.push('-isysroot', sdk);
 	}
 	return flags.map(e => `    - ${e}`).join('\n');

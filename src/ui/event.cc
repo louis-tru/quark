@@ -37,8 +37,6 @@
 #include "./keyboard.h"
 #include "./view/button.h"
 #include "./action/action.h"
-#include "./view/entity.h"
-#include "src/util/macros.h"
 
 namespace qk {
 

@@ -31,7 +31,7 @@
 #ifndef __quark__render__plotforms__
 #define __quark__render__plotforms__
 
-#include "./render.h"
+#include "../util/macros.h"
 #if Qk_APPLE
 #if Qk_MacOS
 #import <AppKit/AppKit.h>
@@ -57,6 +57,9 @@
 #if Qk_LINUX
 #include <X11/Xlib.h>
 typedef Display XDisplay;
+typedef Window XWindow;
+#undef Bool
+#undef None
 #endif
 
 namespace qk {

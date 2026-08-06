@@ -76,6 +76,12 @@ Remaining validation/stabilization:
   [`GPU_2D_ANTIALIASING.md`](GPU_2D_ANTIALIASING.md) and
   [`CAPA_PASS_PROCESS.md`](CAPA_PASS_PROCESS.md).
 
+## TLS Assembly Experiments
+
+The active `thread_local` assembly investigation, including tested source
+variants, macOS arm64 Release disassembly, and instruction counts, is recorded
+in [`THREAD_LOCAL_ASSEMBLY-cn.md`](THREAD_LOCAL_ASSEMBLY-cn.md).
+
 ## Verification Rules
 
 - Do not run broad C++ builds unless the user asks.

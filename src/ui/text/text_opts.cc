@@ -54,9 +54,9 @@ namespace qk {
 		: _text_align(TextAlign::Inherit), _text_align_value(TextAlign::Left)
 		, _font_weight(FontWeight::Inherit), _font_weight_value(FontWeight::Regular)
 		, _white_space(WhiteSpace::Inherit), _white_space_value(WhiteSpace::Normal)
-		, _font_size{ .kind=TextValueKind::Inherit, .value=16.0f }
-		, _text_color{ .kind=TextValueKind::Inherit, .value=Color(0,0,0) }
-		, _line_height{ .kind=TextValueKind::Inherit, .value=0.0f }
+		, _font_size{ .value=16.0f, .kind=TextValueKind::Inherit }
+		, _text_color{ .value=Color(0,0,0), .kind=TextValueKind::Inherit }
+		, _line_height{ .value=0.0f, .kind=TextValueKind::Inherit }
 		, _isHoldSecondOpts(false)
 		, _textFlags(0xffffffffu)
 		, _second(&defaultSecondOpts)

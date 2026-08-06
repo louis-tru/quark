@@ -31,6 +31,7 @@
 #include "./http.inl"
 
 namespace qk {
+	cChar string_max_age[] = "max-age=";
 
 	class FileWriter: public Object, public File::Delegate {
 	public:
@@ -222,13 +223,14 @@ namespace qk {
 	// cache-control: max-age=100000
 	// return: expires str, Sat Aug 10 2024 13:26:02 GMT+0800
 	String to_expires_from_cache_content(cString& cache_control) {
+		const auto string_max_age_len = (uint32_t)strlen(string_max_age);
 		if ( !cache_control.isEmpty() ) {
 			int i = cache_control.indexOf(string_max_age);
-			if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
+			if ( i != -1 && i + string_max_age_len < cache_control.length() ) {
 				int j = cache_control.indexOf(',', i);
 				String max_age = j != -1
-				? cache_control.substring(i + string_max_age.length(), j)
-				: cache_control.substring(i + string_max_age.length());
+				? cache_control.substring(i + string_max_age_len, j)
+				: cache_control.substring(i + string_max_age_len);
 				
 				int64_t num = max_age.trim().toNumber<int64_t>();
 				if ( num > 0 ) {

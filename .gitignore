@@ -34,3 +34,5 @@ test/test-demo
 .clangd
 .ide/compile_commands.json
 .ide/.cache
+/tools/linux/usr/include/c/
+/tools/linux/usr/include/c++/

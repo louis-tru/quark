@@ -125,8 +125,8 @@ namespace qk {
 	}
 
 	ThreadID thread_self_id() {
-		thread_local ThreadID tid = std::this_thread::get_id();
-		return tid;
+		// thread_local ThreadID tid = std::this_thread::get_id();
+		return std::this_thread::get_id();
 	}
 
 	static void SetThreadName(cString& name) {

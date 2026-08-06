@@ -130,21 +130,26 @@ namespace qk {
 		Qk_ASSERT(ptr->val, "Reallocation failed during extend");
 	}
 
-	Allocator Allocator::_shared; ///< Default global allocator instance
-	thread_local Allocator* Allocator::_current = &_shared; ///< Thread-local current allocator for push/pop.
+	Allocator* Allocator::shared() {
+		static Allocator* allocator = new Allocator();
+		return allocator;
+	}
+
+	thread_local Allocator* Allocator::_current = shared(); ///< Thread-local current allocator for push/pop.
 
 	void Allocator::pushAllocator(Allocator* allocator) {
-		Qk_CHECK(allocator != &_shared, "Cannot push the shared global allocator");
+		auto _shared = shared();
+		Qk_CHECK(allocator != _shared, "Cannot push the shared global allocator");
 		Qk_CHECK(!allocator->_prev && !allocator->_next, "Allocator must not already be in the stack");
 		allocator->_prev = _current;
-		if (_current != &_shared) {
+		if (_current != _shared) {
 			_current->_next = allocator;
 		}
 		_current = allocator;
 	}
 
 	void Allocator::popAllocator() {
-		Qk_CHECK(_current != &_shared, "Cannot pop the shared global allocator");
+		Qk_CHECK(_current != shared(), "Cannot pop the shared global allocator");
 		auto cur = _current;
 		_current = cur->_prev;
 		_current->_next = nullptr;

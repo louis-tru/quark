@@ -34,7 +34,6 @@
 #include "../util/handle.h"
 #include "./path.h"
 #include "./pixel.h"
-#include "../util/dict.h"
 
 namespace qk {
 	class RenderSurface; // platform render surface

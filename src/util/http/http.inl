@@ -54,15 +54,14 @@ namespace qk {
 	typedef HttpClientRequest::Impl Host; // Http Client Host
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
-	extern cString string_method[5];
-	extern cString string_colon;
-	extern cString string_space;
-	extern cString string_header_end;
-	extern cString string_max_age;
-	extern cString content_type_form;
-	extern cString content_type_multipart_form;
-	extern cString multipart_boundary_start;
-	extern cString multipart_boundary_end;
+	extern cChar string_colon[];
+	extern cChar string_space[];
+	extern cChar string_header_end[];
+	extern cChar string_max_age[];
+	extern cChar content_type_form[];
+	extern cChar content_type_multipart_form[];
+	extern cChar multipart_boundary_start[];
+	extern cChar multipart_boundary_end[];
 
 	enum FormType {
 		FORM_TYPE_TEXT,

@@ -31,6 +31,13 @@
 #include "./http.inl"
 
 namespace qk {
+	cChar string_colon[] = ": ";
+	cChar string_space[] = " ";
+	cChar string_header_end[] = "\r\n";
+	cChar content_type_form[] = "application/x-www-form-urlencoded; Charset=utf-8";
+	cChar content_type_multipart_form[] = "multipart/form-data; boundary=----QuarkFormBoundaryrGKCBY7qhFd3TrwA";
+	cChar multipart_boundary_start[] = "------QuarkFormBoundaryrGKCBY7qhFd3TrwA\r\n";
+	cChar multipart_boundary_end[]  = "------QuarkFormBoundaryrGKCBY7qhFd3TrwA--";
 
 	class HttpHandler: public Reference
 		, public Socket::Delegate, public Reader, public File::Delegate
@@ -272,7 +279,7 @@ namespace qk {
 					}
 
 					if (_is_multipart_form_data ) {
-						uint32_t content_length = multipart_boundary_end.length();
+						uint32_t content_length = strlen(multipart_boundary_end);
 
 						for ( auto& i : _host->_form_data ) {
 							FormValue& form = i.second;
@@ -300,7 +307,7 @@ namespace qk {
 								_host->_upload_total += form.data.length();
 							}
 
-							content_length += multipart_boundary_start.length();
+							content_length += strlen(multipart_boundary_start);
 							content_length += _form.headers.length();
 							content_length += 2; // end \r\n
 							_multipart_form_data.pushBack(_form);
@@ -334,11 +341,13 @@ namespace qk {
 				}
 			}
 
+			cChar* string_method[5] = { "GET", "POST", "HEAD", "DELETE", "PUT" };
+
 			header_str.push(
 				String::format
 				(
 					"%s %s%s HTTP/1.1\r\n"
-					, string_method[_host->_method].c_str()
+					, string_method[_host->_method]
 					, *uri_encode(_host->_uri.pathname(), false, true)
 					, search.c_str()
 				)
@@ -446,7 +455,7 @@ namespace qk {
 			} else { // read end
 				Qk_ASSERT(_multipart_form_data.length());
 				Qk_ASSERT(_upload_file);
-				_socket->write(string_header_end.copy().collapse()); // \r\n
+				_socket->write(String(string_header_end).copy().collapse()); // \r\n
 				_upload_file->release(); // release file
 				_upload_file = nullptr;
 				_multipart_form_data.popFront();
@@ -467,7 +476,7 @@ namespace qk {
 			}
 			else if ( _multipart_form_data.length() ) {
 				MultipartFormValue& form = *_multipart_form_data.begin();
-				_socket->write(multipart_boundary_start.copy().collapse());
+				_socket->write(String(multipart_boundary_start).copy().collapse());
 				_socket->write(form.headers.collapse());
 
 				if ( form.type == FORM_TYPE_FILE ) { // file
@@ -478,11 +487,11 @@ namespace qk {
 					_multipart_form_tmp_buffer.write(form.data.c_str(), form.data.length(), 0);
 					_multipart_form_tmp_buffer.reset(form.data.length());
 					_socket->write(_multipart_form_tmp_buffer, 1);
-					_socket->write(string_header_end.copy().collapse());
+					_socket->write(String(string_header_end).copy().collapse());
 					_multipart_form_data.popFront();
 				}
 			} else {
-				_socket->write(multipart_boundary_end.copy().collapse()); // end send data, wait http response
+				_socket->write(String(multipart_boundary_end).copy().collapse()); // end send data, wait http response
 			}
 		}
 

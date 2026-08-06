@@ -100,7 +100,6 @@
 			['os not in "mac ios"', {
 				'type': 'shared_library',
 				'ldflags': [
-					'-s',
 					'-Wl,--version-script,<(source)/tools/v_small.ver'
 				],
 			}]

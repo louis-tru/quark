@@ -31,15 +31,6 @@
 #include "./http.inl"
 
 namespace qk {
-	cString string_method[5] = { "GET", "POST", "HEAD", "DELETE", "PUT" };
-	cString string_colon(": ");
-	cString string_space(" ");
-	cString string_header_end("\r\n");
-	cString string_max_age("max-age=");
-	cString content_type_form("application/x-www-form-urlencoded; Charset=utf-8");
-	cString content_type_multipart_form("multipart/form-data; boundary=----QuarkFormBoundaryrGKCBY7qhFd3TrwA");
-	cString multipart_boundary_start("------QuarkFormBoundaryrGKCBY7qhFd3TrwA\r\n");
-	cString multipart_boundary_end  ("------QuarkFormBoundaryrGKCBY7qhFd3TrwA--");
 
 	class DefaultDelegate: public HttpDelegate {
 		void trigger_http_error(HttpClientRequest* req, cError& error) override {}

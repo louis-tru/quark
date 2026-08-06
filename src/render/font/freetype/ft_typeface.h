@@ -162,4 +162,7 @@ private:
 	Qk_DEFINE_INLINE_CLASS(Inl);
 };
 
+template<class T>
+inline static void Noop(T* obj) {}
+
 #endif // __quark__font__ft__ft_typeface__

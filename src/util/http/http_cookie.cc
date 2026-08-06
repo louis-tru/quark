@@ -44,13 +44,6 @@ namespace qk {
 	// Session ID used to distinguish session cookies (invalid after process restart)
 	int64_t _cookieSessionId = 0;
 
-	static cString EXPIRES("expires");
-	static cString MAX_AGE("max-age");
-	static cString PATH("path");
-	static cString DOMAIN_STR("domain");
-	static cString SECURE("secure");
-	// static cString HTTP_ONLY("httponly");
-
 	// Generate session id (process-level)
 	// Using monotonic time ensures uniqueness within the current process session
 	static int64_t session_id() {
@@ -227,20 +220,20 @@ namespace qk {
 		if (name.isEmpty()) return;
 
 		auto domain = _domain;
-		if (opts.get(DOMAIN_STR, domain)) {
+		if (opts.get("domain", domain)) {
 			if (domain.indexOf(_domain) == -1) return; // Illegal operation
 		}
 
 		int64_t expires = -1;
-		bool    secure = opts.has(SECURE);
+		bool    secure = opts.has("secure");
 		String  outStr;
 		String  path('/');
 
-		opts.get(PATH, path);
+		opts.get("path", path);
 
-		if (opts.get(MAX_AGE, outStr)) {
+		if (opts.get("max-age", outStr)) {
 			expires = outStr.toNumber<int64_t>() * 1e3 + time_millisecond();
-		} else if (opts.get(EXPIRES, outStr)) {
+		} else if (opts.get("expires", outStr)) {
 			expires = I64::max(parse_time(outStr), expires);
 		}
 

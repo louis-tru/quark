@@ -881,6 +881,8 @@ async function configure() {
 		variables.without_embed_bitcode = 1;
 	}
 
+	gen_ide_config.write(path.resolve(__dirname, '..'), { os: opts.os });
+
 	// ----------------------- android/linux/ios/mac ----------------------- 
 
 	if (os == 'android') {
@@ -1204,7 +1206,6 @@ async function configure() {
 
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
-	gen_ide_config.write(path.resolve(__dirname, '..'), { os: opts.os });
 
 	require('./touch');
 }

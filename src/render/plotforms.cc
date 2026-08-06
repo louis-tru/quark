@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./plotforms.h"
+#include "../util/handle.h"
 
 namespace qk {
 

@@ -32,17 +32,6 @@
 
 namespace qk { namespace js {
 
-	static cString const_url("url");
-	static cString const_method("method");
-	static cString const_headers("headers");
-	static cString const_post_data("postData");
-	static cString const_save("save");
-	static cString const_upload("upload");
-	static cString const_timeout("timeout");
-	static cString const_disable_ssl_verify("disableSslVerify");
-	static cString const_disable_cache("disableCache");
-	static cString const_disable_cookie("disableCookie");
-
 	struct HttpDelegate: Object, qk::HttpClientRequest::Delegate {
 		MixObject* _host; // JsHttpClientRequest
 		String _error;
@@ -466,22 +455,22 @@ namespace qk { namespace js {
 			};
 			JSValue* value;
 
-			value = obj->get(worker, worker->newStringOneByte(const_url));
+			value = obj->get(worker, worker->newStringOneByte("url"));
 			if ( !value ) return false;
 			if ( value->isString() ) opt.url = value->toString(worker)->value(worker);
 			
-			value = obj->get(worker, worker->newStringOneByte(const_method));
+			value = obj->get(worker, worker->newStringOneByte("method"));
 			if ( !value ) return false;
 			int32_t method;
 			if ( value->asInt32(worker).to(method) ) {
 				opt.method = method > 4 ? HTTP_METHOD_GET: (HttpMethod)method;
 			}
 
-			value = obj->get(worker, worker->newStringOneByte(const_headers));
+			value = obj->get(worker, worker->newStringOneByte("headers"));
 			if ( !value ) return false;
 			if (!value->cast<JSObject>()->toStringDict(worker).to(opt.headers)) return false;
 			
-			value = obj->get(worker, worker->newStringOneByte(const_post_data));
+			value = obj->get(worker, worker->newStringOneByte("postData"));
 			if ( !value ) return false;
 			if ( value->isString() ) {
 				opt.post_data = value->toString(worker)->value(worker).collapse();
@@ -492,34 +481,34 @@ namespace qk { namespace js {
 				opt.post_data = buff.buffer().copy();
 			}
 
-			value = obj->get(worker, worker->newStringOneByte(const_save));
+			value = obj->get(worker, worker->newStringOneByte("save"));
 			if ( !value ) return false;
 			if ( value->isString() ) {
 				opt.save = value->toString(worker)->value(worker);
 			}
 
-			value = obj->get(worker, worker->newStringOneByte(const_upload));
+			value = obj->get(worker, worker->newStringOneByte("upload"));
 			if ( !value ) return false;
 			if ( value->isString() ) {
 				opt.upload = value->toString(worker)->value(worker);
 			}
 
-			value = obj->get(worker, worker->newStringOneByte(const_timeout));
+			value = obj->get(worker, worker->newStringOneByte("timeout"));
 			if ( !value ) return false;
 			uint32_t timeout;
 			if ( value->asUint32(worker).to(timeout) ) {
 				opt.timeout = timeout;
 			}
 
-			value = obj->get(worker, worker->newStringOneByte(const_disable_ssl_verify));
+			value = obj->get(worker, worker->newStringOneByte("disableSslVerify"));
 			if ( !value ) return false;
 			opt.disable_ssl_verify = value->toBoolean(worker);
 
-			value = obj->get(worker, worker->newStringOneByte(const_disable_cache));
+			value = obj->get(worker, worker->newStringOneByte("disableCache"));
 			if ( !value ) return false;
 			opt.disable_cache = value->toBoolean(worker);
 
-			value = obj->get(worker, worker->newStringOneByte(const_disable_cache));
+			value = obj->get(worker, worker->newStringOneByte("disableCookie"));
 			if ( !value ) return false;
 			opt.disable_cookie = value->toBoolean(worker);
 

@@ -538,7 +538,7 @@ namespace qk {
 			return true;
 		}
 		auto &stream = ex->stream(); // current select stream
-		if (stream.index != avstream->index) {
+		if (int(stream.index) != avstream->index) {
 			av_packet_unref(&avpkt);
 			return true; // discard packet
 		}

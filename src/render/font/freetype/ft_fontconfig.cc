@@ -108,8 +108,8 @@ template<typename T, void (*D)(T*)> void FcTDestroy(T* t) {
 }
 
 template <typename T, T* (*C)(), void (*D)(T*)> class QkAutoFc
-	: public Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>>> {
-	using inherited = Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>>>;
+	: public Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>, Noop<T>>> {
+	using inherited = Sp<T, ObjectTraitsFrom<T, FcTDestroy<T, D>, Noop<T>>>;
 public:
 	QkAutoFc(): inherited(C()) {
 		T* obj = this->operator T*();
@@ -452,7 +452,7 @@ public:
 		const char* filename = get_string(fPattern, FC_FILE);
 		// See FontAccessible for note on searching sysroot then non-sysroot path.
 		String resolvedFilename;
-		if (!fSysroot.is_empty()) {
+		if (!fSysroot.isEmpty()) {
 			resolvedFilename = fSysroot;
 			resolvedFilename += filename;
 			if (fs_readable_sync(resolvedFilename)) {
@@ -636,7 +636,7 @@ protected:
 		// as any added file path not lexically starting with the sysroot will be unchanged.
 		// To allow users to add local app files outside the sysroot,
 		// prefer the sysroot but also look without the sysroot.
-		if (!fSysroot.is_empty()) {
+		if (!fSysroot.isEmpty()) {
 			String resolvedFilename;
 			resolvedFilename = fSysroot;
 			resolvedFilename += filename;

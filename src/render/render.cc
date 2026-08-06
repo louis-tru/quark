@@ -40,10 +40,6 @@ namespace qk {
 	// settings Image Sources internal texture stat, used by Render Resource to create GPU texture.
 	void setTexUnsafe_SourceImage(ImageSource* img, const TexStat *tex);
 
-	static uint32_t integerExp(uint32_t n) {
-		return (uint32_t) powf(2, floor(log2(n)));
-	}
-
 	uint32_t msaaSample(uint32_t n) {
 		// n = integerExp(n);
 		// n = Qk_Min(n, 9); // max sample count is 9

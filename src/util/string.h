@@ -284,6 +284,11 @@ namespace qk {
 		static int toupper(int c);
 	};
 
+	template <>
+	inline uint32_t _Str::strlen<char>(const char* s) {
+		return ::strlen(s); // use C standard library strlen for char
+	}
+
 	// --------------------------------------------------------------------------------
 
 	template <typename T>
