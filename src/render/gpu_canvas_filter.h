@@ -34,7 +34,6 @@
 #define __quark_render_gpucanvas_filter__
 
 #include "./gpu_canvas.h"
-#include "src/render/render.h"
 
 namespace qk {
 

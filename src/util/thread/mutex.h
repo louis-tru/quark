@@ -118,7 +118,6 @@
 #endif
 
 namespace qk {
-	std::thread::id thread_self_id();
 
 	class Qk_EXPORT Semaphore {
 	public:
@@ -189,18 +188,18 @@ namespace qk {
 	public:
 		void lock() Qk_ACQUIRE() {
 			fSemaphore.wait();
-			Qk_DEBUGCODE(fOwner = thread_self_id();)
+			Qk_DEBUGCODE(fOwner = std::this_thread::get_id();)
 		}
 
 		void unlock() Qk_RELEASE_CAPABILITY() {
 			this->assertHeld();
-			Qk_DEBUGCODE(fOwner = thread_self_id();)
+			Qk_DEBUGCODE(fOwner = std::this_thread::get_id();)
 			fSemaphore.signal();
 		}
 
 		void assertHeld() Qk_ASSERT_CAPABILITY(this) {
 			Qk_DEBUGCODE(
-				Qk_ASSERT(fOwner == thread_self_id())
+				Qk_ASSERT(fOwner == std::this_thread::get_id())
 			);
 		}
 

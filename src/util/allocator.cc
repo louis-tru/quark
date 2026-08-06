@@ -80,7 +80,7 @@ namespace qk {
 	/**
 	 * @brief Constructs a default Allocator using system allocation functions.
 	 */
-	Allocator::Allocator()
+	Allocator::Allocator() noexcept
 		: Allocator((void*(Allocator::*)(uint32_t))&AllocatorInl::_malloc,
 				(void* (Allocator::*)(void*, uint32_t))&AllocatorInl::_mrealloc,
 				(void (Allocator::*)(void*))&AllocatorInl::_free) {}
@@ -93,7 +93,7 @@ namespace qk {
 	 */
 	Allocator::Allocator(void*(Allocator::*malloc)(uint32_t size),
 			void* (Allocator::*mrealloc)(void* ptr, uint32_t size),
-			void  (Allocator::*free)(void *ptr))
+			void  (Allocator::*free)(void *ptr)) noexcept
 		: _malloc(malloc), _mrealloc(mrealloc), _free(free)
 		, _prev(nullptr), _next(nullptr), _isLinearAllocator(false) {}
 
@@ -130,30 +130,49 @@ namespace qk {
 		Qk_ASSERT(ptr->val, "Reallocation failed during extend");
 	}
 
+	// Global shared allocator instance
 	Allocator* Allocator::shared() {
-		static Allocator* allocator = new Allocator();
-		return allocator;
+		static Allocator* _shared = new Allocator();
+		return _shared;
 	}
 
-	thread_local Allocator* Allocator::_current = shared(); ///< Thread-local current allocator for push/pop.
+	// The current allocator must remain thread-local so pushAllocator() and
+	// popAllocator() can override it independently in each thread. Keeping this
+	// namespace-scope pointer constant-initialized to nullptr avoids a per-thread
+	// dynamic-initialization guard; current() lazily binds it to shared(). On
+	// Linux, initial-exec removes __tls_get_addr() but requires libquark to be
+	// loaded at process startup rather than by arbitrary dlopen(). Other platforms
+	// leave Qk_TLS_INITIAL_EXEC empty and use their default TLS implementation.
+	static thread_local Qk_TLS_INITIAL_EXEC Allocator* _current = nullptr;
+
+	Allocator* Allocator::current() {
+		auto cur = _current;
+		if (!cur) {
+			cur = shared();
+			_current = cur;
+		}
+		return cur;
+	}
 
 	void Allocator::pushAllocator(Allocator* allocator) {
 		auto _shared = shared();
 		Qk_CHECK(allocator != _shared, "Cannot push the shared global allocator");
 		Qk_CHECK(!allocator->_prev && !allocator->_next, "Allocator must not already be in the stack");
-		allocator->_prev = _current;
-		if (_current != _shared) {
-			_current->_next = allocator;
-		}
-		_current = allocator;
+		auto cur = current();
+		allocator->_prev = cur;
+		if (cur != _shared)
+			cur->_next = allocator;
+		cur = allocator;
+		_current = cur;
 	}
 
 	void Allocator::popAllocator() {
-		Qk_CHECK(_current != shared(), "Cannot pop the shared global allocator");
-		auto cur = _current;
-		_current = cur->_prev;
-		_current->_next = nullptr;
+		auto cur = current();
+		Qk_CHECK(cur != shared(), "Cannot pop the shared global allocator");
+		auto prevCur = cur->_prev;
+		prevCur->_next = nullptr;
 		cur->_prev = nullptr;
+		_current = prevCur;
 	}
 
 	// ============================================================================

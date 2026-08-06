@@ -37,7 +37,7 @@ blr x8
 
 ## 基线：函数内动态初始化
 
-当前代码已经恢复为最早的实现：
+历史基线实验使用：
 
 ```cpp
 ThreadID thread_self_id() {
@@ -248,7 +248,7 @@ ret
 当前线程 ID”这一简单操作，9 条核心指令、15 条完整路径指令加一次 TLV thunk
 仍然偏多，而且原始存储、placement new 和手动生命周期增加了维护复杂度。
 
-该实验已撤销，`thread_self_id()` 已恢复为基线实现。
+该实验已撤销。
 
 ## 实验三：命名空间级内部链接 TLS
 
@@ -325,7 +325,73 @@ str   x8, [x0]
 
 与函数内基线相比，命名空间级内部链接让稳定路径从 13 条核心指令降到 12 条，
 完整路径从 21 条减少到 16 条，但没有消除 guard TLV 和数据 TLV 的两次解析。
-首次路径也没有改善。该实验完成后已撤销，源码和 `thread.o` 均恢复为基线版本。
+首次路径也没有改善。该实验完成后已撤销。
+
+## `Allocator::current()`：函数外常量初始化与函数内动态初始化
+
+`Allocator::_current` 必须保存每线程可变的 allocator 状态，不能像线程 ID 一样
+改为直接调用系统函数。当前实现将 TLS 指针放在函数外，以 `nullptr` 做常量初始化，
+再由 `current()` 显式完成懒绑定：
+
+```cpp
+static thread_local Qk_TLS_INITIAL_EXEC Allocator* _current = nullptr;
+
+Allocator* Allocator::current() {
+  auto cur = _current;
+  if (!cur) {
+    cur = shared();
+    _current = cur;
+  }
+  return cur;
+}
+```
+
+macOS arm64 Release 最终可执行文件：
+
+```text
+out/xcodebuild/mac.arm64/Release/test1.app/Contents/MacOS/test1
+```
+
+在 Apple 平台上 `Qk_TLS_INITIAL_EXEC` 为空。上述实现的已初始化稳定路径包含 13 条
+`current()` 内可见指令和一次 TLV thunk；首次访问只额外调用一次 `shared()` 并写回
+同一个 TLV 地址。`nullptr` 是常量初始化，因此没有单独的编译器 TLS guard。
+
+为验证函数内写法，曾临时改为：
+
+```cpp
+Allocator* Allocator::current() {
+  static thread_local Allocator* current = shared();
+  return current;
+}
+```
+
+Apple Clang 为它生成了两个 TLV 变量：
+
+```text
+qk::Allocator::current()::current
+guard variable for qk::Allocator::current()::current
+```
+
+即使初始化早已完成，每次调用仍必须：
+
+1. 通过第一次 TLV thunk 取得并检查 guard；
+2. 通过第二次 TLV thunk 取得并读取 `current`。
+
+实测稳定路径为 20 条函数内可见指令和两次 TLV thunk。当前线程首次访问时约为
+28 条函数内可见指令，还会调用三次 TLV thunk 和一次 `shared()`：取得 guard、写入
+数据 TLS，再次取得并设置 guard。
+
+| macOS arm64 Release 实现 | 稳定路径可见指令 | 稳定路径 TLV thunk | 首次路径可见指令 | 首次路径 TLV thunk |
+|---|---:|---:|---:|---:|
+| 函数外 `nullptr` + 手动懒绑定 | 13 | 1 | 15 | 1 |
+| 函数内 `= shared()` 动态初始化 | 20 | 2 | 约 28 | 3 |
+
+因此，热点访问器中禁止使用带运行时初始化表达式的函数内 `thread_local`。应优先把
+指针或标量 TLS 放在函数外，以零值或 `nullptr` 常量初始化，并在访问器中显式完成
+懒初始化。该规则针对的是会生成 guard 的动态初始化；函数内纯常量初始化是否可用，
+仍须根据最终目标汇编确认，不能仅凭作用域推断。
+
+本实验已撤销，当前源码已恢复为函数外 `nullptr` TLS 与手动懒绑定实现。
 
 ## Apple 平台的 `std::this_thread::get_id()`
 
@@ -365,7 +431,7 @@ ret
 即 Qk 包装函数自身为 1 条核心指令、5 条完整路径指令和一次 `_pthread_self`
 调用。目标文件中还有
 一个 `___clang_call_terminate` 异常落点，但正常路径不会执行它。这个直接调用
-实验完成后也已撤销，源码和 `thread.o` 均恢复为基线版本。
+实验完成后也已撤销。
 
 当前系统 `/usr/lib/system/libsystem_pthread.dylib` 中，arm64
 `_pthread_self` 的快速路径为：
@@ -394,8 +460,10 @@ pthread 指针；只有验证失败才进入冷路径。
 | 合计 | 9 | 13 | 0 个 TLS thunk |
 
 因此，Apple 平台直接调用版本明显短于 21 条加两次 TLV thunk 的基线缓存版本，
-也短于 15 条加一次 TLV thunk 的 POD 缓存版本。最终是否采用仍应在可成功链接的
-Framework 上复查符号桩，并进行必要的微基准测试。
+也短于 15 条加一次 TLV thunk 的 POD 缓存版本。当前最终实现已将
+`thread_self_id()` 放入头文件并使用 `Qk_INLINE`：Linux 直接构造
+`ThreadID(pthread_self())`，其他平台直接返回 `std::this_thread::get_id()`，不再
+缓存线程 ID 或导出额外包装符号。
 
 ## Linux x86_64 的 `pthread_self()`
 
@@ -608,3 +676,7 @@ PLT 稳定跳板和三条 glibc 指令后，完整稳定路径为 10 条。
    跨平台替换。
 9. Linux libstdc++ 构建使用 `_GLIBCXX_GTHREAD_USE_WEAK=0` 也可将 `get_id()` 路径
    降到 10 条，但这是影响全工程的内部宏，目前只完成实验，未加入构建配置。
+10. `Allocator::current()` 的 macOS arm64 实测表明，函数内
+    `static thread_local ... = shared()` 在稳定路径仍需 guard TLS 和数据 TLS 两次
+    TLV 解析；函数外 `nullptr` 常量初始化加手动懒绑定只需一次。因此热点访问器中
+    禁止使用带动态初始化的函数内 `thread_local`。

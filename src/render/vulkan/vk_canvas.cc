@@ -30,8 +30,6 @@
 
 #include "./vk_canvas.h"
 #include "./vk_render.h"
-#include "src/util/macros.h"
-#include <cstdint>
 
 namespace qk {
 	void clear_PathvCache(PathvCache *cache, int flags);

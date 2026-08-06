@@ -110,9 +110,9 @@ namespace qk {
 		return t;
 	}
 
-	thread_local Thread_INL* thread_inl = nullptr;
+	static thread_local Qk_TLS_INITIAL_EXEC Thread_INL* thread_inl = nullptr;
 
-	static void thread_set_thread_data(Thread_INL *t) {
+	inline static void thread_self_set(Thread_INL *t) {
 		thread_inl = t;
 	}
 
@@ -122,11 +122,6 @@ namespace qk {
 
 	Thread_INL* thread_self_inl() {
 		return thread_inl;
-	}
-
-	ThreadID thread_self_id() {
-		// thread_local ThreadID tid = std::this_thread::get_id();
-		return std::this_thread::get_id();
 	}
 
 	static void SetThreadName(cString& name) {
@@ -166,7 +161,7 @@ namespace qk {
 			JNI::ScopeENV scope;
 #endif
 			SetThreadName(t->name);
-			thread_set_thread_data(t);
+			thread_self_set(t);
 			if ( !t->abort ) {
 				t->exec(t, t->arg);
 			}

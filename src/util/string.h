@@ -285,8 +285,8 @@ namespace qk {
 	};
 
 	template <>
-	inline uint32_t _Str::strlen<char>(const char* s) {
-		return ::strlen(s); // use C standard library strlen for char
+	Qk_INLINE uint32_t _Str::strlen<char>(const char* s) {
+		return s ? (uint32_t)::strlen(s): 0;
 	}
 
 	// --------------------------------------------------------------------------------

@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include <math.h>
 #include "./gpu_canvas.h"
 #include "./gpu_canvas_filter.h"
 

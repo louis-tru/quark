@@ -23,7 +23,7 @@ src/render/vulkan/vk_shaders.h
 src/render/vulkan/vk_shaders.cc
 build
 quark.*
-.kdev4/quark.kdev4 
+**/*.kdev4
 .config.mk
 deps/spine
 src/ui/painter_*

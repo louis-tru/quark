@@ -32,7 +32,6 @@
 #define __quark__font__typeface__
 
 #include "../../util/string.h"
-#include "../../math.h"
 #include "../path.h"
 #include "./style.h"
 #include "./metrics.h"

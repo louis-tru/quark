@@ -14,7 +14,6 @@
 #include "./metal/mtl_shaders.h"
 #include "./path.h"
 #include "./source.h"
-#include "src/render/math.h"
 
 namespace qk {
 	struct GC_ImageDrawInfo;

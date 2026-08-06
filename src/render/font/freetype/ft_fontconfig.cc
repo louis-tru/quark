@@ -30,6 +30,7 @@
 
 #include <fontconfig/fontconfig.h>
 #include <string.h>
+#include <math.h>
 
 #include "./ft_typeface.h"
 #include "../pool.h"

@@ -38,6 +38,7 @@
 #include <limits>
 #include <stdint.h>
 #include <type_traits>
+#include <math.h>
 
 /**
  * std::underlying_type is only defined for enums. For integral types, we just want the type.

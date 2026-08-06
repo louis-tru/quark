@@ -149,7 +149,6 @@
 // Summary:
 //   Use Qk_ASSERT(cond)         → Debug-only assertion (no side effects allowed)
 //   Use Qk_ASSERT_OP(a, op, b)  → Assert + preserve side-effects in Release
-// ----------------------------------------------------------------------------
 #if DEBUG
 # define Qk_ASSERT Qk_CHECK
 # define Qk_ASSERT_OP(a, op, b, ...) Qk_CHECK(((a) op (b)), ##__VA_ARGS__)
@@ -227,8 +226,6 @@
 # define __Qk_HAS_FORCE_INLINE 1
 #endif
 
-// ------------------------------------------------------------------
-
 #ifndef Qk_EXPORT
 #ifdef _MSC_VER
 # define Qk_EXPORT __declspec(dllexport)
@@ -255,7 +252,11 @@
 #undef __Qk_HAS_FORCE_INLINE
 #undef __Qk_HAS_ATTRIBUTE_VISIBILITY
 
-// ------------------------------------------------------------------
+#if Qk_LINUX
+#define Qk_TLS_INITIAL_EXEC __attribute__((tls_model("initial-exec")))
+#else
+#define Qk_TLS_INITIAL_EXEC
+#endif
 
 #ifdef _MSC_VER
 	#pragma section(".CRT$XCU", read)
@@ -268,6 +269,8 @@
 	# define Qk_Init_Func(fn)\
 	extern __attribute__((constructor)) void fn##__(void)
 #endif
+
+// ------------------------------------------------------------------
 
 #if !defined(Qk_CPU_LENDIAN)
 	#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)

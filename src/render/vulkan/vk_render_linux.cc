@@ -31,8 +31,6 @@
 #include "./vk_render.h"
 #include "../plotforms.h"
 #include "../../util/thread.h"
-#include "src/render/vulkan/vk_util.h"
-#include "src/util/macros.h"
 
 #if Qk_ANDROID
 # include <android/native_window.h>

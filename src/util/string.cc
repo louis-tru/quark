@@ -105,6 +105,7 @@ namespace qk {
 
 	uint32_t _Str::strlen(cVoid* s_, int sizeOf) {
 		const char* s = (const char*)s_;
+		Qk_ASSERT(sizeOf > 0, "sizeOf must be greater than 0");
 		if (s) {
 			if (sizeOf == 1) {
 				return (uint32_t)::strlen(s);

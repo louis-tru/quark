@@ -39,7 +39,6 @@
 #include "./app.h"
 #include "../util/thread/inl.h"
 #include "../errno.h"
-#include "src/util/macros.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0

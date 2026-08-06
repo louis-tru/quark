@@ -31,6 +31,7 @@
 #include "./mutex.h"
 #include <vector>
 #include <cinttypes>
+#include "../thread.h"
 
 #if !defined(__has_feature)
 	#define __has_feature(x) 0

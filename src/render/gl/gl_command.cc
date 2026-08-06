@@ -28,11 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
 #include "./gl_command.h"
 #include "./gl_render.h"
 #include "./gl_canvas.h"
-#include "src/util/macros.h"
 
 #define Qk_CGCmd_Option_Capacity 256
 #define Qk_CGCmd_VertexBlock_Capacity 6555

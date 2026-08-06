@@ -120,3 +120,35 @@ and faster by using the invariant that one short-edge task can touch at most
 three tiles: each task owns three `CAPAShortEdge` node slots and links only the
 slots it uses. This kind of ownership change is preferred over clever
 synchronization.
+
+## 7. Do Not Dynamically Initialize Function-Local TLS In Hot Accessors
+
+Do not put a `thread_local` variable with a run-time initializer inside a hot
+accessor, for example:
+
+```cpp
+static thread_local Allocator* current = shared();
+```
+
+On macOS arm64, Apple Clang emits one TLV for the initialization guard and a
+second TLV for the value. Qk's measured `Allocator::current()` stable path then
+required 20 visible instructions and two TLV thunk calls; the first-use path
+required about 28 visible instructions, three TLV thunk calls, and `shared()`.
+
+For pointer or scalar thread state, prefer namespace-scope constant
+initialization and explicit lazy binding:
+
+```cpp
+static thread_local Allocator* current = nullptr;
+```
+
+The measured macOS stable path for this form required 13 visible instructions
+and one TLV thunk, with no compiler-generated TLS initialization guard. A
+platform-specific TLS model may further optimize the address lookup where the
+loader contract permits it.
+
+This rule prohibits function-local TLS with dynamic initialization in hot
+accessors. It does not claim that every function-local, constant-initialized TLS
+variable necessarily has a guard; inspect final optimized output before relying
+on such an exception. The measurements and assembly are recorded in
+`THREAD_LOCAL_ASSEMBLY-cn.md`.

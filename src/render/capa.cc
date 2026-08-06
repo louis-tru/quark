@@ -8,6 +8,7 @@
 
 #include "./gpu_canvas.h"
 #include "./capa.h"
+#include <math.h>
 
 namespace qk {
 	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 16;

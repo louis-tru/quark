@@ -28,7 +28,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "src/ui/app.h"
 #include "./ui.h"
 #include "../render/font/pool.h"
 #include "../render/source.h"

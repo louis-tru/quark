@@ -28,7 +28,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "src/render/vulkan/vk_util.h"
 #include "./vk_render.h"
 
 namespace qk {

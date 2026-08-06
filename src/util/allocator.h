@@ -113,7 +113,7 @@ namespace qk {
 		 * Initializes allocator with default malloc/realloc/free
 		 * function pointers.
 		 */
-		explicit Allocator();
+		explicit Allocator() noexcept;
 
 		/// Allocate raw memory.
 		inline void* malloc(uint32_t size) {
@@ -217,7 +217,7 @@ namespace qk {
 		* @brief Access the current thread-local allocator.
 		* @return Pointer to the current thread-local Allocator instance.
 		*/
-		inline static Allocator* current() { return _current; }
+		static Allocator* current();
 
 		/**
 		 * @brief Push a new allocator onto the thread-local stack.
@@ -247,7 +247,7 @@ namespace qk {
 		/// Constructor with explicit function pointers.
 		Allocator(void*(Allocator::*malloc)(uint32_t size),
 				void* (Allocator::*mrealloc)(void* ptr, uint32_t size),
-				void  (Allocator::*free)(void *ptr));
+				void  (Allocator::*free)(void *ptr)) noexcept;
 
 	private:
 		/**
@@ -257,8 +257,6 @@ namespace qk {
 		* @param sizeOf Size of each element
 		*/
 		void extend_(Ptr<void> *ptr, uint32_t size, uint32_t sizeOf);
-
-		static thread_local Allocator* _current; ///< Thread-local current allocator for push/pop.
 
 		void* (Allocator::*_malloc)(uint32_t size); ///< malloc function pointer
 		void* (Allocator::*_mrealloc)(void* ptr, uint32_t size); ///< realloc function pointer

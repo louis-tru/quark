@@ -29,8 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./gl_render.h"
-#include "./gl_command.h"
-#include "src/util/thread.h"
 
 #ifndef GL_APPLE_texture_format_BGRA8888
 #define GL_APPLE_texture_format_BGRA8888 1

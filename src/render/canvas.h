@@ -36,7 +36,6 @@
 #include "./pathv_cache.h"
 #include "./pixel.h"
 #include "./paint.h"
-#include "src/render/blend.h"
 
 namespace qk {
 
