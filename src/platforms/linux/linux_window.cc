@@ -153,9 +153,10 @@ namespace qk {
 		~WindowPlatform() {
 			Qk_ASSERT(_xwin);
 			deleteImplFromGlobal(_xwin);
-			XDestroyWindow(_xdpy, _xwin); _xwin = 0;
+			XDestroyWindow(_xdpy, _xwin);
+			_xwin = 0;
 			if (_ime) {
-				delete _ime; _ime = nullptr;
+				Releasep(_ime);
 			}
 			if (_noneCursor != XNone) {
 				XFreeCursor(_xdpy, _noneCursor);

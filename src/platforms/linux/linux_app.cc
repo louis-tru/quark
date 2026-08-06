@@ -93,10 +93,9 @@ namespace qk
 			WindowImpl* impl;
 			XEvent event;
 			do {
-				// wait for next event
-				XNextEvent(_xdpy, &event);
-				// resolve msg before event
-				resolveMsg();
+				XNextEvent(_xdpy, &event); // wait for next event
+
+				resolveMsg(); // resolve msg before event
 
 				if (XFilterEvent(&event, 0)) {
 					continue; // skip event if filtered by input method
@@ -106,6 +105,8 @@ namespace qk
 					continue; // skip event if not found window impl
 				}
 				auto win = impl->win();
+				if (!win->root())
+					continue; // skip event if window is closed
 
 				switch (event.type) {
 					case Expose:

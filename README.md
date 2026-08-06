@@ -30,6 +30,9 @@ favor explicit structure, predictable behavior, and controllable performance.
 | Android | macOS/Linux + JDK, Android SDK/NDK | OpenGL ES; optional Vulkan | Vulkan presentation and Canvas/CAPA encoding are implemented; wider device validation continues. |
 | Linux | Linux native toolchain | OpenGL ES; optional Vulkan/Xlib | Vulkan presentation is implemented; Linux runtime validation continues. |
 
+The current Linux build and runtime test environment is Ubuntu 20.04. Other
+Linux distributions have not yet been validated.
+
 Source configuration currently enables GL by default. Apple builds select
 Metal when GL is disabled; Android/Linux builds can enable Vulkan alongside
 GL. When both Vulkan and GL are present, Vulkan is attempted first and `--gl`

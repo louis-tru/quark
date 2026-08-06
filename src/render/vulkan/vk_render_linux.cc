@@ -35,16 +35,15 @@
 #if Qk_ANDROID
 # include <android/native_window.h>
 #elif Qk_LINUX
-# include "../platforms.h"
-# undef Status
-# undef Bool
-# undef None
+# include <vulkan/vulkan_xlib.h>
 #endif
 
 #define EGL_NO_NATIVE_WINDOW 0
 
 namespace qk {
 	typedef Render::Options Options;
+
+	void post_message_main(Cb cb, bool sync);
 
 	struct VulkanSwapchainImage {
 		void setTexture(VkTexture* tex) {
@@ -424,8 +423,23 @@ namespace qk {
 				semaphore = VK_NULL_HANDLE;
 			}
 			_imageAvailableIndex = 0;
-			if (_swapchain)
+			if (_swapchain) {
+#if Qk_LINUX
+				if (!_isRun) {
+					// NVIDIA Xlib WSI may block if this runs while the X11 main thread is
+					// waiting in XNextEvent(). Queue swapchain and surface destruction on
+					// that thread; closeImpl() is queued afterwards, so FIFO ordering keeps
+					// the native X11 window alive until both Vulkan WSI objects are gone.
+					post_message_main(Cb([swapchain=_swapchain,surface=_surface](auto) {
+						auto res = getSharedRenderVulkanResource();
+						vkDestroySwapchainKHR(res->device(), swapchain, nullptr);
+						vkDestroySurfaceKHR(res->instance(), surface, nullptr);
+					}), false);
+					_surface = VK_NULL_HANDLE;
+				} else
+#endif
 				vkDestroySwapchainKHR(_device, _swapchain, nullptr);
+			}
 			_swapchain = VK_NULL_HANDLE;
 			_imageIndex = U32::limit_max;
 		}

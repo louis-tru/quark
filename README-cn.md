@@ -27,6 +27,8 @@ Quark 不是浏览器运行时。它拥有独立的 View 树、样式与布局�
 | Android | macOS/Linux + JDK、Android SDK/NDK | OpenGL ES；可选 Vulkan | Vulkan 呈现和 Canvas/CAPA 编码已实现，仍在扩大设备验证。 |
 | Linux | Linux 原生工具链 | OpenGL ES；可选 Vulkan/Xlib | Vulkan 呈现已实现，仍需继续 Linux 运行时验证。 |
 
+当前 Linux 构建与运行测试环境为 Ubuntu 20.04，其他 Linux 发行版尚未完成验证。
+
 源码配置当前默认启用 GL。Apple 构建在关闭 GL 时选择 Metal；Android/Linux
 可以在保留 GL 的同时启用 Vulkan。当 Vulkan 与 GL 同时存在时会优先尝试
 Vulkan，使用 `--gl` 可强制选择 GL。Android Vulkan 要求 Android 10/API 29

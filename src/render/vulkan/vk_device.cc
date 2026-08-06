@@ -33,9 +33,8 @@
 
 #if Qk_LINUX
 # include "../plotforms.h"
-# undef Status
-# undef Bool
-# undef None
+# include <vulkan/vulkan_xlib.h>
+# include <sys/socket.h>
 #endif
 
 namespace qk {
@@ -67,13 +66,42 @@ namespace qk {
 #endif
 	}
 
+#if Qk_LINUX
+	static Display* vkDisplay = nullptr;
+	static Display* openVulkanXDisplay() {
+		if (!vkDisplay)
+			vkDisplay = XOpenDisplay(nullptr);
+		return vkDisplay;
+	}
+	static void closeXDisplay(Display* dpy) {
+		XCloseDisplay(vkDisplay);
+		vkDisplay = nullptr;
+	}
+	static void Noop(Display* dpy){}
+	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay, Noop>> XDisplayAuto;
+
+	static bool isLocalX11Display() {
+		auto display = openVulkanXDisplay();
+		struct sockaddr_storage peer{};
+		socklen_t peerSize = sizeof(peer);
+		if (getpeername(ConnectionNumber(display),
+			reinterpret_cast<struct sockaddr*>(&peer), &peerSize) == 0 &&
+			peer.ss_family == AF_UNIX) {
+			return true;
+		}
+		Qk_DLog("Vulkan disabled: X11 display %s is not a local Unix socket",
+			DisplayString(display));
+		return false;
+	}
+#endif
+
 	static bool platformPresentationSupport(VkPhysicalDevice device, uint32_t family) {
 #if Qk_ANDROID
 		return true; // Vulkan Android 规范保证
 #elif Qk_WIN
 		return vkGetPhysicalDeviceWin32PresentationSupportKHR(device, family);
 #elif Qk_LINUX
-		auto display = openXDisplay();
+		auto display = openVulkanXDisplay();
 		auto visual = DefaultVisual(display, DefaultScreen(display));
 		return vkGetPhysicalDeviceXlibPresentationSupportKHR(
 			device, family, display, XVisualIDFromVisual(visual));
@@ -154,11 +182,7 @@ namespace qk {
 		}
 	}
 
-	static bool findGraphicsQueueFamily(
-		VkPhysicalDevice device,
-		uint32_t *family,
-		bool *computeSupport
-	) {
+	static bool findGraphicsQueueFamily(VkPhysicalDevice device, uint32_t *family, bool *computeSupport) {
 		uint32_t count = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
 
@@ -308,6 +332,11 @@ namespace qk {
 		uint32_t *selectedQueueFamily,
 		bool *selectedComputeSupport
 	) {
+#if Qk_LINUX
+		XDisplayAuto display(openVulkanXDisplay());
+		if (!isLocalX11Display())
+			return false;
+#endif
 		uint32_t count = 0;
 		VkResult result = vkEnumeratePhysicalDevices(instance, &count, nullptr);
 

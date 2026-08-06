@@ -345,7 +345,10 @@ or discarded recording, avoiding per-frame free/allocate churn.
 - Vulkan CAPA runtime validation and driver-specific corrections;
 - driver/device capability validation and fallback behavior;
 - broader Android device/driver profiling beyond the current test devices;
-- Linux/Xlib build/runtime smoke testing and any platform-specific corrections.
+- broader Linux/Xlib driver testing and cross-architecture build validation.
+  Ubuntu 20.04 x64 Release builds, links against the system Vulkan loader, and
+  starts on a native X11 display. Forwarded X11 connections such as SSH/XQuartz
+  are rejected before driver WSI queries and fall back to GL.
 
 ## Review Guardrails
 

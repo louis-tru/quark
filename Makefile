@@ -86,8 +86,8 @@ android:
 
 linux:
 	@$(call check,linux,$(HOST_OS),$@)
-	@./configure --os=linux   --arch=x64   && $(MAKE) build
-	@./configure --os=linux   --arch=arm64 && $(MAKE) build
+	@./configure --os=linux   --arch=x64   -vk && $(MAKE) build
+	@./configure --os=linux   --arch=arm64 -vk && $(MAKE) build
 
 # try local and remote build
 try_android:

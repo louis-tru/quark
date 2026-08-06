@@ -801,7 +801,6 @@ namespace qk {
 				UILock lock(_window); // Lock ui render
 				auto pos = val ? *val: _mouse->position(); // get current mouse pos
 				auto v = find_receive_view_and_retain(pos);
-				//Qk_DLog("onMousepress code: %d, isDown: %i, v: %p", code, isDown, v);
 				if (v)
 					_loop->post(Cb([this,v,pos,code,isDown](auto e) {
 						mousepress(v, pos, code, isDown);
@@ -810,17 +809,16 @@ namespace qk {
 				break;
 			}
 			case KEYCODE_MOUSE_WHEEL_UP:
-				deltaDefault = Vec2(0, 50); goto wheel;
-			case KEYCODE_MOUSE_WHEEL_DOWN:
 				deltaDefault = Vec2(0, -50); goto wheel;
+			case KEYCODE_MOUSE_WHEEL_DOWN:
+				deltaDefault = Vec2(0, 50); goto wheel;
 			case KEYCODE_MOUSE_WHEEL_LEFT:
-				deltaDefault = Vec2(50, 0); goto wheel;
+				deltaDefault = Vec2(-50, 0); goto wheel;
 			case KEYCODE_MOUSE_WHEEL_RIGHT:
-				deltaDefault = Vec2(-50, 0);
+				deltaDefault = Vec2(50, 0);
 			wheel:
 				if (isDown) {
 					auto delta = val ? *val: deltaDefault; // use default 50 units delta if not provided
-					//auto delta = deltaDefault;
 					auto pos = _mouse->position(); // last mouse pos
 					_loop->post(Cb([=](auto e) {
 						auto v = _mouse->view();

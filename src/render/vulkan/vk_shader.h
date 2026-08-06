@@ -35,8 +35,6 @@
 
 #if defined(__ANDROID__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
 # define VK_USE_PLATFORM_ANDROID_KHR 1
-#elif defined(__linux__) && !defined(VK_USE_PLATFORM_XLIB_KHR)
-# define VK_USE_PLATFORM_XLIB_KHR 1
 #endif
 
 #include <vulkan/vulkan.h>

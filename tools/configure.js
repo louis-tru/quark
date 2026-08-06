@@ -684,29 +684,34 @@ async function install_depe(opts, variables) {
 			]) {
 				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] }; // add common linux lib dependencies
 			}
+
+			if (os == 'linux' && opts.use_vk) {
+				const lib = `libvulkan-dev:${suffix}`;
+				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
+			}
 		}
 		// Reserved for possible future Fedora/Alpine support. These yum/apk
 		// package mappings have not been build-tested; keep them disabled until
 		// their package names, toolchain compatibility, and CI coverage are verified.
-		/*else if (pkgm == 'yum') {
-			for (let lib of [
+		else if (pkgm == 'yum') {
+			/*for (let lib of [
 				'mesa-libGLES-devel', 'mesa-libEGL-devel',
 				'libX11-devel', 'libXi-devel',
 				'libXcursor-devel', 'alsa-lib-devel',
 				'fontconfig-devel', 'zlib-devel', 'bzip2-devel',
 			]) {
 				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
-			}
+			}*/
 		}
 		else if (pkgm == 'apk') {
-			for (let lib of [
+			/*for (let lib of [
 				'mesa-dev', 'libx11-dev',
 				'libxi-dev', 'libxcursor-dev',
 				'alsa-lib-dev', 'fontconfig-dev', 'zlib-dev', 'bz2-dev',
 			]) {
 				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
-			}
-		}*/
+			}*/
+		}
 
 		if (arch == 'x86' || arch == 'x64') {
 			if (typeof yasm != 'string')

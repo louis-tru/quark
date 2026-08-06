@@ -32,6 +32,9 @@ Implemented:
 - Android/Xlib surface creation, FIFO swapchain management, nonblocking acquire,
   direct Canvas rendering into acquired images, shared-queue
   submission/present, and externally driven surface reload;
+- Ubuntu 20.04 x64 Vulkan Release configuration, compilation, loader linkage,
+  and native X11 startup; forwarded X11 displays are rejected before Vulkan WSI
+  queries so the renderer can fall back to GL;
 - Android runtime bring-up on multiple devices;
 - Android system clipboard plain-text read, write, presence, and clear support;
 - Vulkan CAPA resource, descriptor, pass, barrier, dispatch, and ordered
@@ -52,7 +55,7 @@ Immediate correctness work:
 
 Remaining validation/stabilization:
 
-- Linux runtime validation of platform presentation;
+- broader Linux runtime validation of platform presentation and additional drivers;
 - Vulkan CAPA runtime validation;
 - broader runtime validation across Android and desktop Vulkan drivers;
 - re-enable the currently disabled macOS GL `readPixels()` path only after its
