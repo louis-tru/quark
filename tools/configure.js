@@ -640,10 +640,10 @@ async function install_depe(opts, variables) {
 	dpkg['spirv-cross'] = host_os == 'linux' ? {
 		build: true,
 		deps: {cmake},
-		cmds: [
-			'cmake -S . -B build -DCMAKE_BUILD_TYPE=Release',
+		cmds: [ 
+			'cmake . -B build -DCMAKE_BUILD_TYPE=Release',
 			'make -C build -j4',
-			'*cmake --install build',
+			'*make -C build install'
 		],
 	}: {
 		cmds: [getPkgmCmds('spirv-cross')],
