@@ -574,7 +574,12 @@ async function install_depe(opts, variables) {
 		deps: {
 			'libssl-dev': { lib: 1, cmds: [getPkgmCmds('libssl-dev')] },
 		},
-		cmds: [ `./configure --parallel=4`, `make -j4`, `*make install` ],
+		cmds: [
+			'mkdir -p build',
+			'cd build && ../configure --parallel=4',
+			'make -C build -j4',
+			'*make -C build install',
+		],
 		check: (execPath)=>{
 			let res = execSync(`${execPath} --version`);
 			util.assert(res.code == 0, `cmake not found in ${execPath}`);
@@ -635,7 +640,11 @@ async function install_depe(opts, variables) {
 	dpkg['spirv-cross'] = host_os == 'linux' ? {
 		build: true,
 		deps: {cmake},
-		cmds: [ 'cmake . -B out -DCMAKE_BUILD_TYPE=Release', 'make -C out -j4', '*make -C out install' ],
+		cmds: [
+			'cmake -S . -B build -DCMAKE_BUILD_TYPE=Release',
+			'make -C build -j4',
+			'*cmake --install build',
+		],
 	}: {
 		cmds: [getPkgmCmds('spirv-cross')],
 	};
