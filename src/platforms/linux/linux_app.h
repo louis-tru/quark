@@ -54,7 +54,7 @@ namespace qk {
 		virtual void focus_out() = 0;
 	};
 
-	class WindowImpl: public SafeFlag {
+	class WindowImpl {
 	public:
 		Qk_DEFINE_PROP_GET(Window*, win, Protected);
 		Qk_DEFINE_PROP_GET(XWindow, xwin, Protected);

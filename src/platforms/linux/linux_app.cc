@@ -104,13 +104,15 @@ namespace qk
 				if (_clipboard->handleClipboardEvent(event))
 					continue;
 
-				if (XFilterEvent(&event, 0)) {
+				if (XFilterEvent(&event, 0))
 					continue; // skip event if filtered by input method
-				}
 
-				if (!event.xany.window || !_winImpl.get(event.xany.window, impl)) {
+				if (!event.xany.window || !_winImpl.get(event.xany.window, impl))
 					continue; // skip event if not found window impl
-				}
+
+				if (!impl)
+					continue; // skip event if window impl is nullptr
+
 				auto win = impl->win();
 				if (!win->root())
 					continue; // skip event if window is closed
@@ -169,8 +171,11 @@ namespace qk
 					case ClientMessage:
 						if (event.xclient.message_type == wmProtocols && 
 							(Atom)event.xclient.data.l[0] == wmDeleteWindow) { // close
+							// set window impl to nullptr to avoid dispatch event after close
+							_winImpl.set(event.xany.window, nullptr);
 							Qk_DLog("event, ClientMessage: Close");
 							_app->loop()->post(Cb([win](auto e) {
+								Qk_DLog("event, ClientMessage: Close ok");
 								win->close(); // close window for app loop
 							}, win));
 						}
@@ -257,7 +262,8 @@ namespace qk
 			event.xcirculate.place = PlaceOnTop;
 			Qk_ASSERT_EQ(
 				True,
-				XSendEvent(_xdpy, _xwinService, False, NoEventMask, &event)
+				XSendEvent(_xdpy, _xwinService, False, NoEventMask, &event),
+				"XSendEvent failed"
 			);
 			XFlush(_xdpy);
 		}
@@ -294,7 +300,7 @@ namespace qk
 
 	// sync to x11 main message loop
 	void post_message_main(Cb cb, bool sync) {
-		Qk_ASSERT(x11app);
+		Qk_ASSERT(x11app, "X11Application is not initialized");
 		if (main_thread_id == thread_self_id()) {
 			cb->resolve();
 		} else if (sync) {
@@ -311,7 +317,7 @@ namespace qk
 	}
 
 	LinuxClipboard* linux_clipboard() {
-		Qk_ASSERT(x11app && x11app->_clipboard);
+		Qk_ASSERT(x11app && x11app->_clipboard, "LinuxClipboard is not initialized");
 		return x11app->_clipboard;
 	}
 

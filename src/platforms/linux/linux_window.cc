@@ -147,13 +147,11 @@ namespace qk {
 		}
 
 		~WindowPlatform() {
-			Qk_ASSERT(_xwin);
+			Qk_ASSERT(_xwin, "WindowPlatform::~WindowPlatform, _xwin is nullptr");
 			logout_xwindow(_xwin);
 			XDestroyWindow(_xdpy, _xwin);
 			_xwin = 0;
-			if (_ime) {
-				Releasep(_ime);
-			}
+			Releasep(_ime);
 			if (_noneCursor != XNone) {
 				XFreeCursor(_xdpy, _noneCursor);
 			}
