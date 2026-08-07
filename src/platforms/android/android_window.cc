@@ -282,10 +282,10 @@ namespace qk {
 			CondMutex mutex;
 			Cb cb1([&cb, &mutex](auto e) {
 				cb->resolve();
-				mutex.lock_and_notify_one();
+				mutex.lock_notify_one();
 			});
 			swm->addMsg(cb1);
-			mutex.lock_and_wait_for(); // wait
+			mutex.lock_wait_for(); // wait
 		} else {
 			swm->addMsg(cb);
 		}

@@ -79,7 +79,7 @@ namespace qk {
 		return Lock{.m=mutex};
 	}
 
-	void CondMutex::lock_and_wait_for(uint64_t timeoutUs) {
+	void CondMutex::lock_wait_for(uint64_t timeoutUs) {
 		qk::Lock lock(mutex);
 		if (timeoutUs) {
 			cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
@@ -88,13 +88,13 @@ namespace qk {
 		}
 	}
 
-	void CondMutex::lock_and_notify_one() {
+	void CondMutex::lock_notify_one() {
 		mutex.lock();
 		cond.notify_one();
 		mutex.unlock();
 	}
 
-	void CondMutex::lock_and_notify_all() {
+	void CondMutex::lock_notify_all() {
 		mutex.lock();
 		cond.notify_all();
 		mutex.unlock();
@@ -179,7 +179,7 @@ namespace qk {
 				Qk_DLog("Thread end ..., %s", t->name.c_str());
 				for (auto& i : t->waitSelfEnd) {
 					i->end = true;
-					i->lock_and_notify_one();
+					i->lock_notify_one();
 				}
 				Qk_DLog("Thread end  ok, %s", t->name.c_str());
 			}
@@ -211,7 +211,7 @@ namespace qk {
 	void thread_pause(uint64_t timeoutUs) {
 		auto t = thread_self_inl();
 		if (t) {
-			t->lock_and_wait_for(timeoutUs);
+			t->lock_wait_for(timeoutUs);
 		} else {
 			thread_sleep(timeoutUs);
 		}
@@ -255,7 +255,7 @@ namespace qk {
 			t->mutex.unlock();
 			Qk_DLog("thread_join_for(), ..., %p, %s", id, name.c_str());
 			if (!wait.end)
-				wait.lock_and_wait_for(timeoutUs); // permanent wait
+				wait.lock_wait_for(timeoutUs); // permanent wait
 			Qk_DLog("thread_join_for(), end, %p, %s", id, name.c_str());
 		}
 	}

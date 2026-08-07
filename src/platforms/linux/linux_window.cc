@@ -125,9 +125,6 @@ namespace qk {
 		return x11().xdpyDpi;
 	}
 
-	void addImplToGlobal(XWindow xwin, WindowImpl* win);
-	void deleteImplFromGlobal(XWindow xwin);
-
 	class WindowPlatform: public WindowImpl {
 		#define _platform(_impl) static_cast<WindowPlatform*>(_impl)
 	public:
@@ -146,13 +143,12 @@ namespace qk {
 			_xwin = newXWindow(opts);
 			_ime = LinuxIMEHelper::Make(this);
 			_noneCursor = XNone;
-
-			addImplToGlobal(_xwin, this);
+			login_xwindow(_xwin, this);
 		}
 
 		~WindowPlatform() {
 			Qk_ASSERT(_xwin);
-			deleteImplFromGlobal(_xwin);
+			logout_xwindow(_xwin);
 			XDestroyWindow(_xdpy, _xwin);
 			_xwin = 0;
 			if (_ime) {

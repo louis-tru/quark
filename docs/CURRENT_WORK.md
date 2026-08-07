@@ -35,8 +35,13 @@ Implemented:
 - Ubuntu 20.04 x64 Vulkan Release configuration, compilation, loader linkage,
   and native X11 startup; forwarded X11 displays are rejected before Vulkan WSI
   queries so the renderer can fall back to GL;
+- Linux/Xlib shutdown queues `VkSwapchainKHR` and `VkSurfaceKHR` destruction on
+  the X11 main thread before the native window close task. This avoids an
+  NVIDIA Xlib WSI stall when the event thread is blocked in `XNextEvent()`;
 - Android runtime bring-up on multiple devices;
 - Android system clipboard plain-text read, write, presence, and clear support;
+- Linux/X11 `CLIPBOARD` ownership, UTF-8 text read/write, target negotiation,
+  selection request handling, presence checks, and clear support;
 - Vulkan CAPA resource, descriptor, pass, barrier, dispatch, and ordered
   composite encoding;
 - shader-reflection type cleanup, compatible render-pass creation, descriptor
@@ -56,10 +61,23 @@ Immediate correctness work:
 Remaining validation/stabilization:
 
 - broader Linux runtime validation of platform presentation and additional drivers;
+- Linux rendering performance and visual-quality work, with ordinary-DPI text
+  rasterization/filtering quality as the main visible issue;
 - Vulkan CAPA runtime validation;
 - broader runtime validation across Android and desktop Vulkan drivers;
 - re-enable the currently disabled macOS GL `readPixels()` path only after its
   behavior is validated.
+
+## Linux Platform Notes
+
+- Linux clipboard uses the X11 `CLIPBOARD` selection through the application's
+  hidden service window. It currently supports ordinary `UTF8_STRING` transfers.
+  The normal X11 loop receives `SelectionNotify` and wakes the requesting
+  thread; no synchronous task is posted to the main loop. A successful external
+  read is cached by taking selection ownership, so a following
+  `hasText()`/`getText()` call does not request the same text again. ICCCM
+  `INCR`, legacy encodings, and clipboard-manager persistence after process exit
+  are not implemented yet.
 
 ## Deferred Non-Vulkan Work
 
@@ -70,9 +88,6 @@ Remaining validation/stabilization:
 - Android GLES can spend substantial CPU time uploading dynamic R8 text/image
   textures. Treat GL/GLES as the correctness fallback; optimize only with new
   profiling evidence.
-- Linux clipboard has a build-wired placeholder. A real implementation should
-  integrate with the active window-system backend; the current Xlib path needs
-  X11 selection ownership and asynchronous request/notify handling.
 - CAPA is functionally closed enough for stabilization. Keep AASide for
   hairlines/text and use CAPA for complex ordered fills where batching makes
   sense. Algorithm and pass details live in

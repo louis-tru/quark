@@ -84,6 +84,14 @@ aligned with GL and Metal after orientation changes. Using
 (fixed logical extent plus matching render/input transforms); changing only the
 swapchain flag produces incorrectly scaled or rotated output.
 
+On Linux, swapchain and Vulkan surface destruction during window close is
+queued onto the X11 main thread. The X11 message queue is FIFO, so this WSI
+cleanup runs before the subsequently queued `WindowPlatform` destruction and
+`XDestroyWindow()`. Keep this ordering: destroying the swapchain from the
+application loop while the X11 thread waits in `XNextEvent()` can stall inside
+the NVIDIA Xlib WSI implementation. Resize-time swapchain recreation already
+runs directly on the X11 thread and does not use the deferred close path.
+
 ## Device And Queue Model
 
 `VulkanRenderResource` owns the application-wide Vulkan objects:

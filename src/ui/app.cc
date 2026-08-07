@@ -80,7 +80,7 @@ namespace qk {
 		_fontPool = shared_fontPool();
 		_imgPool = shared_imgPool();
 		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
-		_runMainWait->lock_and_notify_all(); // The external thread continues to run
+		_runMainWait->lock_notify_all(); // The external thread continues to run
 
 		Inl_Application(this)->initPlatform();
 
@@ -163,7 +163,7 @@ namespace qk {
 		if (waitNewApp) {
 			// Block this main thread until calling new Application
 			while (!_shared) {
-				_runMainWait->lock_and_wait_for();
+				_runMainWait->lock_wait_for();
 			}
 		}
 	}

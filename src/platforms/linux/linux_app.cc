@@ -39,6 +39,7 @@
 #include "../../render/plotforms.h"
 #include "../../util/thread/inl.h"
 #include "./linux_app.h"
+#include "./linux_clipboard.h"
 #include "../../util/http.h"
 #include "../../ui/ui.h"
 
@@ -71,18 +72,21 @@ namespace qk
 	 */
 	struct X11Application {
 		XDisplay *_xdpy = 0;
-		XWindow _xwinTmp = 0;
+		// Hidden window used for event-loop wakeups and clipboard selections.
+		XWindow _xwinService = 0;
 		App::Inl *_app = nullptr;
 		List<Cb> _msg;
 		Mutex _msgMutex;
 		Dict<XWindow, WindowImpl*> _winImpl;
+		LinuxClipboard* _clipboard = nullptr;
 
 		void run() {
 			if (!shared_app())
 				return;
 			_app = Inl_Application(shared_app());
 			_xdpy = openXDisplay();
-			_xwinTmp = newXWindow();
+			_xwinService = newXWindow();
+			_clipboard = new LinuxClipboard(_xdpy, _xwinService);
 			_app->triggerLoad();
 
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
@@ -96,6 +100,9 @@ namespace qk
 				XNextEvent(_xdpy, &event); // wait for next event
 
 				resolveMsg(); // resolve msg before event
+
+				if (_clipboard->handleClipboardEvent(event))
+					continue;
 
 				if (XFilterEvent(&event, 0)) {
 					continue; // skip event if filtered by input method
@@ -180,6 +187,8 @@ namespace qk
 						break;
 				}
 			} while(!is_exit());
+
+			Releasep(_clipboard);
 		}
 
 		XWindow newXWindow() {
@@ -244,11 +253,11 @@ namespace qk
 			XEvent event;
 			event.type = CirculateNotify;
 			event.xcirculate.display = _xdpy;
-			// event.xcirculate.window = _xwinTmp;
+			// event.xcirculate.window = _xwinService;
 			event.xcirculate.place = PlaceOnTop;
 			Qk_ASSERT_EQ(
 				True,
-				XSendEvent(_xdpy, _xwinTmp, False, NoEventMask, &event)
+				XSendEvent(_xdpy, _xwinService, False, NoEventMask, &event)
 			);
 			XFlush(_xdpy);
 		}
@@ -269,17 +278,17 @@ namespace qk
 		}
 	};
 
-	// Add and delete window impl to global dict, for x11 event dispatching
-	void addImplToGlobal(XWindow xwin, WindowImpl* impl) {
+	// Login window to global dict, for x11 event dispatching
+	void login_xwindow(XWindow xwin, WindowImpl* impl) {
 		x11app->_winImpl.set(xwin, impl);
 	}
 
-	// Delete window impl from global dict, for x11 event dispatching, and when no window impl, exit process
-	void deleteImplFromGlobal(XWindow xwin) {
+	// Logout window from global dict, for x11 event dispatching
+	void logout_xwindow(XWindow xwin) {
 		x11app->_winImpl.erase(xwin);
 		if (x11app->_winImpl.length() == 0) { // Exit process
-			XDestroyWindow(x11app->_xdpy, x11app->_xwinTmp);
-			x11app->_xwinTmp = 0;
+			XDestroyWindow(x11app->_xdpy, x11app->_xwinService);
+			x11app->_xwinService = 0;
 		}
 	}
 
@@ -292,13 +301,18 @@ namespace qk
 			CondMutex mutex;
 			Cb cb1([&cb, &mutex](auto e) {
 				cb->resolve();
-				mutex.lock_and_notify_one();
+				mutex.lock_notify_one();
 			});
 			x11app->addMsg(cb1);
-			mutex.lock_and_wait_for(); // wait
+			mutex.lock_wait_for(); // wait
 		} else {
 			x11app->addMsg(cb);
 		}
+	}
+
+	LinuxClipboard* linux_clipboard() {
+		Qk_ASSERT(x11app && x11app->_clipboard);
+		return x11app->_clipboard;
 	}
 
 	void AppInl::initPlatform() {

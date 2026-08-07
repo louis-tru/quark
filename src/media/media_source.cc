@@ -260,7 +260,7 @@ namespace qk {
 	void Inl::resume() {
 		if (_pause) {
 			_pause = false;
-			_cm.lock_and_notify_one();
+			_cm.lock_notify_one();
 		}
 	}
 
@@ -392,7 +392,7 @@ namespace qk {
 			if (_pause && can_pause) {
 				Qk_ASSERT_EQ(0, av_read_pause(ctx));
 				_status = kPaused_MediaSourceStatus;
-				_cm.lock_and_wait_for();
+				_cm.lock_wait_for();
 				_status = kPlaying_MediaSourceStatus;
 				Qk_ASSERT_EQ(0, av_read_play(ctx));
 

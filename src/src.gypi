@@ -305,6 +305,7 @@
 					'platforms/linux/linux_app.cc',
 					'platforms/linux/linux_app.h',
 					'platforms/linux/linux_clipboard.cc',
+					'platforms/linux/linux_clipboard.h',
 					'platforms/linux/linux_ime_helper.cc',
 					'platforms/linux/linux_keyboard.cc',
 					'platforms/linux/linux_os.cc',

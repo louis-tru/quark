@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, Louis.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,35 +25,39 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#import "./plotforms.h"
-#import "../util/thread.h"
+#ifndef __quark_platforms_linux__linux_clipboard__
+#define __quark_platforms_linux__linux_clipboard__
+
+#include "../../util/thread.h"
+#include "./linux_app.h"
 
 namespace qk {
-	ThreadID apple_main_thread_id(thread_self_id());
 
-	Qk_EXPORT void post_message_main(Cb cb, bool sync) {
-		auto main = dispatch_get_main_queue();
-		if (apple_main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
-			cb->resolve();
-		} else if (sync) {
-			CondMutex mutex;
-			CondMutex *mutexp = &mutex;
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-				mutexp->lock_notify_one();
-			});
-			mutex.lock_wait_for(); // wait
-		} else {
-			auto core = cb.Handle::collapse();
-			dispatch_async(main, ^{
-				core->resolve();
-				core->release();
-			});
-		}
-	}
+	class LinuxClipboard {
+	public:
+		LinuxClipboard(XDisplay* display, XWindow window);
+
+		bool handleClipboardEvent(XEvent& event);
+		String getText();
+		void setText(cString& text);
+		bool hasText();
+		void clear();
+
+	private:
+		XDisplay* _display;
+		XWindow _window;
+		Atom _selection;
+		Atom _targets;
+		Atom _utf8;
+		Atom _property;
+		std::atomic_bool _owned;
+		Mutex _mutex;
+		Condition _cond;
+		String _text;
+	};
 }
+
+#endif

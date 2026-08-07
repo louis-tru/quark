@@ -33,8 +33,8 @@
 #ifndef __quark_platforms_linux__linux_app__
 #define __quark_platforms_linux__linux_app__
 
-#include <X11/Xlib.h>
 #include "../../util/cb.h"
+#include <X11/Xlib.h>
 
 typedef Window XWindow;
 typedef Display XDisplay;
@@ -42,6 +42,7 @@ typedef Display XDisplay;
 namespace qk {
 	class Window;
 	class WindowImpl;
+	class LinuxClipboard;
 
 	class LinuxIMEHelper {
 	public:
@@ -63,6 +64,9 @@ namespace qk {
 
 	float dpiForXDisplay(); // get dpi for default xdisplay
 	void post_message_main(Cb cb, bool sync = false); // sync to x11 main message loop
+	void login_xwindow(XWindow xwin, WindowImpl* win);
+	void logout_xwindow(XWindow xwin);
+	LinuxClipboard* linux_clipboard();
 }
 
 #endif
