@@ -176,7 +176,7 @@ Typeface* QkFontPool_Custom::onMatchFamilyStyle(cChar familyName[], FontStyle fo
 Typeface* QkFontPool_Custom::onMatchFamilyStyleCharacter(cChar familyName[], FontStyle style,
 		cChar* bcp47[], int bcp47Count, Unichar character) const
 {
-	// TODO ...
+	// TODO: Implement character fallback before enabling the Custom font backend.
 	return nullptr;
 }
 

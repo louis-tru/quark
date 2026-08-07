@@ -699,8 +699,10 @@ protected:
 
 			FcResult result;
 			QkAutoFcPattern font(FcFontMatch(fFC, pattern, &result));
-			if (!font || !FontAccessible(font) || !FontFamilyNameMatches(font, matchPattern)) {
-				Qk_CHECK(0, "onMatchFamilyStyle, can't match");
+			if (!font ||
+					!FontAccessible(font) ||
+					!FontFamilyNameMatches(font, matchPattern)) {
+				font = nullptr; // Treat an inaccessible or substituted font as no match.
 			}
 			return font;
 		}());
@@ -740,8 +742,10 @@ protected:
 
 			FcResult result;
 			QkAutoFcPattern font(FcFontMatch(fFC, pattern, &result));
-			if (!font || !FontAccessible(font) || !FontContainsCharacter(font, character)) {
-				Qk_CHECK(0, "onMatchFamilyStyleCharacter, can't match");
+			if (!font ||
+					!FontAccessible(font) ||
+					!FontContainsCharacter(font, character)) {
+				font = nullptr; // Treat an inaccessible or substituted font as no match.
 			}
 			return font;
 		}());

@@ -62,26 +62,28 @@ namespace qk {
 
 		// Find english character set
 		auto tf = match(String(), style);
+		Qk_CHECK(tf, "Cannot find default system font");
 		_defaultFamilyNames.push(tf->getFamilyName());
 
-		Qk_DLog("FontPool::init _defaultFamilyNames, %s", *_defaultFamilyNames[0]);
+		Qk_DLog("FontPool::initFontPool _defaultFamilyNames, %s", *_defaultFamilyNames[0]);
 
 		// Find chinese character set, 楚(26970)
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
 			_defaultFamilyNames.push(tf1->getFamilyName());
 			tf1->getMetrics(&_UnitMetrics64, 64);
-			Qk_DLog("FontPool::init _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
+			Qk_DLog("FontPool::initFontPool _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
 		} else {
 			tf->getMetrics(&_UnitMetrics64, 64);
 		}
+
 		// find �(65533) character tf
 		_tf65533 = matchCharacter(String(), style, 65533);
-		//Qk_ASSERT(_tf65533);
-		//Qk_DLog("FontPool::init _tf65533, %s", *_tf65533->getFamilyName());
+		Qk_CHECK(_tf65533, "Cannot find a font containing U+FFFD");
 
-		if (_tf65533)
-			_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
+		_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
+		Qk_CHECK(_tf65533GlyphID, "Cannot find glyph for U+FFFD");
+
 		_defaultFontFamilies = getFontFamilies(Array<String>());
 
 		WeakBuffer buff((cChar*)native_fonts_[0].data, native_fonts_[0].count);
