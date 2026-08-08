@@ -80,6 +80,10 @@ namespace qk
 		Dict<XWindow, WindowImpl*> _winImpl;
 		LinuxClipboard* _clipboard = nullptr;
 
+		~X11Application() {
+			Releasep(_clipboard);
+		}
+
 		void run() {
 			if (!shared_app())
 				return;
@@ -92,11 +96,13 @@ namespace qk
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
 			Atom wmDeleteWindow = XInternAtom(_xdpy, "WM_DELETE_WINDOW", False);
 
+			// Register exit event to resolve msg before exit
 			Qk_On(Exit, [this](auto e) { Cb cb; addMsg(cb); });
 
 			WindowImpl* impl;
 			XEvent event;
-			do {
+
+			while(!is_exit()) {
 				XNextEvent(_xdpy, &event); // wait for next event
 
 				resolveMsg(); // resolve msg before event
@@ -191,9 +197,7 @@ namespace qk
 						//Qk_DLog("event, %d, %d", event.type, time_second());
 						break;
 				}
-			} while(!is_exit());
-
-			Releasep(_clipboard);
+			} // while()
 		}
 
 		XWindow newXWindow() {
@@ -435,9 +439,23 @@ namespace qk
 using namespace qk;
 
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
+	// Process-lifetime X11 service. It must not be explicitly destroyed during
+	// shutdown because render threads may still depend on its X11 resources.
+	// The operating system reclaims it after abort_exit() terminates the process.
 	x11app = new X11Application();
 	Application::runMain(argc, argv, true);
 	x11app->run(); // run x11 main loop, block current thread until process exit
-	Releasep(x11app); // delete pionter and set to nullptr
+
+	// is_exit() is set at the beginning of prepare_exit(), so run() can return
+	// while the shutdown owner is still stopping and joining render threads. The
+	// system main must not return here: returning starts libc atexit callbacks and
+	// destroys function-static resources such as the shared EGLDisplay, which can
+	// call eglTerminate() before a render thread releases its current context.
+	// Stay alive until the shutdown owner completes abort_exit() and ::exit()
+	// terminates the whole process. All active Qk exits must use abort_exit(); a
+	// direct ::exit()/std::exit() bypasses this ordering guarantee.
+	for (;;) {
+		thread_sleep(1e6); // sleep 1s
+	}
 	return 0;
 }

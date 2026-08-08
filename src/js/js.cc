@@ -537,19 +537,19 @@ namespace js {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static void onExitHandle(Event<void, int>& e, void* ctx) {
-		int rc = e.data();
-		if (RunLoop::first()->runing()) {
-			typedef Callback<RunLoop::PostSyncData> Cb;
-			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
-				auto worker = Worker::worker();
-				Qk_DLog("onProcessSafeHandle");
-				if (worker)
-					rc = triggerExit(worker, rc);
-				e.data->complete();
-			}));
-		}
-		e.return_value = rc;
+	void WorkerInl::requestExit(Worker* w, int rc) {
+		abort_exit(rc);
+	}
+
+	void WorkerInl::onExitHandle(Event<void, int>& e, Worker* ctx) {
+		if (!ctx->loop()->running())
+			return;
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		auto rc = ctx->loop()->post_sync(Cb([rc=e.data(),ctx](Cb::Data& e) {
+			Qk_DLog("onExitHandle, %p", ctx);
+			e.data->complete(triggerExit(ctx, rc));
+		}), 1e6); // wait for 1 second, if the main thread is blocked, exit directly
+		e.return_value = (uint32_t)rc;
 	}
 
 	int Start(cString &args, cArray<String>& args1) {
@@ -578,22 +578,17 @@ namespace js {
 		// Mark the current main thread and check current thread
 		Qk_ASSERT(RunLoop::current() == RunLoop::first());
 
-		Qk_On(Exit, onExitHandle);
-
 		int rc = startPlatform([](Worker* worker) -> int {
 			const String *inspect, *mainPath = nullptr;
-				if (!jsArguments->options.get("__main__", mainPath)) {
-					if (!jsArguments->options.has("e") && !jsArguments->options.has("eval")) {
-						return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
-					}
+			if (!jsArguments->options.get("__main__", mainPath)) {
+				if (!jsArguments->options.has("e") && !jsArguments->options.has("eval")) {
+					return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
 				}
-			if (
-				jsArguments->options.get("debug", inspect) ||
-				jsArguments->options.get("inspect", inspect) ||
-				jsArguments->options.get("inspect_brk", inspect)
-			) {
-				auto script_path = mainPath ?
-					fs_reader()->format(*mainPath): String("eval");
+			}
+			if (jsArguments->options.get("debug", inspect) ||
+					jsArguments->options.get("inspect", inspect) ||
+					jsArguments->options.get("inspect_brk", inspect)) {
+				auto script_path = mainPath ? fs_reader()->format(*mainPath): String("eval");
 				bool brk = jsArguments->options.has("brk") || jsArguments->options.has("inspect_brk");
 				// Startup debugger
 				if (inspect->length() == 0) {
@@ -629,12 +624,14 @@ namespace js {
 				}
 			}
 
+			Qk_On(Exit, WorkerInl::onExitHandle, worker);
 			do {
 				loop->run();
 				if (is_exit())
 					break;
-				// BeforeExit event trigger, if the event listener add more async task, continue loop
-				// else exit process
+				// BeforeExit event trigger,
+				// if the event listener add more async task,
+				// continue loop else exit process
 				rc = triggerBeforeExit(worker, rc);
 			} while (loop->is_alive());
 
@@ -645,10 +642,9 @@ namespace js {
 
 			loop->clear(); // clear all async handles
 
+			Qk_Off(Exit, WorkerInl::onExitHandle);
 			return rc;
 		});
-
-		Qk_Off(Exit, onExitHandle);
 
 		jsArguments = nullptr;
 		return rc;

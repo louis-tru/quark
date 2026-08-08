@@ -88,7 +88,22 @@ namespace qk {
 	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT cThread* thread_self(); // return the self thread object created by `thread_new`
-	Qk_EXPORT void     abort_exit(int exit_rc); // !< try abort all thread and exit process, `abort`=-2
+	/**
+	 * Abort all Qk-managed threads with status -2, wait up to one second for
+	 * each thread to finish, and then exit the process with `exit_rc`.
+	 *
+	 * This is the required process-exit entry point for a running Qk
+	 * application. Do not call `::exit()`/`std::exit()` directly and do not let
+	 * a platform system `main()` return while another thread is performing this
+	 * shutdown. Either action can start libc atexit callbacks and static-object
+	 * destruction before render, X11/EGL, run-loop, and worker-thread resources
+	 * have stopped using them, resulting in hard-to-diagnose heap corruption or
+	 * segmentation faults.
+	 *
+	 * The first caller performs the shutdown. Concurrent or repeated calls are
+	 * safe and return after observing that shutdown has already started.
+	 */
+	Qk_EXPORT void     abort_exit(int exit_rc);
 
 	// process exit events notifier
 	Qk_EXPORT EventNoticer<Event<void, int>, Mutex>& onExit();
@@ -151,14 +166,14 @@ namespace qk {
 		/**
 		 * @class PostSyncData
 		*/
-		struct PostSyncData: Object {
-			virtual void complete() = 0;
+		struct PostSyncData: Reference {
+			virtual void complete(int64_t rc = 0) = 0;
 		};
 
 		/**
-		 * @method runing()
+		 * @method running()
 		*/
-		bool runing() const;
+		bool running() const;
 
 		/**
 		 * @method is_alive
@@ -175,7 +190,7 @@ namespace qk {
 		 *
 		 * @note Circular calls by the same thread lead to deadlock
 		*/
-		void post_sync(Callback<PostSyncData> cb);
+		int64_t post_sync(Callback<PostSyncData> cb, uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
 
 		/**
 		* @method post(cb) post message

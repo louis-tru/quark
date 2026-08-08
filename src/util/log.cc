@@ -32,6 +32,7 @@
 #include "./error.h"
 #include "./codec.h"
 #include "./array.h"
+#include "./thread.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -299,11 +300,14 @@ namespace qk {
 #if DEBUG
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();
-#else
-		::exit(-1);
-#endif
 		IMMEDIATE_CRASH();
-
+#else
+		// Try the coordinated Qk shutdown first. abort_exit() returns only when
+		// another thread already owns shutdown; a Fatal raised during that process
+		// must terminate immediately instead of recursively entering libc exit.
+		abort_exit(-1);
+		abort();
+#endif
 	}
 
 }

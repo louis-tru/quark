@@ -68,6 +68,46 @@ CAPA 封版判断：
 - 对 fill 来说，单纯几何 AA 很难解决所有 coverage 和多轮廓问题，
   CAPA 的 compute/tile/order composite 方向已经成为当前默认复杂路径。
 
+## GPU Shader 实现硬规则
+
+这些规则属于 GPU/AA 实现细节，不放在项目总规则中。完整故障现象与根因见
+`TROUBLESHOOTING.md` 的 “GPU Shaders: Custom Spin Locks Can Deadlock Or
+Jitter” 和 “CAPA: Shared Short-Edge Chunks Dropped Edges Despite Valid
+Atomics”；当前 CAPA pass 的具体约束见 `CAPA_PASS_PROCESS.md`。
+
+### 禁止 shader 自旋锁
+
+- 不得使用 `atomicCompSwap` 等原子操作实现等待另一个 invocation 解锁的
+  mutex/spin lock。
+- GPU 不保证持锁 invocation 会先获得执行机会并走到解锁路径；SIMD/SIMT
+  sibling 或跨 workgroup 等待可能阻止持锁路径取得 forward progress，造成
+  死锁、抖动或依赖驱动调度的非确定行为。
+- 只使用当前同步范围内有明确保证的机制，例如单 workgroup barrier，或者
+  永不等待其它 invocation 前进的一步式 atomic allocation/link。
+
+### 避免同 pass 的复杂 atomic 写后读协议
+
+- 原子操作本身正确，不代表由多个原子步骤组成的共享容器协议正确。
+- 不要让 invocation A 在同一 pass 写出的 atomic 状态，被 invocation B
+  读出后继续驱动共享 chunk 扩容、overflow 修复、所有权转移或多步链表
+  修改。
+- CAPA 已实测否决“多个 invocation 共享小 short-edge chunk，
+  `atomicAdd(count)` 抢槽，满后同 pass 动态挂 overflow chunk”的方案。链表
+  可以保持可达，但仍会丢 edge slot 并造成静态图形抖动。
+- 优先使用 invocation 独占的节点/槽位、已完整写入后只发布一次的节点，或
+  拆成 count/prefix/fill 多 pass。当前 CAPA 利用一个 short-edge task 最多
+  触碰三个 tile 的 producer-side 硬边界，让每个 task 独占三个
+  `CAPAShortEdge` 节点。
+
+### 避免复制大型 storage-buffer 结构
+
+- 不要为了书写方便，把 `CAPABoundaryTile` 等大型 SSBO/storage-buffer
+  结构整体复制到 shader 局部变量。
+- 整体复制会让每个 invocation 搬运大量 word，并掩盖昂贵的生成代码。
+  应直接读取需要的字段；确有复用价值时，只缓存少量 scalar/vector 字段。
+- 对 GPU 数据访问的优化判断必须结合实际生成的 Metal/SPIR-V/GLSL 和 GPU
+  capture，不根据源代码看起来更简洁就假定成本更低。
+
 ## 当前问题清单
 
 ### AASide 的问题
@@ -925,18 +965,21 @@ CAPA tile 数据结构方向：
   就需要 block scan、block sums scan、prefix add-back 等多 pass 结构，
   还会引入 threadgroup memory/barrier 和递归式边界处理。对当前 CAPA
   来说，这会显著增加实现和调试复杂度，性能也未必更好。
-- 优先研究 tile-owned append storage：每个 tile 持有自己的 header，
+- 以下 tile-owned append/growLock 内容是已否决的历史方案，仅保留用于解释
+  当时的数据结构和故障来源，不得作为当前实现方向。该方案让每个 tile
+  持有自己的 header，
   后续 pass 通过 tile index 访问该 tile 的 `offset/count/cursor`、
   inline edge 区和 overflow 状态。常见 tile 直接写固定小 inline 区；
   超过 inline 容量时再通过全局 atomic chunk allocator 分配 overflow
   chunk，并用 atomic exchange / compare-exchange 维护链表头。
-- 当前首选结构是 per-tile initial chunk + overflow chunk list。每个 tile
+- 已否决方案使用 per-tile initial chunk + overflow chunk list。每个 tile
   初始拥有一个 `CHUNK_CAP = 16` 的 chunk，绝大多数 tile 应该只命中这个
   初始空间；只有复杂 tile 才通过 `growLock` 扩容。这样 `atomicAdd` 主要
   发生在 tile 当前 chunk 的 `used` 字段，竞争范围被限制在单个 tile 内；
-  全局 chunk allocator 只在溢出时触发。
+  全局 chunk allocator 只在溢出时触发。后续实测证明这种同 pass 多步共享
+  协议会丢 short-edge slot，且自旋锁没有 GPU forward-progress 保证。
 
-建议的结构语义：
+已否决历史方案的结构语义（不得重新采用）：
 
 ```cpp
 const uint CHUNK_CAP = 16;
@@ -961,7 +1004,7 @@ struct CAPAChunkAllocator {
 };
 ```
 
-初始化策略：
+已否决方案的初始化策略：
 
 ```txt
 每个 tile 预分配一个 initial chunk
@@ -974,7 +1017,7 @@ allocator.count = initialChunkCount
 allocator.overflow = 0
 ```
 
-append 伪代码：
+已否决方案的 append 伪代码：
 
 ```glsl
 bool tryAppend(uint chunk, ShortEdge edge) {
@@ -1022,7 +1065,7 @@ bool appendTileEdge(uint tileIndex, ShortEdge edge) {
 }
 ```
 
-coverage 遍历伪代码：
+已否决方案的 coverage 遍历伪代码：
 
 ```glsl
 for (uint c = tiles[tileIndex].head; c != NIL; c = chunks[c].next) {
@@ -1034,7 +1077,7 @@ for (uint c = tiles[tileIndex].head; c != NIL; c = chunks[c].next) {
 }
 ```
 
-并发规则：
+当时设想的并发规则（已否决）：
 
 - `growLock` 只保护扩容路径；普通 append 不加锁。
 - 拿到 `growLock` 后必须重新读取 `freshHead` 并再次 `tryAppend`，避免刚
@@ -1045,7 +1088,7 @@ for (uint c = tiles[tileIndex].head; c != NIL; c = chunks[c].next) {
   边写边遍历。
 - tile 内 edge 顺序不重要，因为 CAPA coverage 对 tile-local edges 做累加。
 
-- 这个方向的目标是控制原子竞争，而不是完全避免原子。可接受的原子包括：
+- 保留下来的原则是控制原子竞争，而不是完全避免原子。可接受的原子包括：
   per-edge 的 task/count 分配、per-tile append cursor、per-path/tile bounds
   的 `atomicMin/Max`，以及少量 overflow chunk 分配。应避免在 pixel/sample
   内层循环中使用原子。

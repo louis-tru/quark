@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./inl.h"
+#include <atomic>
 #include <uv.h>
 #include <dlfcn.h>
 #include <exception>
@@ -51,15 +52,29 @@ namespace qk {
 		return id.hash;
 	}
 
-	std::atomic_bool                    __is_exit_flag{false};
-	Mutex                               *__threads_mutex = nullptr;
+	// Set before triggering Qk exit callbacks or stopping managed threads. The
+	// exchange in prepare_exit() elects one shutdown owner and makes repeated
+	// abort_exit() calls harmless; it does not indicate that libc has started
+	// running atexit callbacks or static destructors.
+	std::atomic_bool __is_exit_flag{false};
+	Mutex *__threads_mutex = nullptr;
+
+	// Diagnostic flag set when Qk's libc atexit callback begins. If this becomes
+	// true while abort_exit() is still preparing shutdown, some code called
+	// ::exit()/std::exit() (or returned from the system main) too early. libc may
+	// then destroy process-static X11/EGL/render resources while Qk threads are
+	// still using them, which can surface later as unrelated heap corruption or
+	// segmentation faults. This flag only detects an overlap at runtime; atexit
+	// callbacks run in reverse registration order, so it cannot make arbitrary
+	// direct calls to exit safe.
+	static std::atomic_bool __is_atexit_flag{false};
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
 	static EventNoticer<Event<void, int>, Mutex> *__on_exit = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_foreground = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_background = nullptr;
 
 	Qk_EXPORT bool is_exit() {
-		return __is_exit_flag;
+		return __is_exit_flag.load(std::memory_order_relaxed);
 	}
 
 	CondMutex::Lock::~Lock() {
@@ -260,40 +275,54 @@ namespace qk {
 		}
 	}
 
-	static void abort_exit_inl(int rc) {
+	// Prepare Qk-owned runtime state before libc begins normal process teardown.
+	// Only the caller that changes __is_exit_flag from false to true performs the
+	// work. All managed threads are notified first so that their bounded waits
+	// happen concurrently as much as possible; the join below waits at most one
+	// second for each remaining thread.
+	static bool prepare_exit(int rc) {
 		if (__is_exit_flag.exchange(true))
-			return; // exit already in progress
+			return false; // exit already in progress
 
 		Array<ThreadID> threads_id;
 
-		Qk_DLog("abort_exit_inl(), 0");
+		Qk_DLog("prepare_exit(), 0");
 		Event<void, int> ev(rc, rc);
 		Qk_Trigger(Exit, ev); // trigger event
 		rc = ev.return_value;
-		Qk_DLog("abort_exit_inl(), 1");
+		Qk_DLog("prepare_exit(), 1");
 
 		{
 			ScopeLock scope(*__threads_mutex);
 			Qk_DLog("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DLog("abort_exit_inl(), tag, %p, %s", i.second->id, *i.second->name);
+				Qk_DLog("prepare_exit(), tag, %p, %s", i.second->id, *i.second->name);
 				thread_resume_(i.second, -2); // resume sleep status and abort
 				threads_id.push(i.second->id);
 			}
 		}
 		for ( auto& i: threads_id ) {
 			// CondMutex for the end of this thread here, this time defaults to 1 second
-			Qk_DLog("abort_exit_inl(), join, %p", i);
+			Qk_DLog("prepare_exit(), join, %p", i);
 			thread_join_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 
-		Qk_DLog("abort_exit_inl() 2");
+		Qk_DLog("prepare_exit() 2");
+		return true;
 	}
 
 	void abort_exit(int rc) {
-		if (!__is_exit_flag.load()) {
-			abort_exit_inl(rc);
-			::exit(rc); // exit process
+		if (prepare_exit(rc)) {
+			// ::exit() is safe only after Qk has stopped its managed threads. Detect
+			// a competing libc exit before entering ::exit() a second time; recursive
+			// or concurrent libc teardown has undefined ordering and previously caused
+			// misleading allocator corruption and segmentation faults during shutdown.
+			Qk_CHECK(!__is_atexit_flag,
+				"Unsafe process-exit overlap: libc atexit/static destruction started "
+				"before qk::abort_exit() completed. Do not call ::exit()/std::exit() "
+				"directly or return from the platform main; exit through "
+				"qk::abort_exit() only");
+			::exit(rc);
 		}
 	}
 
@@ -334,7 +363,14 @@ namespace qk {
 		__on_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
 		__on_foreground = new EventNoticer<Event<void>, Mutex>(nullptr);
 		__on_background = new EventNoticer<Event<void>, Mutex>(nullptr);
-		atexit([](){ abort_exit_inl(0); });
+		// Fallback for a natural system-main return or foreign direct exit. This
+		// callback never calls ::exit() recursively. It also cannot guarantee safe
+		// ordering with callbacks registered after it, which is why normal Qk exits
+		// must enter abort_exit() before libc teardown begins.
+		atexit([](){
+			__is_atexit_flag.store(true);
+			prepare_exit(0);
+		});
 		std::set_terminate(onTerminateWithLogging);
 #if __cplusplus < 201703L
 		std::set_unexpected(onTerminateWithLogging);

@@ -8,6 +8,111 @@ coming back.
 General decision rules, including the requirement to ground advice in Quark's
 actual engineering environment, live in `docs/ENGINEERING_RULES.md`.
 
+## Process Exit: libc Teardown Races Qk Thread Shutdown
+
+Symptom:
+
+- Linux shutdown failed at an operation that should normally be trivial:
+
+  ```txt
+  Unable to release drawing surface for render loop end
+  Aborted (core dumped)
+  ```
+
+  The failing operation was the render thread releasing its EGL context with
+  `eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)`.
+- Other runs could instead report `free(): corrupted unsorted chunks`, an
+  apparently unrelated segmentation fault, or a failure while destroying a
+  render/X11 resource.
+- The failure appeared during process exit and could move when logging or
+  shutdown timing changed, making the allocator, EGL call, or last destructor
+  look like the cause.
+
+Misleading clues:
+
+- `eglMakeCurrent(...EGL_NO_CONTEXT)` is a simple and normally valid operation,
+  so the EGL release code itself looked broken.
+- `free(): corrupted unsorted chunks` usually suggests an earlier buffer
+  overflow or use-after-free. In this case, libc/static teardown was running
+  concurrently with Qk threads that still used process-static resources.
+- Registering a Qk `atexit()` callback looked sufficient, but callbacks execute
+  in reverse registration order. A callback or static destructor registered
+  later can run before Qk's callback marks or prepares shutdown.
+
+Root cause:
+
+Qk shutdown is a multi-threaded preparation phase, while `::exit()` begins
+single-process libc teardown immediately. They must not overlap.
+
+The Linux failure had this concrete sequence:
+
+1. A Qk worker called `abort_exit()`.
+2. `prepare_exit()` set `__is_exit_flag` before triggering exit events and
+   stopping/joining managed threads.
+3. The X11 system-main loop observed `is_exit()` and returned. `is_exit()` means
+   shutdown has started; it does not mean shutdown has completed.
+4. Returning from the system `main()` implicitly entered libc `exit()` while
+   the original shutdown owner was still joining the render thread.
+5. libc began static destruction. The function-static shared EGL display could
+   run `eglTerminate()` before the render thread released its current context.
+6. The render thread's otherwise valid `eglMakeCurrent(...EGL_NO_CONTEXT)` then
+   failed. Because Qk was already exiting, the Fatal fallback used `abort()` and
+   the shell reported status 134 (`SIGABRT`). Other destruction-order races can
+   surface as heap corruption or status 139 (`SIGSEGV`) instead.
+
+The same class of bug is possible on other platforms whenever one thread is
+performing Qk shutdown while another thread calls `::exit()`/`std::exit()` or
+allows a platform system `main()` to return.
+
+Final fix / required exit protocol:
+
+- `qk::abort_exit(exit_rc)` is the required active process-exit entry point for
+  a running Qk application. Qk code and application code must not call
+  `::exit()` or `std::exit()` directly.
+- The first `abort_exit()` caller owns shutdown: it triggers Qk exit handlers,
+  sends abort status `-2` to all managed threads, waits up to one second for
+  each remaining thread, and only then calls `::exit(exit_rc)`.
+- Concurrent or repeated `abort_exit()` calls observe that shutdown has already
+  started and return without repeating libc exit.
+- The Linux X11 system `main()` must not return after its event loop observes
+  `is_exit()`. It remains parked until the shutdown-owning thread finishes and
+  terminates the process. The process-lifetime `X11Application` is deliberately
+  not destroyed during this interval.
+- The Qk `atexit()` callback is only a fallback for a natural/foreign exit. It
+  calls `prepare_exit()` but never recursively calls `::exit()`. It cannot make
+  arbitrary direct calls to `exit()` safe because its position in the callback
+  order is not under Qk's full control.
+- `__is_atexit_flag` is a diagnostic flag. If libc atexit/static destruction
+  starts while the active `abort_exit()` owner is still preparing shutdown, Qk
+  reports the overlap before attempting another libc exit.
+- In Release Fatal handling, Qk first attempts `abort_exit(-1)`. If another
+  thread already owns shutdown and the call returns, `abort()` terminates the
+  already-failing process instead of recursively entering libc exit.
+
+The overlap diagnostic should explain the rule directly:
+
+```txt
+Unsafe process-exit overlap: libc atexit/static destruction started before
+qk::abort_exit() completed. Do not call ::exit()/std::exit() directly or
+return from the platform main; exit through qk::abort_exit() only
+```
+
+Prevention rule:
+
+- Treat `is_exit()` as "shutdown requested/in progress", never as "resources
+  are safe for static destruction".
+- Never return from a platform system `main()` merely because `is_exit()` is
+  true. The shutdown owner must be allowed to stop render and worker threads
+  before libc teardown begins.
+- Do not explicitly destroy process-lifetime platform services while the
+  shutdown owner may still use them.
+- When shutdown failures appear in simple EGL/X11 calls or glibc allocator
+  checks, inspect whether libc exit/static destruction started concurrently
+  before treating the last failing call as the root cause.
+- Shell status 255 represents the normal `exit(-1)` path; status 134 with
+  `Aborted (core dumped)` represents Qk's `SIGABRT` Fatal fallback. A core can be
+  inspected with `coredumpctl gdb` or `gdb <binary> <core>`.
+
 ## GLES: Text/Image UV Breaks After Large Scroll
 
 Symptom:

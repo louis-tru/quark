@@ -135,7 +135,6 @@ namespace qk { namespace js {
 		template<class Args>
 		inline static JscWorker* worker(Args args) { return nullptr; }
 		inline WorkerData& data() { return _data; }
-
 	private:
 		JSContextGroupRef _group;
 		JSGlobalContextRef _ctx;

@@ -114,7 +114,7 @@ namespace qk {
 			}
 		}
 
-		void post(Cb &cb) {
+		void post(cCb &cb) {
 			_mutex.lock();
 			_msg.pushBack({ 0, cb });
 			_this->async_send();
@@ -372,7 +372,7 @@ namespace qk {
 		Qk_CHECK(RunLoop::is_first(), "Must be called on the first thread loop");
 	}
 
-	bool RunLoop::runing() const {
+	bool RunLoop::running() const {
 		return _uv_async;
 	}
 
@@ -486,33 +486,39 @@ namespace qk {
 		}
 	}
 
-	void RunLoop::post_sync(Callback<PostSyncData> cb) {
+	int64_t RunLoop::post_sync(Callback<PostSyncData> cb, uint64_t timeoutUs) {
 		struct Data: public RunLoop::PostSyncData {
-			void complete() override {
-				ok = true;
+			Data(uint64_t timeoutUs)
+				: timeoutUs(timeoutUs), _rc(0), completed(false) {}
+			void wait() {
+				while (!completed)
+					cond.lock_wait_for(timeoutUs); // wait
+			}
+			void complete(int64_t rc) override {
+				_rc = rc;
+				completed = true;
 				cond.lock_notify_all();
 			}
-			void wait() {
-				while (!ok)
-					cond.lock_wait_for(); // wait
-			}
-			bool ok = false;
 			CondMutex cond;
-		} data, *data_ptr = &data;
+			uint64_t timeoutUs;
+			int64_t _rc;
+			bool completed;
+		};
+		Sp<Data> data = new Data(timeoutUs);
 
 		if (thread_self_id() == _tid) { // is current
-			cb->resolve(data_ptr);
+			cb->resolve(data.get());
 		} else {
-			Cb cb2([cb, data_ptr, this](auto&e){
-				cb->resolve(data_ptr);
-			});
-			_this->post(cb2);
+			_this->post(Cb([cb, &data](auto) {
+				cb->resolve(data.get());
+			}, data.get()));
 		}
-		data_ptr->wait();
+		data->wait();
+		return data->_rc;
 	}
 
 	void RunLoop::stop() {
-		if ( runing() ) {
+		if ( running() ) {
 			post(Cb([this](auto& e) {
 				uv_loop_close(_uv_loop);
 				uv_stop(_uv_loop);

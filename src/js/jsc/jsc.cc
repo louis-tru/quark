@@ -1307,6 +1307,9 @@ namespace qk { namespace js {
 		}
 	}
 
+	// void JscWorker::safeExit(int rc) {
+	// }
+
 	JSValue* Worker::runScript(cString& source, cString& name, JSObject* sandbox) {
 		return WORKER(this)->runScript(nullptr, source, name, sandbox);
 	}

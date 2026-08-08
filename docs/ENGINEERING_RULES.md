@@ -1,10 +1,26 @@
 # Quark Engineering Rules
 
-This file records hard, long-term rules for engineering decisions in Quark.
-These rules apply to humans and AI assistants. They take priority over generic
-advice that is not grounded in the project's actual environment.
+This file defines hard, long-lived project rules for both Quark developers and
+AI assistants. It is an internal engineering document, not public API
+documentation or a user guide.
 
-## 1. Reality Comes Before Abstract Rules
+The rules here protect decisions that affect multiple modules, platforms, or
+future maintenance sessions. Detailed architecture belongs in the matching
+topic document, and the full history of a diagnosed failure belongs in
+`TROUBLESHOOTING.md`.
+
+When rules appear to compete, use this priority:
+
+1. Preserve demonstrated correctness and supported-platform behavior.
+2. Preserve explicit resource-lifetime, threading, and rendering invariants.
+3. Prefer the smallest change justified by source inspection, measurements, or
+   a reproducible failure.
+4. Keep the reason discoverable in code comments and the appropriate project
+   document.
+
+## Decision Making
+
+### Reality Comes Before Abstract Rules
 
 All technical decisions must be evaluated against Quark's actual engineering
 conditions:
@@ -37,7 +53,18 @@ When theory and observed engineering reality appear to conflict:
 Never use standards-only reasoning to limit the project's engineering options
 without explaining the concrete consequence it prevents.
 
-## 2. AI Assistants Do Not Compile By Default
+## Change And Verification Discipline
+
+All contributors must inspect the relevant implementation and preserve
+unrelated worktree changes. Avoid broad refactors, whole-file formatting, or
+cross-module cleanup when a focused fix is sufficient. Verification should be
+proportional to the actual risk of the change.
+
+The following two permission rules are specific to AI collaboration. They do
+not prevent developers from compiling or editing their own project; they keep
+automated work within the scope explicitly granted by the developer.
+
+### AI Assistants Do Not Compile By Default
 
 AI assistants must not run C++ builds, full project builds, or other
 time-consuming compilation commands unless the user explicitly requests them.
@@ -46,7 +73,7 @@ Prefer source inspection, targeted searches, syntax checks, diff checks, and
 required code generators. The user will run compilation and provide any
 resulting errors for follow-up fixes.
 
-## 3. AI Assistants Do Not Edit Code Without Explicit Approval
+### AI Assistants Do Not Edit Code Without Explicit Approval
 
 When the user is asking for inspection, explanation, review, debugging help, or
 whether code is correct, AI assistants must not modify source code or generated
@@ -57,71 +84,13 @@ the relevant file/location, and the suggested fix. Wait for the user's explicit
 approval before editing code. Documentation may be updated only when the user
 explicitly asks for that documentation change.
 
-## 4. Avoid Large Shader Struct Copies
+## Performance-Sensitive Runtime Code
 
-In GPU shader code, do not copy large SSBO/storage-buffer structs into local
-variables just for convenience. For structs such as `CAPABoundaryTile`, copying
-the whole value can move many words per invocation and hide expensive generated
-code. Read only the needed fields directly from the storage buffer, or cache
-small scalar/vector fields individually when reuse is worthwhile.
+Do not accept a source-level optimization assumption without checking the
+optimized output on the platforms that matter. Preserve measured instruction
+counts and the tested source variants when they justify a runtime rule.
 
-## 5. DANGER: Do Not Use Custom Spin Locks In GPU Shaders
-
-Do not implement shader-level mutexes/spin locks that wait for another GPU
-invocation to release a value, even if the lock is built from atomics such as
-`atomicCompSwap`.
-
-GPU execution does not guarantee that the invocation which acquired a custom
-lock will continue to its unlock path before other invocations that are spinning
-on that lock. Within SIMD/SIMT execution, sibling lanes or work items can wait
-in a way that prevents the releasing path from making forward progress. This
-can deadlock or produce vendor/driver-dependent behavior.
-
-Allowed shader synchronization must be limited to mechanisms with a real GPU
-execution guarantee for the scope being used, such as workgroup barriers within
-one workgroup and non-blocking atomic allocation/append patterns that never
-wait for another invocation to make progress. For cross-workgroup coordination,
-use separate dispatch passes, bounded non-blocking atomics, fixed-capacity
-structures, or explicit overflow/debug paths instead of locks.
-
-## 6. IMPORTANT: Avoid Same-Pass Shared Small-Chunk Append Protocols
-
-GPU atomics are acceptable for simple, one-step coordination such as allocating
-a unique index with `atomicAdd`, linking one fully written node with
-`atomicExchange`, or computing coarse min/max bounds. Do not assume that a
-larger lock-free container protocol is correct merely because each individual
-operation is atomic.
-
-As a hard design rule, do not build complex same-pass atomic write-then-read
-dependency protocols. Within one dispatch/pass, avoid designs where one
-invocation atomically writes a shared state variable and other invocations read
-that newly written value in the same pass to drive more shared state changes,
-overflow repair, ownership transfer, or linked-container mutation. Split those
-state transitions into separate passes, or reduce the protocol to one-step
-atomic allocation/linking where every invocation writes only storage it
-uniquely owns.
-
-CAPA exposed a new failure mode in `capa_bin.glsl`: multiple invocations shared
-a small fixed-capacity short-edge chunk, used `atomicAdd(chunk.count)` to claim
-slots, and created/linked overflow chunks when the old chunk was full. The
-individual atomic operations appeared valid, and chunk chains were reachable,
-but static input still lost edge slots and jittered. Replacing the protocol with
-one short-edge node per emitted edge made the counts stable.
-
-Treat same-pass "append into a shared small bucket, then dynamically repair
-overflow" designs as high risk. Prefer structures where each invocation writes
-only storage it uniquely owns, or split the work into count/prefix/fill passes.
-If a linked list is needed, link fully written per-edge nodes rather than having
-many invocations mutate the same chunk's slot cursor.
-
-Before adding scans or dynamic per-tile allocators, look for a producer-side
-hard bound that can define ownership. CAPA's short-edge binning became simpler
-and faster by using the invariant that one short-edge task can touch at most
-three tiles: each task owns three `CAPAShortEdge` node slots and links only the
-slots it uses. This kind of ownership change is preferred over clever
-synchronization.
-
-## 7. Do Not Dynamically Initialize Function-Local TLS In Hot Accessors
+### Do Not Dynamically Initialize Function-Local TLS In Hot Accessors
 
 Do not put a `thread_local` variable with a run-time initializer inside a hot
 accessor, for example:
@@ -152,3 +121,50 @@ accessors. It does not claim that every function-local, constant-initialized TLS
 variable necessarily has a guard; inspect final optimized output before relying
 on such an exception. The measurements and assembly are recorded in
 `THREAD_LOCAL_ASSEMBLY-cn.md`.
+
+## Runtime Lifecycle And Process Exit
+
+Thread, run-loop, platform, renderer, and process-static resource lifetimes
+must be coordinated explicitly. A request to stop is not the same as completed
+shutdown, and libc/static teardown must not overlap Qk-managed thread cleanup.
+
+### All Active Qk Process Exits Must Use abort_exit()
+
+`qk::abort_exit(exit_rc)` is the only supported active process-exit path for a
+running Qk application. Do not call `::exit()`/`std::exit()` directly, and do
+not let a platform system `main()` return while another thread is performing Qk
+shutdown.
+
+Qk must stop its managed worker/render threads before libc begins executing
+`atexit()` callbacks and destroying static objects. Starting libc teardown too
+early can destroy shared EGL, X11, renderer, run-loop, allocator, or other
+process-static state while a Qk thread still uses it. The resulting failure may
+appear later as a simple EGL call failure, `free(): corrupted unsorted chunks`,
+or an unrelated segmentation fault.
+
+The first `abort_exit()` caller owns shutdown. Repeated calls must not repeat
+the Qk cleanup or call libc `exit()` again. `is_exit()` means shutdown has
+started; it is not a completion barrier and does not authorize the platform
+`main()` to return. Platform entry points must remain alive until the shutdown
+owner terminates the process.
+
+An `atexit()` callback is diagnostic/fallback protection only. Because atexit
+callbacks and static destructors have registration-dependent ordering, it
+cannot make arbitrary direct calls to `exit()` safe. The diagnosed Linux
+failure sequence and runtime checks are recorded in `TROUBLESHOOTING.md` under
+"Process Exit: libc Teardown Races Qk Thread Shutdown".
+
+## Maintaining This Document
+
+Keep only project-wide, durable rules here:
+
+- Put current implementation status and temporary risks in `CURRENT_WORK.md`.
+- Put complete failure symptoms, misleading clues, root causes, and diagnostic
+  commands in `TROUBLESHOOTING.md`.
+- Put backend and subsystem architecture in `RENDERING.md`, `VULKAN.md`,
+  `GPU_2D_ANTIALIASING.md`, or the matching topic document.
+- Put AI entry instructions and workspace procedure in `AGENTS.md`; repeat an
+  AI rule here only when it represents a durable project collaboration policy.
+- Do not delete the reasoning behind a rule when reorganizing documentation.
+  Move the detail to the correct topic document and leave a concise invariant
+  and link here.

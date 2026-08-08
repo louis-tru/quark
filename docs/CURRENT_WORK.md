@@ -70,6 +70,12 @@ Remaining validation/stabilization:
 
 ## Linux Platform Notes
 
+- Linux process shutdown must go through `qk::abort_exit()`. `is_exit()` is set
+  before managed render/worker threads finish, so the X11 system `main()` stays
+  parked after its event loop returns instead of starting libc/static teardown
+  concurrently. `X11Application` is intentionally process-lifetime. Direct
+  `::exit()`/`std::exit()` calls are unsupported; see the diagnosed failure in
+  [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md#process-exit-libc-teardown-races-qk-thread-shutdown).
 - Linux clipboard uses the X11 `CLIPBOARD` selection through the application's
   hidden service window. It currently supports ordinary `UTF8_STRING` transfers.
   The normal X11 loop receives `SelectionNotify` and wakes the requesting
@@ -78,6 +84,17 @@ Remaining validation/stabilization:
   `hasText()`/`getText()` call does not request the same text again. ICCCM
   `INCR`, legacy encodings, and clipboard-manager persistence after process exit
   are not implemented yet.
+- Ordinary-DPI Linux text currently renders with visibly poor small-glyph
+  quality. The first confirmed cause is a constructor-argument semantic error
+  left by the Skia FreeType port: `Typeface_fontconfig` still passes the
+  Fontconfig fixed-pitch boolean as the second `QkTypeface_FreeType` argument,
+  but that argument is now the FreeType flags field. Consequently the hinting
+  bits remain zero and `initFreeType()` selects `FT_LOAD_NO_HINTING` for
+  Fontconfig faces. Do not change this yet while the remaining Linux bring-up
+  issues are being handled. When resumed, derive the flags from `FC_HINTING`,
+  `FC_HINT_STYLE`, `FC_AUTOHINT`, `FC_EMBEDDED_BITMAP`, and `FC_EMBOLDEN`, then
+  separately evaluate grayscale-only antialiasing, fractional placement, and
+  linear texture sampling.
 
 ## Deferred Non-Vulkan Work
 

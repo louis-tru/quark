@@ -30,11 +30,15 @@
 
 #include "./plotforms.h"
 #include "../util/handle.h"
+#include "../util/log.h"
 
 namespace qk {
 
 #ifdef Qk_LINUX
-	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
+	static void closeXDisplay(Display* dpy){
+		Qk_DLog("closeXDisplay, %p", dpy);
+		XCloseDisplay(dpy);
+	}
 	static void retainXDisplay(Display* dpy){}
 
 	typedef Sp<Display, ObjectTraitsFrom<Display, closeXDisplay, retainXDisplay>> XDisplayAuto;

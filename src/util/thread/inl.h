@@ -96,6 +96,9 @@ namespace qk {
 	RunLoop*    current_from(RunLoop **inOut);
 	RunLoop*    backend_loop();
 	bool        has_backend_thread();
+	// True as soon as Qk shutdown starts, before exit callbacks and managed
+	// threads have necessarily finished. This is a stop-request state, not a
+	// guarantee that libc/static teardown is safe to begin.
 	bool        is_exit();
 }
 #endif

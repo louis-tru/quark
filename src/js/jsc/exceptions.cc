@@ -450,7 +450,7 @@ namespace qk { namespace js {
 		DCHECK(ex);
 		if (!triggerUncaughtException(WORKER(w), ex)) {
 			Message::Create(WORKER(w), Back(ex))->PrintLog();
-			qk::abort_exit(ERR_UNCAUGHT_EXCEPTION);
+			WorkerInl::requestExit(w, ERR_UNCAUGHT_EXCEPTION);
 		}
 	}
 
@@ -459,7 +459,7 @@ namespace qk { namespace js {
 			reason = w->newUndefined();
 		if (!triggerUnhandledRejection(WORKER(w), reason, promise)) {
 			Message::Create(WORKER(w), Back(reason))->PrintLog();
-			qk::abort_exit(ERR_UNHANDLED_REJECTION);
+			WorkerInl::requestExit(w, ERR_UNHANDLED_REJECTION);
 		}
 	}
 

@@ -55,7 +55,10 @@ namespace qk {
 
 	typedef std::remove_pointer_t<EGLDisplay> EGLDisplayType;
 
-	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
+	static void closeEGLDisplay(EGLDisplay dpy){
+		Qk_DLog("closeEGLDisplay, %p", dpy);
+		eglTerminate(dpy);
+	}
 	static void retainEGLDisplay(EGLDisplay dpy) {}
 
 	typedef Sp<EGLDisplayType, ObjectTraitsFrom<EGLDisplayType, closeEGLDisplay, retainEGLDisplay>> EGLDisplayAuto;
@@ -174,8 +177,10 @@ namespace qk {
 
 			if (_display != EGL_NO_DISPLAY) {
 				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-				if (_context != EGL_NO_CONTEXT) eglDestroyContext(_display, _context);
-				if (_surface != EGL_NO_SURFACE) eglDestroySurface(_display, _surface);
+				if (_context != EGL_NO_CONTEXT)
+					eglDestroyContext(_display, _context);
+				if (_surface != EGL_NO_SURFACE)
+					eglDestroySurface(_display, _surface);
 			}
 			_display = EGL_NO_DISPLAY;
 			_context = EGL_NO_CONTEXT;
@@ -222,8 +227,9 @@ namespace qk {
 			if (destroy) {
 				ScopeLock lock(_mutexMsg);
 				if (_msg.length()) {
+					Qk_Log("resolvedMsg(), destroy, %d", _msg.length());
 					if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
-						Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
+						eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context);
 					std::lock_guard<RecursiveMutex> lock(_mutex);
 					for (auto &i : _msg)
 						i->resolve();
@@ -300,7 +306,7 @@ namespace qk {
 			if (_surface) {
 				if (_threadId == thread_self_id()) {
 					_threadId = ThreadID();
-					eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr);
+					eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 				}
 				eglDestroySurface(_display, _surface);
 				_surface = EGL_NO_SURFACE;
@@ -323,7 +329,7 @@ namespace qk {
 
 			_threadId = thread_new([this](cThread* t) {
 				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
-					"Unable to create a drawing surface");
+					"Unable to create a drawing surface for render loop");
 				const int64_t intervalUs = 1e6 / 60; // 60 frames
 				while (!t->abort) {
 					auto sleepUs = time_monotonic();
@@ -333,7 +339,8 @@ namespace qk {
 						thread_sleep(sleepUs);
 					}
 				}
-				Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+				Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT),
+					"Unable to release drawing surface for render loop end");
 				_threadId = ThreadID();
 			}, "linux_render_Thread");
 		}

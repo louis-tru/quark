@@ -603,7 +603,7 @@ namespace qk { namespace js {
 				if (args.length() && args[0]->isInt32()) {
 					code = args[0]->toInt32(worker)->value();
 				}
-				abort_exit(code);
+				WorkerInl::requestExit(worker, code);
 			});
 
 			Js_Method(runDebugger, {

@@ -135,7 +135,7 @@ namespace qk {
 	}
 
 	void Application::run() {
-		if (!_loop->runing()) {
+		if (!_loop->running()) {
 			_loop->run(); // run message loop
 		}
 	}

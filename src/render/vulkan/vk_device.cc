@@ -71,6 +71,7 @@ namespace qk {
 	static Display* openVulkanXDisplay() {
 		if (!vkDisplay)
 			vkDisplay = XOpenDisplay(nullptr);
+		Qk_CHECK(vkDisplay, "Can't open display for Vulkan");
 		return vkDisplay;
 	}
 	static void closeXDisplay(Display* dpy) {
