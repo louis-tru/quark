@@ -87,9 +87,12 @@ float capa_path_tile_coverage(uint coverageIndex, uint pixelIndex) {
 }
 
 vec2 capa_path_local_position(uint pathIndex, ivec2 pixel) {
+	// Evaluate paint at the pixel center. Using the integer pixel corner here
+	// introduces a half-pixel texture offset, making linear-sampled text/images blurry.
+	vec2 pixelCenter = vec2(pixel) + vec2(0.5);
 	return vec2(
-		dot(paths.values[pathIndex].inverseMatrixX.xyz, vec3(pixel, 1.0)),
-		dot(paths.values[pathIndex].inverseMatrixY.xyz, vec3(pixel, 1.0))
+		dot(paths.values[pathIndex].inverseMatrixX.xyz, vec3(pixelCenter, 1.0)),
+		dot(paths.values[pathIndex].inverseMatrixY.xyz, vec3(pixelCenter, 1.0))
 	);
 }
 
