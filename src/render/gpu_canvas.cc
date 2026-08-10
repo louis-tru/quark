@@ -46,7 +46,8 @@ namespace qk {
 		#define _inl(self) static_cast<GPUCanvas::Inl*>(self)
 
 		void computeScale(const Mat& mat) {
-			if (mat.is_translate_only()) { // is translation matrix only
+			_translateOnly = mat.is_translate_only();
+			if (_translateOnly) { // is translation matrix only
 				if (_scale != Vec2(1.0f)) {
 					_scale = 1.0f;
 					_scaleAverage = 1.0f;
@@ -91,10 +92,17 @@ namespace qk {
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
 			auto pix = img.image->pixel(0);
+			scale *= img.scale;
 			auto scale_1 = 1.0f / scale;
 			PaintImage p;
 			// Default use baseline align
 			Vec2 dst_start(origin.x() - img.left * scale_1, origin.y() - img.top * scale_1);
+			if (_translateOnly) {
+				// A fractional device-space position shifts the whole pre-rasterized text image
+				// through the linear sampler, making an otherwise hinted line look blurred.
+				Vec2 devicePos = (_state->matrix * dst_start) * _surfaceScale;
+				dst_start += (devicePos.round() - devicePos) / _surfaceScale;
+			}
 			Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
 			Rect rect{dst_start, dst_size};
 
@@ -238,6 +246,7 @@ namespace qk {
 		, _opts(opts)
 		, _capaBuilder(nullptr)
 		, _capaEnabled(false)
+		, _translateOnly(true)
 	{
 		_cache = new PathvCache(opts.maxCapacityForPathvCache, render);
 		_stateStack.push({ .matrix=Mat() });
@@ -322,6 +331,7 @@ namespace qk {
 
 	void GPUCanvas::rotate(float z) {
 		_state->matrix.rotate(z);
+		_this->computeScale(_state->matrix);
 		setMatrixCmd();
 	}
 
@@ -533,8 +543,8 @@ namespace qk {
 			tf->getSDFImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP, false):
 			tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP);
 		img.image->set_mipmap(false); // disable mipmap for text
-		auto scale = _this->drawTextImage(img, _allScaleAverage, origin, paint);
-		return scale * img.width;
+		auto scale_1 = _this->drawTextImage(img, _allScaleAverage, origin, paint);
+		return scale_1 * img.width;
 	}
 
 	void GPUCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
@@ -557,7 +567,6 @@ namespace qk {
 				blob->typeface->getSDFImage(blob->glyphs, fixedFSize, &offset, false):
 				blob->typeface->getImage(blob->glyphs, fixedFSize, &offset);
 			blob->img.image->set_mipmap(false); // disable mipmap for text
-			blob->img.scale *= scale;
 		}
 		auto img = blob->img.image.get();
 		if (img->width() && img->height()) {

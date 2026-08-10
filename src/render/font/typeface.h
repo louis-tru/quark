@@ -72,8 +72,8 @@ namespace qk {
 		GlyphID unicharToGlyph(Unichar unichar) const;
 		// non const methods
 		const Path& getPath(GlyphID glyph); // returns the path of glyph in 64 px
-		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
-		Array<FontGlyphMetrics> getGlyphsMetrics(cArray<GlyphID>& glyphs); // returns the glyphs metrics
+		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph, float fontSize);
+		Array<FontGlyphMetrics> getGlyphsMetrics(cArray<GlyphID>& glyphs, float fontSize);
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
 
@@ -103,7 +103,7 @@ namespace qk {
 		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
 		virtual void onGetMetrics(FontMetrics* metrics) = 0;
-		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) = 0;
+		virtual void onGetGlyphMetrics(GlyphID glyph, float fontSize, FontGlyphMetrics* metrics) = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) = 0;
 		virtual TextImage onGetImage(cArray<GlyphID> &glyphs,
 			float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias) = 0;
@@ -111,7 +111,7 @@ namespace qk {
 	private:
 		// props field:
 		FontMetrics  _metrics;
-		Dict<GlyphID, FontGlyphMetrics> _glyphsCache;
+		Dict<uint64_t, FontGlyphMetrics> _glyphsCache;
 		Dict<GlyphID, Path> _pathsCache;
 		mutable int _unitsPerEm;
 		mutable SharedMutex* _Mutex;

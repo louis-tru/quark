@@ -48,8 +48,6 @@
 #include <freetype/t1tables.h>
 #include <freetype/ftfntfmt.h>
 
-#undef FT_COLOR_H
-
 // hand-tuned value to reduce outline embolden strength
 #ifndef Qk_OUTLINE_EMBOLDEN_DIVISOR
 	#ifdef Qk_BUILD_FOR_ANDROID_FRAMEWORK
@@ -107,18 +105,32 @@ static FT_MemoryRec_ gFTMemory = { nullptr, qk_ft_alloc, qk_ft_free, qk_ft_reall
 
 class FreeTypeLibrary;
 static FreeTypeLibrary* gFTLibrary = nullptr;
-static FT_Int gMajor, gMinor, gPatch;
-bool   gIsFT_version_2_13 = false; // 2.13.2
+// Empirical raster-positioning compatibility switch, not a documented
+// FreeType version requirement. Older and 2.13-era libraries produced better
+// glyph placement with different Y translations in generateGlyphImage(). Keep
+// both paths until the same hinted text can be compared on 2.10 and 2.13.
+bool gIsFT_version_2_13 = false;
 
 class FreeTypeLibrary {
 	Qk_DISABLE_COPY(FreeTypeLibrary);
 public:
-	FreeTypeLibrary() : fLibrary(nullptr) {
+	FreeTypeLibrary()
+		: fLibrary(nullptr)
+		, fMajor(0), fMinor(0), fPatch(0)
+		, fSupportsColorGlyphs(false)
+	{
 		if (FT_New_Library(&gFTMemory, &fLibrary)) {
 			return;
 		}
 		FT_Add_Default_Modules(fLibrary);
 		FT_Set_Default_Properties(fLibrary);
+		FT_Library_Version(fLibrary, &fMajor, &fMinor, &fPatch);
+		gIsFT_version_2_13 = fMajor > 2 || (fMajor == 2 && fMinor >= 13);
+		// FreeType 2.10 made FT_Render_Glyph composite COLR v0 layers loaded
+		// with FT_LOAD_COLOR into a premultiplied BGRA bitmap.
+		fSupportsColorGlyphs = fMajor > 2 || (fMajor == 2 && fMinor >= 10);
+		Qk_DLog("FT_Library_Version, v%d.%d.%d, color glyphs=%d",
+			fMajor, fMinor, fPatch, fSupportsColorGlyphs);
 	}
 	~FreeTypeLibrary() {
 		if (fLibrary) {
@@ -127,9 +139,14 @@ public:
 	}
 
 	FT_Library library() { return fLibrary; }
+	bool supportsColorGlyphs() const { return fSupportsColorGlyphs; }
 
 private:
 	FT_Library fLibrary;
+	FT_Int fMajor;
+	FT_Int fMinor;
+	FT_Int fPatch;
+	bool fSupportsColorGlyphs;
 
 	// FT_Library_SetLcdFilterWeights 2.4.0
 	// FT_LOAD_COLOR 2.5.0
@@ -145,7 +162,7 @@ private:
 	// FT_VAR_AXIS_FLAG_HIDDEN was introduced in FreeType 2.8.1
 	// --------------------
 	// FT_Done_MM_Var 2.9.0 (Currenty setting ft_free to a known allocator.)
-	// freetype/ftcolor.h 2.10.0 (Currently assuming if compiled with FT_COLOR_H runtime available.)
+	// COLR v0 auto-compositing through FT_Render_Glyph 2.10.0
 
 	// Ubuntu 18.04       2.8.1
 	// Debian 10          2.9.1
@@ -295,11 +312,6 @@ private:
 		if (0 == gFTCount) {
 			Qk_ASSERT(nullptr == gFTLibrary, "gFTLibrary must be nullptr when gFTCount is 0");
 			gFTLibrary = new FreeTypeLibrary;
-
-			FT_Library_Version(gFTLibrary->library(), &gMajor, &gMinor, &gPatch);
-			gIsFT_version_2_13 = (gMajor >= 2 && gMinor >= 13);
-
-			Qk_DLog("FT_Library_Version, v%d.%d.%d", gMajor, gMinor, gPatch);
 		}
 		++gFTCount;
 		return gFTLibrary->library();
@@ -388,8 +400,6 @@ void QkTypeface_FreeType::initFreeType() {
 	// Use vertical layout if requested.
 	// loadFlags |= FT_LOAD_VERTICAL_LAYOUT;
 
-	loadFlags |= FT_LOAD_COLOR;
-
 	FT_Error err = FT_New_Size(fFaceRec->fFace.get(), &fFTSize);
 	if (err != 0) {
 		Qk_TRACEFTR(err, "FT_New_Size(%s) failed.", fFaceRec->fFace->family_name);
@@ -420,10 +430,20 @@ void QkTypeface_FreeType::initFreeType() {
 		return;
 	}
 
-#ifdef FT_COLOR_H
-	FT_Palette_Select(fFaceRec->fFace.value(), 0, nullptr);
-#endif
-
+	if (gFTLibrary->supportsColorGlyphs() && FT_HAS_COLOR(fFaceRec->fFace.get())) {
+		loadFlags |= FT_LOAD_COLOR;
+	#ifdef FT_LOAD_NO_SVG
+		// SVG color glyphs require an external renderer; keep the ordinary
+		// outline fallback until Qk provides one.
+		loadFlags |= FT_LOAD_NO_SVG;
+	#endif
+		// A scalable color face may still carry bitmap strikes (CBDT/sbix).
+		// Preserve them even when ordinary text disables embedded bitmaps.
+		loadFlags &= ~FT_LOAD_NO_BITMAP;
+	#ifdef FT_COLOR_H
+		FT_Palette_Select(fFaceRec->fFace.get(), 0, nullptr);
+	#endif
+	}
 	fFace = fFaceRec->fFace.get();
 	fDoLinearMetrics = linearMetrics;
 	fLoadGlyphFlags = loadFlags;
@@ -656,6 +676,28 @@ void emboldenIfNeeded(FT_Face face, FT_GlyphSlot glyph, GlyphID gid) {
 	}
 }
 
+bool glyphHasColorLayers(GlyphID glyphID) {
+#ifdef FT_COLOR_H
+	FT_UInt layerGlyph;
+	FT_UInt colorIndex;
+	FT_LayerIterator iterator = {};
+	return FT_Get_Color_Glyph_Layer(fFace, glyphID, &layerGlyph, &colorIndex, &iterator);
+#else
+	return false;
+#endif
+}
+
+bool renderCurrentColorGlyph() {
+	auto glyph = fFace->glyph;
+	if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
+		if (FT_Render_Glyph(glyph, FT_RENDER_MODE_NORMAL) != 0) {
+			return false;
+		}
+	}
+	return glyph->format == FT_GLYPH_FORMAT_BITMAP &&
+		glyph->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
+}
+
 bool getCBoxForLetter(char letter, FT_BBox* bbox) {
 	const FT_UInt glyph_id = FT_Get_Char_Index(fFace, letter);
 	if (!glyph_id) {
@@ -684,16 +726,17 @@ void getBBoxForCurrentGlyph(FT_BBox* bbox, bool snapToPixelBoundary) {
 
 };
 
-void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
+void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, float fontSize, FontGlyphMetrics* glyph) {
 	Qk_ASSERT(glyph, "glyph must be non-null");
 
 	#define Qk_zeroMetrics() qk_bzero(glyph, sizeof(*glyph))
 
-	float scale;
-	if (_this->setupSize(FixedUnitsScale, &scale)) {
+	float strikeScale;
+	if (_this->setupSize(fontSize, &strikeScale)) {
 		Qk_zeroMetrics();
 		return;
 	}
+	const float scale = 1.0f / strikeScale;
 
 	FT_Error err;
 	err = FT_Load_Glyph( fFace, id, fLoadGlyphFlags | FT_LOAD_BITMAP_METRICS_ONLY );
@@ -725,9 +768,17 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph)
 		glyph->fLeft   = QkFDot6ToFloat(left  );
 
 	} else if (fFace->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
-
-		glyph->fWidth   = QkIntToScalar(fFace->glyph->bitmap.width * scale);
-		glyph->fHeight  = QkIntToScalar(fFace->glyph->bitmap.rows  * scale);
+		// Bitmap strikes have fixed pixel metrics. Convert the selected strike
+		// back to the requested font-size coordinate space for layout.
+		float width = fFace->glyph->bitmap.width;
+		float height = fFace->glyph->bitmap.rows;
+		if (fFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD) {
+			width /= 3;
+		} else if (fFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD_V) {
+			height /= 3;
+		}
+		glyph->fWidth   = QkIntToScalar(width  * scale);
+		glyph->fHeight  = QkIntToScalar(height * scale);
 		glyph->fTop     = -QkIntToScalar(fFace->glyph->bitmap_top  * scale);
 		glyph->fLeft    = QkIntToScalar(fFace->glyph->bitmap_left  * scale);
 	} else {
@@ -740,8 +791,8 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph)
 		auto advanceScalar = QkFixedToScalar(fFace->glyph->linearHoriAdvance);
 		glyph->fAdvanceX = glyph->fAdvanceY = advanceScalar * scale;
 	} else {
-		glyph->fAdvanceX = QkFDot6ToFloat(fFace->glyph->advance.x * scale);
-		glyph->fAdvanceY = -QkFDot6ToFloat(fFace->glyph->advance.y * scale);
+		glyph->fAdvanceX = QkFDot6ToFloat(fFace->glyph->advance.x) * scale;
+		glyph->fAdvanceY = -QkFDot6ToFloat(fFace->glyph->advance.y) * scale;
 	}
 
 	LOG_INFO("Metrics(glyph:%d flags:0x%x) w:%f\n", id, fLoadGlyphFlags, glyph->fWidth);
@@ -918,21 +969,20 @@ bool QkTypeface_FreeType::onGetPath(GlyphID glyphID, Path *path) {
 Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, float fontSize,
 	cArray<Vec2> *offset, float padding, bool antiAlias)
 {
-	Array<FontGlyphMetrics> gms = getGlyphsMetrics(glyphs);
+	Array<FontGlyphMetrics> gms = getGlyphsMetrics(glyphs, fontSize);
 
 	AutoFTAccess fta(this);
 
 	#define Return() return { ImageSource::Make(PixelInfo()) }
 
-	float needToScale;
-	if (_this->setupSize(fontSize, &needToScale)) {
+	float scale;
+	if (_this->setupSize(fontSize, &scale)) {
 		Return();
 	}
 
 	const Vec2* off = offset ? offset->val(): nullptr;
-	const float scale = fontSize * needToScale / FixedUnitsScale;
 	float top = 0, bottom = 0;
-	float right = offset ? off->x() * needToScale: 0;
+	float right = offset ? off->x() * scale: 0;
 
 	for (auto &gm: gms) {
 		gm.fLeft *= scale;
@@ -940,9 +990,9 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		gm.fWidth *= scale;
 		gm.fHeight *= scale;
 		if (offset) {
-			gm.fTop += off->y() * needToScale;
+			gm.fTop += off->y() * scale;
 			// Note: Not very useful at the moment, used as offset value x from the pixel
-			gm.fAdvanceY = (off++)->x() * needToScale;
+			gm.fAdvanceY = (off++)->x() * scale;
 			right = fmax(right,  gm.fAdvanceX * scale + gm.fAdvanceY);
 		} else {
 			// Note: Used as offset value x from the pixel
@@ -953,7 +1003,6 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		bottom = qk::F32::max(bottom, gm.fHeight + gm.fTop);
 	}
 
-	FT_Glyph_Format ft_format = fFace->glyph->format;
 	uint32_t w = ceilf(right);
 	uint32_t h = ceilf(top + bottom);
 	int paddInt = Qk_Min(h, w) * padding;
@@ -965,37 +1014,36 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		Return();
 	}
 
-	ColorType type;
-	if (ft_format == FT_GLYPH_FORMAT_OUTLINE) {
-		type = kAlpha_8_ColorType;
-	}
-	else if ( ft_format == FT_GLYPH_FORMAT_BITMAP) {
-		switch (fFace->glyph->bitmap.pixel_mode) {
-		case FT_PIXEL_MODE_MONO:
-		case FT_PIXEL_MODE_GRAY: type = kAlpha_8_ColorType; break;
-		case FT_PIXEL_MODE_BGRA: type = kBGRA_8888_ColorType; break;
-		case FT_PIXEL_MODE_LCD:
-		case FT_PIXEL_MODE_LCD_V: type = kRGB_888X_ColorType; break;
-		default:
-			Qk_DLog("Unknown pixel mode %d", fFace->glyph->bitmap.pixel_mode);
-			Return();
-		}
-	} else {
-		Qk_DLog("Unknown glyph format %d", ft_format);
-		Return();
+	Array<bool> hasColors(glyphs.length());
+	bool useColorAtlas = false;
+	const bool supportsColor =
+		gFTLibrary->supportsColorGlyphs() && FT_HAS_COLOR(fFace);
+	for (uint32_t i = 0; i < glyphs.length(); i++) {
+		hasColors[i] = supportsColor && _this->glyphHasColorLayers(glyphs[i]);
+		useColorAtlas |= hasColors[i];
 	}
 
-	PixelInfo info(w, h, type, kUnknown_AlphaType);
+	// Runs containing a COLR glyph use one premultiplied RGBA atlas. Ordinary
+	// glyphs in the same run are stored as neutral white coverage.
+	// TODO: Canvas must distinguish this RGBA text image from an alpha mask to
+	// preserve its color channels when it is finally drawn.
+	ColorType type = useColorAtlas ? kRGBA_8888_ColorType: kAlpha_8_ColorType;
+	AlphaType alphaType = useColorAtlas ? kPremul_AlphaType: kUnknown_AlphaType;
+
+	PixelInfo info(w, h, type, alphaType);
 	Pixel pixel(info, Buffer(info.bytes()));
 	memset(pixel.val(), 0, pixel.length());
 
 	FT_Pixel_Mode mode = antiAlias ? FT_PIXEL_MODE_GRAY: FT_PIXEL_MODE_MONO;
 	Vec2 imgBaseline{float(paddInt), top};
 
+	uint32_t glyphIndex = 0;
 	for (auto &gm: gms) {
 		if (FT_Load_Glyph(fFace, gm.id, fLoadGlyphFlags) != 0)
 			Return();
 		_this->emboldenIfNeeded(fFace, fFace->glyph, gm.id);
+		if (hasColors[glyphIndex++] && !_this->renderCurrentColorGlyph())
+			Return();
 		generateGlyphImage(gm, pixel, mode, imgBaseline);
 	}
 
@@ -1005,7 +1053,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		.top = top,
 		.width = right,
 		.fontSize = fontSize,
-		.scale = needToScale,
+		.scale = scale,
 	};
 }
 

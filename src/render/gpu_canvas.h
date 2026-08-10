@@ -188,6 +188,7 @@ namespace qk {
 		Sp<CAPABuilder> _capaBuilder; // compute shader batch builder for CAPA
 		uint32_t _capaMaxImageCount; // backend CAPA image/sampler table size
 		bool _capaEnabled; // true if CAPA is enabled, false if disabled
+		bool _translateOnly; // current matrix contains translation only
 		friend class GC_Filter;
 		friend class GC_BlurFilter;
 		friend class CAPABuilder;

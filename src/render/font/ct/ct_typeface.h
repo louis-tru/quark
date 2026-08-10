@@ -68,7 +68,7 @@ public:
 	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
 	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
 	void onGetMetrics(FontMetrics* metrics) override;
-	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) override;
+	void onGetGlyphMetrics(GlyphID glyph, float fontSize, FontGlyphMetrics* metrics) override;
 	bool onGetPath(GlyphID glyph, Path *path) override;
 	TextImage onGetImage(cArray<GlyphID>& glyphs, float fontSize,
 		cArray<Vec2> *offset, float padding, bool antiAlias) override;

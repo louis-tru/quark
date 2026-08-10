@@ -30,8 +30,6 @@
 
 #include "./ft_typeface.h"
 
-#include <utility>
-
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include FT_FREETYPE_H
@@ -53,8 +51,6 @@
 #  define FT_PIXEL_MODE_BGRA 7
 #endif
 
-#undef FT_COLOR_H
-
 #ifdef DEBUG
 const char* QkTraceFtrGetError(int e) {
 	switch ((FT_Error)e) {
@@ -73,64 +69,82 @@ const char* QkTraceFtrGetError(int e) {
 
 extern bool gIsFT_version_2_13;
 
-static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
-	Qk_ASSERT_EQ(ftdst.width, ftsrc.width,
-		"ftdst.width = %d\n"
-		"ftsrc.width = %d",
-		ftdst.width,
-		ftsrc.width
-	);
-	Qk_ASSERT_EQ(ftdst.rows, ftsrc.rows,
-		"ftdst.height = %d\n"
-		"ftsrc.rows = %d",
-		ftdst.rows,
-		ftsrc.rows
-	);
+static Qk_INLINE void writeCoverage(uint8_t*& dst, uint8_t coverage, bool rgba) {
+	if (rgba) {
+		dst[0] = coverage;
+		dst[1] = coverage;
+		dst[2] = coverage;
+		dst[3] = coverage;
+		dst += 4;
+	} else {
+		*dst++ = coverage;
+	}
+}
 
+static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst, ColorType dstType) {
 	const uint8_t* src = ftsrc.buffer;
 	const FT_Pixel_Mode srcFormat = static_cast<FT_Pixel_Mode>(ftsrc.pixel_mode);
 	const int srcPitch = ftsrc.pitch; // FT_Bitmap::pitch is an int and allowed to be negative.
 	uint8_t* dst = ftdst.buffer;
 	const uint32_t dstPitch = ftdst.pitch;
-	const uint32_t width = ftsrc.width;
-	const uint32_t height = ftsrc.rows;
+	const uint32_t width = ftdst.width;
+	const uint32_t height = ftdst.rows;
+	const bool rgba = dstType == kRGBA_8888_ColorType;
+	Qk_ASSERT(rgba || dstType == kAlpha_8_ColorType, "unsupported glyph destination format");
 
 	switch (srcFormat) {
 		case FT_PIXEL_MODE_GRAY: {
+			Qk_ASSERT_EQ(width, ftsrc.width, "FT_PIXEL_MODE_GRAY: width mismatch");
+			Qk_ASSERT_EQ(height, ftsrc.rows, "FT_PIXEL_MODE_GRAY: height mismatch");
 			for (uint32_t y = height; y --> 0;) {
-				memcpy(dst, src, width);
+				if (rgba) {
+					const uint8_t* srcRow = src;
+					uint8_t* dstRow = dst;
+					for (uint32_t x = 0; x < width; x++) {
+						writeCoverage(dstRow, *srcRow++, true);
+					}
+				} else {
+					memcpy(dst, src, width);
+				}
 				src += srcPitch;
 				dst += dstPitch;
 			}
 		}
 		break;
 		case FT_PIXEL_MODE_LCD: {
+			Qk_ASSERT_EQ(width * 3, ftsrc.width, "FT_PIXEL_MODE_LCD: width mismatch");
+			Qk_ASSERT_EQ(height, ftsrc.rows, "FT_PIXEL_MODE_LCD: height mismatch");
 			for (uint32_t y = height; y-- > 0;) {
-				const uint8_t* triple = src;
+				const uint8_t* srcRow = src;
+				uint8_t* dstRow = dst;
 				for (uint32_t x = 0; x < width; x++) {
-					*dst++ = *triple++;
-					*dst++ = *triple++;
-					*dst++ = *triple++;
-					*dst++ = 255;
+					uint32_t coverage = srcRow[0] + srcRow[1] + srcRow[2];
+					writeCoverage(dstRow, uint8_t((coverage + 1) / 3), rgba);
+					srcRow += 3;
 				}
 				src += srcPitch;
+				dst += dstPitch;
 			}
 		} break;
 		case FT_PIXEL_MODE_LCD_V: {
+			Qk_ASSERT_EQ(width, ftsrc.width, "FT_PIXEL_MODE_LCD_V: width mismatch");
+			Qk_ASSERT_EQ(height * 3, ftsrc.rows, "FT_PIXEL_MODE_LCD_V: height mismatch");
 			for (uint32_t y = height; y-- > 0;) {
-				const uint8_t* srcR = src;
-				const uint8_t* srcG = srcR + srcPitch;
-				const uint8_t* srcB = srcG + srcPitch;
+				const uint8_t* src0 = src;
+				const uint8_t* src1 = src0 + srcPitch;
+				const uint8_t* src2 = src1 + srcPitch;
+				uint8_t* dstRow = dst;
 				for (uint32_t x = 0; x < width; x++) {
-					*(dst++) = *srcR++;
-					*(dst++) = *srcG++;
-					*(dst++) = *srcB++;
-					*dst++ = 255;
+					uint32_t coverage = *src0++ + *src1++ + *src2++;
+					writeCoverage(dstRow, uint8_t((coverage + 1) / 3), rgba);
 				}
 				src += 3 * srcPitch;
+				dst += dstPitch;
 			}
 		} break;
 		case FT_PIXEL_MODE_MONO: {
+			Qk_ASSERT_EQ(width, ftsrc.width, "FT_PIXEL_MODE_MONO: width mismatch");
+			Qk_ASSERT_EQ(height, ftsrc.rows, "FT_PIXEL_MODE_MONO: height mismatch");
 			for (uint32_t y = height; y --> 0;) {
 				uint8_t byte = 0;
 				int bits = 0;
@@ -141,7 +155,7 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 						byte = *src_row++;
 						bits = 8;
 					}
-					*dst_row++ = byte & 0x80 ? 0xff : 0x00;
+					writeCoverage(dst_row, byte & 0x80 ? 0xff : 0x00, rgba);
 					bits--;
 					byte <<= 1;
 				}
@@ -150,19 +164,26 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 			}
 		} break;
 		case FT_PIXEL_MODE_BGRA: {
-			// FT_PIXEL_MODE_BGRA is pre-multiplied.
+			Qk_ASSERT_EQ(dstType, kRGBA_8888_ColorType,
+				"FT_PIXEL_MODE_BGRA requires an RGBA destination");
+			Qk_ASSERT_EQ(width, ftsrc.width, "FT_PIXEL_MODE_BGRA: width mismatch");
+			Qk_ASSERT_EQ(height, ftsrc.rows, "FT_PIXEL_MODE_BGRA: height mismatch");
+			// FreeType supplies premultiplied BGRA; Qk stores the converted pixels
+			// as premultiplied RGBA.
 			for (uint32_t y = height; y --> 0;) {
 				const uint8_t* src_row = src;
-				Color* dst_row = reinterpret_cast<Color*>(dst);
+				uint8_t* dst_row = dst;
 				for (uint32_t x = 0; x < width; ++x) {
-					uint8_t b = *src_row++;
-					uint8_t g = *src_row++;
-					uint8_t r = *src_row++;
-					uint8_t a = *src_row++;
-					*dst_row++ = Color(r, g, b, a);
-	#ifdef Qk_SHOW_TEXT_BLIT_COVERAGE
-					*(dst_row-1) = (dst_row-1)->blendSrcOver(Color(0x40,0x40,0x40,0x40));
-	#endif
+					dst_row[0] = src_row[2];
+					dst_row[1] = src_row[1];
+					dst_row[2] = src_row[0];
+					dst_row[3] = src_row[3];
+#ifdef Qk_SHOW_TEXT_BLIT_COVERAGE
+					auto color = reinterpret_cast<Color*>(dst_row);
+					*color = color->blendSrcOver(Color(0x40,0x40,0x40,0x40));
+#endif
+					src_row += 4;
+					dst_row += 4;
 				}
 				src += srcPitch;
 				dst += dstPitch;
@@ -189,17 +210,7 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 	};
 
 	if (fFace->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-		Qk_ASSERT_EQ(pixel.type(), kAlpha_8_ColorType);
-
 		FT_Outline* outline = &fFace->glyph->outline;
-
-		dst.pixel_mode = ft_pixel_mode;
-		dst.num_grays = 256;
-
-		float dy = -glyph.fTop - dst.rows;
-
-		// Qk_DLog("generateGlyphImage, imgBaseline: %f, fTop: %f, fBottom: %f, fHeight: %f, PixH: %d, dy: %f",
-		// 		imgBaseline, glyph.fTop, glyph.fHeight + glyph.fTop, glyph.fHeight, pixel.height(), -dy);
 
 		/*
 			what we really want to do for subpixel is
@@ -211,24 +222,46 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 		*/
 		FT_Outline_Translate(outline,
 			-(QkScalarToFDot6(glyph.fLeft)),
+			// This split is based on visual testing rather than a documented
+			// FreeType API change. The older path snaps the bottom position to an
+			// integer pixel; the 2.13 path preserves the computed 26.6 offset.
 			gIsFT_version_2_13 ?
-			-(QkScalarToFDot6(dy)):
+			-(QkScalarToFDot6(-glyph.fTop - dst.rows)):
 			-(QkScalarToFDot6(-glyph.fTop - glyph.fHeight) & ~63)
 		);
 
-		FT_Outline_Get_Bitmap(fFace->glyph->library, outline, &dst);
+		if (pixel.type() == kRGBA_8888_ColorType) {
+			PixelInfo maskInfo(dst.width, dst.rows, kAlpha_8_ColorType, kUnknown_AlphaType);
+			Pixel mask(maskInfo, Buffer(maskInfo.bytes()));
+			memset(mask.val(), 0, mask.length());
+			FT_Bitmap maskDst = {
+				.rows = dst.rows,
+				.width = dst.width,
+				.pitch = int(dst.width),
+				.buffer = mask.val(),
+				.num_grays = 256,
+				.pixel_mode = ft_pixel_mode,
+			};
+			FT_Outline_Get_Bitmap(fFace->glyph->library, outline, &maskDst);
+			copyFTBitmap(maskDst, dst, pixel.type());
+		} else {
+			Qk_ASSERT_EQ(pixel.type(), kAlpha_8_ColorType, "alpha mask expected");
+			dst.pixel_mode = ft_pixel_mode;
+			dst.num_grays = 256;
+			FT_Outline_Get_Bitmap(fFace->glyph->library, outline, &dst);
 #ifdef Qk_SHOW_TEXT_BLIT_COVERAGE
-		for (int y = 0; y < dst.rows; ++y) {
-			for (int x = 0; x < dst.width; ++x) {
-				uint8_t& a = (dst.buffer)[(dst.pitch * y) + x];
-				a = std::max<uint8_t>(a, 0x20);
+			for (int y = 0; y < dst.rows; ++y) {
+				for (int x = 0; x < dst.width; ++x) {
+					uint8_t& a = (dst.buffer)[(dst.pitch * y) + x];
+					a = std::max<uint8_t>(a, 0x20);
+				}
 			}
-		}
 #endif
+		}
 	} else {
-		Qk_ASSERT_EQ(fFace->glyph->format, FT_GLYPH_FORMAT_BITMAP);
+		Qk_ASSERT_EQ(fFace->glyph->format, FT_GLYPH_FORMAT_BITMAP, "bitmap format expected");
 
-		copyFTBitmap(fFace->glyph->bitmap, dst);
+		copyFTBitmap(fFace->glyph->bitmap, dst, pixel.type());
 	}
 }
 
@@ -296,12 +329,12 @@ public:
 };
 
 static constexpr const FT_Outline_Funcs Funcs{
-	/*move_to =*/ QkFTGeometrySink::Move,
-	/*line_to =*/ QkFTGeometrySink::Line,
-	/*conic_to =*/ QkFTGeometrySink::Quad,
-	/*cubic_to =*/ QkFTGeometrySink::Cubic,
-	/*shift = */ 0,
-	/*delta =*/ 0,
+	.move_to = QkFTGeometrySink::Move,
+	.line_to = QkFTGeometrySink::Line,
+	.conic_to = QkFTGeometrySink::Quad,
+	.cubic_to = QkFTGeometrySink::Cubic,
+	.shift = 0,
+	.delta = 0,
 };
 
 bool QkTypeface_FreeType::generateFacePath(Path* path) {

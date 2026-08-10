@@ -135,7 +135,7 @@ protected:
 	int onCountGlyphs() const override;
 	int onGetTableTags(FontTableTag tags[]) const override;
 	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
-	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) override;
+	void onGetGlyphMetrics(GlyphID glyph, float fontSize, FontGlyphMetrics* metrics) override;
 	void onGetMetrics(FontMetrics* metrics) override;
 	bool onGetPath(GlyphID glyph, Path *path) override;
 	TextImage onGetImage(cArray<GlyphID>& glyphs, float fontSize,

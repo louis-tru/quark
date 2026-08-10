@@ -48,17 +48,14 @@ namespace qk {
 		if (!_glyphs.length())
 			return Array<Vec2>({origin});
 
-		const float one_div_64 = 1.0 / 64.0;
-		const float scale = one_div_64 * _fontSize;
-
 		Array<Vec2> offset(_glyphs.length() + 1);
 
 		float x = origin.x(), y = origin.y();
 		Vec2 *dst = *offset;
 
-		for (auto &gm: _typeface->getGlyphsMetrics(_glyphs)) {
+		for (auto &gm: _typeface->getGlyphsMetrics(_glyphs, _fontSize)) {
 			*dst++ = Vec2(x, y);
-			x += gm.fAdvanceX * scale;
+			x += gm.fAdvanceX;
 		}
 		*dst = Vec2(x, y);
 

@@ -117,10 +117,18 @@ namespace qk {
 		}
 	}
 
-	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph) {
+	static uint64_t glyph_metrics_key(GlyphID glyph, float fontSize) {
+		// Preserve the exact size because hinted outline metrics can change at each size.
+		uint32_t sizeBits;
+		memcpy(&sizeBits, &fontSize, sizeof(sizeBits));
+		return (uint64_t(sizeBits) << 32) | glyph;
+	}
+
+	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph, float fontSize) {
+		auto key = glyph_metrics_key(glyph, fontSize);
 		{
 			AutoSharedMutexShared ama(mutex());
-			auto it = _glyphsCache.find(glyph);
+			auto it = _glyphsCache.find(key);
 			if (it != _glyphsCache.end()) {
 				return it->second;
 			}
@@ -128,17 +136,17 @@ namespace qk {
 		{
 			AutoSharedMutexExclusive asme(mutex());
 			FontGlyphMetrics fgm;
-			onGetGlyphMetrics(glyph, &fgm);
-			return _glyphsCache.set(glyph, fgm);
+			onGetGlyphMetrics(glyph, fontSize, &fgm);
+			return _glyphsCache.set(key, fgm);
 		}
 	}
 
-	Array<FontGlyphMetrics> Typeface::getGlyphsMetrics(cArray<GlyphID>& glyphs) {
+	Array<FontGlyphMetrics> Typeface::getGlyphsMetrics(cArray<GlyphID>& glyphs, float fontSize) {
 		Array<FontGlyphMetrics> result;
 		{
 			AutoSharedMutexShared ama(mutex());
 			for (auto gid: glyphs) {
-				auto it = _glyphsCache.find(gid);
+				auto it = _glyphsCache.find(glyph_metrics_key(gid, fontSize));
 				if (it == _glyphsCache.end())
 					goto rest;
 				result.push(it->second);
@@ -151,10 +159,11 @@ namespace qk {
 
 		for (int i = result.length(), len = glyphs.length(); i < len; i++) {
 			auto gid = glyphs[i];
+			auto key = glyph_metrics_key(gid, fontSize);
 			FontGlyphMetrics fgm;
-			if (!_glyphsCache.get(gid, fgm)) {
-				onGetGlyphMetrics(gid, &fgm);
-				_glyphsCache.set(gid, fgm);
+			if (!_glyphsCache.get(key, fgm)) {
+				onGetGlyphMetrics(gid, fontSize, &fgm);
+				_glyphsCache.set(key, fgm);
 			}
 			result.push(fgm);
 		}
@@ -226,7 +235,7 @@ namespace qk {
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
 		}
-		return onGetImage(glyphs, fontSize, offset, 0.1, true);
+		return onGetImage(glyphs, fontSize, offset, 0.0, true);
 	}
 
 	Typeface::TextImage Typeface::getSDFImage(cArray<GlyphID> &glyphs,

@@ -616,10 +616,10 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) {
 	return true;
 }
 
-void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
+void Typeface_Mac::onGetGlyphMetrics(GlyphID id, float fontSize, FontGlyphMetrics* glyph) {
 	Qk_ASSERT(glyph);
 
-	auto font = ctFont(64.0);
+	auto font = ctFont(fontSize);
 	CTFontRef fontRef = font.get();
 
 	const CGGlyph cgGlyph = (CGGlyph) id;
@@ -678,8 +678,10 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	CGRect cgBound = CTFontGetBoundingRectsForGlyphs(fontRef,
 			kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length());
 
-	cgBound.origin.y = roundf(cgBound.origin.y);
-	cgBound.size.height = ceilf(cgBound.size.height);
+	const float minY = floorf(CGRectGetMinY(cgBound));
+	const float maxY = ceilf(CGRectGetMaxY(cgBound));
+	cgBound.origin.y = minY;
+	cgBound.size.height = maxY - minY;
 
 	float top = 0, right = 0;
 	float offsetY = 0;
@@ -728,8 +730,8 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 		CGBitmapContextCreate(
 			image.val() + paddInt * rowBytes +
 										paddInt * sizeof(uint32_t),
-			w,
-				h - paddInt * 2,
+			w - paddInt * 2,
+			h - paddInt * 2,
 			8,
 			rowBytes,
 			fRGBSpace.get(),
