@@ -149,6 +149,35 @@ static int get_int(FcPattern* pattern, const char object[], int missing) {
 	return value;
 }
 
+static uint16_t freetype_options_from_fcpattern(FcPattern* pattern) {
+	// QkTypeface_FreeType expects rasterization flags here. The original Skia
+	// constructor used this position for fixed-pitch state, so do not pass
+	// FC_SPACING through directly.
+	uint16_t flags = 0;
+
+	if (get_bool(pattern, FC_EMBEDDED_BITMAP, true)) {
+		flags |= kEmbeddedBitmapText_Flag;
+	}
+	if (get_bool(pattern, FC_EMBOLDEN)) {
+		flags |= kEmbolden_Flag;
+	}
+	if (!get_bool(pattern, FC_HINTING, true)) {
+		return flags;
+	}
+	if (get_bool(pattern, FC_AUTOHINT)) {
+		flags |= kForceAutohinting_Flag;
+	}
+
+	switch (get_int(pattern, FC_HINT_STYLE, FC_HINT_FULL)) {
+		case FC_HINT_NONE: break;
+		case FC_HINT_SLIGHT: flags |= kHintingBit1_Flag; break;
+		case FC_HINT_MEDIUM: flags |= kHintingBit2_Flag; break;
+		case FC_HINT_FULL: flags |= kHintingMask_Flag; break;
+		default: flags |= kHintingMask_Flag; break;
+	}
+	return flags;
+}
+
 static const char* get_string(FcPattern* pattern, const char object[], const char* missing = "") {
 	FcChar8* value;
 	if (FcPatternGetString(pattern, object, 0, &value) != FcResultMatch) {
@@ -413,7 +442,7 @@ class Typeface_stream : public QkTypeface_FreeType {
 public:
 	Typeface_stream(Sp<QkFontData> data,
 					String familyName, const FontStyle& style, bool fixedWidth)
-		: INHERITED(style, 0)
+		: INHERITED(style, kHintingBit2_Flag)
 		, fFamilyName(std::move(familyName))
 		, fData(std::move(data))
 	{
@@ -482,7 +511,7 @@ public:
 private:
 	Typeface_fontconfig(QkAutoFcPattern& pattern, cString& sysroot)
 		: INHERITED(Qkfontstyle_from_fcpattern(pattern),
-					FC_PROPORTIONAL != get_int(pattern, FC_SPACING, FC_PROPORTIONAL))
+					freetype_options_from_fcpattern(pattern) | kHintingBit2_Flag)
 		, fPattern(std::move(pattern))
 		, fSysroot(sysroot)
 	{

@@ -28,26 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../util/fs.h"
 #include "../../util/hash.h"
-#include "./pool.h"
-#include "./priv/mutex.h"
 #include "../../../out/native-font.h"
+#include "./pool.h"
 
 namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
-	static std::mutex _sf_mutex;
-	static FontPool* _shared_fontPool = nullptr;
-
 	FontPool* FontPool::shared() {
-		if (!_shared_fontPool) {
-			ScopeLock scope(_sf_mutex);
-			if (!_shared_fontPool) {
-				_shared_fontPool = FontPool::Make();
-			}
-		}
+		static FontPool* _shared_fontPool = FontPool::Make();
 		return _shared_fontPool;
 	}
 
@@ -71,10 +61,10 @@ namespace qk {
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
 			_defaultFamilyNames.push(tf1->getFamilyName());
-			tf1->getMetrics(&_UnitMetrics64, 64);
+			tf1->getMetrics(&_strutMetrics64, 64);
 			Qk_DLog("FontPool::initFontPool _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
 		} else {
-			tf->getMetrics(&_UnitMetrics64, 64);
+			tf->getMetrics(&_strutMetrics64, 64);
 		}
 
 		// find �(65533) character tf

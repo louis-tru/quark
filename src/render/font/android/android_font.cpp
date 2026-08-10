@@ -39,7 +39,7 @@
 class QkTypeface_Android : public QkTypeface_FreeType {
 public:
 	QkTypeface_Android(const FontStyle& style, bool isFixedPitch, cString& familiesName)
-		: QkTypeface_FreeType(style, 0)
+		: QkTypeface_FreeType(style, kHintingBit2_Flag)
 		, fFamilyName(familiesName) {}
 protected:
 	String onGetFamilyName() const override { return fFamilyName; }

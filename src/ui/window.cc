@@ -324,7 +324,8 @@ namespace qk {
 
 		_root->reload_Rt(_size); // reload root view
 
-		Qk_DLog("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
+		Qk_DLog("Window::reload() %f, %f, size: %f, %f",
+			region.size.x(), region.size.y(), _size.x(), _size.y());
 
 		_render->getCanvas()->setSurface(mat, size, _scale);
 	}

@@ -103,6 +103,7 @@ namespace qk {
 			_surfaceSize = getSurfaceSize();
 			destroySwapchain(true);
 			createSwapchain();
+			Qk_DLog("reload surfaceSize=(%f,%f)", _surfaceSize.x(), _surfaceSize.y());
 			_delegate->onRenderBackendReload(_surfaceSize);
 		}
 

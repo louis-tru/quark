@@ -115,6 +115,7 @@ namespace qk {
 		Dict<GlyphID, Path> _pathsCache;
 		mutable int _unitsPerEm;
 		mutable SharedMutex* _Mutex;
+		bool _metricsReady;
 	};
 
 }

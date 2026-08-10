@@ -33,7 +33,6 @@
 #ifndef __quark__font__freetype__ft_typeface__
 #define __quark__font__freetype__ft_typeface__
 
-#include "../priv/to.h"
 #include "../priv/fontdata.h"
 #include "../priv/arguments.h"
 #include "./ft_glyph_cache.h"
@@ -46,6 +45,8 @@ typedef struct FT_LibraryRec_* FT_Library;
 typedef struct FT_FaceRec_* FT_Face;
 typedef struct FT_StreamRec_* FT_Stream;
 typedef struct FT_SizeRec_* FT_Size;
+typedef struct FT_MemoryRec_* FT_Memory;
+typedef struct FT_MM_Var_ FT_MM_Var;
 
 #ifdef DEBUG
 const char* QkTraceFtrGetError(int);
@@ -56,12 +57,15 @@ const char* QkTraceFtrGetError(int);
 #define Qk_TRACEFTR(ERR, ...) do { qk_ignore_unused_variable(ERR); } while (false)
 #endif
 
+#if 1
+	#define LOG_INFO(...)
+#else
+	#define LOG_INFO Qk_DLog
+#endif
+
 enum Flags {
-	kFrameAndFill_Flag        = 0x0001,
-	kUnused                   = 0x0002,
 	kEmbeddedBitmapText_Flag  = 0x0004,
 	kEmbolden_Flag            = 0x0008,
-	kSubpixelPositioning_Flag = 0x0010,
 	kForceAutohinting_Flag    = 0x0020,  // Use auto instead of bytcode hinting if hinting.
 
 	// together, these two flags resulting in a two bit value which matches
@@ -69,13 +73,7 @@ enum Flags {
 	kHinting_Shift            = 7, // to shift into the other flags above
 	kHintingBit1_Flag         = 0x0080,
 	kHintingBit2_Flag         = 0x0100,
-
-	kLinearMetrics_Flag       = 0x1000,
-};
-
-// computed values
-enum {
-	kHinting_Mask   = kHintingBit1_Flag | kHintingBit2_Flag,
+	kHintingMask_Flag         = kHintingBit1_Flag | kHintingBit2_Flag,
 };
 
 class QkTypeface_FreeType : public Typeface {
@@ -162,7 +160,46 @@ private:
 	Qk_DEFINE_INLINE_CLASS(Inl);
 };
 
+class AutoFTAccess {
+public:
+	inline AutoFTAccess(const QkTypeface_FreeType* tf) : _ft(tf) {
+		_ft->ft_mutex().lock();
+	}
+	inline ~AutoFTAccess() {
+		_ft->ft_mutex().unlock();
+	}
+private:
+	const QkTypeface_FreeType *_ft;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 template<class T>
 inline static void Noop(T* obj) {}
+
+void QkFT_Done_Size(FT_Size obj);
+void QkFT_Done_Face(FT_Face obj);
+void SpFT_Done_MM_Var(FT_MM_Var* obj);
+
+template<typename T, void (*Release)(T*) = ObjectTraits<T>::Release>
+using SpFT = Sp<T, ObjectTraitsFrom<T, Release, Noop<T>>>;
+
+using SpFT_Size = SpFT<std::remove_pointer_t<FT_Size>, QkFT_Done_Size>;
+using SpFT_Face = SpFT<std::remove_pointer_t<FT_Face>, QkFT_Done_Face>;
+
+using SpFT_MM_Var = SpFT<FT_MM_Var, SpFT_Done_MM_Var>;
+
+using FT_Alloc_size_t = long;
+
+void* qk_ft_alloc(FT_Memory mem, FT_Alloc_size_t size);
+void qk_ft_free(FT_Memory mem, void* block);
+void* qk_ft_realloc(FT_Memory mem, FT_Alloc_size_t cur_size,
+										FT_Alloc_size_t new_size, void* block);
+unsigned long qk_ft_stream_io(FT_Stream ftStream,
+										unsigned long offset,
+										unsigned char* buffer,
+										unsigned long count);
+inline void qk_ft_stream_close(FT_Stream) {}
 
 #endif // __quark__font__ft__ft_typeface__

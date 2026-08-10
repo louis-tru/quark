@@ -631,6 +631,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
 	// cgAdvance = CGSizeApplyAffineTransform(cgAdvance, fTransform);
 	glyph->fAdvanceX =  static_cast<float>(cgAdvance.width);
 	glyph->fAdvanceY = -static_cast<float>(cgAdvance.height);
+	glyph->id = id;
 
 	// Glyphs are always drawn from the horizontal origin. The caller must manually use the result
 	// of CTFontGetVerticalTranslationsForGlyphs to calculate where to draw the glyph for vertical
@@ -643,9 +644,8 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
 	CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &cgGlyph, &cgBounds, 1);
 	// cgBounds = CGRectApplyAffineTransform(cgBounds, fTransform);
 
-	if (QkCGRectIsEmpty(cgBounds)) {
-		return;
-	}
+	// if (QkCGRectIsEmpty(cgBounds))
+	// 	return;
 
 	glyph->fLeft = cgBounds.origin.x;
 	glyph->fTop = -cgBounds.size.height - cgBounds.origin.y;

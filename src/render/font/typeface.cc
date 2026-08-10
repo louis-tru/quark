@@ -31,17 +31,12 @@
 #include "./typeface.h"
 #include "./style.h"
 #include "./pool.h"
-#include "./priv/util.h"
-#include "./priv/mutex.h"
-#include "../render.h"
 #include "../sdf.h"
 
 namespace qk {
 
-	Typeface::Typeface(FontStyle fs): _fontStyle(fs), _unitsPerEm(0), _Mutex(new SharedMutex)
-	{
-		_metrics.fAscent = 0;
-	}
+	Typeface::Typeface(FontStyle fs)
+		: _fontStyle(fs), _unitsPerEm(0), _Mutex(new SharedMutex), _metricsReady(false) {}
 	
 	Typeface::~Typeface() {
 		Releasep(_Mutex);
@@ -208,19 +203,18 @@ namespace qk {
 	}
 
 	float Typeface::getMetrics(FontMetricsBase* metrics, float fontSize) {
-		if (_metrics.fAscent == 0) {
+		if (!_metricsReady) {
 			AutoSharedMutexExclusive asme(mutex());
-			if (_metrics.fAscent == 0) {
-				FontMetrics metrics;
-				onGetMetrics(&metrics);
-				_metrics = metrics;
+			if (!_metricsReady) {
+				onGetMetrics(&_metrics);
+				_metricsReady = true;
 			}
 		}
 		return computeMetricsBase(&_metrics, metrics, fontSize);
 	}
 
-	float FontPool::getUnitMetrics(FontMetricsBase* out, float fontSize) const {
-		return computeMetricsBase(&_UnitMetrics64, out, fontSize);
+	float FontPool::getStandardLineMetrics(FontMetricsBase* out, float fontSize) const {
+		return computeMetricsBase(&_strutMetrics64, out, fontSize);
 	}
 
 	Typeface::TextImage Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,

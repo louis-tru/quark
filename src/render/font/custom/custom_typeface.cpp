@@ -35,7 +35,7 @@
 
 QkTypeface_Custom::QkTypeface_Custom(const FontStyle& style, bool isFixedPitch,
 									 bool sysFont, cString &familyName, int index)
-	: INHERITED(style, 0)
+	: INHERITED(style, kHintingBit2_Flag)
 	, fIsSysFont(sysFont), fFamilyName(familyName), fIndex(index)
 {}
 
@@ -142,7 +142,7 @@ QkFontPool_Custom::QkFontPool_Custom(const SystemFontLoader& loader) : fDefaultF
 		break;
 	}
 	if (nullptr == fDefaultFamily) {
-		fDefaultFamily = fFamilies.begin()->value.get();
+		fDefaultFamily = fFamilies.begin()->second.get();
 	}
 	
 	initFontPool();

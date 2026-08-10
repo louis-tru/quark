@@ -264,6 +264,7 @@
 					'render/font/freetype/ft_glyph_cache.cc',
 					'render/font/freetype/ft_glyph_cache.h',
 					'render/font/freetype/ft_typeface.cc',
+					'render/font/freetype/ft_scanner.cc',
 					'render/font/freetype/ft_typeface.h',
 					# 'render/font/custom/custom_directory.cpp', ## font/custom
 					# 'render/font/custom/custom_typeface.cpp',

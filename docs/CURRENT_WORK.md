@@ -85,16 +85,18 @@ Remaining validation/stabilization:
   `INCR`, legacy encodings, and clipboard-manager persistence after process exit
   are not implemented yet.
 - Ordinary-DPI Linux text currently renders with visibly poor small-glyph
-  quality. The first confirmed cause is a constructor-argument semantic error
-  left by the Skia FreeType port: `Typeface_fontconfig` still passes the
-  Fontconfig fixed-pitch boolean as the second `QkTypeface_FreeType` argument,
-  but that argument is now the FreeType flags field. Consequently the hinting
-  bits remain zero and `initFreeType()` selects `FT_LOAD_NO_HINTING` for
-  Fontconfig faces. Do not change this yet while the remaining Linux bring-up
-  issues are being handled. When resumed, derive the flags from `FC_HINTING`,
-  `FC_HINT_STYLE`, `FC_AUTOHINT`, `FC_EMBEDDED_BITMAP`, and `FC_EMBOLDEN`, then
-  separately evaluate grayscale-only antialiasing, fractional placement, and
-  linear texture sampling.
+  quality. The first confirmed cause was a constructor-argument semantic error
+  left by the Skia FreeType port: `Typeface_fontconfig` passed the Fontconfig
+  fixed-pitch boolean as the `QkTypeface_FreeType` flags field. Fontconfig faces
+  therefore normally selected `FT_LOAD_NO_HINTING`. FreeType construction now
+  explicitly selects normal hinting on Linux, Android, and custom/stream font
+  paths. Linux Fontconfig options retain the complete system hinting,
+  embedded-bitmap, synthetic-bold, and auto-hinter mapping for future use, but
+  the current Linux constructor adds Qk's normal-hinting bit so the effective
+  policy is always normal or full. Runtime comparison is still required.
+- Keep the remaining text-quality investigations separate: grayscale-only
+  antialiasing, fractional glyph placement, glyph-atlas filtering, and Canvas
+  font-size/coordinate quantization have not been changed yet.
 
 ## Deferred Non-Vulkan Work
 

@@ -160,7 +160,7 @@ namespace qk {
 		// sizeof(TextLinesCore::Line);
 		clear();
 		// _line_height = line_height;
-		// shared_fontPool()->getUnitMetrics(&_UnitMetrics, fontSize);
+		// shared_fontPool()->getStandardLineMetrics(&_UnitMetrics, fontSize);
 	}
 
 	void TextLines::clear() {
@@ -203,7 +203,7 @@ namespace qk {
 	void TextLines::set_have_init_line_height(float fontSize, float line_height) {
 		_have_init_line_height = true;
 		FontMetricsBase metrics;
-		shared_fontPool()->getUnitMetrics(&metrics, fontSize);
+		shared_fontPool()->getStandardLineMetrics(&metrics, fontSize);
 		set_line_height(&metrics, line_height, fontSize);
 	}
 
@@ -227,7 +227,7 @@ namespace qk {
 		auto bottom = metrics->fDescent + metrics->fLeading;
 		if (_last->line_height == 0) { // first time init use max metrics
 			FontMetricsBase metrics;
-			shared_fontPool()->getUnitMetrics(&metrics, font_size);
+			shared_fontPool()->getStandardLineMetrics(&metrics, font_size);
 			top = F32::max(-metrics.fAscent, top);
 			bottom = F32::max(bottom, metrics.fDescent + metrics.fLeading);
 		}
@@ -407,7 +407,7 @@ namespace qk {
 			auto origin = _last->width;
 
 			_blob->push({
-				ascent, height, _last->width, line, index_of_unichar, {tf, .offset={Vec2()}},
+				ascent, height, _last->width, line, index_of_unichar, {.typeface=tf, .offset={Vec2()}},
 			});
 		}
 	}
