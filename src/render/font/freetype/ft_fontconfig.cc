@@ -511,7 +511,7 @@ public:
 private:
 	Typeface_fontconfig(QkAutoFcPattern& pattern, cString& sysroot)
 		: INHERITED(Qkfontstyle_from_fcpattern(pattern),
-					freetype_options_from_fcpattern(pattern) | kHintingBit2_Flag)
+					freetype_options_from_fcpattern(pattern))
 		, fPattern(std::move(pattern))
 		, fSysroot(sysroot)
 	{

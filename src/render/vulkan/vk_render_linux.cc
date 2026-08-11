@@ -58,6 +58,7 @@ namespace qk {
 		VkTexture* texture = nullptr;
 		VkCommandBuffer presentCommand = VK_NULL_HANDLE;
 		VkSemaphore renderFinished = VK_NULL_HANDLE;
+		bool directTarget = true;
 	};
 
 	class LinuxVulkanRender final: public VulkanRender, public RenderSurface {
@@ -101,10 +102,10 @@ namespace qk {
 			ScopeLock lock(_mutex);
 			Qk_ASSERT(_surface, "Vulkan surface must be created before reload");
 			_surfaceSize = getSurfaceSize();
-			destroySwapchain(true);
-			createSwapchain();
 			Qk_DLog("reload surfaceSize=(%f,%f)", _surfaceSize.x(), _surfaceSize.y());
 			_delegate->onRenderBackendReload(_surfaceSize);
+			destroySwapchain(true);
+			Qk_CHECK(createSwapchain(), "Failed to create Vulkan swapchain");
 		}
 
 		Vec2 getSurfaceSize() override {
@@ -181,7 +182,9 @@ namespace qk {
 				_imageIndex = imageIndex;
 				Qk_ASSERT_LT(_imageIndex, _swapchainImages.length(),
 					"Invalid Vulkan swapchain image index");
-				_vkCanvas->setDefaultTarget(_swapchainImages[_imageIndex].texture);
+				auto &image = _swapchainImages[_imageIndex];
+				if (image.directTarget)
+					_vkCanvas->setDefaultTarget(image.texture);
 			}
 			return true;
 		}
@@ -204,9 +207,10 @@ namespace qk {
 			commands.push(image.presentCommand);
 			image.texture->levels[0].layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-			VkPipelineStageFlags waitStage =
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			VkPipelineStageFlags waitStage = image.directTarget
+				? VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+				: VK_PIPELINE_STAGE_TRANSFER_BIT;
 			VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
 			submit.waitSemaphoreCount = 1;
 			submit.pWaitSemaphores = _imageAvailable + _imageAvailableIndex;
@@ -301,28 +305,40 @@ namespace qk {
 			Qk_ASSERT_EQ(_swapchainImages.length(), 0,
 				"Vulkan swapchain images must be empty before creation");
 
+			auto device = _resource->physicalDevice();
 			VkResult result;
 			VkSurfaceCapabilitiesKHR capabilities{};
-			vk_call(vkGetPhysicalDeviceSurfaceCapabilitiesKHR,
-				_resource->physicalDevice(), _surface, &capabilities);
-
-			const VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-				| VK_IMAGE_USAGE_SAMPLED_BIT
-				| VK_IMAGE_USAGE_STORAGE_BIT
-			;
-			if ((capabilities.supportedUsageFlags & imageUsage) != imageUsage) {
-				Qk_DLog("Vulkan swapchain does not support color attachment, sampled and storage images");
-				return false;
-			}
+			vk_call(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, device, _surface, &capabilities);
 
 			uint32_t formatCount = 0;
-			vk_call(vkGetPhysicalDeviceSurfaceFormatsKHR,
-				_resource->physicalDevice(), _surface, &formatCount, nullptr);
+			vk_call(vkGetPhysicalDeviceSurfaceFormatsKHR, device, _surface, &formatCount, nullptr);
 			Qk_ASSERT_GE(formatCount, 1, "Vulkan surface has no supported formats");
 			Array<VkSurfaceFormatKHR> formats(formatCount);
-			vk_call(vkGetPhysicalDeviceSurfaceFormatsKHR,
-				_resource->physicalDevice(), _surface, &formatCount, formats.val());
+			vk_call(vkGetPhysicalDeviceSurfaceFormatsKHR, device, _surface, &formatCount, formats.val());
 			auto format = chooseSurfaceFormat(formats);
+			const bool presentCopy = _vkCanvas->needsPresentCopy(format.format);
+			const VkImageUsageFlags imageUsage = presentCopy
+				? VK_IMAGE_USAGE_TRANSFER_DST_BIT
+				: VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+					VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+			if ((capabilities.supportedUsageFlags & imageUsage) != imageUsage) {
+				Qk_DLog("Vulkan swapchain does not support required image usage: %u", uint32_t(imageUsage));
+				return false;
+			}
+			if (presentCopy) {
+				VkFormatProperties srcProps{}, dstProps{};
+				vkGetPhysicalDeviceFormatProperties(device, vk_pixelFormat(_opts.colorType), &srcProps);
+				vkGetPhysicalDeviceFormatProperties(device, format.format, &dstProps);
+				if (!(srcProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) ||
+						!(dstProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
+					Qk_DLog("Vulkan formats do not support present blit: src=%d, dst=%d",
+						int(vk_pixelFormat(_opts.colorType)), int(format.format));
+					return false;
+				}
+			}
+			_presentSource = presentCopy ? _vkCanvas->defaultTarget(): nullptr;
+			Qk_ASSERT(!presentCopy || _presentSource,
+				"Vulkan present copy source must exist before swapchain creation");
 
 			auto extent = capabilities.currentExtent;
 			if (extent.width == U32::limit_max) {
@@ -391,6 +407,9 @@ namespace qk {
 				texture->format = format.format;
 				texture->usage = imageUsage;
 				texture->levels = {{VK_IMAGE_LAYOUT_UNDEFINED}}; // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+				_swapchainImages[i].directTarget = !_vkCanvas->needsPresentCopy(texture->format);
+				Qk_ASSERT_EQ(_swapchainImages[i].directTarget, _swapchainImages[0].directTarget,
+					"Images from one Vulkan swapchain must use the same presentation path");
 				texture->view = vk_createLevelView(_device, texture, 0);
 				vk_call_if(bool, texture->view);
 				vk_call_if(createPresentCommand, _swapchainImages[i]);
@@ -418,6 +437,7 @@ namespace qk {
 				image.setTexture(nullptr);
 			}
 			_swapchainImages.clear();
+			_presentSource = nullptr;
 			for (auto &semaphore: _imageAvailable) {
 				if (semaphore)
 					vkDestroySemaphore(_device, semaphore, nullptr);
@@ -452,25 +472,85 @@ namespace qk {
 				_device, _presentCommandPool, &image.presentCommand, 0) != VK_SUCCESS)
 				return false;
 			VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.image = image.texture->image;
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			barrier.subresourceRange.levelCount = 1;
 			barrier.subresourceRange.layerCount = 1;
-			vkCmdPipelineBarrier(image.presentCommand,
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-				0, 0, nullptr, 0, nullptr, 1, &barrier);
+			if (image.directTarget) {
+				barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				vkCmdPipelineBarrier(image.presentCommand,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+					0, 0, nullptr, 0, nullptr, 1, &barrier);
+			} else {
+				Qk_ASSERT(_presentSource, "Vulkan present copy source is null");
+				Qk_ASSERT_EQ(_presentSource->extent.width, image.texture->extent.width,
+					"Vulkan present copy width must match the swapchain image");
+				Qk_ASSERT_EQ(_presentSource->extent.height, image.texture->extent.height,
+					"Vulkan present copy height must match the swapchain image");
+				VkImageMemoryBarrier sourceBarrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+				sourceBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				sourceBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				sourceBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				sourceBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+				sourceBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				sourceBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				sourceBarrier.image = _presentSource->image;
+				sourceBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				sourceBarrier.subresourceRange.levelCount = 1;
+				sourceBarrier.subresourceRange.layerCount = 1;
+
+				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				VkImageMemoryBarrier beginBarriers[] = {sourceBarrier, barrier};
+				vkCmdPipelineBarrier(image.presentCommand,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_PIPELINE_STAGE_TRANSFER_BIT,
+					0, 0, nullptr, 0, nullptr, 2, beginBarriers);
+
+				VkImageBlit blit{};
+				blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				blit.srcSubresource.layerCount = 1;
+				blit.srcOffsets[1] = {
+					int32_t(_presentSource->extent.width),
+					int32_t(_presentSource->extent.height), 1};
+				blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				blit.dstSubresource.layerCount = 1;
+				blit.dstOffsets[1] = {
+					int32_t(image.texture->extent.width),
+					int32_t(image.texture->extent.height), 1};
+				vkCmdBlitImage(image.presentCommand,
+					_presentSource->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					image.texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					1, &blit, VK_FILTER_NEAREST);
+
+				sourceBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				sourceBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				sourceBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+				sourceBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				barrier.dstAccessMask = 0;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				VkImageMemoryBarrier endBarriers[] = {sourceBarrier, barrier};
+				vkCmdPipelineBarrier(image.presentCommand,
+					VK_PIPELINE_STAGE_TRANSFER_BIT,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+						VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+					0, 0, nullptr, 0, nullptr, 2, endBarriers);
+			}
 			return vkEndCommandBuffer(image.presentCommand) == VK_SUCCESS;
 		}
 
 		VkSurfaceKHR _surface;
 		VkSwapchainKHR _swapchain;
 		VkCommandPool _presentCommandPool;
+		Sp<VkTexture> _presentSource; // retained until all pre-recorded present commands are idle
 		VkSemaphore _imageAvailable[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
 		uint32_t _imageAvailableIndex;
 		EGLNativeWindowType _window;

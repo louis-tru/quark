@@ -138,8 +138,7 @@ namespace qk {
 			_win = win;
 			_xdpy = openXDisplay();
 			_root = XDefaultRootWindow(_xdpy);
-			_xft_dpi = dpiForXDisplay();
-			_xwin_scale = _xft_dpi / 96.0;
+			updateXdpyDpi();
 			_xwin = newXWindow(opts);
 			_ime = LinuxIMEHelper::Make(this);
 			_noneCursor = XNone;
@@ -155,6 +154,12 @@ namespace qk {
 			if (_noneCursor != XNone) {
 				XFreeCursor(_xdpy, _noneCursor);
 			}
+		}
+
+		void updateXdpyDpi() {
+			_xft_dpi = getXDisplayDpi(_xdpy);
+			_xwin_scale = _xft_dpi / 96.0;
+			x11().xdpyDpi = _xft_dpi;
 		}
 
 		XWindow newXWindow(cOptions &opts) {
@@ -292,7 +297,10 @@ namespace qk {
 			} else if (cursor == CursorStyle::NoneUntilMouseMoves) {
 				hideCursor();
 			} else {
-				// Ref file X11/cursorfont.h
+				auto loadCursor = [&](const char* name, const char* fallback) {
+					auto c = XcursorLibraryLoadCursor(_xdpy, name);
+					return c != XNone ? c: XcursorLibraryLoadCursor(_xdpy, fallback);
+				};
 				Cursor c;
 				switch (cursor) {
 					default:
@@ -301,55 +309,55 @@ namespace qk {
 						c = XNone;
 						break;
 					case CursorStyle::Ibeam:
-						c = XcursorLibraryLoadCursor(_xdpy, "xterm");
+						c = loadCursor("text", "xterm");
 						break;
 					case CursorStyle::PointingHand:
-						c = XcursorLibraryLoadCursor(_xdpy, "hand1");
+						c = loadCursor("pointer", "hand2");
 						break;
 					case CursorStyle::ClosedHand:
-						c = XcursorLibraryLoadCursor(_xdpy, "fleur");
+						c = loadCursor("grabbing", "fleur");
 						break;
 					case CursorStyle::OpenHand:
-						c = XcursorLibraryLoadCursor(_xdpy, "fleur");
+						c = loadCursor("grab", "fleur");
 						break;
 					case CursorStyle::ResizeLeft:
-						c = XcursorLibraryLoadCursor(_xdpy, "left_side");
+						c = loadCursor("w-resize", "left_side");
 						break;
 					case CursorStyle::ResizeRight:
-						c = XcursorLibraryLoadCursor(_xdpy, "right_side");
+						c = loadCursor("e-resize", "right_side");
 						break;
 					case CursorStyle::ResizeLeftRight:
-						c = XcursorLibraryLoadCursor(_xdpy, "sb_h_double_arrow");
+						c = loadCursor("ew-resize", "sb_h_double_arrow");
 						break;
 					case CursorStyle::ResizeUp:
-						c = XcursorLibraryLoadCursor(_xdpy, "top_side");
+						c = loadCursor("n-resize", "top_side");
 						break;
 					case CursorStyle::ResizeDown:
-						c = XcursorLibraryLoadCursor(_xdpy, "bottom_side");
+						c = loadCursor("s-resize", "bottom_side");
 						break;
 					case CursorStyle::ResizeUpDown:
-						c = XcursorLibraryLoadCursor(_xdpy, "sb_v_double_arrow");
+						c = loadCursor("ns-resize", "sb_v_double_arrow");
 						break;
 					case CursorStyle::Crosshair:
 						c = XcursorLibraryLoadCursor(_xdpy, "crosshair");
 						break;
 					case CursorStyle::DisappearingItem:
-						c = XcursorLibraryLoadCursor(_xdpy, "X_cursor");
+						c = loadCursor("dnd-no-drop", "X_cursor");
 						break;
 					case CursorStyle::OperationNotAllowed:
-						c = XcursorLibraryLoadCursor(_xdpy, "X_cursor");
+						c = loadCursor("not-allowed", "X_cursor");
 						break;
 					case CursorStyle::DragLink:
-						c = XcursorLibraryLoadCursor(_xdpy, "center_ptr");
+						c = loadCursor("alias", "dnd-link");
 						break;
 					case CursorStyle::DragCopy:
-						c = XcursorLibraryLoadCursor(_xdpy, "circle");
+						c = loadCursor("copy", "dnd-copy");
 						break;
 					case CursorStyle::ContextualMenu:
-						c = XcursorLibraryLoadCursor(_xdpy, "arrow");
+						c = loadCursor("context-menu", "left_ptr");
 						break;
 					case CursorStyle::IbeamForVertical:
-						c = XcursorLibraryLoadCursor(_xdpy, "xterm");
+						c = loadCursor("vertical-text", "xterm");
 						break;
 					case CursorStyle::Cross:
 						c = XcursorLibraryLoadCursor(_xdpy, "cross");
@@ -400,6 +408,8 @@ namespace qk {
 	}
 
 	float Window::getDefaultScale() {
+		// Qk_Log("xdpy dpi: %f, xwin scale: %f",
+		// 	_platform(_impl)->_xft_dpi, _platform(_impl)->_xwin_scale);
 		return _platform(_impl)->_xwin_scale;
 	}
 

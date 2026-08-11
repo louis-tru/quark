@@ -451,6 +451,7 @@ namespace qk {
 		Mat inverse() const; // return inverse matrix
 		String toString() const;
 		Vec2 getTranslate() const { return Vec2(val[2], val[5]); }
+		Vec2 getScaling() const { return Vec2(val[0], val[4]); }
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {

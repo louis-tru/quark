@@ -60,6 +60,10 @@ namespace qk {
 		}
 	}
 
+	bool VulkanCanvas::needsPresentCopy(VkFormat format) const {
+		return _capaBuilder && format != VK_FORMAT_R8G8B8A8_UNORM;
+	}
+
 	void VulkanCanvas::setSurfaceCmd(bool changeSize) {
 		endPass(); // end old pass if exist
 
@@ -205,13 +209,13 @@ namespace qk {
 			Qk_ASSERT(shader.image.binding == yuv.image.binding, "image slot should match"); // y
 			Qk_ASSERT_EQ(true, useTexture(set1, src, 1, yuv.image_uv.binding, info.paint)); // u or uv
 			int format = 0; // default to yuv420sp
-				if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
-					Qk_ASSERT_EQ(true, useTexture(set1, src, 2, yuv.image_v.binding, info.paint)); // v
-					format = 1; // yuv420p
-				} else {
-					// image_v is still evaluated by mix(); bind a valid placeholder for YUV420SP.
-					setTextureParam(set1, yuv.image_v.binding, vk_get_texture(src));
-				}
+			if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
+				Qk_ASSERT_EQ(true, useTexture(set1, src, 2, yuv.image_v.binding, info.paint)); // v
+				format = 1; // yuv420p
+			} else {
+				// image_v is still evaluated by mix(); bind a valid placeholder for YUV420SP.
+				setTextureParam(set1, yuv.image_v.binding, vk_get_texture(src));
+			}
 			SpvImageYuv::PcArgs pc{
 				.texCoords=*((Vec4*)info.paint->coord.begin.val),
 				.color=premul_alpha(info.color),

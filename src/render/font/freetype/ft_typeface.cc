@@ -447,6 +447,9 @@ void QkTypeface_FreeType::initFreeType() {
 	fFace = fFaceRec->fFace.get();
 	fDoLinearMetrics = linearMetrics;
 	fLoadGlyphFlags = loadFlags;
+	Qk_DLog("FreeType hinting=%d, loadFlags=0x%x, linearMetrics=%d, family=%s",
+		int(hinting), fLoadGlyphFlags, fDoLinearMetrics,
+		fFace->family_name ? fFace->family_name: "");
 }
 
 QkTypeface_FreeType::~QkTypeface_FreeType() {
@@ -711,15 +714,18 @@ bool getCBoxForLetter(char letter, FT_BBox* bbox) {
 	return true;
 }
 
-void getBBoxForCurrentGlyph(FT_BBox* bbox, bool snapToPixelBoundary) {
+void getBBoxForCurrentGlyph(FT_BBox* bbox,
+	bool snapXToPixelBoundary, bool snapYToPixelBoundary) {
 
 	FT_Outline_Get_CBox(&fFace->glyph->outline, bbox);
 
-	// outset the box to integral boundaries
-	if (snapToPixelBoundary) {
+	// Outset the requested axes to integral pixel boundaries.
+	if (snapXToPixelBoundary) {
 		bbox->xMin &= ~63;
-		bbox->yMin &= ~63;
 		bbox->xMax  = (bbox->xMax + 63) & ~63;
+	}
+	if (snapYToPixelBoundary) {
+		bbox->yMin &= ~63;
 		bbox->yMax  = (bbox->yMax + 63) & ~63;
 	}
 }
@@ -753,7 +759,11 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, float fontSize, FontGlyp
 		FT_BBox bounds = { FT_PosLimits::max(), FT_PosLimits::max(),
 												FT_PosLimits::min(), FT_PosLimits::min() };
 		if (0 < fFace->glyph->outline.n_contours) {
-			_this->getBBoxForCurrentGlyph(&bounds, false);
+			// Light hinting can leave fractional Y bounds while atlas rows use
+			// integer offsets. Snap only that case; keep the existing behavior for
+			// None/Normal/Full, especially Android's existing Normal path.
+			auto hinting = getHinting(fFlags);
+			_this->getBBoxForCurrentGlyph(&bounds, false, hinting == FontHinting::kSlight);
 		} else {
 			bounds = { 0, 0, 0, 0 };
 		}
@@ -855,7 +865,7 @@ void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 		ymin = -QkIntToScalar(face->bbox.yMin) / upem;
 		ymax = -QkIntToScalar(face->bbox.yMax) / upem;
 		underlineThickness = QkIntToScalar(face->underline_thickness) / upem;
-		underlinePosition = -QkIntToScalar(face->underline_position + face->underline_thickness / 2) / upem;
+		underlinePosition = -QkIntToScalar(face->underline_position + face->underline_thickness / 2.0) / upem;
 
 		metrics->fFlags |= FontMetrics::kUnderlineThicknessIsValid_Flag;
 		metrics->fFlags |= FontMetrics::kUnderlinePositionIsValid_Flag;

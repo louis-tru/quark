@@ -46,8 +46,10 @@ namespace qk {
 		#define _inl(self) static_cast<GPUCanvas::Inl*>(self)
 
 		void computeScale(const Mat& mat) {
-			_translateOnly = mat.is_translate_only();
-			if (_translateOnly) { // is translation matrix only
+			const bool translateOnly = mat.is_translate_only();
+			_axisAlignedTransform = mat[1] == 0.0f && mat[3] == 0.0f &&
+				mat[0] != 0.0f && mat[4] != 0.0f;
+			if (translateOnly) { // is translation matrix only
 				if (_scale != Vec2(1.0f)) {
 					_scale = 1.0f;
 					_scaleAverage = 1.0f;
@@ -97,11 +99,13 @@ namespace qk {
 			PaintImage p;
 			// Default use baseline align
 			Vec2 dst_start(origin.x() - img.left * scale_1, origin.y() - img.top * scale_1);
-			if (_translateOnly) {
+			if (_axisAlignedTransform) {
 				// A fractional device-space position shifts the whole pre-rasterized text image
 				// through the linear sampler, making an otherwise hinted line look blurred.
 				Vec2 devicePos = (_state->matrix * dst_start) * _surfaceScale;
-				dst_start += (devicePos.round() - devicePos) / _surfaceScale;
+				Vec2 deviceScale = _surfaceScale * _state->matrix.getScaling();
+				Vec2 localDelta = (devicePos.round() - devicePos) / deviceScale;
+				dst_start += localDelta;
 			}
 			Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
 			Rect rect{dst_start, dst_size};
@@ -246,7 +250,7 @@ namespace qk {
 		, _opts(opts)
 		, _capaBuilder(nullptr)
 		, _capaEnabled(false)
-		, _translateOnly(true)
+		, _axisAlignedTransform(true)
 	{
 		_cache = new PathvCache(opts.maxCapacityForPathvCache, render);
 		_stateStack.push({ .matrix=Mat() });
@@ -642,7 +646,8 @@ namespace qk {
 		if (_capaBuilder)
 			_capaBuilder->reset(true);
 
-		Qk_DLog("setSurface: %f, %f", _surfaceSize.x(), _surfaceSize.y());
+		Qk_DLog("setSurface: %f, %f, scale: %f, %f",
+			_surfaceSize.x(), _surfaceSize.y(), _surfaceScale.x(), _surfaceScale.y());
 
 		setSurfaceCmd(chSize); // set buffers
 	}

@@ -48,18 +48,22 @@ the platform-independent shared resource and Canvas layers.
 
 ## Android/Linux Presentation Model
 
-The main Canvas renders directly into the acquired swapchain image. The shared
-platform implementation:
+The main Canvas renders directly into the acquired swapchain image when its
+format is a valid CAPA storage target. If the platform surface exposes BGRA
+instead of CAPA's required RGBA8 format, Canvas retains its RGBA8 default
+output and the present path blits it into the acquired swapchain image. The
+shared platform implementation:
 
 1. creates an Android or Xlib `VkSurfaceKHR`;
-2. creates a FIFO swapchain whose images support color-attachment, sampled, and
-   compute-storage use;
+2. creates a FIFO swapchain with direct-render usage for a compatible target,
+   or transfer-destination usage for the RGBA-to-BGRA presentation path;
 3. acquires one image with a per-frame acquire semaphore;
-4. wraps that image as the main Canvas target without taking ownership of the
-   swapchain image or its memory;
-5. records ordinary Canvas commands directly against that target;
-6. appends the platform presentation-layout transition after the unchanged
-   Canvas command list;
+4. either wraps that image as the main Canvas target without taking ownership
+   of its image/memory, or keeps the Canvas-owned RGBA8 output as the target;
+5. records ordinary Canvas commands against the selected target;
+6. appends a pre-recorded presentation command that either performs only the
+   presentation-layout transition, or uses `vkCmdBlitImage` to convert the
+   Canvas RGBA8 output into the BGRA swapchain image before that transition;
 7. submits the Canvas command list through the shared queue and presents
    while holding the same queue-serialization contract used by other windows.
 
@@ -71,7 +75,10 @@ Render-finished semaphores belong to swapchain images, so each is reused only
 after that same image is acquired again. Swapchain recreation waits for the
 shared queue and rebuilds surface-dependent state. The next acquired image
 replaces the Canvas default target through the ordinary `setDefaultTarget()`
-path.
+path only for direct presentation. Every image in one swapchain must select the
+same direct-or-copy path; this is guarded by a debug assertion. The platform
+renderer retains the Canvas default output used by all pre-recorded blit commands
+until the queue is idle and those commands have been released.
 
 `vkAcquireNextImageKHR()` currently uses a zero timeout. If acquisition fails or
 the swapchain is out of date, the render tick is discarded. Swapchain reload is

@@ -107,6 +107,8 @@ namespace qk {
 		Array<VkCommandBuffer> flushBuffer();
 		bool isRecorded() const { return _cmdPackFront->isRecorded(); }
 		void setDefaultTarget(VkTexture *target);
+		bool needsPresentCopy(VkFormat format) const;
+		VkTexture* defaultTarget() { return _outTex.get(); }
 		VkCmdPack* cmdPackFront() { return _cmdPackFront; }
 	private:
 		void beginNextCommand(VkCmdPack *pack);
@@ -135,7 +137,7 @@ namespace qk {
 				uint32_t dynamicOffsetCount = 0, VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS);
 		bool useTexture(VkDescriptorSet set, ImageSource *src, int srcSlot, int dstSlot, const PaintImage *paint);
 		void setTextureParam(VkDescriptorSet set, uint32_t binding, VkTexture *tex,
-			VkSampler sampler = nullptr, uint32_t level = 0);
+			VkSampler sampler = nullptr, int level = 0);
 		void makeTextureMipReadable(VkTexture *tex, uint32_t level = 0);
 		VkDescriptorSet useTexture0(VkDescriptorSet set, const PaintImage *paint, int dstSlot, bool* isYuv);
 		inline VkDescriptorSet allocDescriptorSet(VkDescriptorSetLayout setLayout, uint32_t *variableCount = nullptr) {

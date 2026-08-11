@@ -298,7 +298,7 @@ namespace qk {
 				return VK_NULL_HANDLE; // if the source canvas has no output texture, skip
 			flushSubcanvasCmd(srcC); // flush subcanvas to current canvas
 			makeTextureMipReadable(srcC->_outTex.get());
-			setTextureParam(set, dstSlot, srcC->_outTex.get(), get_sampler(paint));
+			setTextureParam(set, dstSlot, srcC->_outTex.get(), get_sampler(paint), -1);
 			return set;
 		} else {
 			if (kYUV420P_Y_8_ColorType == paint->image->type()) { // yuv420p or yuv420sp
@@ -321,14 +321,14 @@ namespace qk {
 			Qk_DLog("Texture not ready for paint image, src index: %d, slot: %d", paint->srcIndex, srcSlot);
 			return false;
 		}
-		setTextureParam(set, dstSlot, vk_get_texture(src, index), get_sampler(paint));
+		setTextureParam(set, dstSlot, vk_get_texture(src, index), get_sampler(paint), -1);
 		return true;
 	}
 
 	void VulkanCanvas::setTextureParam(VkDescriptorSet set, uint32_t binding,
-			VkTexture *tex, VkSampler sampler, uint32_t level) {
+			VkTexture *tex, VkSampler sampler, int level) {
 		VkDescriptorImageInfo image{sampler ? sampler: _resource->nearestSampler()};
-		image.imageView = tex->levelView(level);
+		image.imageView = level == -1 ? tex->view : tex->levelView(level);
 		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
 		write.dstSet = set;

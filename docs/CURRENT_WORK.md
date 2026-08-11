@@ -30,8 +30,9 @@ Implemented:
   triangle, image-copy/read, and output-image command encoding;
 - per-mip `VkTexture::layouts` state and redundant-transition elimination;
 - Android/Xlib surface creation, FIFO swapchain management, nonblocking acquire,
-  direct Canvas rendering into acquired images, shared-queue
-  submission/present, and externally driven surface reload;
+  direct Canvas rendering into compatible acquired images, RGBA-to-BGRA
+  presentation blit when CAPA cannot target the swapchain format directly,
+  shared-queue submission/present, and externally driven surface reload;
 - Ubuntu 20.04 x64 Vulkan Release configuration, compilation, loader linkage,
   and native X11 startup; forwarded X11 displays are rejected before Vulkan WSI
   queries so the renderer can fall back to GL;
