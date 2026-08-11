@@ -50,24 +50,61 @@ namespace qk {
 	void FontPool::initFontPool() {
 		FontStyle style; // default style
 
-		// Find english character set
-		auto tf = match(String(), style);
-		Qk_CHECK(tf, "Cannot find default system font");
-		_defaultFamilyNames.push(tf->getFamilyName());
+		List<String> familyNames;
+		// Start with the platform's default font family.
+		auto tf0 = match(String(), style);
+		Qk_CHECK(tf0, "Cannot find default system font");
+		familyNames.pushBack(tf0->getFamilyName());
+		Qk_DLog("Init default font family, %s", *tf0->getFamilyName());
 
-		Qk_DLog("FontPool::initFontPool _defaultFamilyNames, %s", *_defaultFamilyNames[0]);
-
-		// Find chinese character set, 楚(26970)
+		// Add a CJK-capable fallback, using 楚 (U+695A) as the probe character.
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
-			_defaultFamilyNames.push(tf1->getFamilyName());
+			familyNames.pushBack(tf1->getFamilyName());
 			tf1->getMetrics(&_strutMetrics64, 64);
-			Qk_DLog("FontPool::initFontPool _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
+			Qk_DLog("Init chinese font family, %s", *tf1->getFamilyName());
 		} else {
-			tf->getMetrics(&_strutMetrics64, 64);
+			tf0->getMetrics(&_strutMetrics64, 64);
 		}
 
-		// find �(65533) character tf
+#if Qk_LINUX
+		// Fontconfig may not include the color emoji face in the default family
+		// fallback, so request Fontconfig's generic emoji family explicitly.
+		auto tf2 = matchCharacter("emoji", style, 0x1F600); // 😀😂😊🚀
+#else
+		// Native font matching on Apple and Android resolves emoji from an empty
+		// family name.
+		auto tf2 = matchCharacter(String(), style, 0x1F600);
+	#endif
+		if (tf2) {
+			// Do not globally prioritize an Emoji family that also contains ordinary
+			// printable ASCII, since it could replace digits and punctuation.
+			bool normalFontHasEmoji = tf0->unicharToGlyph(0x1F600) ||
+				(tf1 && tf1->unicharToGlyph(0x1F600));
+			bool hasOrdinaryChars = false;
+			if (normalFontHasEmoji) {
+				hasOrdinaryChars =
+					tf2->unicharToGlyph('A') ||
+					tf2->unicharToGlyph('a') ||
+					tf2->unicharToGlyph('0') ||
+					tf2->unicharToGlyph('#') ||
+					tf2->unicharToGlyph('*');
+			}
+			if (normalFontHasEmoji && !hasOrdinaryChars) {
+				familyNames.pushFront(tf2->getFamilyName());
+			} else {
+				familyNames.pushBack(tf2->getFamilyName());
+			}
+			Qk_DLog("Init emoji font family, %s", *tf2->getFamilyName());
+		}
+
+		// Remove duplicate families while preserving the priority established above.
+		Set<String> familyNamesSet;
+		for (auto& i: familyNames)
+			familyNamesSet.add(i);
+		_defaultFamilyNames = familyNamesSet.keys();
+
+		// Find the guaranteed fallback face and glyph for � (U+FFFD).
 		_tf65533 = matchCharacter(String(), style, 65533);
 		Qk_CHECK(_tf65533, "Cannot find a font containing U+FFFD");
 
@@ -76,25 +113,29 @@ namespace qk {
 
 		_defaultFontFamilies = getFontFamilies(Array<String>());
 
+#if 0
+		// Disabled: register the embedded native font as an additional family.
 		WeakBuffer buff((cChar*)native_fonts_[0].data, native_fonts_[0].count);
 		addFontFamily(buff.buffer());
+#endif
 	}
 
-	FFID FontPool::getFontFamilies(cString& families) {
-		return families.isEmpty() ? _defaultFontFamilies: getFontFamilies(families.split(","));
+	FFID FontPool::getFontFamilies(cString& familieNames) {
+		return familieNames.isEmpty() ? _defaultFontFamilies:
+			getFontFamilies(familieNames.split(","));
 	}
 
-	FFID FontPool::getFontFamilies(cArray<String>& families) {
+	FFID FontPool::getFontFamilies(cArray<String>& familieNames) {
 		AutoSharedMutexShared ama(*_Mutex);
 		Hash hash;
-		for (auto& i: families) {
+		for (auto& i: familieNames) {
 			hash.updatestr(i.trim());
 		}
 		auto it = _fontFamilies.find(hash.hashCode());
 		if (it != _fontFamilies.end()) {
 			return *it->second;
 		}
-		return *_fontFamilies.set(hash.hashCode(), new FontFamilies(this, families));
+		return *_fontFamilies.set(hash.hashCode(), new FontFamilies(this, familieNames));
 	}
 
 	String FontPool::addFontFamily(cBuffer& buff, cString& alias) {

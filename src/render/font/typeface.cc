@@ -247,6 +247,9 @@ namespace qk {
 			return {ImageSource::Make(PixelInfo())};
 		}
 		auto out = onGetImage(glyphs, fontSize, offset, 0.4, true);
+		if (out.hasColors) {
+			return out; // Color glyph textures cannot be represented by a single-channel SDF.
+		}
 		auto w = out.image->width();
 		auto h = out.image->height();
 

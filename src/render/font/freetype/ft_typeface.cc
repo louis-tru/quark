@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ft_typeface.h"
+#include "src/util/macros.h"
 
 #include <ft2build.h>
 #include <freetype/ftsizes.h>
@@ -679,15 +680,22 @@ void emboldenIfNeeded(FT_Face face, FT_GlyphSlot glyph, GlyphID gid) {
 	}
 }
 
-bool glyphHasColorLayers(GlyphID glyphID) {
+bool glyphHasColor(GlyphID glyphID) {
 #ifdef FT_COLOR_H
 	FT_UInt layerGlyph;
 	FT_UInt colorIndex;
 	FT_LayerIterator iterator = {};
-	return FT_Get_Color_Glyph_Layer(fFace, glyphID, &layerGlyph, &colorIndex, &iterator);
-#else
-	return false;
+	if (FT_Get_Color_Glyph_Layer(fFace, glyphID, &layerGlyph, &colorIndex, &iterator)) {
+		return true; // COLR
+	}
 #endif
+	// CBDT/CBLC and sbix store ready-made color bitmaps rather than COLR
+	// layers. Query only their metrics here so the bitmap is decoded once,
+	// later, when the atlas image is generated.
+	return FT_Load_Glyph(fFace, glyphID,
+		fLoadGlyphFlags | FT_LOAD_BITMAP_METRICS_ONLY) == 0 &&
+		fFace->glyph->format == FT_GLYPH_FORMAT_BITMAP &&
+		fFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
 }
 
 bool renderCurrentColorGlyph() {
@@ -1029,14 +1037,12 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 	const bool supportsColor =
 		gFTLibrary->supportsColorGlyphs() && FT_HAS_COLOR(fFace);
 	for (uint32_t i = 0; i < glyphs.length(); i++) {
-		hasColors[i] = supportsColor && _this->glyphHasColorLayers(glyphs[i]);
+		hasColors[i] = supportsColor && _this->glyphHasColor(glyphs[i]);
 		useColorAtlas |= hasColors[i];
 	}
 
-	// Runs containing a COLR glyph use one premultiplied RGBA atlas. Ordinary
+	// Runs containing a color glyph use one premultiplied RGBA atlas. Ordinary
 	// glyphs in the same run are stored as neutral white coverage.
-	// TODO: Canvas must distinguish this RGBA text image from an alpha mask to
-	// preserve its color channels when it is finally drawn.
 	ColorType type = useColorAtlas ? kRGBA_8888_ColorType: kAlpha_8_ColorType;
 	AlphaType alphaType = useColorAtlas ? kPremul_AlphaType: kUnknown_AlphaType;
 
@@ -1064,6 +1070,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		.width = right,
 		.fontSize = fontSize,
 		.scale = scale,
+		.hasColors = useColorAtlas,
 	};
 }
 

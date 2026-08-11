@@ -115,7 +115,12 @@ namespace qk {
 			p.filterMode = PaintImage::kLinear_FilterMode;
 
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
-			GC_ImageDrawInfo info{ &p, paint.fill.color, kMask_DrawKind};
+			// Color glyph atlases contain intrinsic premultiplied RGB. Preserve it
+			// and apply only the text opacity; ordinary glyph atlases remain masks.
+			auto color = img.hasColors ?
+				Color4f(1, 1, 1, paint.fill.color.a()): paint.fill.color;
+			GC_ImageDrawInfo info{
+				&p, color, img.hasColors ? kImage_DrawKind: kMask_DrawKind};
 
 			if (isSDFImage(img.image.get())) { // SDF text
 				auto fillColor = paint.style == Paint::kStroke_Style ? Color4f(0,0,0,0) : paint.fill.color;
@@ -546,7 +551,9 @@ namespace qk {
 		auto img = isSDF ?
 			tf->getSDFImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP, false):
 			tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScaleAverage, offsetP);
-		img.image->set_mipmap(false); // disable mipmap for text
+		if (!img.hasColors || img.scale < 2) {
+			img.image->set_mipmap(false); // disable mipmap for text
+		}
 		auto scale_1 = _this->drawTextImage(img, _allScaleAverage, origin, paint);
 		return scale_1 * img.width;
 	}
@@ -560,7 +567,7 @@ namespace qk {
 		auto needSDF = paint.style != Paint::kFill_Style;
 
 		if (blob->img.fontSize != fixedFSize || !blob->img.image ||
-			(needSDF ? !_this->isSDFImage(blob->img.image.get()): false)
+			(needSDF ? !blob->img.hasColors && !_this->isSDFImage(blob->img.image.get()): false)
 		) { // fill text bolb
 			Array<Vec2> offset;
 			if (blob->offset.length() >= blob->glyphs.length()) {
@@ -570,7 +577,9 @@ namespace qk {
 			blob->img = needSDF ?
 				blob->typeface->getSDFImage(blob->glyphs, fixedFSize, &offset, false):
 				blob->typeface->getImage(blob->glyphs, fixedFSize, &offset);
-			blob->img.image->set_mipmap(false); // disable mipmap for text
+			if (!blob->img.hasColors || blob->img.scale < 2) {
+				blob->img.image->set_mipmap(false); // disable mipmap for text
+			}
 		}
 		auto img = blob->img.image.get();
 		if (img->width() && img->height()) {

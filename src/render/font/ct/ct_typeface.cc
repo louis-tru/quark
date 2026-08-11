@@ -716,6 +716,7 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	if (!h || !w) {
 		return {
 			ImageSource::Make(PixelInfo()), float(paddInt),top,right, fontSize, 1.0f,
+			fHasColorGlyphs,
 		}; // empty image
 	}
 
@@ -770,5 +771,6 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 		float(paddInt),top,right,
 		fontSize,
 		1.0f,
+		fHasColorGlyphs,
 	};
 }

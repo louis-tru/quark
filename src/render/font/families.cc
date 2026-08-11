@@ -37,18 +37,13 @@ namespace qk {
 		: _pool(pool)
 	{
 		Set<String> set;
-		auto add = [&](cString& s) {
-			if (!set.has(s)) {
-				set.add(s);
-				_families.push(s);
-			}
-		};
 		for (auto &i: families) {
-			add(i.trim());
+			set.add(i.trim());
 		}
 		for (auto &s: pool->defaultFamilyNames()) {
-			add(s); // add default families
+			set.add(s); // add default families
 		}
+		_families = set.keys();
 	}
 
 	Sp<Typeface> FontFamilies::match(FontStyle style, uint32_t index) {

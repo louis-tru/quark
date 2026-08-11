@@ -54,6 +54,7 @@ namespace qk {
 			float width; // Distance of baseline origin to the right side of layout
 			float fontSize; // Font size of image
 			float scale; // scale = current image fontSize / fontSize
+			bool hasColors = false; // Preserve intrinsic glyph colors instead of treating the texture as an alpha mask
 		};
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, ProtectedConst);
 		~Typeface() override;
