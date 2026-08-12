@@ -1,3 +1,5 @@
+set -e
+
 target=$1
 tar=$2
 v=$3

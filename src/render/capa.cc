@@ -14,20 +14,22 @@ namespace qk {
 	constexpr uint32_t kCAPAMaxBoundaryTileCapacity = 1u << 16;
 	constexpr uint32_t kCAPACoveragePageBytes = sizeof(MSLCapaBackdrop::CAPABoundaryTile);
 
+	inline int capa_floor_tile(float origin) {
+		Qk_ASSERT(origin >= 0.0f, "capa_floor_tile: origin must be non-negative");
+		return int(floorf(origin)) >> kCAPATileSizeShift;
+	}
+
+	inline int capa_ceil_tile(float end) {
+		Qk_ASSERT(end >= 0.0f, "capa_ceil_tile: end must be non-negative");
+		return (int(ceilf(end)) + kCAPATileSize - 1) >> kCAPATileSizeShift;
+	}
+
 	IVec2 capa_floor_tile_origin(Vec2 origin) {
-		Qk_ASSERT(origin.x() >= 0.0f && origin.y() >= 0.0f, "capa_floor_tile_origin: origin must be non-negative");
-		return IVec2(
-			int(floorf(origin.x())) >> kCAPATileSizeShift,
-			int(floorf(origin.y())) >> kCAPATileSizeShift
-		);
+		return IVec2(capa_floor_tile(origin.x()), capa_floor_tile(origin.y()));
 	}
 
 	IVec2 capa_ceil_tile_end(Vec2 end) {
-		Qk_ASSERT(end.x() >= 0.0f && end.y() >= 0.0f, "capa_ceil_tile_end: end must be non-negative");
-		return IVec2(
-			(int(ceilf(end.x())) + kCAPATileSize - 1) >> kCAPATileSizeShift,
-			(int(ceilf(end.y())) + kCAPATileSize - 1) >> kCAPATileSizeShift
-		);
+		return IVec2(capa_ceil_tile(end.x()), capa_ceil_tile(end.y()));
 	}
 
 	uint32_t capa_maxShortEdgeCount(float totalEdgeLen, uint32_t edgeCount) {
@@ -265,7 +267,15 @@ namespace qk {
 			_owner->_state->output->size() : _owner->_surfaceSize};
 		if (_owner->_clipState) {
 			clip = clip.clip(_owner->_clipState->range.offset(surfaceOffset));
+			// CAPA classifies coverage per tile from the closed path edges. Expand the
+			// Y clip to complete tile rows before prepare rejects off-clip edges;
+			// otherwise a horizontal closing edge just outside the exact clip can be
+			// removed, leaving its boundary tile looking empty. Composite still applies
+			// the precise clip mask, so this does not enlarge the visible result.
+			clip.begin[1] = capa_floor_tile(clip.begin.y()) << kCAPATileSizeShift;
 		}
+		clip.end[1] = capa_ceil_tile(clip.end.y()) << kCAPATileSizeShift;
+
 		auto bounds = capa_bounds_transform(mat, info.bounds)
 			.expandToInteger()
 			.clip(clip);

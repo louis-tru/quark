@@ -653,72 +653,72 @@ async function install_depe(opts, variables) {
 	dpkg['spirv-cross'].defOpt = true;
 
 	if (host_os == 'linux') {
-		if (pkgm == 'apt-get') {
-			const suffix =
-				arch === 'arm64' ? 'arm64' :
-				arch === 'arm' ? 'armhf' :
-				arch === 'x64' ? 'amd64' :
-				arch === 'x86' ? 'i386': '';
-			util.assert(suffix, `do not support install depe for ${arch} architecture`);
-
-			if (cross_compiling) { // check foreign architecture
-				if (!execSync(`dpkg --print-foreign-architectures`).stdout.includes(suffix)) {
-					// Maybe need add source list for armhf/arm64 in x86_64 host
-					await exec2(`sudo dpkg --add-architecture ${suffix}`);
-					await exec2(`sudo apt-get update`);
-				}
-			}
-
-			// common linux lib dependencies
-			for (let lib of [
-				`libgles2-mesa-dev:${suffix}`,
-				`libegl1-mesa-dev:${suffix}`,
-				`libx11-dev:${suffix}`,
-				`libxi-dev:${suffix}`,
-				`libxcursor-dev:${suffix}`,
-				`libasound2-dev:${suffix}`,
-				`libfontconfig1-dev:${suffix}`,
-				`zlib1g-dev:${suffix}`,
-				`libbz2-dev:${suffix}`,
-				`libwebp-dev:${suffix}`,
-			]) {
-				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] }; // add common linux lib dependencies
-			}
-
-			if (os == 'linux' && opts.use_vk) {
-				const lib = `libvulkan-dev:${suffix}`;
-				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
-			}
-		}
-		// Reserved for possible future Fedora/Alpine support. These yum/apk
-		// package mappings have not been build-tested; keep them disabled until
-		// their package names, toolchain compatibility, and CI coverage are verified.
-		else if (pkgm == 'yum') {
-			/*for (let lib of [
-				'mesa-libGLES-devel', 'mesa-libEGL-devel',
-				'libX11-devel', 'libXi-devel',
-				'libXcursor-devel', 'alsa-lib-devel',
-				'fontconfig-devel', 'zlib-devel', 'bzip2-devel',
-			]) {
-				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
-			}*/
-		}
-		else if (pkgm == 'apk') {
-			/*for (let lib of [
-				'mesa-dev', 'libx11-dev',
-				'libxi-dev', 'libxcursor-dev',
-				'alsa-lib-dev', 'fontconfig-dev', 'zlib-dev', 'bz2-dev',
-			]) {
-				dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
-			}*/
-		}
-
 		if (arch == 'x86' || arch == 'x64') {
 			if (typeof yasm != 'string')
 				yasm.deps.dtrace = getPkgmCmds('systemtap-sdt-dev');
 			dpkg.yasm = yasm;
 		}
 		if (os == 'linux') {
+			if (pkgm == 'apt-get') {
+				const suffix =
+					arch === 'arm64' ? 'arm64' :
+					arch === 'arm' ? 'armhf' :
+					arch === 'x64' ? 'amd64' :
+					arch === 'x86' ? 'i386': '';
+				util.assert(suffix, `do not support install depe for ${arch} architecture`);
+
+				if (cross_compiling) { // check foreign architecture
+					if (!execSync(`dpkg --print-foreign-architectures`).stdout.includes(suffix)) {
+						// Maybe need add source list for armhf/arm64 in x86_64 host
+						await exec2(`sudo dpkg --add-architecture ${suffix}`);
+						await exec2(`sudo apt-get update`);
+					}
+				}
+
+				// common linux lib dependencies
+				for (let lib of [
+					`libgles2-mesa-dev:${suffix}`,
+					`libegl1-mesa-dev:${suffix}`,
+					`libx11-dev:${suffix}`,
+					`libxi-dev:${suffix}`,
+					`libxcursor-dev:${suffix}`,
+					`libasound2-dev:${suffix}`,
+					`libfontconfig1-dev:${suffix}`,
+					`zlib1g-dev:${suffix}`,
+					`libbz2-dev:${suffix}`,
+					`libwebp-dev:${suffix}`,
+				]) {
+					dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] }; // add common linux lib dependencies
+				}
+
+				if (os == 'linux' && opts.use_vk) {
+					const lib = `libvulkan-dev:${suffix}`;
+					dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
+				}
+			}
+			// Reserved for possible future Fedora/Alpine support. These yum/apk
+			// package mappings have not been build-tested; keep them disabled until
+			// their package names, toolchain compatibility, and CI coverage are verified.
+			else if (pkgm == 'yum') {
+				/*for (let lib of [
+					'mesa-libGLES-devel', 'mesa-libEGL-devel',
+					'libX11-devel', 'libXi-devel',
+					'libXcursor-devel', 'alsa-lib-devel',
+					'fontconfig-devel', 'zlib-devel', 'bzip2-devel',
+				]) {
+					dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
+				}*/
+			}
+			else if (pkgm == 'apk') {
+				/*for (let lib of [
+					'mesa-dev', 'libx11-dev',
+					'libxi-dev', 'libxcursor-dev',
+					'alsa-lib-dev', 'fontconfig-dev', 'zlib-dev', 'bz2-dev',
+				]) {
+					dpkg[lib] = { lib: 1, cmds: [getPkgmCmds(lib)] };
+				}*/
+			}
+
 			if (cross_compiling) {
 				if (arch == 'arm') {
 					dpkg['arm-linux-gnueabihf-g++'] = getPkgmCmds('g++-arm-linux-gnueabihf');
@@ -730,13 +730,16 @@ async function install_depe(opts, variables) {
 			}
 			// TODO: Maybe also have to install libxcursor-dev and libfontconfig-dev
 		} else if (os == 'android') {
-			// dpkg.javac = getPkgmCmds('openjdk-8-jdk');
-			dpkg.javac = getPkgmCmds('openjdk-17-jdk');
+			// Keep JDK selection explicit: installing this package does not configure JAVA_HOME.
+			// dpkg.javac = getPkgmCmds('openjdk-17-jdk');
 		}
 	}
 	else if (host_os == 'mac') {
 		if (arch == 'x86' || arch == 'x64') {
 			dpkg.yasm = yasm;
+		}
+		if (os == 'android') {
+			// dpkg.javac = getPkgmCmds('openjdk@17');
 		}
 	}
 	else {
@@ -1171,7 +1174,7 @@ async function configure() {
 		`export PYTHON:=${PYTHON}`,
 	];
 
-	var java_home = opts.java_home || process.env.JAVA7_HOME || process.env.JAVA_HOME;
+	var java_home = opts.java_home || process.env.JAVA_HOME;
 	if (java_home) {
 		config_mk.push(`export JAVAC:=${java_home}/bin/javac`);
 		config_mk.push(`export JAR:=${java_home}/bin/jar`);

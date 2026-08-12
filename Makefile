@@ -92,9 +92,9 @@ linux:
 # try local and remote build
 try_android:
 	$(call maybe_remote_build,$(filter x64 arm64,$(HOST_ARCH)),\
-			--os=android --arch=arm64,build,android/jniLibs/arm64-v8a)
+			--os=android --arch=arm64 -vk,build,android/jniLibs/arm64-v8a)
 	$(call maybe_remote_build,$(filter x64,$(HOST_ARCH)),\
-			--os=android --arch=x64,build,android/jniLibs/x86_64/libquark.so)
+			--os=android --arch=x64 -vk,build,android/jniLibs/x86_64/libquark.so)
 	@$(MAKE) $(ANDROID_JAR)
 
 try_linux:

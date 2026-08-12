@@ -148,7 +148,17 @@ watcher 默认在 `1026` 端口提供应用服务，在 TS/TSX 文件变化时�
 - Android 需要 JDK、Android SDK 和 Android NDK；
 - Linux 需要本机编译器和开发包。
 
-构建 Android 时，将 `ANDROID_SDK` 和 `NDK` 设置为已安装的 SDK/NDK 路径。
+构建 Android 前，需要设置以下三个环境变量；`configure` 会读取它们来定位
+Android SDK、NDK 和 Java 工具链：
+
+```sh
+export ANDROID_SDK=$HOME/Install/android-sdk
+export ANDROID_NDK=$ANDROID_SDK/ndk/29.0.13113456
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+```
+
+路径按实际安装位置调整；macOS 的 `JAVA_HOME` 通常指向 JDK 的
+`Contents/Home` 目录。
 
 在已有 checkout 中同步当前分支和全部 submodule：
 

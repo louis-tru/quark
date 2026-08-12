@@ -114,6 +114,7 @@
 						'-lGLESv3','-lEGL','-lz',
 						'-landroid','-llog','-latomic',
 						'-lm','-lOpenSLES','-lmediandk',
+						'-lvulkan',
 					],
 				}]],
 				'sources': [

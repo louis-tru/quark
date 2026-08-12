@@ -159,7 +159,17 @@ Source builds require Node.js and Python plus the selected platform toolchain:
 - JDK, Android SDK, and Android NDK for Android;
 - the native compiler and development packages for Linux.
 
-For Android, set `ANDROID_SDK` and `NDK` to the installed SDK/NDK paths.
+Before building Android, set the following three environment variables.
+`configure` reads them to locate the Android SDK, NDK, and Java toolchain:
+
+```sh
+export ANDROID_SDK=$HOME/Install/android-sdk
+export ANDROID_NDK=$ANDROID_SDK/ndk/29.0.13113456
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+```
+
+Adjust the paths for the local installation. On macOS, `JAVA_HOME` normally
+points to the JDK's `Contents/Home` directory.
 
 From an existing checkout, synchronize the current branch and all submodules:
 
