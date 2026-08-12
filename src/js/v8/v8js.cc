@@ -876,11 +876,14 @@ namespace qk { namespace js {
 		if (args->options.has("help")) {
 			Qk_Log("Usage: quark [options] [ script.js ] [arguments]");
 			Qk_Log("       quark --eval|-e [ script ] [arguments]");
-			Qk_Log("       quark --debug[=127.0.0.1:9229]] [--brk] [ script.js ] [arguments]\n\n");
+			Qk_Log("       quark --debug[=127.0.0.1:9229]] [--brk] [ script.js ] [arguments]");
+			Qk_Log("       quark --help [--v8]");
 			// Qk_Log("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ V8 Options ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
 		}
-		auto argc = args->argc;
-		v8::V8::SetFlagsFromCommandLine(&argc, args->argv, true);
+		if (args->options.has("v8")) {
+			auto argc = args->argc;
+			v8::V8::SetFlagsFromCommandLine(&argc, args->argv, true);
+		}
 	}
 
 	int startPlatform(int (*exec)(Worker*)) {
