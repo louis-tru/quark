@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark_platforms_linux__linux_clipboard__
 #define __quark_platforms_linux__linux_clipboard__
 

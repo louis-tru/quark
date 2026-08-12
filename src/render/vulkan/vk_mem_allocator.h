@@ -23,6 +23,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark_render_vulkan_vk_mem_allocator__
 #define __quark_render_vulkan_vk_mem_allocator__
 
