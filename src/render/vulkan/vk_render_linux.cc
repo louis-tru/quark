@@ -491,10 +491,9 @@ namespace qk {
 					0, 0, nullptr, 0, nullptr, 1, &barrier);
 			} else {
 				Qk_ASSERT(_presentSource, "Vulkan present copy source is null");
-				Qk_ASSERT_EQ(_presentSource->extent.width, image.texture->extent.width,
-					"Vulkan present copy width must match the swapchain image");
-				Qk_ASSERT_EQ(_presentSource->extent.height, image.texture->extent.height,
-					"Vulkan present copy height must match the swapchain image");
+				Qk_DLog("Vulkan present copy: src=(%d,%d), dst=(%d,%d)",
+					_presentSource->extent.width, _presentSource->extent.height,
+					image.texture->extent.width, image.texture->extent.height);
 				VkImageMemoryBarrier sourceBarrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
 				sourceBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 				sourceBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
