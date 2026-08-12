@@ -341,47 +341,52 @@ namespace qk {
 
 #if Qk_LINUX || Qk_ANDROID
 
+	static String path_home_dir, path_executable, path_documents, path_temp, path_resources;
+
 	String fs_home_dir(cChar *child, ...) {
-		static String path(fs_format("%s", getenv("HOME")));
+		if (path_home_dir.isEmpty())
+			path_home_dir = fs_format("%s", getenv("HOME"));
 		if (child) {
 			va_list arg;
 			va_start(arg, child);
 			auto str = _Str::printfv(child, arg);
 			va_end(arg);
-			return fs_format("%s/%s", path.c_str(), str.c_str());
+			return fs_format("%s/%s", path_home_dir.c_str(), str.c_str());
 		} else {
-			return path;
+			return path_home_dir;
 		}
 	}
 
 	String fs_executable() {
-		static String path([](){
+		if (path_executable.isEmpty()) {
 			char dir[PATH_MAX] = { 0 };
 			int n = readlink("/proc/self/exe", dir, PATH_MAX);
-			return fs_format("%s", dir);
-		}());
-		return path;
+			path_executable = fs_format("%s", dir);
+		}
+		return path_executable;
 	}
 
 	String fs_documents(cString& child) {
-		static String path([](){
-			fs_mkdirs_sync(fs_home_dir("Documents"));
-			return fs_home_dir("Documents");
-		}());
-		return child.isEmpty() ? path: fs_format("%s/%s", *path, *child);
+		if (path_documents.isEmpty()) {
+			path_documents = fs_home_dir("Documents");
+			fs_mkdirs_sync(path_documents);
+		}
+		return child.isEmpty() ? path_documents: fs_format("%s/%s", *path_documents, *child);
 	}
 
 	String fs_temp(cString& child) {
-		static String path([](){
-			fs_mkdirs_sync(fs_home_dir(".cache"));
-			return fs_home_dir(".cache");
-		}());
-		return child.isEmpty() ? path: fs_format("%s/%s", *path, *child);
+		if (path_temp.isEmpty()) {
+			path_temp = fs_home_dir(".cache");
+			fs_mkdirs_sync(path_temp);
+		}
+		return child.isEmpty() ? path_temp: fs_format("%s/%s", *path_temp, *child);
 	}
 
 	String fs_resources(cString& child) {
-		static String path(fs_dirname(fs_executable()));
-		return child.isEmpty() ? path: fs_format("%s/%s", *path, *child);
+		if (path_resources.isEmpty()) {
+			path_resources = fs_dirname(fs_executable());
+		}
+		return child.isEmpty() ? path_resources: fs_format("%s/%s", *path_resources, *child);
 	}
 #endif
 
@@ -392,7 +397,7 @@ namespace qk {
 		path_temp = JNI::jstring_to_string(cache_dir);
 		path_resources = fs_format("zip://%s@/assets", JNI::jstring_to_string(pkg).c_str());
 		char dir[PATH_MAX] = { 0 };
-		readlink("/proc/self/exe", dir, PATH_MAX);
+		Qk_ASSERT_NE(-1, readlink("/proc/self/exe", dir, PATH_MAX-1));
 		path_executable = fs_format("%s", dir);
 	}
 #endif

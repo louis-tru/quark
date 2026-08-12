@@ -100,6 +100,7 @@ namespace qk {
 	}
 
 	bool GLCanvas::swapBuffer() {
+		_alloc.reset();
 		ScopeLock lock(_mutex);
 		// check if have cmds in front buffer, if have cmds, wait for next swap
 		bool canSwap = _cmdPackFront->isEmpty();

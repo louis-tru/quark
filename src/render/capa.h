@@ -108,11 +108,14 @@ namespace qk {
 	*/
 	struct CAPABuilder {
 		CAPABuilder(GPUCanvas *owner);
+		bool build(const Rect &rect, const Color4f& color, CAPAPaint* paint = nullptr);
 		bool build(const Path &path, const Color4f& color, CAPAPaint* paint = nullptr);
+		bool buildGradient(const Rect &rect, const PaintGradient *gradient, const Color4f &color);
 		bool buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color);
+		bool buildImage(const Rect &rect, const GC_ImageDrawInfo &info);
 		bool buildImage(const Path &path, const GC_ImageDrawInfo &info);
 		void flush(); // Flush the accumulated CAPA data to the GPUCanvas for rendering.
-		void reset(bool clear = false);
+		void reset();
 		inline Color4f premul_alpha(const Color4f &color) const {
 			return color.premul_alpha();
 		}
@@ -120,6 +123,9 @@ namespace qk {
 		inline void setSurfaceOffset(IVec2 offset) { _data.surfaceOffset = offset; }
 		FillRule fillRule = kNonZero_FillRule;
 	private:
+		PathEdgeInfo getEdgeInfo(const Rect &rect);
+		bool build(const PathEdgeInfo &info, const Color4f& color, CAPAPaint* paint);
+		bool buildImage(const PathEdgeInfo &pathInfo, const GC_ImageDrawInfo &info);
 		void steupPaint(CAPAPath &path, CAPAPaint* paint, const Mat& mat);
 		int findImageSampler(const PaintImage *paint) const;
 		uint32_t addImageTexture(const PaintImage *paint);
@@ -127,7 +133,6 @@ namespace qk {
 		bool canAddImageTexture(const PaintImage *paint) const;
 		CAPADrawData _data;
 		GPUCanvas *_owner;
-		LinearAllocator _alloc;
 		float _totalEdgeLength;
 	};
 }

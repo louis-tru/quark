@@ -124,7 +124,6 @@ namespace qk {
 			const RRect* clip, BlendMode mode) override;
 		void drawRect(const Rect& rect, const Paint& paint) override;
 		void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
-		void drawRectPath(const RectPath& path, const Paint& paint) override;
 		void drawRectOutlinePath(const RectOutlinePath& path, const Color4f color[4], const Paint& paint) override;
 		float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
@@ -165,6 +164,7 @@ namespace qk {
 		// flags can be kMipmap_TextureFlags, kComputeWrite_TextureFlags, etc
 		Sp<ImageSource> getTextureFromPool(Vec2 size, ColorType type, Vec2 limit = Vec2(), uint8_t flags = 0);
 		void setBlendMode(BlendMode mode);
+		void flushCAPABatch();
 		// fields:
 		Array<GC_State> _stateStack; // state
 		GC_State    *_state; // state pointer
@@ -185,6 +185,7 @@ namespace qk {
 		// texture pool, key(w << 40 | h << 8 | colorType << 1 | mipmap),
 		// value is texture handle and ref count
 		Dict<uint64_t, Array<Sp<ImageSource>>> _texPools;
+		LinearAllocator _alloc; // linear allocator for Canvas
 		Sp<CAPABuilder> _capaBuilder; // compute shader batch builder for CAPA
 		uint32_t _capaMaxImageCount; // backend CAPA image/sampler table size
 		bool _capaEnabled; // true if CAPA is enabled, false if disabled

@@ -41,6 +41,13 @@ namespace qk {
 		bool beginPass = false; // whether call beginPass, used to determine whether need to create encoder for current pass
 	};
 
+	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0);
+
+	template<typename T>
+	cMTLMemBlock& makeBufferT(MTL_CmdPack &cmd, const T *src, uint32_t length) {
+		return makeBuffer(cmd, src, length * sizeof(T), sizeof(T));
+	}
+
 	class MetalCanvas: public GPUCanvas {
 	public:
 		MetalCanvas(MetalRender *render, Render::Options opts);

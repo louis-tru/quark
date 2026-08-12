@@ -80,8 +80,10 @@ namespace qk {
 		template<typename T, typename A = Allocator, typename Extra = uint32_t>
 		struct Ptr {
 			/// Default constructor using the shared global allocator.
-			Ptr(): allocator(A::current()), val(nullptr), capacity(0), extra{} {
-				Qk_ASSERT(allocator);
+			Ptr(): Ptr(A::current()) {}
+
+			Ptr(A *a): allocator(a), val(nullptr), capacity(0), extra{} {
+				Qk_ASSERT(a);
 			}
 
 			/// Construct with explicit allocator, pointer, and capacity.

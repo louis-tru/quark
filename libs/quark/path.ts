@@ -216,7 +216,7 @@ export declare class Path {
 	 * @param precision Approximation tolerance (default = 1.0).
 	 * @returns Array of Vec3 triangles for anti-aliased side and body rendering.
 	 */
-	getAASideTriangle(width: number, precision?: number): Vec3[];
+	getAASideTriangles(width: number, precision?: number): Vec3[];
 
 	/**
 	 * Convert the path into a dashed path.

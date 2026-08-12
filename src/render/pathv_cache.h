@@ -109,6 +109,13 @@ namespace qk
 		);
 
 		/**
+		 * @dev get stroke path cache for a rectangle
+		 */
+		const Path& getStrokePath(const Rect &rect,
+			float width, Path::Cap cap, Path::Join join, float miterLimit
+		);
+
+		/**
 		 * @dev get path triangles cache for a rectangle
 		 * @param rect {Rect} rectangle
 		 * @return {VertexData&} cached triangle vertices for the rectangle
@@ -123,7 +130,7 @@ namespace qk
 		/**
 		 * @dev get aa side path triangle cache
 		*/
-		const VertexData& getAASideTriangle(const Path &path, float radius, bool onlyAASide = false);
+		const VertexData& getAASideTriangles(const Path &path, float radius, bool onlyAASide = false);
 
 		/**
 		 * @dev get rect path cache

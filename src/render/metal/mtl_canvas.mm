@@ -213,14 +213,16 @@ namespace qk {
 		} else {
 			Qk_ASSERT(vertex.vertex.val(), "Vertex data should not be null for draw call");
 			Qk_ASSERT_EQ(vertex.vertex.length(), vertex.vCount, "Vertex data length should match vertex count");
-			[enc setVertexBytes:vertex.vertex.val() length:vertex.vertex.size() atIndex:shader.bufferIndex];
+			auto &block = makeBufferT(_cmdPack, vertex.vertex.val(), vertex.vertex.length());
+			[enc setVertexBuffer:block.val offset:block.begin atIndex:shader.bufferIndex];
+			// [enc setVertexBytes:vertex.vertex.val() length:vertex.vertex.size() atIndex:shader.bufferIndex];
 		}
 		return enc;
 	}
 
 	bool MetalCanvas::swapBuffer() {
-		if (_capaBuilder)
-			_capaBuilder->flush(); // flush CAPA data for current frame before swap
+		flushCAPABatch(); // flush CAPA data
+		_alloc.reset();
 		endPass(); // end current pass to ensure all commands are encoded before swap
 		ScopeLock lock(_mutex);
 		bool canSwap = _cmdPackFront.current == nil;

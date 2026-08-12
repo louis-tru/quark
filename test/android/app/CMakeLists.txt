@@ -135,6 +135,7 @@ add_library(quark SHARED
 	../../../src/render/font/priv/styleset.cc
 	../../../src/render/font/freetype/ft_common.cc
 	../../../src/render/font/freetype/ft_glyph_cache.cc
+	../../../src/render/font/freetype/ft_scanner.cc
 	../../../src/render/font/freetype/ft_typeface.cc
 	../../../src/render/gl/gl_canvas.cc
 	../../../src/render/gl/gl_command.cc

@@ -170,8 +170,60 @@ namespace qk {
 		}
 	}
 
-	bool CAPABuilder::build(const Path &rawPath, const Color4f& color, CAPAPaint* paint) {
-		auto &info = _owner->_cache->getEdgeInfo(rawPath, _owner->_allScaleAverage * 0.5f);
+	PathEdgeInfo CAPABuilder::getEdgeInfo(const Rect &rect) {
+		PathEdgeInfo info {
+			.edges = Array<Vec2>(&_owner->_alloc),
+			.bounds = rect.range(),
+			.totalEdgeLength = rect.size.x() * 2 + rect.size.y() * 2,
+		};
+		float x_0 = info.bounds.begin.x();
+		float y_0 = info.bounds.begin.y();
+		float x_1 = info.bounds.end.x();
+		float y_1 = info.bounds.end.y();
+
+		info.edges.extend(8);
+		info.edges[0] = {x_0, y_0};
+		info.edges[1] = {x_1, y_0};
+
+		info.edges[2] = {x_1, y_0};
+		info.edges[3] = {x_1, y_1};
+
+		info.edges[4] = {x_1, y_1};
+		info.edges[5] = {x_0, y_1};
+
+		info.edges[6] = {x_0, y_1};
+		info.edges[7] = {x_0, y_0};
+
+		return std::move(info);
+	}
+
+	bool CAPABuilder::build(const Rect &rect, const Color4f& color, CAPAPaint* paint) {
+		return build(getEdgeInfo(rect), color, paint);
+	}
+
+	bool CAPABuilder::build(const Path &path, const Color4f& color, CAPAPaint* paint) {
+		return build(_owner->_cache->getEdgeInfo(path, _owner->_allScaleAverage * 0.5f), color, paint);
+	}
+
+	bool CAPABuilder::buildGradient(const Rect &rect, const PaintGradient *gradient, const Color4f &color) {
+		CAPAPaint paint{.gradient = gradient, .type = kCAPA_PAINT_GRADIENT};
+		return build(rect, color, &paint);
+	}
+
+	bool CAPABuilder::buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color) {
+		CAPAPaint paint{.gradient = gradient, .type = kCAPA_PAINT_GRADIENT};
+		return build(path, color, &paint);
+	}
+
+	bool CAPABuilder::buildImage(const Rect &rect, const GC_ImageDrawInfo &info) {
+		return buildImage(getEdgeInfo(rect), info);
+	}
+
+	bool CAPABuilder::buildImage(const Path &path, const GC_ImageDrawInfo &info) {
+		return buildImage(_owner->_cache->getEdgeInfo(path, _owner->_allScaleAverage * 0.5f), info);
+	}
+
+	bool CAPABuilder::build(const PathEdgeInfo &info, const Color4f& color, CAPAPaint* paint) {
 		if (info.edges.length() < 4)
 			return true; // Skip empty or degenerate paths
 
@@ -199,7 +251,14 @@ namespace qk {
 			if (budget.maxBoundaryTileCount == 0)
 				return false; // Path is too large to fit in a single CAPA draw call
 			flush(); // Flush current draw data to free up boundary tile capacity
-			return build(rawPath, color, paint); // Retry after flush
+			if (info.edges.allocator() == &_owner->_alloc) {
+				// reset() only rewinds the Canvas arena. Reallocate the edge array
+				// immediately, before later CAPA allocations overwrite its storage.
+				auto cpInfo = info;
+				return build(cpInfo, color, paint);
+			} else {
+				return build(info, color, paint); // Retry after flush
+			}
 		}
 
 		Range clip{{0,0}, _owner->_state->output ?
@@ -256,12 +315,7 @@ namespace qk {
 		return true;
 	}
 
-	bool CAPABuilder::buildGradient(const Path &path, const PaintGradient *gradient, const Color4f &color) {
-		CAPAPaint paint{.gradient = gradient, .type = kCAPA_PAINT_GRADIENT};
-		return build(path, color, &paint);
-	}
-
-	bool CAPABuilder::buildImage(const Path &path, const GC_ImageDrawInfo &info) {
+	bool CAPABuilder::buildImage(const PathEdgeInfo &pathInfo, const GC_ImageDrawInfo &info) {
 		auto paint = info.paint;
 		if (!paint->image)
 			return true; // Skip empty images
@@ -293,7 +347,7 @@ namespace qk {
 		if (!canAddImageTexture(paint))
 			flush();
 		CAPAPaint capaPaint{.image = &info, .type = kCAPA_PAINT_IMAGE};
-		return build(path, info.color, &capaPaint);
+		return build(pathInfo, info.color, &capaPaint);
 	}
 
 	void CAPABuilder::flush() {
@@ -312,13 +366,10 @@ namespace qk {
 		reset();
 	}
 
-	void CAPABuilder::reset(bool clear) {
-		AllocatorScope scope(&_alloc);
+	void CAPABuilder::reset() {
+		AllocatorScope scope(&_owner->_alloc);
 		_totalEdgeLength = 0;
 		_data = {};
-		if (clear)
-			_alloc.clear();
-		else
-			_alloc.reset();
+		_owner->_alloc.reset();
 	}
 }

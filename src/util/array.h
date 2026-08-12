@@ -64,7 +64,7 @@ namespace qk {
 		Array();
 		Array(Array&& arr); // right value copy constructors
 		Array(const Array& arr);
-		Array(const std::initializer_list<T>& list);
+		Array(const std::initializer_list<T>& list, Allocator* a = Allocator::current());
 		Array(const std::vector<T>& list);
 		Array(uint32_t length);
 		Array(Allocator* a); // with allocator
@@ -376,8 +376,8 @@ namespace qk {
 	}
 
 	template<typename T, typename B>
-	Array<T, B>::Array(const std::initializer_list<T>& list)
-		: _ptr()
+	Array<T, B>::Array(const std::initializer_list<T>& list, Allocator* a)
+		: _ptr(a)
 	{
 		write(list.begin(), (uint32_t)list.size());
 	}

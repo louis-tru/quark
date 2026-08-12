@@ -126,6 +126,11 @@ namespace qk
 				switch (event.type) {
 					case Expose:
 						Qk_DLog("event, Expose");
+						// win->render()->reload();
+						break;
+					case ConfigureNotify:
+						Qk_DLog("event, ConfigureNotify, Window resize: [%d, %d]",
+							event.xconfigure.width, event.xconfigure.height);
 						win->render()->reload();
 						break;
 					case MapNotify:

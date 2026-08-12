@@ -154,10 +154,10 @@ namespace qk {
 		VertexData getTriangles(float precision = 1.0, float z = 0.0) const;
 
 		/**
-		 * @method getAASideTriangle() returns signed aa side triangle vertices and body triangles
+		 * @method getAASideTriangles() returns signed aa side triangle vertices and body triangles
 		 * @return {VertexData} {.vertex={ x, y, aaSide }[]}, aaSide < 0 inside, aaSide > 0 outside
 		*/
-		VertexData getAASideTriangle(float radius, float precision = 1.0, bool onlyAASide = false) const;
+		VertexData getAASideTriangles(float radius, float precision = 1.0, bool onlyAASide = false) const;
 
 		/**
 		 * @method dashPath() returns the dash path

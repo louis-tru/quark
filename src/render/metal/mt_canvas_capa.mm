@@ -33,7 +33,7 @@
 
 namespace qk {
 
-	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t reserve = 0) {
+	cMTLMemBlock& makeBuffer(MTL_CmdPack &cmd, const void *src, uint32_t size, uint32_t reserve) {
 		auto &block = cmd.allocator->alloc(size, Qk_Max(reserve, size));
 		Qk_ASSERT(block.end >= block.begin + size, "Not enough space in buffer block");
 		if (size)
@@ -41,10 +41,6 @@ namespace qk {
 		return block;
 	};
 
-	template<typename T>
-	cMTLMemBlock& makeBufferT(MTL_CmdPack &cmd, const T *src, uint32_t length) {
-		return makeBuffer(cmd, src, length * sizeof(T), sizeof(T));
-	}
 	MTLTextureID mtl_get_texture_from(const ImageSource* src, MTLTextureID _else = nil);
 
 	bool MetalCanvas::drawCAPACmd(CAPADrawData &data) {

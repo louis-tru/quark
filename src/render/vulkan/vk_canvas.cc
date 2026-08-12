@@ -582,8 +582,8 @@ namespace qk {
 	}
 
 	bool VulkanCanvas::swapBuffer() {
-		if (_capaBuilder)
-			_capaBuilder->flush();
+		flushCAPABatch();
+		_alloc.reset();
 		endPass(); // end current pass
 
 		if (_cmdPack->recorded) {

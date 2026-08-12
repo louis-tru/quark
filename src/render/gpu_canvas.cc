@@ -77,11 +77,6 @@ namespace qk {
 			return img && (img->type() == kSDF_Unsigned_F32_ColorType || img->type() == kSDF_F32_ColorType);
 		}
 
-		void flushCAPABatch() {
-			if (_capaBuilder)
-				_capaBuilder->flush();
-		}
-
 		void resetCAPABatch() {
 			if (_capaBuilder)
 				_capaBuilder->reset();
@@ -89,7 +84,7 @@ namespace qk {
 
 		const VertexData &buildVertex(const Path &path, float aaRadius, bool aa) {
 			return aa ?
-				_cache->getAASideTriangle(path, aaRadius): _cache->getPathTriangles(path);
+				_cache->getAASideTriangles(path, aaRadius): _cache->getPathTriangles(path);
 		}
 
 		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
@@ -128,9 +123,18 @@ namespace qk {
 				info = { &p, fillColor, kSDFMask_DrawKind, paint.stroke.color, strokeWidth * scale};
 			}
 
-			if (filter || !_capaEnabled || !_capaBuilder->buildImage(_cache->getRectPath(rect), info)) {
+			if (filter || !_capaEnabled || !_capaBuilder->buildImage(rect, info)) {
 				flushCAPABatch(); // flush current CAPA batch before draw text image
-				drawImageCmd(_cache->getPathTriangles(rect), info);
+				Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
+				Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
+				Vec2 right_bottom(dst_start + dst_size); // right bottom
+				VertexData vertex{0,6,{{
+					dst_start,
+					top_right, left_bottom, // triangle 0 |/
+					top_right,
+					right_bottom, left_bottom, // triangle 1 /|
+				}, &_alloc}};
+				drawImageCmd(vertex, info);
 			}
 			return scale_1;
 		}
@@ -148,27 +152,6 @@ namespace qk {
 				drawImageCmd(vertex, { paint.mask, style.color, kMask_DrawKind });
 			} else {
 				drawColorCmd(vertex, style.color);
-			}
-		}
-
-		bool fillPathCAPA(const Path &rawPath, const Paint &paint, const PaintStyle& style, bool stroke) {
-			if (!_capaEnabled)
-				return false;
-			auto &path = stroke ?
-				_cache->getStrokePath(rawPath, paint.strokeWidth, paint.cap, paint.join, 0) : rawPath;
-			if (style.image) {
-				auto isSDF = isSDFImage(style.image->image);
-				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
-					style.image, style.color, isSDF ? kSDFMask_DrawKind: kImage_DrawKind
-				});
-			} else if (style.gradient) {
-				return _capaBuilder->buildGradient(path, style.gradient, style.color);
-			} else if (paint.mask) {
-				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
-					paint.mask, style.color, kMask_DrawKind
-				});
-			} else { // color
-				return _capaBuilder->build(path, style.color);
 			}
 		}
 
@@ -211,16 +194,56 @@ namespace qk {
 					auto alpha = radius / aaRadius;
 					stroke.color[3] *= alpha; // approximate alpha reduction for smaller radius
 				}
-				auto &vertex = _cache->getAASideTriangle(path, aaRadius, true);
+				auto &vertex = _cache->getAASideTriangles(path, aaRadius, true);
 				_flags |= Qk_FLAG_AASIDE_LINE; // set line AA flag for stroke path
 				fillPathAASide(vertex, paint, stroke);
 				_flags &= ~Qk_FLAG_AASIDE_LINE; // clear line AA flag after stroke path
 			}
 		}
 
+		bool fillPathCAPA(const Path &rawPath, const Paint &paint, const PaintStyle& style, bool stroke) {
+			if (!_capaEnabled)
+				return false;
+			auto &path = stroke ?
+				_cache->getStrokePath(rawPath, paint.strokeWidth, paint.cap, paint.join, 0) : rawPath;
+			if (style.image) {
+				auto isSDF = isSDFImage(style.image->image);
+				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
+					style.image, style.color, isSDF ? kSDFMask_DrawKind: kImage_DrawKind
+				});
+			} else if (style.gradient) {
+				return _capaBuilder->buildGradient(path, style.gradient, style.color);
+			} else if (paint.mask) {
+				return _capaBuilder->buildImage(path, GC_ImageDrawInfo{
+					paint.mask, style.color, kMask_DrawKind
+				});
+			} else { // color
+				return _capaBuilder->build(path, style.color);
+			}
+		}
+
+		bool fillRectCAPA(const Rect &rect, const Paint &paint, const PaintStyle& style) {
+			if (!_capaEnabled)
+				return false;
+			if (style.image) {
+				auto isSDF = isSDFImage(style.image->image);
+				return _capaBuilder->buildImage(rect, GC_ImageDrawInfo{
+					style.image, style.color, isSDF ? kSDFMask_DrawKind: kImage_DrawKind
+				});
+			} else if (style.gradient) {
+				return _capaBuilder->buildGradient(rect, style.gradient, style.color);
+			} else if (paint.mask) {
+				return _capaBuilder->buildImage(rect, GC_ImageDrawInfo{
+					paint.mask, style.color, kMask_DrawKind
+				});
+			} else { // color
+				return _capaBuilder->build(rect, style.color);
+			}
+		}
+
 		void drawPath(const Path &path, const Paint &paint, float aaRadius) {
 			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &path);
-			auto fillPath = [&]() {
+			auto fill = [&]() {
 				if (!filter && fillPathCAPA(path, paint, paint.fill, false))
 					return;
 				fillPathAASide(buildVertex(path, aaRadius, paint.antiAlias), paint, paint.fill);
@@ -228,11 +251,32 @@ namespace qk {
 			// gen stroke path and fill path and polygons
 			switch (paint.style) {
 				case Paint::kFill_Style:
-					fillPath(); break;
+					fill(); break;
 				case Paint::kStrokeAndFill_Style:
-					fillPath();
+					fill();
 				case Paint::kStroke_Style:
-					strokePath(path, paint, aaRadius, !filter); break;
+					strokePath(path, paint, aaRadius, !filter);
+					break;
+			}
+		}
+
+		void drawRect(const Rect &rect, const Paint &paint, float aaRadius) {
+			Sp<GC_Filter> filter = GC_Filter::Make(this, paint, &rect);
+			auto fill = [&]() {
+				if (!filter && fillRectCAPA(rect, paint, paint.fill))
+					return;
+				fillPathAASide(buildVertex(_cache->getRectPath(rect),
+					aaRadius, paint.antiAlias), paint, paint.fill);
+			};
+			// gen stroke path and fill path and polygons
+			switch (paint.style) {
+				case Paint::kFill_Style:
+					fill(); break;
+				case Paint::kStrokeAndFill_Style:
+					fill();
+				case Paint::kStroke_Style:
+					strokePath(_cache->getRectPath(rect), paint, aaRadius, !filter);
+					break;
 			}
 		}
 	};
@@ -462,7 +506,7 @@ namespace qk {
 		// adjust bounds to actual allocated texture size
 		clip->bounds.end = clip->bounds.begin + clip->mask->size();
 		if (antiAlias) {
-			drawClipCmd(_cache->getAASideTriangle(path,_aaRadius), lastClip, clip, rawOp);
+			drawClipCmd(_cache->getAASideTriangles(path,_aaRadius), lastClip, clip, rawOp);
 		} else {
 			drawClipCmd(_cache->getPathTriangles(path), lastClip, clip, rawOp);
 		}
@@ -509,15 +553,11 @@ namespace qk {
 	}
 
 	void GPUCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		_this->drawPath(_cache->getRectPath(rect), paint, _aaRadiusRect);
+		_this->drawRect(rect, paint, _aaRadiusRect);
 	}
 
 	void GPUCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
 		_this->drawPath(_cache->getRRectPath(rect,radius), paint, _aaRadiusRect);
-	}
-
-	void GPUCanvas::drawRectPath(const RectPath& path, const Paint& paint) {
-		_this->drawPath(path, paint, _aaRadiusRect);
 	}
 
 	void GPUCanvas::drawPathColors(const Path* paths[], int count, const Color4f &color, BlendMode mode, bool antiAlias) {
@@ -653,7 +693,8 @@ namespace qk {
 		_rootMatrixNoScale.scale_y(1.0f/surfaceScale.y());
 		_texPools.clear(); // clear texture pool when surface size changed
 		if (_capaBuilder)
-			_capaBuilder->reset(true);
+			_capaBuilder->reset();
+		_alloc.clear();
 
 		Qk_DLog("setSurface: %f, %f, scale: %f, %f",
 			_surfaceSize.x(), _surfaceSize.y(), _surfaceScale.x(), _surfaceScale.y());
@@ -664,4 +705,10 @@ namespace qk {
 	Vec2 GPUCanvas::surfaceSize() const {
 		return _surfaceSize;
 	}
+
+	void GPUCanvas::flushCAPABatch() {
+		if (_capaBuilder)
+			_capaBuilder->flush();
+	}
+
 }

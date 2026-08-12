@@ -194,9 +194,6 @@ namespace qk {
 		/** Draws a rounded rectangle. */
 		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint);
 
-		/** Draws a rectangle path. */
-		virtual void drawRectPath(const RectPath& path, const Paint& paint) = 0;
-
 		/** Draws a rectangle outline path. */
 		virtual void drawRectOutlinePath(const RectOutlinePath& path, const Color4f color[4], const Paint& paint) = 0;
 

@@ -322,9 +322,6 @@ namespace qk {
 	typedef Vec<int,2>        IVec2;
 	typedef Vec<int,3>        IVec3;
 
-	template<typename T> struct MRect { // rect
-		T begin,size;
-	};
 	template<typename T> struct MRange { // range
 		T begin,end;
 		inline T size() const { return end - begin; }
@@ -345,6 +342,11 @@ namespace qk {
 		T begin,end,origin;
 	};
 	template<typename T> struct MLimitRange { T min,max; }; // limit range
+
+	template<typename T> struct MRect { // rect
+		T begin,size;
+		MRange<T> range() const { return {begin, begin + size}; }
+	};
 
 	typedef MRect<Vec2>       Rect; // typedef rect
 	typedef MRange<Vec2>      Range; // typedef range

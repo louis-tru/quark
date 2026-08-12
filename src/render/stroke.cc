@@ -318,10 +318,10 @@ namespace qk {
 	 * TODO: When the included angle is extremely small, the normal can be
 	 * shifted too far and produce visual spikes.
 	 *
-	 * @method getAASideTriangle() returns signed aa side stroke triangle vertices and body triangles
+	 * @method getAASideTriangles() returns signed aa side stroke triangle vertices and body triangles
 	 * @return {Array<Vec3>} points { x, y, aaSide }, aaSide < 0 inside, aaSide > 0 outside
 	*/
-	VertexData Path::getAASideTriangle(float radius, float precision, bool onlyAASide) const {
+	VertexData Path::getAASideTriangles(float radius, float precision, bool onlyAASide) const {
 		Path tmp;
 		//auto self = normalized(&tmp, precision, false);
 		// boundaryPath() asks libtess2 for TESS_BOUNDARY_CONTOURS using the

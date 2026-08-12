@@ -83,6 +83,12 @@ namespace qk {
 		return *_strokePath.set(key, p);
 	}
 
+	const Path& PathvCache::getStrokePath(const Rect &rect,
+		float width, Path::Cap cap, Path::Join join, float miterLimit
+	) {
+		return getStrokePath(getRectPath(rect), width, cap, join, miterLimit);
+	}
+
 	const VertexData& PathvCache::getPathTriangles(const Path &path) {
 		auto hash = path.hashCode();
 		Wrap<VertexData> *const*out;
@@ -95,7 +101,7 @@ namespace qk {
 		return _pathTriangles.set(hash, gb)->base;
 	}
 
-	const VertexData& PathvCache::getAASideTriangle(const Path &path, float radius, bool onlyAASide) {
+	const VertexData& PathvCache::getAASideTriangles(const Path &path, float radius, bool onlyAASide) {
 		auto hash = path.hash();
 		float floatBits[2] = {radius, static_cast<float>(onlyAASide)};
 		hash.update2f(floatBits);
@@ -103,7 +109,7 @@ namespace qk {
 		Wrap<VertexData> *const *out;
 		if (_aaSideTriangle.get(key, out))
 			return (*out)->base;
-		auto gb = new Wrap<VertexData>{path.getAASideTriangle(radius, 1, onlyAASide),{{this,0,0}}};
+		auto gb = new Wrap<VertexData>{path.getAASideTriangles(radius, 1, onlyAASide),{{this,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->data = &gb->base;
 		_capacity += gb->base.vCount * sizeof(Vec3);
