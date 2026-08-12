@@ -101,4 +101,10 @@ extern "C" {
 		shared_app()->activeWindow()->dispatch()->keyboard()->
 			dispatch(keycode, ascii, down, false, repeat, device, source);
 	}
+
+	// Android applications start through Activity/JNI, but quark.gyp also builds
+	// the auxiliary quark-exec native executable, whose linker requires main().
+	Qk_EXPORT int main(int argc, char* argv[]) {
+		return 0;
+	}
 }

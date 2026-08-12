@@ -384,7 +384,7 @@
 					'platforms/apple/apple_os.mm',
 					'platforms/apple/apple_clipboard.mm',
 					'render/codec/codec_apple.mm',
-					'render/plotforms.mm',
+					'render/plotforms_apple.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',

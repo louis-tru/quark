@@ -113,11 +113,9 @@ namespace qk {
 
 		_defaultFontFamilies = getFontFamilies(Array<String>());
 
-#if 0
-		// Disabled: register the embedded native font as an additional family.
+		// Add the iconfont font family
 		WeakBuffer buff((cChar*)native_fonts_[0].data, native_fonts_[0].count);
 		addFontFamily(buff.buffer());
-#endif
 	}
 
 	FFID FontPool::getFontFamilies(cString& familieNames) {

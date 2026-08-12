@@ -73,10 +73,9 @@ framework() {
 dirs="$obj/quark-util $obj/quark $obj/quark-media"
 
 links="\
-	-lfreetype -lgif \
-	-lhttp_parser -lminizip -lopenssl \
+	-lfreetype -lgif -lpng-2 -ljpeg2 -lwebp \
+	-llmdb -lhttp_parser -lminizip -lopenssl \
 	-lreachability -ltess2 -luv -liconv -lbz2 -lz -lffmpeg -lspine \
-	-lpng-2 -ljpeg2 -lwebp -llmdb \
 "
 
 frameworks="\
@@ -92,6 +91,7 @@ frameworks="\
 
 if [ "$os" = "mac" ]; then
 	if [ "$use_gl" = "1" ]; then
+		rm -rf $obj/quark/src/render/metal
 		frameworks="$frameworks -framework OpenGL "
 	else
 		rm -rf $obj/quark/src/render/gl
@@ -100,6 +100,7 @@ if [ "$os" = "mac" ]; then
 	frameworks="$frameworks -framework AppKit -framework IOKit "
 else # ios
 	if [ "$use_gl" = "1" ]; then
+		rm -rf $obj/quark/src/render/metal
 		frameworks="$frameworks -framework OpenGLES "
 	else
 		rm -rf $obj/quark/src/render/gl

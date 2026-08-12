@@ -12,16 +12,6 @@
 		},
 	},
 
-	'variables': {
-		'product_dir%': '<(DEPTH)/out/qkmake/product',
-		'product_so_subdir%': '<(os)/<(arch)',
-		'conditions': [
-			['os=="android"', {
-				'product_so_subdir': '<(os)/jniLibs/<(android_abi)'
-			}],
-		],
-	},
-
 	############################################
 	# targets output
 	############################################
@@ -57,6 +47,7 @@
 						'<(output)/libtess2.a',
 						'<(output)/libuv.a',
 						'<(output)/libspine.a',
+						'<(output)/liblmdb.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					],
 					'outputs': [
