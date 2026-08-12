@@ -191,8 +191,11 @@ namespace qk {
 		}
 
 		void reload() override {
+			auto size = getSurfaceSize();
+			if (size == _surfaceSize)
+				return;
 			std::lock_guard<RecursiveMutex> lock(_mutex);
-			_surfaceSize = getSurfaceSize();
+			_surfaceSize = size;
 			_delegate->onRenderBackendReload(_surfaceSize);
 		}
 

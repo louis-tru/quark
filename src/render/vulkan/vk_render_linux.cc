@@ -99,14 +99,14 @@ namespace qk {
 		}
 
 		void reload() override {
+			auto size = getSurfaceSize();
+			if (size == _surfaceSize)
+				return;
 			ScopeLock lock(_mutex);
 			Qk_ASSERT(_surface, "Vulkan surface must be created before reload");
-			auto surfaceSize = getSurfaceSize();
-			if (surfaceSize == _surfaceSize)
-				return;
-			_surfaceSize = surfaceSize;
-			Qk_DLog("reload surfaceSize=(%f,%f)", surfaceSize.x(), surfaceSize.y());
-			_delegate->onRenderBackendReload(surfaceSize);
+			_surfaceSize = size;
+			Qk_DLog("reload surfaceSize=(%f,%f)", size.x(), size.y());
+			_delegate->onRenderBackendReload(_surfaceSize);
 			destroySwapchain(true);
 			Qk_CHECK(createSwapchain(), "Failed to create Vulkan swapchain");
 		}

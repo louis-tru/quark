@@ -126,7 +126,9 @@ namespace qk
 				switch (event.type) {
 					case Expose:
 						Qk_DLog("event, Expose");
-						// win->render()->reload();
+						// Expose only requests repainting of revealed window contents. Qk's
+						// continuous render loop already handles this; surface-size changes
+						// are handled by ConfigureNotify and may require swapchain reload.
 						break;
 					case ConfigureNotify:
 						Qk_DLog("event, ConfigureNotify, Window resize: [%d, %d]",
