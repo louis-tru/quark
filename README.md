@@ -25,13 +25,13 @@ favor explicit structure, predictable behavior, and controllable performance.
 
 | Target | Host/toolchain | Renderer availability | Status |
 |---|---|---|---|
-| iOS | macOS + Xcode | OpenGL ES or Metal | Metal and GL paths are implemented and used in current test scenes. |
-| macOS | macOS + Xcode | OpenGL or Metal | Both backends are implemented. |
-| Android | macOS/Linux + JDK, Android SDK/NDK | OpenGL ES; optional Vulkan | Vulkan presentation and Canvas/CAPA encoding are implemented; wider device validation continues. |
-| Linux | Linux native toolchain | OpenGL ES; optional Vulkan/Xlib | Vulkan presentation is implemented; Linux runtime validation continues. |
+| iOS | macOS + Xcode | OpenGL ES or Metal | Metal and GL are established runtime paths. |
+| macOS | macOS + Xcode | OpenGL or Metal | Metal and GL are established runtime paths. |
+| Android | macOS/Linux + JDK, Android SDK/NDK | OpenGL ES; optional Vulkan | Vulkan presentation and Canvas/CAPA are available; device coverage continues to expand. |
+| Linux | Linux native toolchain | OpenGL ES; optional Vulkan/Xlib | Vulkan/Xlib presentation and Canvas/CAPA are available; driver coverage continues to expand. |
 
-The current Linux build and runtime test environment is Ubuntu 20.04. Other
-Linux distributions have not yet been validated.
+The current verified Linux build and runtime environment is Ubuntu 20.04;
+coverage of other Linux distributions is outside the current release scope.
 
 Source configuration currently enables GL by default. Apple builds select
 Metal when GL is disabled; Android/Linux builds can enable Vulkan alongside
@@ -60,8 +60,8 @@ The renderer uses two complementary antialiasing strategies:
   tiles, computes area coverage, and composites ordered layers without the
   background seams caused by independently antialiased adjacent primitives.
 
-Metal is the established CAPA runtime path. Vulkan CAPA command encoding is
-implemented and remains under broader runtime validation.
+Metal is the established CAPA runtime path. Vulkan CAPA is also available on
+supported targets, with device and driver coverage continuing to expand.
 
 At runtime, pass `--gl` to force the GL renderer, or `--aaside` to disable
 CAPA and force the AASide antialiasing path on Metal/Vulkan.
@@ -204,10 +204,11 @@ complete publishable HTML tree under `out/doc/html`.
 
 ## Project status and contributing
 
-The GL and Metal paths are established, while Vulkan is in its runtime
-validation and stabilization phase across Android and Linux drivers. Focused
-issues and pull requests are welcome in the [GitHub repository]. Keep backend
-changes behavior-aligned and include the smallest relevant validation.
+The GL and Metal paths are established, and Vulkan is available on Android and
+Linux. Current Vulkan work focuses on expanding device and driver coverage and
+continuing refinement. Focused issues and pull requests are welcome in the
+[GitHub repository]. Keep backend changes behavior-aligned and include the
+smallest relevant validation.
 
 Documentation-only changes should at minimum pass `git diff --check`; changes
 that affect published documentation should also run `make doc`.

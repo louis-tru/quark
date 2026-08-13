@@ -22,12 +22,13 @@ Quark 不是浏览器运行时。它拥有独立的 View 树、样式与布局�
 
 | 目标平台 | 宿主/工具链 | 可用渲染器 | 当前状态 |
 |---|---|---|---|
-| iOS | macOS + Xcode | OpenGL ES 或 Metal | Metal 与 GL 路径均已实现，并用于当前测试场景。 |
-| macOS | macOS + Xcode | OpenGL 或 Metal | 两个后端均已实现。 |
-| Android | macOS/Linux + JDK、Android SDK/NDK | OpenGL ES；可选 Vulkan | Vulkan 呈现和 Canvas/CAPA 编码已实现，仍在扩大设备验证。 |
-| Linux | Linux 原生工具链 | OpenGL ES；可选 Vulkan/Xlib | Vulkan 呈现已实现，仍需继续 Linux 运行时验证。 |
+| iOS | macOS + Xcode | OpenGL ES 或 Metal | Metal 与 GL 均为已经稳定使用的运行时路径。 |
+| macOS | macOS + Xcode | OpenGL 或 Metal | Metal 与 GL 均为已经稳定使用的运行时路径。 |
+| Android | macOS/Linux + JDK、Android SDK/NDK | OpenGL ES；可选 Vulkan | Vulkan 呈现和 Canvas/CAPA 已可用，设备覆盖仍在持续扩大。 |
+| Linux | Linux 原生工具链 | OpenGL ES；可选 Vulkan/Xlib | Vulkan/Xlib 呈现和 Canvas/CAPA 已可用，驱动覆盖仍在持续扩大。 |
 
-当前 Linux 构建与运行测试环境为 Ubuntu 20.04，其他 Linux 发行版尚未完成验证。
+当前确认可用的 Linux 构建与运行环境为 Ubuntu 20.04；其他 Linux 发行版不在
+当前版本的验证范围内。
 
 源码配置当前默认启用 GL。Apple 构建在关闭 GL 时选择 Metal；Android/Linux
 可以在保留 GL 的同时启用 Vulkan。当 Vulkan 与 GL 同时存在时会优先尝试
@@ -53,8 +54,8 @@ Canvas API
   后端处理复杂有序填充的 compute 路径。它把边分配到 tile，计算面积
   coverage，并按顺序合成 layer，避免相邻图元独立反走样时产生背景漏光。
 
-Metal 是已经稳定使用的 CAPA 运行时路径。Vulkan CAPA 命令编码已经实现，
-仍在进行更广泛的运行时验证。
+Metal 是已经稳定使用的 CAPA 运行时路径。Vulkan CAPA 在支持的目标平台上也
+已经可用，设备与驱动覆盖仍在持续扩大。
 
 运行时可传入 `--gl` 强制使用 GL 渲染器；也可传入 `--aaside`，在
 Metal/Vulkan 上禁用 CAPA 并强制使用 AASide 反走样路径。
@@ -191,9 +192,10 @@ License，最终把完整的可发布 HTML 树输出到 `out/doc/html`。
 
 ## 项目状态与参与贡献
 
-GL 与 Metal 路径已经建立，Vulkan 正处于跨 Android/Linux 驱动的运行时验证
-和稳定化阶段。欢迎在 [GitHub 仓库]提交范围明确的 issue 和 pull request。
-后端改动应保持 Canvas 行为对齐，并附带最小且相关的验证。
+GL 与 Metal 路径已经稳定，Vulkan 也已可用于 Android 和 Linux。当前 Vulkan
+工作重点是继续扩大设备与驱动覆盖，并持续完善实现。欢迎在 [GitHub 仓库]
+提交范围明确的 issue 和 pull request。后端改动应保持 Canvas 行为对齐，
+并附带最小且相关的验证。
 
 纯文档改动至少应通过 `git diff --check`；影响发布文档的改动还应运行
 `make doc`。
