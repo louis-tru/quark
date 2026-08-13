@@ -1004,7 +1004,6 @@ class Package {
 			// downloading ...
 			let url = set_url_args(`${self.path}/${self.name}.pkgz`, pkgzHash);
 			let save = pathname + '.~';
-			// TODO:
 			// when the file size is relatively large,
 			// it is necessary to resume the download with a breakpoint,
 			// and the download progress should be notified in real-time by reading the data stream
