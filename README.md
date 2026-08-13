@@ -221,19 +221,19 @@ Quark is distributed under the BSD license. See [LICENSE](LICENSE).
 
 <script>
 	<!--
-	var language = (navigator.browserLanguage || navigator.language).toLowerCase();
-	var isLanguageCn = language.indexOf('cn') >= 0;
-	var isPageCn = location.href.indexOf('README-cn') >=0;
-	var isHtml = typeof src == 'string'; // html page will have a src variable
+	// var language = (navigator.browserLanguage || navigator.language).toLowerCase();
+	// var isLanguageCn = language.indexOf('cn') >= 0;
+	// var isPageCn = location.href.indexOf('README-cn') >=0;
+	// var isHtml = typeof src == 'string'; // html page will have a src variable
 
-	if ( isLanguageCn ) { // cn
-		if ( !isPageCn ) { // goto to cn
-			location.href = isHtml ? 'README-cn.html' : 'README-cn.md';
-		}
-	} else { // en
-		if ( isPageCn ) { // goto to en
-			location.href = isHtml ? 'README.html' : 'README.md';
-		}
-	}
+	// if ( isLanguageCn ) { // cn
+	// 	if ( !isPageCn ) { // goto to cn
+	// 		location.href = isHtml ? 'README-cn.html' : 'README-cn.md';
+	// 	}
+	// } else { // en
+	// 	if ( isPageCn ) { // goto to en
+	// 		location.href = isHtml ? 'README.html' : 'README.md';
+	// 	}
+	// }
 	-->
 </script>
