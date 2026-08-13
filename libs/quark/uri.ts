@@ -383,6 +383,8 @@ export class URL {
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc/test.js
 	 * console.log(new URL('http://quarks.cc/aaa/bbbb/ccc/test.js').filename);
+	 * // Prints: /D:/Documents/test.js
+	 * console.log(new URL('file:///D:/Documents/test.js').filename);
 	 * ```
 	*/
 	get filename(): string {
@@ -723,7 +725,7 @@ export class URL {
 	}
 
 	/**
-	 * Get relative path from the fromPath to self
+	 * Get relative path from fromPath to self
 	 * 
 	 * @example
 	 * 
@@ -742,8 +744,14 @@ export class URL {
 			return this._origin + this._filename;
 		}
 
-		let fr: string[] = from._filename == '/' ? [] : from._filename.split('/').slice(0,-1);
-		let to: string[] = this._filename == '/' ? [] : this._filename.split('/'); // to
+		let fr: string[] = from._filename.split('/');
+		let to: string[] = this._filename.split('/');
+		// Match path.relative(from, target): fromPath itself is the starting path.
+		// Ignore only a trailing slash; never infer whether the last name is a file.
+		if (fr[fr.length - 1] == '')
+			fr.pop();
+		if (to[to.length - 1] == '')
+			to.pop();
 		let len = Math.max(fr.length, to.length);
 
 		for (let i = 1; i < len; i++) {
@@ -994,7 +1002,7 @@ export default {
 		return get_path(path).clearHashs().href;
 	},
 
-	/** Get relative path */
+	/** Get target path relative to the from path */
 	relative(from: string, target?: string): string {
 		return get_path(target).relative(from);
 	},

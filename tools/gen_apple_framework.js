@@ -43,6 +43,8 @@ var cut = argv.shift(); // is cut
 var inc = argv.shift(); // copy include files
 var out_dir = argv.shift();
 var framework_dir = path.resolve(`${out_dir}/${name}.framework`);
+var framework_content_dir = os == 'mac' ? `${framework_dir}/Versions/A`: framework_dir;
+var framework_resources_dir = os == 'mac' ? `${framework_content_dir}/Resources`: framework_dir;
 var source = __dirname + '/..';
 
 if ( argv.length == 0 ) {
@@ -68,20 +70,33 @@ function read_plist_and_replace_version() {
 	return Buffer.from(str, en);
 }
 
-fs.mkdir_p_sync(framework_dir);
+// macOS frameworks use a versioned (non-shallow) bundle. iOS frameworks keep
+// the shallow layout expected on that platform. Recreate the bundle so an old
+// shallow macOS Info.plist cannot remain at the framework root.
+fs.rm_r_sync(framework_dir);
+fs.mkdir_p_sync(framework_resources_dir);
 
 // write plist
-fs.writeFileSync(`${framework_dir}/Info.plist`, read_plist_and_replace_version());
-syscall(`plutil -convert binary1 ${framework_dir}/Info.plist`); // convert binary
+var plist = `${framework_resources_dir}/Info.plist`;
+fs.writeFileSync(plist, read_plist_and_replace_version());
+syscall(`plutil -convert binary1 ${plist}`); // convert binary
 
 // copy header
 if (inc != 'no-inc') {
 	for (var src of (inc || source + '/src').split(/\s+/)) {
-		copy_header(src, framework_dir + '/Headers');
+		copy_header(src, framework_content_dir + '/Headers');
 	}
 }
 // Merge dynamic library
-syscall(`lipo -create ${argv.join(' ')} -output ${framework_dir}/${name}`);
+var binary = `${framework_content_dir}/${name}`;
+syscall(`lipo -create ${argv.join(' ')} -output ${binary}`);
+
+if (os == 'mac') {
+	fs.symlinkSync('A', `${framework_dir}/Versions/Current`);
+	fs.symlinkSync('Versions/Current/Headers', `${framework_dir}/Headers`);
+	fs.symlinkSync('Versions/Current/Resources', `${framework_dir}/Resources`);
+	fs.symlinkSync(`Versions/Current/${name}`, `${framework_dir}/${name}`);
+}
 
 function sign() { // SING:
 	var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
@@ -96,9 +111,8 @@ function sign() { // SING:
 // sign();
 
 if (cut === 'cut') {
-	if ( fs.statSync(`${framework_dir}/${name}`).size > 1024 * 1024 * 50 ) { // > 50mb
-		large_file_cut(`${framework_dir}/${name}`, 4);
-		fs.rm_r(`${framework_dir}/${name}`);
+	if ( fs.statSync(binary).size > 1024 * 1024 * 50 ) { // > 50mb
+		large_file_cut(binary, 4);
+		fs.rm_r(binary);
 	}
 }
-

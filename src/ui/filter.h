@@ -62,7 +62,7 @@ namespace qk {
 		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @thread Rt
 		static bool assign(BoxFilter *&left, BoxFilter *right, View *view);
 		static bool assign_atomic(std::atomic<BoxFilter*>& left, BoxFilter *right, View *view);
-		inline void mark_public() { _is_public = true; }
+		void mark_public();
 
 		template<class T>
 		inline static T* Link(const std::initializer_list<T*>& list) {

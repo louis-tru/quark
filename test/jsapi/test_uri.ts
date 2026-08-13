@@ -31,7 +31,7 @@ export default async function(_: any) {
 	Mv(url, 'setHash', ['e', 'E']);
 	Mv(url, 'getHash', ['e'], 'E');
 	Mv(url, 'clearHashs', []);
-	Mv(url, 'relative', ['https://quarks.cc:81/A/B/C/test.js'], '../../../home/index.html');
+	Mv(url, 'relative', ['https://quarks.cc:81/A/B/C'], '../../../home/index.html');
 
 	console.log('\nMethods:\n');
 	Mv(path, 'executable', [])
@@ -70,7 +70,10 @@ export default async function(_: any) {
 	Mv(path, 'setHash', ['a', 'H', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test#a=H&b=300')
 	Mv(path, 'deleteHash', ['a', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test#b=300')
 	Mv(path, 'clearHashs', ['http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test')
-	Mv(path, 'relative', ['http://quarks.cc/A/B/C/test.js', 'http://quarks.cc/home'], '../../../home')
+	Mv(path, 'relative', ['http://quarks.cc/A/B/C', 'http://quarks.cc/home'], '../../../home')
+	Mv(path, 'relative', ['/Users/louis/Project/touchcode2/deps/kace', '/Users/louis/Project/touchcode2/deps/kace/out/kace.gypi'], 'out/kace.gypi')
+	Mv(path, 'relative', ['/Users/louis/Project/touchcode2/deps/kace/', '/Users/louis/Project/touchcode2/deps/kace/out/'], 'out')
+	Mv(path, 'relative', ['/Users/louis/Project/touchcode2/deps/kace', '/Users/louis/Project/graphics/quark/out/qkmake/product/quark.gypi'], '../../../graphics/quark/out/qkmake/product/quark.gypi')
 	Mv(path, 'isAbsolute', ['http://quarks.cc/home/index.html'], true)
 	Mv(path, 'isAbsolute', ['file:///a/b/c/kk.jsx'], true)
 	Mv(path, 'isAbsolute', ['file:///d:/a/b/c/kk.jsx'], true)

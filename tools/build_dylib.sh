@@ -123,4 +123,4 @@ if [ "$use_js" = "1" ]; then
 fi
 
 link_dylib $name quark "$dirs" "$links" "$frameworks"
-framework $name no-inc # gen temp framework
+framework $name "" # gen temp framework

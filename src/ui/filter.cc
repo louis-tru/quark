@@ -33,9 +33,7 @@
 #include "./app.h"
 #include "./window.h"
 #include "../render/source.h"
-#include "../render/render.h"
 #include "./ui.h"
-#include <math.h>
 
 #define _async_call _window->pre_render().async_call
 
@@ -119,6 +117,14 @@ namespace qk {
 	BoxFilter::BoxFilter()
 		: _view(nullptr), _next(nullptr), _is_public(false)
 	{
+	}
+
+	void BoxFilter::mark_public() {
+		// A CSS background is a linked filter list. Every node belongs to the
+		// public style template and must be copied before it is bound to a View.
+		for (auto filter = this; filter; filter = filter->next()) {
+			filter->_is_public = true;
+		}
 	}
 
 	void BoxFilter::destroy() {

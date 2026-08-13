@@ -165,6 +165,7 @@ namespace qk {
 			vkDestroySurfaceKHR(_resource->instance(), _surface, nullptr);
 			_surface = VK_NULL_HANDLE;
 			_window = EGL_NO_NATIVE_WINDOW;
+			_surfaceSize = {}; // clear surface size
 		}
 
 		bool acquireNextImage() {

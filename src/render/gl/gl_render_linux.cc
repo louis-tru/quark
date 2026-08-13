@@ -314,6 +314,7 @@ namespace qk {
 				eglDestroySurface(_display, _surface);
 				_surface = EGL_NO_SURFACE;
 				_window = EGL_NO_NATIVE_WINDOW;
+				_surfaceSize = {}; // clear surface size
 			}
 		}
 
