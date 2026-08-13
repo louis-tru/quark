@@ -98,7 +98,6 @@ export function initDefaults<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial
 
 function newBase<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial<T>>) {
 	(ext as any).__proto__ = cls.prototype;
-	Object.freeze(ext); // freeze data fields
 	return ext as T;
 }
 
@@ -883,7 +882,7 @@ initDefaults(Vec2, { x: 0, y: 0 });
 */
 export type Vec2In = `${number} ${number}` | `vec2(${N},${N})` | N | [N,N] | Vec2;
 
-const zero = newVec2(0, 0); // frozen zero vector
+const zero: Vec2 = Object.freeze(newVec2(0, 0)); // frozen zero vector
 
 /**
  * @class Vec3
