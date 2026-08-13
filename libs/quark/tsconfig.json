@@ -3,9 +3,10 @@
 	"compilerOptions": {
 		"noEmitHelpers": true,
 		"module": "commonjs",
-		"target": "ES2018",
 		"moduleResolution": "node",
-		// "ignoreDeprecations": "6.0",
+		"target": "ES2019",
+		"lib": [ "ES2019" ],
+		"ignoreDeprecations": "6.0",
 		"sourceMap": false,
 		"outDir": "out/quark",
 		"rootDir": ".",

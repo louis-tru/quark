@@ -272,7 +272,6 @@ namespace qk { namespace js {
 				Js_Method(groupEnd, {});
 				Js_Method(count, {});
 				Js_Method(assert, {});
-				Js_Method(markTimeline, {});
 				Js_Method(profile, {});
 				Js_Method(profileEnd, {});
 				Js_Method(timeline, {});

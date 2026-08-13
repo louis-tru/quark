@@ -29,9 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 const PREFIX = 'file:///';
-const isQuark: boolean = !!globalThis.__binding__;
-const isNode: boolean = !!(globalThis as any).process;
-const isWeb: boolean = !!globalThis.document;
+const global = globalThis as any;
+const isQuark: boolean = !!global.__binding__;
+const isNode: boolean = !!global.process;
+const isWeb: boolean = !!global.document;
 
 function unrealized(): any {
 	throw new Error('Unrealized function');
@@ -55,7 +56,7 @@ if (isQuark) {
 	_cwd = _fs.cwd;
 	_chdir = _fs.chdir;
 } else if (isNode) {
-	const process = (globalThis as any).process;
+	const process = global.process;
 	_win32 = process.platform == 'win32';
 	_cwd = _win32 ? function() {
 		return PREFIX + process.cwd().replace(/\\/g, '/');
@@ -68,8 +69,8 @@ if (isQuark) {
 		return process.cwd() == path;
 	};
 } else if (isWeb) {
-	let dirname = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
-	let cwdPath = location.origin + dirname;
+	let dirname = global.location.pathname.substring(0, global.location.lastIndexOf('/'));
+	let cwdPath = global.location.origin + dirname;
 	_cwd = function() { return cwdPath };
 	_chdir = function() { return false };
 } else {
@@ -179,7 +180,8 @@ export function resolve(...args: string[]): string {
 				prefix = PREFIX + mat[2] + '/';
 				path = path.substring(2);
 			} else if (isWeb) {
-				prefix = origin + '/';
+				// globalThis.origin
+				prefix = global.origin + '/';
 			} else {
 				prefix = PREFIX; //'file:///';
 			}
@@ -201,7 +203,7 @@ export function resolve(...args: string[]): string {
 			prefix += cwd.substring(0,10) + '/'; // 'file:///d:/';
 			path = cwd.substring(11) + '/' + path;
 		} else if (isWeb) {
-			prefix = origin + '/';
+			prefix = global.origin + '/';
 			path = cwd.substring(prefix.length) + '/' + path;
 		} else {
 			prefix = PREFIX; // 'file:///';
@@ -351,7 +353,7 @@ export class URL {
 	 */
 	constructor(path: string = '') {
 		if (!path && isWeb) {
-			path = location.href;
+			path = global.location.href;
 		}
 		this._value = path;
 	}

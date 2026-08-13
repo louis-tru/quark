@@ -63,10 +63,10 @@ let setInterval_ = globalThis.setInterval;
 let setImmediate_ = globalThis.setImmediate;
 
 function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): any {
-	return setTimeout_(args.length ? ()=>cb(...args): cb, timeout);
+	return setTimeout_(args.length ? ()=>cb(...args): cb as ()=>void, timeout);
 }
 function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): any {
-	return setInterval_(args.length ? ()=>cb(...args): cb, timeout);
+	return setInterval_(args.length ? ()=>cb(...args): cb as ()=>void, timeout);
 }
 function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): any {
 	return setImmediate_(args.length ? ()=>cb(...args): cb as any);

@@ -35,7 +35,7 @@ if ((globalThis as any).BigInt) {
 	(function(ok: any, req: any) {
 		if (typeof __binding__ == 'function') { // quark
 			ok(__binding__('quark/_bigint'));
-		} else if (globalThis.document) { // webpack amd
+		} else if ((globalThis as any).document) { // webpack amd
 			import('./_bigint.js').then((e: any)=>ok(e)); // bigint syntax, webpack delay load
 		} else { // node cjs
 			ok(req('./_bigint'));

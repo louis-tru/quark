@@ -135,6 +135,31 @@ declare global {
 	interface TimeoutResult extends Any {}
 
 	/**
+	 * Console methods provided by the Qk JavaScript runtime.
+	 * @interface Console
+	 * @global
+	 */
+	interface Console {
+		log(...data: any[]): void;
+		warn(...data: any[]): void;
+		error(...data: any[]): void;
+		clear(): void;
+		debug(...data: any[]): void;
+		info(...data: any[]): void;
+		dir(...data: any[]): void;
+		dirxml(...data: any[]): void;
+		table(...data: any[]): void;
+		trace(...data: any[]): void;
+		group(...data: any[]): void;
+		groupCollapsed(...data: any[]): void;
+		groupEnd(): void;
+		count(label?: string): void;
+		assert(condition?: boolean, ...data: any[]): void;
+	}
+
+	var console: Console;
+
+	/**
 	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 	 * @interface Function
 	 * @global
@@ -366,12 +391,13 @@ declare global {
 	function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
 	function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
 	function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): TimeoutResult;
+	function queueMicrotask(callback: ()=>void): void;
 	function clearTimeout(id?: TimeoutResult): void;
 	function clearInterval(id?: TimeoutResult): void;
 	function clearImmediate(id?: TimeoutResult): void;
 }
 
-(function() {
+(function(_:any) {
 if (Date.formatTimeSpan !== undefined)
 	return;
 
@@ -379,8 +405,10 @@ if (typeof globalThis == 'undefined') {
 	let globa = arguments[0]('(typeof global == "object" ? global: 0)');
 	if (globa) {
 		(globa as any).globalThis = globa;
-	} else if (typeof window == 'object') {
-		(window as any).globalThis = window;
+	} else {
+		let win = arguments[0]('(typeof window == "object" ? window: 0)');
+		if (win)
+			(win as any).globalThis = win;
 	}
 }
 
@@ -805,4 +833,4 @@ definePropertys(Error.prototype, {
 	},
 });
 
-}());
+}(eval));
