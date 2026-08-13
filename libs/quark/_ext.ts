@@ -146,14 +146,16 @@ declare global {
 		clear(): void;
 		debug(...data: any[]): void;
 		info(...data: any[]): void;
-		dir(...data: any[]): void;
+		dir(item?: any, options?: any): void;
 		dirxml(...data: any[]): void;
-		table(...data: any[]): void;
+		table(tabularData?: any, properties?: string[]): void;
 		trace(...data: any[]): void;
 		group(...data: any[]): void;
 		groupCollapsed(...data: any[]): void;
 		groupEnd(): void;
 		count(label?: string): void;
+		time(label?: string): void;
+		timeEnd(label?: string): void;
 		assert(condition?: boolean, ...data: any[]): void;
 	}
 

@@ -60,7 +60,7 @@ function <F extends (...args: Args) => Promise<R>, Args extends any[], R>(fn: F)
 	return fn;
 };
 
-export function __decorate(decorators: any, target: any, key?: any, desc?: any) {
+function __decorate(decorators: any, target: any, key?: any, desc?: any) {
 	var c = arguments.length,
 			r = c < 3 ? target : desc || Object.getOwnPropertyDescriptor(target, key);
 	for (var i = decorators.length - 1; i >= 0; i--) {
@@ -87,11 +87,21 @@ const __createBinding = (Object as any).create ? (function(o: any, m: any, k?: a
 	o[k2] = m[k];
 });
 
-export function __exportStar(m: any, exports: any) {
+function __exportStar(m: any, exports: any) {
 	for (var p in m)
 		if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p))
 			__createBinding(exports, m, p);
-};
+}
+
+function __importStar(mod: any) {
+	return mod;
+}
+
+function __importDefault(mod: any) {
+	return mod && mod.__esModule ? mod : { default: mod };
+}
 
 (globalThis as any).__decorate = __decorate;
 (globalThis as any).__exportStar = __exportStar;
+(globalThis as any).__importStar = __importStar;
+(globalThis as any).__importDefault = __importDefault;

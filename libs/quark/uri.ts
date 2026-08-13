@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 const PREFIX = 'file:///';
-const global = globalThis as any;
-const isQuark: boolean = !!global.__binding__;
-const isNode: boolean = !!global.process;
-const isWeb: boolean = !!global.document;
+const glob = globalThis as any;
+const isQuark: boolean = !!glob.__binding__;
+const isNode: boolean = !!glob.process;
+const isWeb: boolean = !!glob.document;
 
 function unrealized(): any {
 	throw new Error('Unrealized function');
@@ -56,7 +56,7 @@ if (isQuark) {
 	_cwd = _fs.cwd;
 	_chdir = _fs.chdir;
 } else if (isNode) {
-	const process = global.process;
+	const process = glob.process;
 	_win32 = process.platform == 'win32';
 	_cwd = _win32 ? function() {
 		return PREFIX + process.cwd().replace(/\\/g, '/');
@@ -69,8 +69,8 @@ if (isQuark) {
 		return process.cwd() == path;
 	};
 } else if (isWeb) {
-	let dirname = global.location.pathname.substring(0, global.location.lastIndexOf('/'));
-	let cwdPath = global.location.origin + dirname;
+	let dirname = glob.location.pathname.substring(0, glob.location.lastIndexOf('/'));
+	let cwdPath = glob.location.origin + dirname;
 	_cwd = function() { return cwdPath };
 	_chdir = function() { return false };
 } else {
@@ -181,7 +181,7 @@ export function resolve(...args: string[]): string {
 				path = path.substring(2);
 			} else if (isWeb) {
 				// globalThis.origin
-				prefix = global.origin + '/';
+				prefix = glob.origin + '/';
 			} else {
 				prefix = PREFIX; //'file:///';
 			}
@@ -203,7 +203,7 @@ export function resolve(...args: string[]): string {
 			prefix += cwd.substring(0,10) + '/'; // 'file:///d:/';
 			path = cwd.substring(11) + '/' + path;
 		} else if (isWeb) {
-			prefix = global.origin + '/';
+			prefix = glob.origin + '/';
 			path = cwd.substring(prefix.length) + '/' + path;
 		} else {
 			prefix = PREFIX; // 'file:///';
@@ -353,7 +353,7 @@ export class URL {
 	 */
 	constructor(path: string = '') {
 		if (!path && isWeb) {
-			path = global.location.href;
+			path = glob.location.href;
 		}
 		this._value = path;
 	}
