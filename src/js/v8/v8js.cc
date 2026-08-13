@@ -878,9 +878,10 @@ namespace qk { namespace js {
 			Qk_Log("       quark --eval|-e [ script ] [arguments]");
 			Qk_Log("       quark --debug[=127.0.0.1:9229]] [--brk] [ script.js ] [arguments]");
 			Qk_Log("       quark --help [--v8]");
-			// Qk_Log("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ V8 Options ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
 		}
-		if (args->options.has("v8")) {
+		// Normal launches still pass command-line options to V8. For --help, skip
+		// V8's very large option list unless the caller explicitly adds --v8.
+		if (!args->options.has("help") || args->options.has("v8")) {
 			auto argc = args->argc;
 			v8::V8::SetFlagsFromCommandLine(&argc, args->argv, true);
 		}
