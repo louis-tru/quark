@@ -46,12 +46,12 @@ createCss({
 		opacity: 1,
 	},
 	'.qk_checkbox:hover': {
-		opacity: 0.7,
+		opacity: 0.8,
 	},
 	'.qk_checkbox:active': {
-		opacity: 0.35,
+		opacity: 0.6,
 	},
-	'.qk_checkbox:hover, .qk_checkbox:active, .qk_checkbox.on': {
+	'.qk_checkbox.on': {
 		backgroundColor: '#0079ff',
 		borderColor: '#0079ff',
 	},

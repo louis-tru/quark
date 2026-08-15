@@ -127,7 +127,7 @@ namespace qk {
 	}
 
 	void World::onActivate() {
-		if (level() == 0 || !_playing) {
+		if (_cascade_visible == false || !_playing) {
 			pre_render().untask(this); // remove task
 		} else {
 			pre_render().addtask(this); // add task

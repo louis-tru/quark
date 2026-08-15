@@ -198,7 +198,7 @@ namespace qk {
 	}
 
 	void Label::onActivate() {
-		if (level())
+		if (_cascade_visible)
 			mark<true>(kTransform); // mark recursive transform
 		_textFlags = 0xffffffff;
 		mark_layout<true>(kText_Options);

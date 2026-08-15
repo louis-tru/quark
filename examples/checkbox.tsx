@@ -67,7 +67,7 @@ export default (self: Page)=>{
 			</box>
 			<box class="item">
 				<text class="text" value="NO,Disable" />
-				<Switch onChange={change_handle} style={{margin:10}} initSelected={false} />
+				<Switch onChange={change_handle} style={{margin:10}} disable={true} initSelected={false} />
 			</box>
 			<box class="item">
 				<text class="text" value="NO" />

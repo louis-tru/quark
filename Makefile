@@ -45,8 +45,8 @@ $(FORWARD):
 	@$(MAKE) -f build.mk $@
 
 all:
-	@$(MAKE) ios
 	@$(MAKE) mac
+	@$(MAKE) ios
 	@$(MAKE) try_android
 	@$(MAKE) try_linux
 

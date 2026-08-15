@@ -130,6 +130,7 @@ namespace qk {
 		, _z_index(0)
 		, _cascade_color(CascadeColor::Both)
 		, _visible(true)
+		, _cascade_visible(false)
 		, _visible_area(false)
 		, _receive(true)
 		, _aa(true)
@@ -479,11 +480,7 @@ namespace qk {
 
 	void View::onChildLayoutChange(View *child, uint32_t mark) {
 		if (mark & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			// Optimize mark value @ mark_layout<true>(kLayout_Typesetting)
-			_mark_value |= kLayout_Typesetting;
-			if (_mark_index == 0 && _level) {
-				pre_render().mark_layout(this, _level); // push to pre render
-			}
+			mark_layout<true>(kLayout_Typesetting);
 		}
 	}
 
@@ -499,7 +496,7 @@ namespace qk {
 	}
 
 	void View::mark_layout_(uint32_t mark) {
-		_async_call({ self->mark_layout_rt_(arg); }, mark);
+		_async_call({ self->mark_layout_rt_(arg, self->_cascade_visible); }, mark);
 	}
 
 	void View::mark_rt_(uint32_t mark) {
@@ -507,10 +504,14 @@ namespace qk {
 		pre_render()._rerender = true;
 	}
 
-	void View::mark_layout_rt_(uint32_t mark) {
+	void View::mark_layout_rt_(uint32_t mark, bool canLayout) {
+		Qk_ASSERT(mark & kLayout_All, "View::mark_layout_rt_, mark should be layout mark");
+		// Marks are retained even while the view is hidden. Normally only an
+		// effectively visible view enters PreRender; CSS may explicitly override
+		// canLayout to re-evaluate a hidden selector that can restore visibility.
 		_mark_value |= mark;
 		if (_mark_index == 0) {
-			if (_level) {
+			if (canLayout) {
 				pre_render().mark_layout(this, _level); // push to pre render
 			}
 		}
@@ -584,8 +585,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	// NOTE: _level is only reliable on the render thread.
-	// This method must not be called from the work thread.
+	// is child of self
 	bool View::is_child_rt(View *child) {
 		auto v = child->_parent_rt;
 		while (v && v->_level >= _level) { // only check views in the same or higher level
@@ -865,6 +865,7 @@ namespace qk {
 	}
 
 	void View::set_parent(View *parent) {
+		Qk_ASSERT(parent, "View::set_parent(parent), parent should not be null");
 		Qk_CHECK(_window == parent->_window, "window no match, parent->_window no equal _window");
 		Qk_CHECK(!check_loop_ref(this, parent), "View::set_parent(parent), loop ref error");
 		auto _parent = this->_parent; // old parent
@@ -880,6 +881,7 @@ namespace qk {
 	}
 
 	void View::set_parent_rt(View *parent) {
+		Qk_ASSERT(parent, "View::set_parent_rt(parent), parent should not be null");
 		auto _parent = this->_parent_rt;
 		if (_parent != parent) {
 			if (_parent) {
@@ -890,89 +892,133 @@ namespace qk {
 				_parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
 			}
 			auto level = parent->_level;
-			if (_visible && level) {
+			if (level) {
 				if (_level != ++level)
-					set_level_rt(level);
+					set_level_rt(level, parent->_cascade_visible);
+				else if (parent->_cascade_visible)
+					set_cascade_visible_true_rt();
+				else
+					set_cascade_visible_false_rt();
 			} else {
 				if (_level)
 					clear_level_rt();
 			}
-			parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice new parent view
-			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // mark view size, reset view size
 
-			auto cssclass = _cssclass.load();
-			if (cssclass) {
-				cssclass->updateClass_rt();
-			}
+			parent->onChildLayoutChange(this, kChild_Layout_Visible); // notice new parent view
+
+			// Reparenting changes the selector context and layout constraints of the
+			// complete subtree. Queue the attached root even when it is hidden so CSS
+			// can make it visible under the new parent. PreRender deliberately defers
+			// the layout bits until the branch is effectively visible.
+			uint32_t mark =
+				kClass_Recursive |
+				kLayout_Inner_Width |
+				kLayout_Inner_Height;
+			mark_layout_rt_(mark, _level != 0);
+
 			onActivate();
+		}
+	}
+
+	void View::set_level_rt(uint32_t level, bool parentVisible) {
+		// _level describes attachment depth only. Effective visibility is tracked
+		// independently so hidden branches retain stable hierarchy information.
+		_cascade_visible = parentVisible && _visible;
+		if (!_cascade_visible)
+			blur_rt();
+		if (_mark_index) {
+			pre_render().unmark_layout(this, _level);
+		}
+		if (_cascade_visible && (_mark_value & kLayout_All)) {
+			pre_render().mark_layout(this, level);
+		}
+		_level = level++;
+		onActivate();
+		auto v = _first_rt;
+		while ( v ) {
+			v->set_level_rt(level, _cascade_visible);
+			v = v->_next_rt;
+		}
+	}
+
+	void View::clear_level_rt() { //  clear view depth
+		// Detaching is the only operation that resets _level to zero. Merely hiding
+		// a view keeps its level and pending mark values intact.
+		blur_rt();
+		if (_mark_index)
+			pre_render().unmark_layout(this, _level);
+		_level = 0;
+		_cascade_visible = false;
+		onActivate();
+		auto v = _first_rt;
+		while ( v ) {
+			v->clear_level_rt();
+			v = v->_next_rt;
 		}
 	}
 
 	// --------------------------------------------------------------------------------------
 
 	void View::set_visible_rt(bool visible) {
-		auto _parent = this->_parent_rt;
-		auto level =
-			_parent && _parent->_level         ? _parent->_level + 1:
-			visible && _window->root() == this ? 1: 0; // if visible and is root view then level = 1, else level = 0
+		auto parent = this->_parent_rt;
 
-		if (visible && level) {
-			if (_level != level)
-				set_level_rt(level);
-		} else { // set level = 0
-			if (_level)
-				clear_level_rt();
-		}
-		if (_parent) {
-			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
-		}
-		if (visible) {
-			mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height); // reset view size
-			_IfCssclass() {
-				// _cssclass->updateClass_rt();
-				mark_layout<true>(View::kClass_Recursive); // mark class recursive
-			}
-		}
-	}
-
-	void View::set_level_rt(uint32_t level) { // settings level
-		if (_visible) {
-			// if level > 0 then
-			if (_mark_index) {
-				pre_render().unmark_layout(this, _level);
-			}
-			pre_render().mark_layout(this, level);
-			_level = level++;
-			onActivate();
-
-			auto v = _first_rt;
-			while ( v ) {
-				v->set_level_rt(level);
-				v = v->_next_rt;
-			}
+		if (visible && (parent ? parent->_cascade_visible: this == _window->root())) {
+			set_cascade_visible_true_rt();
 		} else {
-			if ( _level )
-				clear_level_rt();
+			set_cascade_visible_false_rt();
 		}
+		if (parent)
+			parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
+
+		// Visibility does not change the selector hierarchy. CSS changes skipped
+		// while hidden already leave per-view class marks, which are restored by
+		// set_cascade_visible_true_rt(); only layout dimensions are invalidated here.
+		mark_layout<true>(kLayout_Inner_Width | kLayout_Inner_Height);
 	}
 
-	void View::clear_level_rt() { //  clear view depth
-		auto win = _window;
-		if (win->dispatch()->activeView() == this) {
-			pre_render().post(Cb([this,win](auto e) {
-				if (win->dispatch()->activeView() == this)
-					blur();
-			}),this);
-		}
-		if (_mark_index) {
-			pre_render().unmark_layout(this, _level);
-		}
-		_level = 0;
+	void View::set_cascade_visible_true_rt() {
+		if (!_visible || _cascade_visible)
+			return;
+		// Layout marks accumulated while this branch was hidden were deliberately
+		// kept in _mark_value; restore the view to the depth-ordered queue now.
+		// CSS may also be waking a hidden view that is already in that queue, in
+		// which case adding it again would duplicate both the entry and mark count.
+		if (_mark_index == 0 && (_mark_value & kLayout_All))
+			pre_render().mark_layout(this, _level); // recover mark layout
+		_cascade_visible = true;
 		onActivate();
 		auto v = _first_rt;
 		while ( v ) {
-			v->clear_level_rt();
+			v->set_cascade_visible_true_rt();
 			v = v->_next_rt;
+		}
+	}
+
+	void View::set_cascade_visible_false_rt() {
+		if (!_cascade_visible)
+			return;
+		blur_rt();
+		// Do not unmark the existing queue entry here. CSS may set visible=false
+		// while PreRender is iterating this same level, and unmark_layout() uses a
+		// swap-pop that would modify the current queue. Hidden views may still resolve
+		// CSS; their layout is skipped by _cascade_visible and the queue index is
+		// cleared in the normal reverse pass. A later visible=true change then restores
+		// any retained layout marks without reconstructing the hierarchy state.
+		_cascade_visible = false;
+		onActivate();
+		auto v = _first_rt;
+		while ( v ) {
+			v->set_cascade_visible_false_rt();
+			v = v->_next_rt;
+		}
+	}
+
+	void View::blur_rt() {
+		if (_window->dispatch()->activeView() == this) {
+			pre_render().post(Cb([this](auto e) {
+				if (_window->dispatch()->activeView() == this)
+					blur();
+			}),this);
 		}
 	}
 
@@ -1000,8 +1046,13 @@ namespace qk {
 				v->apply_class_recursive_rt(parent, alwaysApply);
 				v = v->_next_rt;
 			}
+			unmark(kClass_All);
+		} else {
+			// The current view consumed its own new selector context, but its locally
+			// hidden descendants did not. Keep the recursive bit so showing this branch
+			// later resumes the subtree update instead of losing the reparent invalidation.
+			_mark_value |= kClass_Recursive;
 		}
-		unmark(kClass_All);
 	}
 
 	CStyleSheetsClass* View::parent_cssclass_rt() {

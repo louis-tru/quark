@@ -31,14 +31,11 @@
 #ifndef __quark__ui__css__css_props__
 #define __quark__ui__css__css_props__
 
-#include "../../util/util.h"
-#include "../../render/bezier.h"
-#include "../types.h"
 #include "../views.h"
 
 namespace qk {
 
-#define Qk_Css_Props(F) \
+#define Qk_Css_PropsBase(F) \
 	F(COLOR, Color, color, View) /*view*/\
 	F(CASCADE_COLOR, CascadeColor, cascade_color, View) \
 	F(CURSOR, CursorStyle, cursor, View) \
@@ -53,8 +50,6 @@ namespace qk {
 	F(BOX_SIZING, BoxSizing, box_sizing, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \
-	F(MIN_WIDTH, BoxSize, min_width, Box) \
-	F(MIN_HEIGHT, BoxSize, min_height, Box) \
 	F(MAX_WIDTH, BoxSize, max_width, Box) \
 	F(MAX_HEIGHT, BoxSize, max_height, Box) \
 	F(MARGIN, ArrayFloat, margin, Box) /*margin*/\
@@ -138,10 +133,20 @@ namespace qk {
 	F(FRAME, uint32_t, frame, Sprite) /*Current frame index of Sprite*/\
 	F(CURVE, Curve, curve, CSS) /* extends */\
 
+#define Qk_Css_PropsAlias(F) \
+	F(MIN_WIDTH, BoxSize, min_width, Box) \
+	F(MIN_HEIGHT, BoxSize, min_height, Box) \
+
+#define Qk_Css_Props(F) \
+	Qk_Css_PropsBase(F) \
+	Qk_Css_PropsAlias(F) \
+
 	enum CssProp {
 		#define _Fun(Enum, Type, Name, From) k##Enum##_CssProp,
-		Qk_Css_Props(_Fun)
+		Qk_Css_PropsBase(_Fun)
 		kEnum_Counts_CssProp,
+		kMIN_WIDTH_CssProp = kWIDTH_CssProp,
+		kMIN_HEIGHT_CssProp = kHEIGHT_CssProp,
 		#undef _Fun
 	};
 

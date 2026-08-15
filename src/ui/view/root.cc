@@ -32,15 +32,13 @@
 #include "../filter.h"
 #include "../app.h"
 #include "../window.h"
-#include "../../util/handle.h"
-#include "../../render/render.h"
 
 namespace qk {
 
 	Root::Root(Window *win) {
 		init(win);
 		_level = 1;
-		set_receive(true);
+		_cascade_visible = true;
 		_layout = LayoutType::Free; // free layout
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});

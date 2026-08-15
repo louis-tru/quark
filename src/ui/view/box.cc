@@ -46,7 +46,7 @@ namespace qk {
 		, _layout(LayoutType::Normal) // default normal layout
 		, _align(Align::Normal)
 		, _box_sizing(BoxSizing::ContentBox)
-		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
+		, _width{0, BoxSizeKind::Auto}, _height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
@@ -79,12 +79,12 @@ namespace qk {
 		View::destroy();
 	}
 
-	BoxSize Box::width() const {
-		return _min_width;
+	BoxSize Box::min_width() const {
+		return _width;
 	}
 
-	BoxSize Box::height() const {
-		return _min_height;
+	BoxSize Box::min_height() const {
+		return _height;
 	}
 
 	ArrayFloat Box::margin() const {
@@ -216,12 +216,10 @@ namespace qk {
 	}
 
 	void Box::set_min_width(BoxSize val) {
-		mark_style_flag(kMIN_WIDTH_CssProp); // mark min-width style flag together
 		set_width(val); // min-width is alias of width
 	}
 
 	void Box::set_min_height(BoxSize val) {
-		mark_style_flag(kMIN_HEIGHT_CssProp); // mark min-height style flag together
 		set_height(val); // min-height is alias of height
 	}
 
@@ -473,15 +471,15 @@ namespace qk {
 	}
 
 	void Box::set_width_direct(BoxSize val, bool isRT) {
-		if (_min_width != val) {
-			_min_width = val;
+		if (_width != val) {
+			_width = val;
 			mark_layout(kLayout_Inner_Width, isRT);
 		}
 	}
 
 	void Box::set_height_direct(BoxSize val, bool isRT) {
-		if (_min_height != val) {
-			_min_height = val;
+		if (_height != val) {
+			_height = val;
 			mark_layout(kLayout_Inner_Height, isRT);
 		}
 	}

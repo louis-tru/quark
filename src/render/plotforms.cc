@@ -45,7 +45,7 @@ namespace qk {
 
 	Display* openXDisplay() {
 		static XDisplayAuto xdpy([]() {
-			Qk_ASSERT_EQ(1, XInitThreads(), "Error: Can't init X threads");
+			Qk_CHECK(XInitThreads() == 1, "Error: Can't init X threads");
 			auto xdpy = XOpenDisplay(nullptr);
 			Qk_CHECK(xdpy, "Can't open display");
 			return xdpy;

@@ -197,7 +197,9 @@ namespace qk {
 		}
 
 		if (_mark_total) {
-			// First solve class changes
+			// Resolve CSS before layout, including explicitly queued hidden views.
+			// A hidden view may become visible under a new selector context, so class
+			// processing must not be gated by _cascade_visible.
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
 					if (view->_mark_value & View::kClass_All)
@@ -212,17 +214,23 @@ namespace qk {
 		// Solve layout marks
 		while (_mark_total) {
 			Qk_ASSERT_GT(_mark_total, 0); // safety check
+			// Layout is consumed only by effectively visible views. Hidden views stay
+			// in this pass for CSS processing, while their layout bits remain in
+			// _mark_value and are restored to the queue when the branch becomes visible.
 			// First forward iteration
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
-					view->layout_forward(view->_mark_value);
+					if (view->_cascade_visible)
+						view->layout_forward(view->_mark_value);
 				}
 			}
-			// Then reverse iteration until no marks
+			// Then reverse iteration until no marks. Keep the same visibility guard as
+			// the forward pass so a hidden view cannot consume only half of its layout.
 			for (int i = _marks.length() - 1; i >= 0; i--) {
 				auto &levelMarks = _marks[i];
 				for (auto view: levelMarks) {
-					view->layout_reverse(view->_mark_value);
+					if (view->_cascade_visible)
+						view->layout_reverse(view->_mark_value);
 					// simple delete mark recursive
 					view->_mark_index = 0;
 					_mark_total--;

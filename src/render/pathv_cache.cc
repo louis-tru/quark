@@ -213,6 +213,11 @@ namespace qk {
 			return (*out)->base;
 		}
 		if (radius && is_not_Zero(radius)) {
+			// Vec2 shrink = rect.size * 0.01;
+			// Rect _rect{
+			// 	.begin = rect.begin + (shrink * 0.5),
+			// 	.size = rect.size - shrink // shrink 2% to avoid AA edge overlap
+			// };
 			float limit = std::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius br{
 				{Qk_Min(radius[0],limit)}, {Qk_Min(radius[1],limit)},

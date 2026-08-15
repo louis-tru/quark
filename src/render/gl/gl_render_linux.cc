@@ -230,7 +230,7 @@ namespace qk {
 			if (destroy) {
 				ScopeLock lock(_mutexMsg);
 				if (_msg.length()) {
-					Qk_Log("resolvedMsg(), destroy, %d", _msg.length());
+					Qk_DLog("resolvedMsg(), destroy, %d", _msg.length());
 					if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
 						eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context);
 					std::lock_guard<RecursiveMutex> lock(_mutex);

@@ -46,10 +46,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(LayoutType, layout, ProtectedConst); //!< layout type
 		Qk_DEFINE_VIEW_PROPERTY(Align,      align, Const); //!< view align
 		Qk_DEFINE_VIEW_PROPERTY(BoxSizing,  box_sizing, Const); //!< box sizing
-		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
-		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    height, Const); //!< min height alias
-		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
-		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    min_height, Const); //!< limit min height
+		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
+		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    height, Const); //!< min height alias
+		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
+		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    min_height, Const); //!< limit min height
 		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    max_width, Const); //!< limit max width if min width not equal none then limit max width
 		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    max_height, Const); //!< limit max width
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayFloat, margin, Const); //!< margin

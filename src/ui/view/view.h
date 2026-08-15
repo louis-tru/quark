@@ -121,16 +121,17 @@ namespace qk {
 			kLayout_Child_Height      = (1 << 5), /* Same as above */
 			kLayout_Child_Size        = (kLayout_Child_Width | kLayout_Child_Height),
 			kLayout_Typesetting       = (1 << 6), /* The layout content is offset, and the sub-layout needs to be typesetting */
-			kInput_Status             = (1 << 7), /* Input state changes that don't include layout changes */
-			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
-			kScroll                   = (1 << 9), /* scroll state change */
-			kClass_Change             = (1 << 10), /* View style changes caused by changing class names or view level */
-			kClass_State              = (1 << 11), /* View style changes caused by changing state, normal/hover/active */
-			kClass_Recursive          = (1 << 12), /* View style recursive changes caused by changing class names or view level */
+			kText_Options             = (1 << 7), /* Text configuration changes and may affect subviews */
+			kClass_Change             = (1 << 8), /* View style changes caused by changing class names or view level */
+			kClass_State              = (1 << 9), /* View style changes caused by changing state, normal/hover/active */
+			kClass_Recursive          = (1 << 10), /* View style recursive changes caused by changing class names or view level */
 			kClass_All                = (kClass_Change | kClass_State | kClass_Recursive), /* include class changes and state changes */
+			kLayout_All               = (kLayout_Size_ALL | kLayout_Child_Size | kLayout_Typesetting | kText_Options | kClass_All),
+			kInput_Status             = (1 << 11), /* Input state changes that don't include layout changes */
+			kScroll                   = (1 << 12), /* scroll state change */
 			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 30), /* Visible range changes */
-			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
+			kRecursive_Solve_Mark     = (kTransform /*| kVisible_Region*/),
 		};
 
 		// Child layout change mark key values
@@ -296,9 +297,9 @@ namespace qk {
 		* @prop level
 		* @thread Rt/w,Any/r
 		*
-		* The depth of the layout in the UI tree, 0 indicates that it has not yet been added to the UI view tree.
-		* 
-		* This value is affected by `View::_visible`, when `View::_visible=false`, _level=0
+		* The depth of this view in the attached UI tree. Zero means that the view
+		* is detached. Visibility no longer changes this value; use
+		* `cascade_visible` for the effective visibility of the parent chain.
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 
@@ -350,6 +351,15 @@ namespace qk {
 		 * the view is invisible and does not occupy any view space
 		*/
 		Qk_DEFINE_VIEW_PROPERTY(bool, visible, Const);
+
+		/**
+		 * Effective visibility in the attached view tree. It is true only when this
+		 * view and every ancestor are visible. Unlike `visible`, this is derived
+		 * runtime state and cannot be set directly.
+		 *
+		 * @thread Rt/w,Any/r
+		 */
+		Qk_DEFINE_VIEW_PROP_GET(bool, cascade_visible, ProtectedConst);
 
 		/**
 		 * 这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
@@ -882,7 +892,7 @@ namespace qk {
 		inline void mark_layout(uint32_t mark, bool orIsRt = false) {
 			if (isRT || orIsRt) {
 				Qk_Assert_IsUILocked("View::mark_layout can only be called on the render thread");
-				mark_layout_rt_(mark);
+				mark_layout_rt_(mark, _cascade_visible);
 			} else {
 				Qk_Assert_FirstThread("View::mark_layout can only be called on the main thread");
 				mark_layout_(mark);
@@ -927,8 +937,11 @@ namespace qk {
 		void set_parent(View *parent); // setting parent view
 		void set_parent_rt(View *parent);
 		void set_visible_rt(bool visible);
-		void set_level_rt(uint32_t level); // settings depth
-		void clear_level_rt(); //  clear view depth rt
+		void set_cascade_visible_true_rt(); // reactivate this visible branch and recover pending layout marks
+		void set_cascade_visible_false_rt(); // deactivate this branch without discarding pending mark values
+		void set_level_rt(uint32_t level, bool parentVisible); // update attached-tree depth recursively
+		void clear_level_rt(); // detach this branch and clear its tree depth recursively
+		void blur_rt(); // blur focus view rt
 		void apply_class_rt(CStyleSheetsClass* parent); // apply class for self
 		void apply_class_recursive_rt(CStyleSheetsClass* parent, bool alwaysApply); // apply class for self and sub views
 		CStyleSheetsClass* parent_cssclass_rt();
@@ -937,7 +950,9 @@ namespace qk {
 		void mark_(uint32_t mark);
 		void mark_layout_(uint32_t mark);
 		void mark_rt_(uint32_t mark);
-		void mark_layout_rt_(uint32_t mark);
+		// canLayout may be forced by CSS only to admit a hidden candidate into the
+		// normal class-resolution queue; it does not force any style to be applied.
+		void mark_layout_rt_(uint32_t mark, bool canLayout);
 
 		friend class Painter;
 		friend class PreRender;

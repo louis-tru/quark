@@ -1,6 +1,9 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
+		"noEmitHelpers": true,
+		"esModuleInterop": false,
+		"allowSyntheticDefaultImports": false,
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"target": "ES2019",

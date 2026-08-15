@@ -72,7 +72,7 @@ namespace qk {
 	* - It only stores CssProp -> Property mappings.
 	* - Selector semantics are added by CStyleSheets.
 	 */
-	StyleSheets::StyleSheets() {
+	StyleSheets::StyleSheets(): _hasVisibleTrue(false) {
 	}
 
 	StyleSheets::~StyleSheets() {

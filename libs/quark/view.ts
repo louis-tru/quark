@@ -310,6 +310,9 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** Reference in owner view controller */
 	readonly ref: string;
 
+	/** Unique key for this view in the DOMCollection. */
+	readonly key: string | number;
+
 	/** Arbitrary data field attached to this view. */
 	data: any;
 
@@ -2559,8 +2562,6 @@ class _View extends NativeNotification<UIEvent> {
 			(this as any).action_ = null;
 	}
 
-	set key(val: any) { /* ignore */ }
-
 	show() {
 		(this as unknown as View).visible = true;
 	}
@@ -2684,6 +2685,7 @@ class _Scroll {
 
 _ui.View.isViewController = false;
 _ui.View.prototype.ref = '';
+_ui.View.prototype.key = '';
 _ui.View.prototype.owner = null;
 _ui.View.prototype.childDoms = [];
 util.extendClass(_ui.View, _View);

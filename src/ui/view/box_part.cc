@@ -118,14 +118,14 @@ namespace qk {
 			return F32::max(adjust(self, value), 0);
 		};
 
-		switch (_min_width.kind) {
+		switch (_width.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				state = kNone_FloatState;
 				break;
 			case BoxSizeKind::Value: /* 明确值 value */
 				state = kFixed_FloatState;
-				min = max = adjust_non_negative(this, _min_width.value); // explicit value
+				min = max = adjust_non_negative(this, _width.value); // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (pFloat) { // wrap
@@ -142,25 +142,25 @@ namespace qk {
 			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (pFloat) {
 					if (pContainer.pre_width_min) {
-						min = adjust_non_negative(this, pContainer.pre_width_min * _min_width.value);
+						min = adjust_non_negative(this, pContainer.pre_width_min * _width.value);
 					}
 					if (is_PreWidth1_Ne_Max_Float()) {
-						max = adjust_non_negative(this, pContainer.pre_width_max * _min_width.value);
+						max = adjust_non_negative(this, pContainer.pre_width_max * _width.value);
 					}
 				} else {
-					min = max = adjust_non_negative(this, size * _min_width.value);
+					min = max = adjust_non_negative(this, size * _width.value);
 				}
 				break;
 			case BoxSizeKind::Minus: /* 减法 p-value */
 				if (pFloat) { // compute min and max
 					if (pContainer.pre_width_min) {
-						min = adjust_non_negative(this, pContainer.pre_width_min - _min_width.value);
+						min = adjust_non_negative(this, pContainer.pre_width_min - _width.value);
 					}
 					if (is_PreWidth1_Ne_Max_Float()) {
-						max = adjust_non_negative(this, pContainer.pre_width_max - _min_width.value);
+						max = adjust_non_negative(this, pContainer.pre_width_max - _width.value);
 					}
 				} else {
-					min = max = adjust_non_negative(this, size - _min_width.value);
+					min = max = adjust_non_negative(this, size - _width.value);
 				}
 				break;
 		}
@@ -239,14 +239,14 @@ namespace qk {
 			return F32::max(adjust(self, value), 0);
 		};
 
-		switch (_min_height.kind) {
+		switch (_height.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				state = kNone_FloatState;
 				break;
 			case BoxSizeKind::Value: /* 明确值 value rem */
 				state = kFixed_FloatState;
-				min = max = adjust_non_negative(this, _min_height.value); // explicit value
+				min = max = adjust_non_negative(this, _height.value); // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (pFloat) { // wrap
@@ -263,25 +263,25 @@ namespace qk {
 			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (pFloat) {
 					if (pContainer.pre_height_min) {
-						min = adjust_non_negative(this, pContainer.pre_height_min * _min_height.value);
+						min = adjust_non_negative(this, pContainer.pre_height_min * _height.value);
 					}
 					if (is_PreHeight1_Ne_Max_Float()) {
-						max = adjust_non_negative(this, pContainer.pre_height_max * _min_height.value);
+						max = adjust_non_negative(this, pContainer.pre_height_max * _height.value);
 					}
 				} else {
-					min = max = adjust_non_negative(this, size * _min_height.value);
+					min = max = adjust_non_negative(this, size * _height.value);
 				}
 				break;
 			case BoxSizeKind::Minus: /* 减法 p-value */
 				if (pFloat) { // compute min and max
 					if (pContainer.pre_height_min) {
-						min = adjust_non_negative(this, pContainer.pre_height_min - _min_height.value);
+						min = adjust_non_negative(this, pContainer.pre_height_min - _height.value);
 					}
 					if (is_PreHeight1_Ne_Max_Float()) {
-						max = adjust_non_negative(this, pContainer.pre_height_max - _min_height.value);
+						max = adjust_non_negative(this, pContainer.pre_height_max - _height.value);
 					}
 				} else {
-					min = max = adjust_non_negative(this, size - _min_height.value);
+					min = max = adjust_non_negative(this, size - _height.value);
 				}
 				break;
 		}

@@ -266,7 +266,7 @@ namespace qk {
 	}
 
 	void Spine::onActivate() {
-		if (level() == 0) {
+		if (_cascade_visible == false) {
 			pre_render().untask(this);
 		} else {
 			pre_render().addtask(this);

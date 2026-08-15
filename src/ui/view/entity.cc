@@ -395,7 +395,7 @@ namespace qk {
 	}
 
 	void Agent::onActivate() {
-		if (level() == 0) { // remove or invisible
+		if (_cascade_visible == false) { // remove or invisible
 			_discoverys_rt.clear(); // clear discovery agents set
 			_moving = false;
 			_followTarget = nullptr; // clear follow target

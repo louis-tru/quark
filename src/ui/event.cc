@@ -361,7 +361,7 @@ namespace qk {
 
 	bool EventDispatch::setActiveView(View *view) {
 		if ( _activeView != view ) {
-			if ( view->_level && view->can_become_focus() ) {
+			if ( view->_cascade_visible && view->can_become_focus() ) {
 				Lock lock(_activeViewMutex);
 				if ( _activeView ) {
 					_activeView->release(); // unref
@@ -595,7 +595,7 @@ namespace qk {
 							if (touch.click_valid) {
 								auto evt = NewEvent<UIStateEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_UIStateChange(**evt); // emit style status event
-								if (evt0->is_default() && !is_cancel && view->_level) {
+								if (evt0->is_default() && !is_cancel && view->_cascade_visible) {
 									auto evt = NewClick(view, touch.position, ClickEvent::kTouch);
 									_inl_view(view)->trigger_click(**evt); // emit click event
 								}

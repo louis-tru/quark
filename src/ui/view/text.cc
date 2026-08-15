@@ -28,11 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../window.h"
 #include "../painter.h"
 #include "./text.h"
 #include "../text/text_lines.h"
-#include "../app.h"
 
 namespace qk {
 

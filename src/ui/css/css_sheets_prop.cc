@@ -156,7 +156,6 @@ namespace qk {
 	#define _Define_Enum_transition(Type) template<>\
 		Type transition_value(Type f1, Type f2, float t) { return t < 1.0 ? f1: f2; }
 	_Define_Enum_transition(bool)
-	//_Define_Enum_transition(int)
 	_Define_Enum_transition(CascadeColor)
 	_Define_Enum_transition(Align)
 	_Define_Enum_transition(BoxSizing)
@@ -262,7 +261,7 @@ namespace qk {
 		T       *_value;
 	};
 
-	// ---- SetProp ----
+	// ----------------------------------------------------------------------
 
 	template<typename T>
 	struct SetProp: StyleSheets {
@@ -298,6 +297,24 @@ namespace qk {
 			}
 		}
 	};
+
+	template<>
+	template<>
+	void SetProp<bool>::asyncSet<kVISIBLE_CssProp>(bool val) {
+		// Keep the wake-up hint synchronized with the actual stored property on
+		// the same thread. It is intentionally metadata only: normal CSS matching
+		// and priority handling still decide whether a view becomes visible.
+		auto win = getWindow();
+		if (win) {
+			win->pre_render().async_call([](auto self, auto arg) {
+				self->set(kVISIBLE_CssProp, arg);
+				self->_hasVisibleTrue = arg;
+			}, this, val);
+		} else {
+			set(kVISIBLE_CssProp, val);
+			_hasVisibleTrue = val;
+		}
+	}
 
 	template<>
 	template<CssProp key>
@@ -620,6 +637,8 @@ namespace qk {
 	}
 	Qk_Css_Props(_Fun)
 	#undef _Fun
+
+	// ----------------------------------------------------------------------
 
 	cCurve& StyleSheets::curve() const {
 		Property* prop = nullptr;

@@ -293,9 +293,10 @@ namespace qk {
 
 	void Fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
 		if (msg) {
+			auto log = Log::shared();
 			Qk_STRING_FORMAT(msg, str);
-			_shared_log->error("\n");
-			_shared_log->error(str.c_str(), "\n");
+			log->error("\n");
+			log->error(str.c_str(), "\n");
 		}
 #if DEBUG
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);

@@ -175,7 +175,7 @@ link.acc = linkAcc;
  * Get the VirtualDOM key. Falls back to auto-index if not defined.
  * Warns if no key is provided in a DOM collection.
  */
-function getkey(vdom: VirtualDOM, autoKey: number): string|number {
+function getkey(vdom: VirtualDOM, autoKey: number): string {
 	let key: string;
 	let key_ = vdom.props.key;
 	if (key_ !== void 0) {

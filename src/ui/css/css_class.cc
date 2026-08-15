@@ -211,9 +211,11 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::updateClass_rt() {
-		// Mark layout dirty due to class list change.
-		// Actual selector resolution happens during render/layout phase.
-		host()->mark_layout<true>(View::kClass_Change);
+		auto view = host();
+		// A class change on an attached hidden view must still run through normal
+		// selector resolution: the new class may itself match visible:true. This
+		// only forces CSS queue admission; hidden layout remains deferred.
+		view->mark_layout_rt_(View::kClass_Change, view->_level != 0);
 	}
 
 	void CStyleSheetsClass::setState_rt(UIState state) {
@@ -227,8 +229,11 @@ namespace qk {
 					// State unchanged, remove dirty mark
 					host()->unmark(View::kClass_State);
 				} else {
-					// State changed, mark for selector re-evaluation
-					host()->mark_layout<true>(View::kClass_State);
+					auto view = host();
+					// Like a class change, a pseudo-state change may match a rule that
+					// restores visible=true. Attached hidden views therefore still enter
+					// CSS resolution, while their layout work remains deferred.
+					view->mark_layout_rt_(View::kClass_State, view->_level != 0);
 				}
 			}
 		}
@@ -239,15 +244,22 @@ namespace qk {
 	 *
 	 * This method uses the Window-level reverse index (_viewsByClass)
 	 * to find candidate views that declare class names referenced by
-	 * the current propagating styles.
+	 * the current propagating styles. Candidates that need an immediate
+	 * update are then verified against the host hierarchy.
 	 *
 	 * Only a pre-filter is performed here:
 	 *  - No selector resolution
-	 *  - No hierarchy traversal
 	 *  - No style application
 	 *
-	 * The marked views will be re-evaluated later during the normal
-	 * render/layout update pass.
+	 * Visible candidates enter the normal update queue. A hidden candidate is
+	 * queued only when the referenced substyle explicitly contains
+	 * `visible: true`, because that style may reactivate it. Other hidden
+	 * candidates keep a delayed kClass_Change without walking their
+	 * ancestor chain; this deliberately permits harmless false positives and
+	 * avoids an O(depth) hierarchy query for every hidden candidate. Their mark
+	 * is restored when the corresponding branch becomes visible.
+	 *
+	 * The complete style set is always resolved later in normal cascade order.
 	 *
 	 * @thread Rt
 	 */
@@ -258,30 +270,43 @@ namespace qk {
 		if (_propagatingStyles_rt.length() == 0)
 			return; // no propagating styles
 		if (host->_level == 0)
-			return; // skip visible = false views
+			return; // detached host has no effective descendants in the UI tree
 
 		for (auto propagating: _propagatingStyles_rt) {
-			Set<qk::View *> *views;
-
-			//if (CSSCName("ace_multiselect").hashCode() == propagating->_name.hashCode()) {
-			//	Qk_DLog("ace_multiselect, %lu", CSSCName("ace_multiselect").hashCode());
-			//}
-
+			Set<View*> *views;
 			Qk_ASSERT(propagating->_sub.length(), "propagating style must have substyles");
 
 			for (auto it : propagating->_sub) {
+				// This flag describes only the current substyle node. Other matched
+				// selector nodes are tracked independently in _propagatingStyles_rt.
+				auto canWakeHidden = it.second->hasVisibleTrue();
 				if (_viewsByClass.get(it.second->_name.hashCode(), views)) {
 					for (auto &v: *views) {
-						auto view = v.first;
+						auto child = v.first;
+
+						if (child->_level <= host->_level)
+							continue; // candidate is not a descendant of the host
+
+						// canLayout controls immediate queue admission only. A hidden view
+						// containing visible:true must be checked now because CSS may wake it.
+						auto canLayout = child->_cascade_visible || canWakeHidden;
+
 						if (it.second->_directChildOnly) {
-							if (host == view->_parent_rt) {
-								// Qk_Log("mark direct child view %p for class change", view);
-								view->mark_layout<true>(View::kClass_Change);
+							if (host == child->_parent_rt) {
+								// Force only queue admission. Selector matching and property
+								// priority are resolved later by apply_class_rt().
+								child->mark_layout_rt_(View::kClass_Change, canLayout);
 							}
-						} else if (host->is_child_rt(view)) {
-							// Qk_Log("mark descendant view %p for class change", view);
-							// descendant selector: mark any matching view in subtree
-							view->mark_layout<true>(View::kClass_Change);
+						} else if (canLayout) {
+							if (host->is_child_rt(child)) {
+								// Same as the direct-child path, after confirming ancestry.
+								child->mark_layout_rt_(View::kClass_Change, true);
+							}
+						} else {
+							// Avoid the potentially expensive descendant walk for an ordinary
+							// hidden candidate. A false-positive dirty bit is inexpensive and
+							// will be resolved against the real parent chain only if it becomes visible.
+							child->_mark_value |= View::kClass_Change;
 						}
 					} // for views
 				}
@@ -306,7 +331,8 @@ namespace qk {
 			host->window()->actionCenter()->removeCSSTransition_rt(host);
 
 			if (propagate) {
-				// Mark descendant views as needing style re-evaluation
+				// Mark candidates affected by the outgoing propagation set before
+				// clearing it; removed selectors must also be re-evaluated.
 				markViewsForClassChange_rt();
 			}
 			// Reset propagation cache
@@ -338,9 +364,8 @@ namespace qk {
 						_propagatingStyles_rt.push(ss);
 						_propagatingStylesHash_rt.updateu64(uintptr_t(ss));
 					}
-					// Propagate class changes to potentially affected views.
-					// This only marks candidates via reverse lookup;
-					// actual style resolution happens later.
+					// Mark candidates affected by the newly accumulated propagation
+					// set. This never applies an individual substyle directly.
 					if (propagate) {
 						markViewsForClassChange_rt();
 					}
@@ -355,12 +380,12 @@ namespace qk {
 
 	void CStyleSheetsClass::findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out) {
 		// Match descendant selectors against current class set
-		auto find = [](CStyleSheetsClass *self, CStyleSheets *ss, Array<CStyleSheets*> *out) {
+		auto find = [](CStyleSheetsClass *self, CStyleSheets *parent, Array<CStyleSheets*> *out) {
 			for (auto &n: self->_nameHash_rt) {
-				CStyleSheets *css;
+				CStyleSheets *child;
 				// Match descendant selector: ".parent .child"
-				if (ss->_sub.get(n.first, css)) { // find substyle by class name hash
-					self->findStyle_rt(css, out);
+				if (parent->_sub.get(n.first, child)) { // find substyle by class name hash
+					self->findStyle_rt(child, out);
 				}
 			}
 		};
@@ -390,7 +415,7 @@ namespace qk {
 			// Match current level against parent's propagating styles
 			for (auto ss: parent->_propagatingStyles_rt) {
 				if (ss->_directChildOnly) {
-					if (!isDirectChild)	continue; // skip non-direct child
+					if (!isDirectChild) continue; // skip non-direct child
 				}
 				find(this, ss, out); // find sub styles from parent
 			}

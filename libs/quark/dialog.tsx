@@ -106,7 +106,7 @@ createCss({
 		textOverflow: 'ellipsis',
 		whiteSpace: 'noWrap',
 	},
-	'.qk_dialog.sheet .qk_button': {
+	'.qk_dialog.qk_sheet .qk_button': {
 		height: 45,
 		width: 'match',
 		maxWidth: 'none',
@@ -154,6 +154,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	buttons?: RenderData[];
 }&P,S> {
 	private _buttons = [] as RenderData[];
+	protected _visible = false;
 
 	private _autoClose() {
 		if (this.autoClose)
@@ -192,7 +193,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	protected handleClick = (e: ClickEvent)=>{
-		this.triggerAction((e.sender as any as {key:number}).key);
+		this.triggerAction(e.sender.key as number);
 	};
 
 	protected render() {
@@ -226,7 +227,8 @@ export class Dialog<P={},S={}> extends Navigation<{
 	 * @method show()
 	*/
 	show() {
-		if (!this.asDom().visible) {
+		if (!this._visible) {
+			this._visible = true;
 			super.appendTo(this.window.root);
 			this.asDom().visible = true;
 			this.asRef<Morph>('main').transition({ scale: 1, time: 300 }, {scale : 0.2});
@@ -239,7 +241,8 @@ export class Dialog<P={},S={}> extends Navigation<{
 	 * @method close()
 	*/
 	close() {
-		if ( this.asDom().visible ) {
+		if (this._visible) {
+			this._visible = false;
 			this.asRef<Morph>('main').transition({ scale: 0.2, time: 300 });
 			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>this.destroy());
 			this.unregisterNavigation(0);
@@ -281,11 +284,17 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 		return (Navigation as any).prototype.triggerUpdate.call(this);
 	}
 
+	private handleBgClick = (e: ClickEvent)=>{
+		if (e.origin === this.asDom()) {
+			this.navigationBack();
+		}
+	};
+
 	render() {
 		let content = this.content ? this.content :
 			this.children.length ? this.children: null;
 		return (
-			<free class="qk_dialog_bg" visible={false} opacity={0} onClick={()=>this.navigationBack()}>
+			<free class="qk_dialog_bg" visible={false} opacity={0} onClick={this.handleBgClick}>
 			{content?
 				<morph ref="main" class="qk_dialog qk_sheet">{content}</morph>:
 				<morph ref="main" class="qk_dialog qk_sheet">
@@ -295,7 +304,6 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 							<button
 								key={arr.length-i}
 								class="qk_button"
-								width="100%"
 								onClick={this.handleClick}
 								borderTopWidth={i?px:0}
 								borderRadius={[i?0:12,i==arr.length-1?12:0]}
@@ -304,7 +312,6 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 						<button
 							key={1}
 							class="qk_button"
-							width="100%"
 							onClick={this.handleClick}
 							value={Consts.Ok}
 							borderRadius={12}
@@ -315,7 +322,6 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 						<button
 							key={0}
 							class="qk_button gray"
-							width="100%"
 							onClick={this.handleClick}
 							value={Consts.Cancel}
 							borderRadius={12}
@@ -328,7 +334,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	}
 
 	show() {
-		if (!this.asDom().visible) {
+		if (!this._visible) {
+			this._visible = true;
 			ViewController.prototype.appendTo.call(this, this.window.root);
 			this.asDom().visible = true;
 			this.window.nextTickFrame(()=>{
@@ -341,7 +348,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	}
 
 	close() {
-		if ( this.asDom().visible ) {
+		if ( this._visible ) {
+			this._visible = false;
 			let main = this.refs.main as Morph;
 			main.transition({ y: main.clientSize.y, time: 300 });
 			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>{ this.destroy() });

@@ -873,7 +873,7 @@ export class Vec2 extends Base<Vec2> {
 	 * Create a zero vector
 	*/
 	static zero() {
-		return zero;
+		return newVec2(0, 0);
 	}
 }
 initDefaults(Vec2, { x: 0, y: 0 });
@@ -881,8 +881,6 @@ initDefaults(Vec2, { x: 0, y: 0 });
  * @type Vec2In:'0　0'|'vec2(0,0)'|N|[0,0]|Vec2
 */
 export type Vec2In = `${number} ${number}` | `vec2(${N},${N})` | N | [N,N] | Vec2;
-
-const zero: Vec2 = Object.freeze(newVec2(0, 0)); // frozen zero vector
 
 /**
  * @class Vec3

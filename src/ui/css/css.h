@@ -31,7 +31,7 @@
 #ifndef __quark__css__css__
 #define __quark__css__css__
 
-#include "../../util/util.h"
+#include "../../render/bezier.h"
 #include "../../util/dict.h"
 #include "../filter.h"
 #include "./css_props.h"
@@ -160,6 +160,9 @@ namespace qk {
 			Qk_Css_Props(_Fun)
 		#undef _Fun
 
+		/**
+		* animation curve for transition
+		*/
 		Qk_DEFINE_ACCE_GET(cCurve&, curve, Const);
 
 		StyleSheets();
@@ -232,6 +235,18 @@ namespace qk {
 		*/
 		virtual Window* getWindow() const;
 
+		/**
+		 * Returns true only when this style sheet explicitly sets `visible: true`.
+		 *
+		 * Class propagation uses this as a fast wake-up hint: a currently hidden
+		 * candidate normally does not need layout/style work, except when a matching
+		 * style may make it visible again. This flag never applies the property or
+		 * bypasses normal selector and priority resolution.
+		 */
+		inline bool hasVisibleTrue() const {
+			return _hasVisibleTrue;
+		}
+
 	private:
 		void applyTransition(View* view, StyleSheets *to, float y) const; // @thread Rt;
 		void set_frame_rt(uint32_t frame);
@@ -240,6 +255,9 @@ namespace qk {
 		// This container stores only properties explicitly defined
 		// in this StyleSheets instance.
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
+		// Cached from the explicitly stored visible property; used only to decide
+		// whether a hidden selector candidate must enter the normal CSS update queue.
+		bool _hasVisibleTrue;
 
 		// Hook called when a new property is created
 		virtual void onMake(CssProp key, Property* prop);

@@ -66,7 +66,7 @@ namespace qk {
 	}
 
 	void Video::onActivate() {
-		if (level() == 0) { // remove
+		if (_cascade_visible == false) { // remove
 			stop();
 		}
 	}

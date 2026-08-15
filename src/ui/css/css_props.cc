@@ -178,8 +178,8 @@ namespace qk {
 			Qk_Set_Accessor(Box, BOX_SIZING, box_sizing, BoxSizing);
 			Qk_Set_Accessor(Box, WIDTH, width, BoxSize);
 			Qk_Set_Accessor(Box, HEIGHT, height, BoxSize);
-			Qk_Set_Accessor(Box, MIN_WIDTH, min_width, BoxSize);
-			Qk_Set_Accessor(Box, MIN_HEIGHT, min_height, BoxSize);
+			// Qk_Set_Accessor(Box, MIN_WIDTH, min_width, BoxSize); // alias of width, use width instead
+			// Qk_Set_Accessor(Box, MIN_HEIGHT, min_height, BoxSize); // alias of height, use height instead
 			Qk_Set_Accessor(Box, MAX_WIDTH, max_width, BoxSize);
 			Qk_Set_Accessor(Box, MAX_HEIGHT, max_height, BoxSize);
 			Qk_Set_Accessor(Box, MARGIN, margin, ArrayFloat); // margin

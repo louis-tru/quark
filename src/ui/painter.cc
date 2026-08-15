@@ -561,7 +561,7 @@ namespace qk {
 				uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
 				if (mark) {
 					v->solve_marks(*_matrix, view, mark);
-					_mark_recursive = mark & View::kRecursive_Mark;
+					_mark_recursive = mark & View::kRecursive_Solve_Mark;
 				}
 				if (v->_visible_area) {
 					switch (v->_cascade_color) {
@@ -857,7 +857,7 @@ namespace qk {
 			auto mark = mark_value();
 			if (mark) {
 				solve_marks(Mat(), nullptr, mark);
-				painter->_mark_recursive = mark & View::kRecursive_Mark;
+				painter->_mark_recursive = mark & View::kRecursive_Solve_Mark;
 			}
 			if (_visible_area && color().a() != 0) {
 				painter->_delayCmds = &painter->_delayCmdsStack.back();
