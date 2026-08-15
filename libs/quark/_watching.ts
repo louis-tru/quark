@@ -30,11 +30,11 @@
 
 import {WSClient, WSConversation} from './ws';
 import {URL} from './uri';
-import {_Package,Module} from "./pkg";
+import {Package,Module} from "./pkg";
 import {EventNoticer,Event} from "./event";
 
-let mainPkg: _Package;
-let mainPkgLocal: _Package|undefined;
+let mainPkg: Package;
+let mainPkgLocal: Package|undefined;
 let modules: Map<string, Module> = new Map();
 
 const ObjectDefineProperty = Object.defineProperty;
@@ -85,7 +85,7 @@ function watchModule(mod: Module) {
 type Noticer = EventNoticer<Event<{},{name:string,hash:string}>>;
 
 // Connect to the watching server
-export function connectServer(pkg: _Package, notice: Noticer) {
+export function connectServer(pkg: Package, notice: Noticer) {
 	if (!pkg.isHttp || !pkg.json.watching)
 		return;
 	mainPkg = pkg;
