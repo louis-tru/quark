@@ -151,69 +151,69 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** The owner ViewController that manages this view. */
 	readonly owner: ViewController;
 
-	/** @event Fired on pointer/touch "click"-like activation. */
+	/** @event onClick Fired on pointer/touch "click"-like activation. */
 	readonly onClick: EventNoticer<ClickEvent>;
-	/** @event Fired on pointer/touch multi-click (double-click, etc.). */
+	/** @event onMultiClick Fired on pointer/touch multi-click (double-click, etc.). */
 	readonly onMultiClick: EventNoticer<ClickEvent>;
-	/** @event Fired on back navigation intent (e.g. hardware back). */
+	/** @event onBack Fired on back navigation intent (e.g. hardware back). */
 	readonly onBack: EventNoticer<ClickEvent>;
 
-	/** @event Fired on key down. */
+	/** @event onKeyDown Fired on key down. */
 	readonly onKeyDown: EventNoticer<KeyEvent>;
-	/** @event Fired on key press / text input. */
+	/** @event onKeyPress Fired on key press / text input. */
 	readonly onKeyPress: EventNoticer<KeyEvent>;
-	/** @event Fired on key up. */
+	/** @event onKeyUp Fired on key up. */
 	readonly onKeyUp: EventNoticer<KeyEvent>;
-	/** @event Convenience event for Enter/Return. */
+	/** @event onKeyEnter Convenience event for Enter/Return. */
 	readonly onKeyEnter: EventNoticer<KeyEvent>;
 
-	/** @event Touch/multitouch start. */
+	/** @event onTouchStart Touch/multitouch start. */
 	readonly onTouchStart: EventNoticer<TouchEvent>;
-	/** @event Touch/multitouch move. */
+	/** @event onTouchMove Touch/multitouch move. */
 	readonly onTouchMove: EventNoticer<TouchEvent>;
-	/** @event Touch/multitouch end. */
+	/** @event onTouchEnd Touch/multitouch end. */
 	readonly onTouchEnd: EventNoticer<TouchEvent>;
-	/** @event Touch canceled (gesture aborted). */
+	/** @event onTouchCancel Touch canceled (gesture aborted). */
 	readonly onTouchCancel: EventNoticer<TouchEvent>;
 
-	/** @event Pointer fully leaves (no longer within subtree). */
+	/** @event onMouseLeave Pointer fully leaves (no longer within subtree). */
 	readonly onMouseLeave: EventNoticer<MouseEvent>;
-	/** @event Pointer first enters (no previous containment). */
+	/** @event onMouseEnter Pointer first enters (no previous containment). */
 	readonly onMouseEnter: EventNoticer<MouseEvent>;
-	/** @event Pointer moves within this view. */
+	/** @event onMouseMove Pointer moves within this view. */
 	readonly onMouseMove: EventNoticer<MouseEvent>;
-	/** @event Mouse/pointer button down. */
+	/** @event onMouseDown Mouse/pointer button down. */
 	readonly onMouseDown: EventNoticer<MouseEvent>;
-	/** @event Mouse/pointer button up. */
+	/** @event onMouseUp Mouse/pointer button up. */
 	readonly onMouseUp: EventNoticer<MouseEvent>;
-	/** @event Mouse wheel / scroll wheel. */
+	/** @event onMouseWheel Mouse wheel / scroll wheel. */
 	readonly onMouseWheel: EventNoticer<MouseEvent>;
 
-	/** @event View received focus. */
+	/** @event onFocus View received focus. */
 	readonly onFocus: EventNoticer<UIEvent>;
-	/** @event View lost focus. */
+	/** @event onBlur View lost focus. */
 	readonly onBlur: EventNoticer<UIEvent>;
-	/** @event View UI state changed (hover, selection, etc.). */
+	/** @event onUIStateChange View UI state changed (hover, selection, etc.). */
 	readonly onUIStateChange: EventNoticer<UIStateEvent>;
 
-	/** @event Animation keyframe reached. */
+	/** @event onActionKeyframe Animation keyframe reached. */
 	readonly onActionKeyframe: EventNoticer<ActionEvent>;
-	/** @event Animation loop completed. */
+	/** @event onActionLoop Animation loop completed. */
 	readonly onActionLoop: EventNoticer<ActionEvent>;
 
-	/** @event Generic gesture event. */
+	/** @event onGesture Generic gesture event. */
 	readonly onGesture: EventNoticer<GestureEvent>;
-	/** @event Pan gesture recognized. */
+	/** @event onPanGesture Pan gesture recognized. */
 	readonly onPanGesture: EventNoticer<GestureEvent>;
-	/** @event Swipe gesture recognized. */
+	/** @event onSwipeGesture Swipe gesture recognized. */
 	readonly onSwipeGesture: EventNoticer<GestureEvent>;
-	/** @event Pinch (scale) gesture recognized. */
+	/** @event onPinchGesture Pinch (scale) gesture recognized. */
 	readonly onPinchGesture: EventNoticer<GestureEvent>;
-	/** @event Rotation gesture recognized. */
+	/** @event onRotateGesture Rotation gesture recognized. */
 	readonly onRotateGesture: EventNoticer<GestureEvent>;
-	/** @event Three-finger gesture (platform dependent). */
+	/** @event onThreeFingerGesture Three-finger gesture (platform dependent). */
 	readonly onThreeFingerGesture: EventNoticer<GestureEvent>;
-	/** @event Four-finger gesture (platform dependent). */
+	/** @event onFourFingerGesture Four-finger gesture (platform dependent). */
 	readonly onFourFingerGesture: EventNoticer<GestureEvent>;
 
 	/** Computed CSS class set for this view. */
@@ -694,10 +694,10 @@ export declare class Free extends Box {
  * @extends Box
  */
 export declare class Image extends Box {
-	/** @event Fired when the image has successfully loaded. */
+	/** @event onLoad Fired when the image has successfully loaded. */
 	readonly onLoad: EventNoticer<UIEvent>;
 
-	/** @event Fired when the image failed to load. */
+	/** @event onError Fired when the image failed to load. */
 	readonly onError: EventNoticer<UIEvent>;
 
 	/** Image source URL or resource identifier. */
@@ -989,9 +989,9 @@ export declare abstract class Agent extends Entity {
  * @extends Agent
  */
 export declare class Sprite extends Agent {
-	/** @event Fired when sprite asset / texture is loaded. */
+	/** @event onLoad Fired when sprite asset / texture is loaded. */
 	readonly onLoad: EventNoticer<UIEvent>;
-	/** @event Fired if sprite asset fails to load. */
+	/** @event onError Fired if sprite asset fails to load. */
 	readonly onError: EventNoticer<UIEvent>;
 
 	/** Sprite source (image / atlas). */
@@ -1048,17 +1048,17 @@ export declare class Sprite extends Agent {
  * @extends Agent
  */
 export declare class Spine extends Agent {
-	/** @event Spine animation track started. */
+	/** @event onSpineStart Spine animation track started. */
 	readonly onSpineStart: EventNoticer<SpineEvent>;
-	/** @event Spine animation interrupted (cut by another). */
+	/** @event onSpineInterrupt Spine animation interrupted (cut by another). */
 	readonly onSpineInterrupt: EventNoticer<SpineEvent>;
-	/** @event Spine animation track ended. */
+	/** @event onSpineEnd Spine animation track ended. */
 	readonly onSpineEnd: EventNoticer<SpineEvent>;
-	/** @event Spine track disposed/cleaned. */
+	/** @event onSpineDispose Spine track disposed/cleaned. */
 	readonly onSpineDispose: EventNoticer<SpineEvent>;
-	/** @event Spine animation loop completed. */
+	/** @event onSpineComplete Spine animation loop completed. */
 	readonly onSpineComplete: EventNoticer<SpineEvent>;
-	/** @event Spine user event fired (custom markers). */
+	/** @event onSpineEvent Spine user event fired (custom markers). */
 	readonly onSpineEvent: EventNoticer<SpineExtEvent>;
 
 	/** Spine skeleton data (bones, slots, attachments). */
@@ -1511,17 +1511,17 @@ export declare class InputSink extends View {
  * @implements TextOptions
  */
 export declare class Input extends Box implements TextOptions {
-	/** @event Fired when the value changes (user edit). */
+	/** @event onChange Fired when the value changes (user edit). */
 	readonly onChange: EventNoticer<UIEvent>;
-	/** @event Fired on text insertion. */
+	/** @event onInputDelete Fired on text deletion. */
 	readonly onInputDelete: EventNoticer<InputEvent>;
-	/** @event Fired on text deletion. */
+	/** @event onInputInsert Fired on text insertion. */
 	readonly onInputInsert: EventNoticer<InputEvent>;
-	/** @event Fired when text is marked (e.g. IME composition). */
+	/** @event onInputMarked Fired when text is marked (e.g. IME composition). */
 	readonly onInputMarked: EventNoticer<InputEvent>;
-	/** @event Fired when text is unmarked (e.g. IME composition end). */
+	/** @event onInputUnmark Fired when text is unmarked (e.g. IME composition end). */
 	readonly onInputUnmark: EventNoticer<InputEvent>;
-	/** @event Fired on any text input control action. */
+	/** @event onInputControl Fired on any text input control action. */
 	readonly onInputControl: EventNoticer<InputEvent>;
 
 	readonly fontStyle: number;
@@ -1748,7 +1748,7 @@ export interface ScrollView extends Box {
  * @implements ScrollView
  */
 export declare class Textarea extends Input implements ScrollView {
-	/** @event Fired as the scroll offset changes. */
+	/** @event onScroll Fired as the scroll offset changes. */
 	readonly onScroll: EventNoticer<UIEvent>;
 
 	scrollbar: boolean;
@@ -1792,7 +1792,7 @@ export declare class Textarea extends Input implements ScrollView {
  * @implements ScrollView
  */
 export declare class Scroll extends Box implements ScrollView {
-	/** @event Fired as the scroll offset changes. */
+	/** @event onScroll Fired as the scroll offset changes. */
 	readonly onScroll: EventNoticer<UIEvent>;
 
 	scrollbar: boolean;
@@ -1854,9 +1854,9 @@ export declare class Video extends Image implements Player {
 	stop(): void;
 	seek(timeMs: number): void;
 	switchAudio(index: number): void;
-	/** @event Fired when playback stops. */
+	/** @event onStop Fired when playback stops. */
 	readonly onStop: EventNoticer<UIEvent>;
-	/** @event Fired while buffering / loading. */
+	/** @event onBuffering Fired while buffering / loading. */
 	readonly onBuffering: EventNoticer<UIEvent>;
 }
 
