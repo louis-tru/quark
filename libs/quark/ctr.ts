@@ -116,6 +116,17 @@ export type Args = {
 }
 
 /**
+ * Options for rendering a VirtualDOM.
+ */
+export type RenderOpts = {
+	parent?: View | null, //!< optional parent view to append to
+	replace?: { //!< {object} replace:?{vdom?: [`VirtualDOM`] | null,dom?: [`DOM`] | null}
+		vdom?: VirtualDOM | null,
+		dom?: DOM | null
+	},
+}
+
+/**
  * Constructor type for DOM elements.
  */
 export interface DOMConstructor<T extends DOM = DOM> {
@@ -420,10 +431,12 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 	/**
 	 * Diff this VirtualDOM with a previous one and update the real DOM.
-	 * @param owner Owning ViewController
-	 * @param vdomOld Previous VirtualDOM
-	 * @param domOld Previous real DOM
-	 * @return Updated DOM
+	 * @template P,S
+	 * @method diff
+	 * @param owner:ViewController<P,S> Owning ViewController
+	 * @param vdomOld:VirtualDOM Previous VirtualDOM
+	 * @param domOld:DOM Previous real DOM
+	 * @return {T} Updated DOM
 	 */
 	diff<P = {}, S = {}>(owner: ViewController<P,S>, vdomOld: VirtualDOM, domOld: DOM): T {
 		let vdomNew: VirtualDOM<T> = this;
@@ -492,8 +505,10 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 	/**
 	 * Creates a new real DOM instance from this VirtualDOM.
-	 * @param owner Owning ViewController
-	 * @return New DOM instance
+	 * @template P,S
+	 * @method newDom(owner):T
+	 * @param owner:ViewController<P,S> Owning ViewController
+	 * @return {T} New DOM instance
 	 */
 	newDom<P = {}, S = {}>(owner: ViewController<P,S>): T {
 		const window = owner.window;
@@ -546,17 +561,13 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 	/**
 	 * Renders the VirtualDOM, optionally diffing against previous DOM.
-	 * @param owner Owning ViewController
-	 * @param opts Optional render options
-	 * @return The rendered DOM
+	 * @template P,S
+	 * @method render
+	 * @param owner:ViewController<P,S> Owning ViewController
+	 * @param opts?:RenderOpts Optional render options
+	 * @return {T} The rendered DOM
 	 */
-	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: {
-		parent?: View | null,
-		replace?: { // replace
-			vdom?: VirtualDOM | null, // diff prev vdom
-			dom?: DOM | null // diff prev dom
-		},
-	}): T {
+	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: RenderOpts): T {
 		const {parent,replace} = opts||{};
 		const {vdom,dom} = replace||{};
 		let domNew: T;
