@@ -32,5 +32,5 @@
 #include "src/js/js.h"
 
 Qk_Main() {
-	return argc > 1 ? qk::js::Start(argc, argv): 0;
+	return qk::js::Start(argc, argv);
 }
