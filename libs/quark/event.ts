@@ -175,8 +175,8 @@ export declare class ClickEvent extends KeyEvent {
  * differently, providing consistent behavior across mice and touchpads.
  */
 export enum WheelDeltaMode {
-	Line,   // discrete wheel step (mouse)
-	Pixel   // precise pixel delta (trackpad)
+	Line,   //!< discrete wheel step (mouse)
+	Pixel   //!< precise pixel delta (trackpad)
 };
 
 /**
