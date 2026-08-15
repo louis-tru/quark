@@ -368,22 +368,22 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	private _swipeVelocity = 500; // swipe trigger velocity in points per second, pt/s
 	private _lasetVelocityWeight = 0.85; // last velocity smoothing weight
 
-	/** Get or set the expected number of touch points for the gesture event */
+	/** @getset expectedFingerCount:Uint Get or set the expected number of touch points for the gesture event */
 	get expectedFingerCount() { return this._expectedFingerCount; }
 	set expectedFingerCount(v: Uint) { this._expectedFingerCount = Math.max(this.length, Number(v) || 0);}
-	/** Get or set the minimum distance (in points) that a swipe gesture needs to move */
+	/** @getset swipeDistance:number Get or set the minimum distance (in points) that a swipe gesture needs to move */
 	get swipeDistance() { return this._swipeDistance; }
 	set swipeDistance(v: number) { this._swipeDistance = Math.max(10, Number(v) || 0); }
-	/** Get or set the minimum speed (in points per second) that a swipe gesture needs to move */
+	/** @getset swipeVelocity:number Get or set the minimum speed (in points per second) that a swipe gesture needs to move */
 	get swipeVelocity() { return this._swipeVelocity; }
 	set swipeVelocity(v: number) { this._swipeVelocity = Math.max(50, Number(v) || 0); }
 
 	/* initial velocity calculation time window, ms */
 	private _initTimestamp = 200;
-	/** Get or set the initial velocity calculation time window, in milliseconds */
+	/** @getset initTimestamp:number Get or set the initial velocity calculation time window, in milliseconds */
 	get initTimestamp() { return this._initTimestamp; }
 	set initTimestamp(v: number) { this._initTimestamp = Math.max(50, Number(v) || 0); }
-	/** Get or set the last velocity smoothing weight, value range [0, 0.95], default is 0.85 */
+	/** @getset lastVelocityWeight:number Get or set the last velocity smoothing weight, value range [0, 0.95], default is 0.85 */
 	get lastVelocityWeight() { return this._lasetVelocityWeight; }
 	set lastVelocityWeight(v: number) {
 		this._lasetVelocityWeight = Math.min(0.95, Math.max(0, Number(v) || 0));
@@ -411,11 +411,11 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	readonly sealed: boolean = false;
 
 	/** The first gesture touch point */
-	get first() { return this.touchs[0]; }
+	get first(): GestureTouchPoint { return this.touchs[0]; }
 	/** The last gesture touch point */
-	get last() { return this.touchs.reverseAt(0); }
+	get last(): GestureTouchPoint { return this.touchs.reverseAt(0); }
 	/** The number of gesture touch points */
-	get length() { return this.touchs.length; }
+	get length(): Uint { return this.touchs.length; }
 
 	/**
 	 * @param id The gesture context number id
