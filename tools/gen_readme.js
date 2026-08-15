@@ -1043,7 +1043,7 @@ function startExec(input,output) {
 					break;
 				case 'event':
 					doc.push(pack ? `### ${pack.name.toLowerCase()}.${it.name}`: `## ${it.name}`, ...firstMsgs);
-					doc.push(`${head(it.kind)} ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`);
+					doc.push(`${head(it.kind)} ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`, ...it.msgs);
 					break;
 				case 'getset':
 					doc.push(`### ${pack.name.toLowerCase()}.${it.name}`, ...firstMsgs);

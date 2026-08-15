@@ -1385,6 +1385,8 @@ export declare class Label extends View implements TextOptions {
 export declare class InputSink extends View {
 
 	/**
+	 * @event onInputDelete
+	 *
 	 * Fired when text is deleted.
 	 *
 	 * This event represents a semantic delete operation, not a key press.
@@ -1393,6 +1395,8 @@ export declare class InputSink extends View {
 	readonly onInputDelete: EventNoticer<InputEvent>;
 
 	/**
+	 * @event onInputInsert
+	 *
 	 * Fired when text is inserted.
 	 *
 	 * This event represents committed text input, including:
@@ -1404,6 +1408,8 @@ export declare class InputSink extends View {
 	readonly onInputInsert: EventNoticer<InputEvent>;
 
 	/**
+	 * @event onInputMarked
+	 *
 	 * Fired when text is in a marked (composing) state.
 	 *
 	 * This typically corresponds to IME composition updates,
@@ -1413,6 +1419,8 @@ export declare class InputSink extends View {
 	readonly onInputMarked: EventNoticer<InputEvent>;
 
 	/**
+	 * @event onInputUnmark
+	 *
 	 * Fired when marked (composing) text is finalized.
 	 *
 	 * This indicates the end of an IME composition session.
@@ -1422,6 +1430,8 @@ export declare class InputSink extends View {
 	readonly onInputUnmark: EventNoticer<InputEvent>;
 
 	/**
+	 * @event onInputControl
+	 *
 	 * Fired on non-textual input control actions.
 	 *
 	 * This includes keys such as:
