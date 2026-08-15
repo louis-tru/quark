@@ -88,10 +88,10 @@ export declare class ActionEvent extends UIEvent {
 
 /** Keyboard location on the device */
 export enum KeyboardLocation {
-	Standard = 0,
-	Left = 1,
-	Right = 2,
-	Numpad = 3,
+	Standard = 0, //!< {0} Standard keys, such as alphanumeric keys on a keyboard
+	Left = 1, //!< {1} Left-side keys, such as left Shift or left Ctrl
+	Right = 2, //!< {2} Right-side keys, such as right Shift or right Ctrl
+	Numpad = 3, //!< {3} Numeric keypad keys, such as the number pad on a keyboard
 }
 
 /**
