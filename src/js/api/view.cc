@@ -120,6 +120,7 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(View, uint32_t, z_index, zIndex);
 			Js_MixObject_Accessor(View, float, opacity, opacity);
 			Js_MixObject_Accessor(View, bool, visible, visible);
+			Js_MixObject_Acce_Get(View, bool, cascade_visible, cascadeVisible);
 			Js_MixObject_Acce_Get(View, bool, visible_area, visibleArea);
 			Js_MixObject_Accessor(View, bool, receive, receive);
 			Js_MixObject_Accessor(View, bool, aa, aa);

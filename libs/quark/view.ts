@@ -239,7 +239,11 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 */
 	readonly morphView: MorphView | null;
 
-	/** Depth level in the scene graph (0 at root, increasing downward). */
+	/**
+	 * Depth in the attached view tree. The root level is 1 and descendants
+	 * increase from there; 0 means that the view is detached. Visibility does
+	 * not change this value.
+	 */
 	readonly level: number;
 
 	/** Layout weight (used by layout containers like Flex/Flow). */
@@ -358,6 +362,12 @@ export declare class View extends Notification<UIEvent> implements DOM {
 
 	/** Whether the view is visible for rendering & hit testing. */
 	visible: boolean;
+
+	/**
+	 * Effective visibility in the attached view tree. This is true only when
+	 * this view and every ancestor are visible.
+	 */
+	readonly cascadeVisible: boolean;
 
 	/** Whether the view is currently interactive / receiving events. */
 	receive: boolean;
