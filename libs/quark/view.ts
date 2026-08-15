@@ -125,7 +125,7 @@ export interface DOM {
 	destroy(owner: ViewController): void;
 }
 
-/* Internal JSX child node handle (may be null for holes/conditional children). */
+/** Internal JSX child node handle (may be null for holes/conditional children). */
 export type ChildDOM = DOM | null;
 
 /**
