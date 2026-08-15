@@ -134,6 +134,7 @@ createCss({
 });
 
 /**
+ * Default labels used by dialog action buttons and prompt input.
  * @const Consts:...
 */
 export const Consts = {
@@ -143,6 +144,8 @@ export const Consts = {
 };
 
 /**
+ * Modal dialog controller with customizable content and action buttons.
+ *
  * @class Dialog
  * @extends Navigation
  */

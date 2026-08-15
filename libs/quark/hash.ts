@@ -65,7 +65,7 @@ export function rng16(): Buffer {
 	return rng(16);
 }
 
-/**
+/*
  * Convert array of 16 byte values to UUID string format of the form:
  * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
  */
@@ -102,4 +102,3 @@ export function uuid_v4(random?: Uint8Array): string {
 
 	return bytesToUuid(rnds);
 }
-

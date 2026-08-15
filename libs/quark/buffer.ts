@@ -460,6 +460,7 @@ export class Buffer extends Uint8Array {
 
 /**
  * Zero buffer
+ * @const Zero:Buffer
 */
 export const Zero = alloc(0);
 
@@ -532,8 +533,8 @@ export function compare(a: Uint8Array, b: Uint8Array): Int {
 	return 0
 }
 
-type FromArg = string | ArrayBufferView | ArrayBufferLike | Iterable<number> | ArrayLike<number>;
-type MapFn = (v: number, k: number) => number;
+export type FromArg = string | ArrayBufferView | ArrayBufferLike | Iterable<number> | ArrayLike<number>;
+export type MapFn = (v: number, k: number) => number;
 
 /**
  * Calculate the length of the string after encoding using the specified algorithm

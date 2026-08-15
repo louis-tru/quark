@@ -74,14 +74,13 @@ export enum HttpReadyState {
 /**
  * @callback StreamResponseCallback(stream:StreamResponse)void
 */
-type StreamResponseCallback = (stream: StreamResponse)=>void;
+export type StreamResponseCallback = (stream: StreamResponse)=>void;
 
-type HttpEvent<T = void> = Event<HttpClientRequest, T>; //!<
+export type HttpEvent<T = void> = Event<HttpClientRequest, T>; //!<
 
 /**
  * @class NativeHttpClientRequest
  * @extends Notification
- * @private
 */
 declare class NativeHttpClientRequest extends Notification<HttpEvent> implements Stream {
 	/** Total amount of data to be uploaded to the server */
@@ -218,6 +217,8 @@ declare class NativeHttpClientRequest extends Notification<HttpEvent> implements
 	*/
 	abort(): void;
 }
+
+export type { NativeHttpClientRequest };
 
 /**
  * @class HttpClientRequest

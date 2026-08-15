@@ -243,7 +243,7 @@ function startExec(input,output) {
 					ch.disable = true;
 					let {__main__:it,firstMsgs} = ch;
 					// ...firstMsgs, ...it.msgs
-					linkStr.push(`${key(it.name)}: ${getTypeLink(it.type)}${separator}${it.desc ? '// '+ it.desc: ''} \n`);
+					linkStr.push(`${key(it.name)}: ${getDisplayTypeLink(it.type)}${separator}${it.desc ? ' // '+ it.desc: ''}\n`);
 				}
 				linkStr.push('}');
 			} else {
@@ -297,6 +297,102 @@ function startExec(input,output) {
 		return linkStr.join('');
 	}
 
+	// Parenthesized unions are preserved for API display without changing the
+	// general type parser used by templates, references, and method signatures.
+	function getDisplayTypeLink(typeStr, comment) {
+		let value = typeStr && typeStr.trim().replace(/,$/, '');
+		let predicate = value && value.match(/^(\w+)\s+is\s+(.+)$/);
+		if (predicate)
+			return `${predicate[1]} is ${getDisplayTypeLink(predicate[2], comment)}`;
+		let group = value && value.match(/^\((.+)\)(\s*\[\s*\])?$/);
+		if (!group)
+			return getTypeLink(typeStr, comment);
+		return `(${getTypeLink(group[1], comment)})${group[2] ? '`[]`': ''}`;
+	}
+
+	function getTypeText(typeStr, comment) {
+		let depth = 0;
+		return getDisplayTypeLink(typeStr, comment)
+			.replace(/\[\`([^`]+)\`\]/g, '$1')
+			.replace(/\`([^`]*)\`/g, '$1')
+			.replace(/\s*\|\s*/g, ' | ')
+			.replace(/\s*&\s*/g, ' & ')
+			.trim()
+			.split('\n')
+			.map(line=>{
+				line = line.trim();
+				if (line[0] == '}')
+					depth = Math.max(0, depth - 1);
+				let result = '  '.repeat(depth) + line;
+				if (line.endsWith('{'))
+					depth++;
+				return result;
+			})
+			.join('\n');
+	}
+
+	function escapeHTML(value) {
+		return value
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+	}
+
+	function apiSignature(value, typeStr, comment) {
+		let html = escapeHTML(value);
+		let linkedTypes = [];
+		for (let type of Array.isArray(typeStr) ? typeStr: [typeStr]) {
+			if (!type)
+				continue;
+			let linked = getDisplayTypeLink(type, comment);
+			linkedTypes.push(...Array.from(linked.matchAll(/\[\`([^`]+)\`\]/g), e=>e[1]));
+		}
+		linkedTypes = Array.from(new Set(linkedTypes)).sort((a,b)=>b.length-a.length);
+		if (linkedTypes.length) {
+			let pattern = linkedTypes
+				.map(e=>e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+				.join('|');
+			html = html.replace(new RegExp(`(^|[^A-Za-z0-9_$])(${pattern})(?=$|[^A-Za-z0-9_$])`, 'gm'),
+				(match, prefix, type)=>refs[type] ?
+					`${prefix}<a class="api-type" href="${escapeHTML(escapingFilePath(refs[type]))}">${escapeHTML(type)}</a>`:
+					match
+			);
+		}
+		html = html
+			.replace(/^type\b/, '<span class="api-keyword">type</span>')
+			.replace(/^(\s*)(readonly|set|const)\b/gm, '$1<span class="api-keyword">$2</span>');
+		// A blank line must follow raw HTML blocks or Markdown that follows may be
+		// consumed as part of the block and appear verbatim in the generated page.
+		return `<pre class="api-signature sh_none"><code>${html}</code></pre>\n`;
+	}
+
+	function signatureType(type, comment) {
+		return getTypeText(type, comment) || (type ? type.trim().replace(/,$/, ''): 'any');
+	}
+
+	function methodSignature(it, comment) {
+		let params = comment.param.map(e=>
+			`${e.name}: ${signatureType(e.type, comment)}`
+		);
+		let returns = comment.return && comment.return.type;
+		let prefix = it.modifiers.includes('static') ? 'static ': '';
+		return `${prefix}${it.name}(${params.join(', ')})${returns ? ': '+signatureType(returns, comment): ''}`;
+	}
+
+	function typeSignature(name, typeStr, comment) {
+		let type = getTypeText(typeStr, comment);
+		let signature = `type ${name} = ${type}`;
+		if (!type.includes('\n') && signature.length <= 88)
+			return signature;
+
+		let lines = type.split('\n');
+		let union = lines.shift().split(' | ');
+		let result = [`type ${name} =`, `  ${union.shift()}`];
+		result.push(...union.map(e=>`  | ${e}`));
+		result.push(...lines.map(e=>'  '+e));
+		return result.join('\n');
+	}
+
 	function getTypeListLink(typeStr, comment) {
 		let linkStr = [];
 		if (!typeStr)
@@ -316,11 +412,11 @@ function startExec(input,output) {
 
 		parseTypesList({ typeStr: typesStr.join(','), index:0 }).forEach(({types,defaultTypes},i)=>{
 			if (i) {
-				linkStr.push(',');
+				linkStr.push(', ');
 			}
 			linkStr.push(key(types[0].first));
 			if (defaultTypes.length) {
-				linkStr.push('=');
+				linkStr.push(' = ');
 				getTypeLinkBy(defaultTypes, linkStr);
 			}
 		});
@@ -496,7 +592,7 @@ function startExec(input,output) {
 			return c;
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /[^\w@]*(?:(export|static|protected|private|public|@event|@link|@link\.acc)\s+)?(?:(const|readonly)\s+)?(?:(\w+\??)|(\[[\w:\s]+\]))\s*(\:\s*([\w\[\]\<\>\|,\.\s]+)|\(|\w)?/my;
+		let reg = /[^\w@]*(?:(export|static|protected|private|public|@event|@link|@link\.acc)\s+)?(?:(const|readonly)\s+)?(?:(\w+\??)|(\[[\w:\s]+\]))\s*(\:\s*([\w\[\]\<\>\|,\.\s\(\)\?\$]+)|\(|\w)?/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
@@ -580,12 +676,14 @@ function startExec(input,output) {
 		}
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /\W*(?:(export)\s+)?(type)\s+(\w+)\s*(\<[^\>]+\>)?\s*=\s*([\w\[\]\<\>\|,\.\'\"\-\$　\s]+)/my;
+		let reg = /\W*(?:(export)\s+)?(type)\s+(\w+)\s*(\<[^\>]+\>)?\s*=\s*(\{|[\w\[\]\<\>\|,\.\'\"\-\$　\s]+)/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
 			return;
 		let [,modifiers,kind,name,templMat,type] = mat;
+		if (type.trim() == '{')
+			type = '...';
 
 		if (!comment.type) {
 			comment.type = new Item(kind,'',{name,type});
@@ -597,6 +695,7 @@ function startExec(input,output) {
 			if (!comment.type.type)
 				comment.type.type = type;
 		}
+		comment.type.template = templMat ? templMat.trim(): '';
 
 		fixTempl(comment, templMat);
 
@@ -901,15 +1000,17 @@ function startExec(input,output) {
 						ch.disable = true;
 						doc.push(`* ${key(it.name)} ${it.type ? ' = ' + key(it.type): ''} ${it.desc}`, ...firstMsgs, ...it.msgs);
 					}
+					doc.push('');
 					break;
 				case 'extends':
 				case 'implements':
 					if (comment.class || comment.interface) {
-						doc.push(`${head(it.kind)} ${getTypeListLink(it.value, comment)}`);
+						doc.push(`**${it.kind == 'extends' ? 'Extends': 'Implements'}:** ${getTypeListLink(it.value, comment)}`);
 					}
 					break;
 				case 'template':
-					doc.push(`${head('template')} <${getTemplTypeLink(it.types)}>`);
+					if (!comment.type)
+						doc.push(`**Type parameters:** ${getTemplTypeLink(it.types)}`);
 					break;
 				case 'enumItem':
 					break;
@@ -917,16 +1018,28 @@ function startExec(input,output) {
 					doc.push(`##${pack?'# '+pack.name.toLowerCase()+'.':' '}${it.value}`, ...firstMsgs);
 					it.desc && doc.push(it.desc);
 					doc.push(...it.msgs);
+					doc.push(apiSignature(methodSignature(it, comment),
+						[...comment.param.map(e=>e.type), comment.return && comment.return.type], comment));
+					doc.push('');
+					let describedParams = comment.param.filter(e=>e.desc || e.msgs.length);
+					if (describedParams.length) {
+						doc.push('**Parameters:**');
+						for (let pa of describedParams)
+							doc.push(`- ${key(pa.name)}${pa.desc ? ' — '+pa.desc: ''}`, ...pa.msgs);
+					}
+					if (comment.return && (comment.return.desc || comment.return.msgs.length))
+						doc.push('', `**Returns:** ${comment.return.desc}`, ...comment.return.msgs);
 					break;
 				case 'return':
-					if (comment.method) {
-						doc.push(`${head('return')} ${getTypeLink(it.type)} ${it.desc}`, ...it.msgs);
-					}
 					break;
 				case 'get':
 				case 'set':
 					doc.push(`### ${pack.name.toLowerCase()}.${it.name}`, ...firstMsgs);
-					doc.push(`${head(it.kind)} ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`);
+					it.desc && doc.push(it.desc);
+					doc.push(apiSignature(it.kind == 'get' ?
+						`readonly ${it.name}: ${getTypeText(it.type)}`:
+						`set ${it.name}(value: ${getTypeText(it.type)})`
+					, it.type));
 					break;
 				case 'event':
 					doc.push(pack ? `### ${pack.name.toLowerCase()}.${it.name}`: `## ${it.name}`, ...firstMsgs);
@@ -934,10 +1047,12 @@ function startExec(input,output) {
 					break;
 				case 'getset':
 					doc.push(`### ${pack.name.toLowerCase()}.${it.name}`, ...firstMsgs);
-					doc.push(`* ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`);
+					it.desc && doc.push(it.desc);
+					doc.push(apiSignature(`${it.name}: ${getTypeText(it.type)}`, it.type));
 					break;
 				case 'param':
-					doc.push(`${head('param')} ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`, ...it.msgs);
+					if (!comment.method)
+						doc.push(`${head('param')} ${key(it.name)}: ${getTypeLink(it.type)} ${it.desc}`, ...it.msgs);
 					break;
 				case 'callback':
 					doc.push(`## ${it.name}`, ...firstMsgs);
@@ -947,13 +1062,17 @@ function startExec(input,output) {
 					doc.push(`## ${it.name}`, ...firstMsgs);
 					it.desc && doc.push(it.desc);
 					doc.push(...it.msgs);
-					doc.push(`${head('type')} ${key(it.name)} = ${getTypeLink(it.type, comment)}`);
+					doc.push(apiSignature(typeSignature(it.name + (it.template || ''), it.type, comment), it.type, comment));
 					break;
 				case 'const':
 					doc.push(`## ${it.name}`, ...firstMsgs);
 					it.desc && doc.push(it.desc);
 					doc.push(...it.msgs);
-					doc.push(`${head('const')} ${key(it.name)}: ${getTypeLink(it.type, comment)}`);
+					let constType = getTypeText(it.type, comment);
+					doc.push(apiSignature(constType.includes('\n') ?
+						`const ${it.name} = ${constType}`:
+						`const ${it.name}${constType ? ': '+constType: ''}`,
+						it.type, comment));
 					break;
 				case 'default':
 					doc.push(`## default`, ...firstMsgs, ...it.msgs);

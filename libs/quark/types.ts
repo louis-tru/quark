@@ -33,7 +33,7 @@ import type {Float, Int} from './defs';
 
 const _font = __binding__('_font');
 
-type Reference = (ref: any[])=>any[];
+export type Reference = (ref: any[])=>any[];
 
 function getReference(ref: any[], plus?: Reference) {
 	return plus ? plus(ref): ref;
@@ -73,7 +73,7 @@ function error(value: any, msg?: string, reference?: any[], ref?: Reference, enu
  */
 export type N = number;
 
-interface Constructor<T> {
+export interface Constructor<T> {
 	new(...args: any[]): T;
 }
 
@@ -1185,7 +1185,7 @@ export class FillPosition extends Base<FillPosition> {
 	readonly kind: FillPositionKind; //!<
 };
 initDefaults(FillPosition, { value: 0, kind: FillPositionKind.Value });
-type FillPositionKindStr = //!< {'start'|'end'|'center'}
+export type FillPositionKindStr = //!< {'start'|'end'|'center'}
 	Uncapitalize<keyof RemoveField<typeof FillPositionKind, 'Value'|'Ratio'|number>>;
 /** @type FillPositionIn:N|FillPosition|'50%'|FillPositionKindStr */
 export type FillPositionIn = N | FillPosition | `${number}%` | FillPositionKindStr;
@@ -1198,7 +1198,7 @@ export class FillSize extends Base<FillSize> {
 	readonly kind: FillSizeKind; //!<
 };
 initDefaults(FillSize, { value: 0, kind: FillSizeKind.Auto });
-type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; //!< {'auto'}
+export type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; //!< {'auto'}
 export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr; //!< {N|FillSize|'50%'|FillSizeKindStr}
 
 /**
@@ -1209,7 +1209,7 @@ export class BoxSize extends Base<BoxSize> {
 	readonly kind: BoxSizeKind; //!<
 };
 initDefaults(BoxSize, { value: 0, kind: BoxSizeKind.Value });
-type BoxSizeKindStr = //!< {'auto'|'none'|'match'}
+export type BoxSizeKindStr = //!< {'auto'|'none'|'match'}
 	Uncapitalize<keyof RemoveField<typeof BoxSizeKind, 'Value'|'Ratio'|'Minus'|number>>
 export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindStr; //!< {N|BoxSize|'50%'|'100!'|BoxSizeKindStr}
 
@@ -1220,7 +1220,7 @@ export class BoxOrigin extends Base<BoxSize> {
 	readonly value: N; //!<
 	readonly kind: BoxOriginKind; //!<
 };
-type BoxOriginKindStr = FillSizeKindStr; //!<
+export type BoxOriginKindStr = FillSizeKindStr; //!<
 initDefaults(BoxOrigin, { value: 0, kind: FillSizeKind.Value });
 export type BoxOriginIn = N | BoxOrigin | `${number}%` | BoxOriginKindStr; //!< {N|BoxOrigin|'50%'|BoxOriginKindStr}
 
@@ -1252,7 +1252,7 @@ export class TextColor extends TextBase<TextColor,Color> {
 	get a() { return this.value.a; } //!< {N}
 }
 initDefaults(TextColor, { value: newColor(0,0,0,255), kind: TextValueKind.Inherit });
-type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>; //!< {'inherit'|'default'}
+export type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>; //!< {'inherit'|'default'}
 export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; //!<
 
 /**
@@ -1335,7 +1335,7 @@ export declare abstract class BoxFilter {
 	next: BoxFilter | null; //!<
 }
 
-type BoxFilterInStr = `image(${string})`|`radial(${string})`|`linear(${string})`;
+export type BoxFilterInStr = `image(${string})`|`radial(${string})`|`linear(${string})`;
 
 /**
  * @type BoxFilterIn:string|string[]|BoxFilter

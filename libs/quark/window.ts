@@ -36,7 +36,7 @@ import { ViewController, VirtualDOM, _CVD } from './ctr';
 import type { Uint } from './defs';
 
 const _ui = __binding__('_ui');
-type WEvent = Event<Window>;
+export type WEvent = Event<Window>; //!< Window lifecycle event.
 
 /**
  * @interface Options
@@ -174,6 +174,8 @@ declare class NativeWindow extends Notification<WEvent> {
 	*/
 	constructor(opts?: Options);
 }
+
+export type { NativeWindow };
 
 /**
  * @class Window

@@ -126,7 +126,7 @@ export interface DOM {
 }
 
 /* Internal JSX child node handle (may be null for holes/conditional children). */
-type ChildDOM = DOM | null;
+export type ChildDOM = DOM | null;
 
 /**
  * Base class for all visual nodes.

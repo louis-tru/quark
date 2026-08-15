@@ -212,7 +212,7 @@ interface CallData extends Packet {
 	cancel?: boolean;
 }
 
-const METHOD_CALL_TIMEOUT = 12e4; //!< 120s
+const METHOD_CALL_TIMEOUT = 12e4; // 120s
 
 /**
  * @class WSCEvent

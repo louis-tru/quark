@@ -264,9 +264,9 @@ export declare class CStyleSheetsClass {
  * - Browser-specific or layout-driven CSS features
  *
  * Pseudo state mapping:
- * - `:normal` → [`HighlightedStatus.Normal`]
- * - `:hover`  → [`HighlightedStatus.Hover`]
- * - `:active` → [`HighlightedStatus.Active`]
+ * - `:normal` → [`UIState.Normal`](event.md#enum-uistate)
+ * - `:hover`  → [`UIState.Hover`](event.md#enum-uistater)
+ * - `:active` → [`UIState.Active`](event.md#enum-uistate)
  *
  * Notes:
  * - Selector semantics are resolved at creation time, not at runtime.

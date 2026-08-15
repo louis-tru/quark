@@ -173,7 +173,7 @@ function resolveFilename(request: string, parent?: Module): { filename: string, 
 	}
 }
 
-/**
+/*
  * http://google.com/aa/test.txt => http://google.com
  * zip:///home/xxx/test.apk@/assets/bb.jpg => zip:///home/xxx/test.apk@
  * file:///d:/a/bc/d/e/f/test.txt => file://d:
@@ -1118,10 +1118,9 @@ class Package {
 	}
 }
 
-// @private
-export type _Package = Package;
+export type { Package }
 
-/**
+/*
  * qk://quark ExtendModule Internal expansion module
  * 
  * @class QkPackage

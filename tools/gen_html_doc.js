@@ -116,10 +116,21 @@ function genHtml(src, target) {
 	if ( extname == '.md' || extname == '.mdown' ) {
 		var md = fs.readFileSync(output_md + src).toString();
 		var save = target.substring(0, target.length - extname.length) + '.html';
+		var chinese = /-cn\.(md|mdown)$/i.test(src);
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
-		var tmp = template.replace('__placeholder_src__', src.substring(1).replace(/.(md|mdown)/i, '.html'));
-		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
-		var r = marked_html.gen_html(md, indexeds[src] || 'Quark API Documentation', tmp);
+		var currentPage = src.substring(1)
+			.replace(/\.(md|mdown)$/i, '.html')
+			.split('/')
+			.map(escapingFilePath)
+			.join('/');
+		var tmp = template.replace('__placeholder_src__', currentPage);
+		tmp = tmp.replace(/__placeholder_relative__/g, new Array(src.split('/').length - 1).join('../'));
+		tmp = tmp.replace('__placeholder_lang__', chinese ? 'zh-CN': 'en');
+		tmp = tmp.replace('__placeholder_documentation__', chinese ? '文档': 'Documentation');
+		tmp = tmp.replace('__placeholder_index_label__', chinese ? '文档目录': 'Documentation Index');
+		tmp = tmp.replace('__placeholder_home_label__', chinese ? '主页': 'Home');
+		tmp = tmp.replace('__placeholder_contents__', chinese ? '本页目录': 'Contents');
+		var r = marked_html.gen_html(md, indexeds[src] || (chinese ? 'Quark API 文档': 'Quark API Documentation'), tmp);
 		fs.writeFileSync(save, r.html);
 	} else {
 		fs.copyFileSync(output_md + src, target);

@@ -188,7 +188,7 @@ exports.Hash = _init.Hash;
 
 // ------------------------------------------------------------------------------------------------
 
-type Platform = 'darwin' | 'android' | 'linux' | 'win32'; //!<
+export type Platform = 'darwin' | 'android' | 'linux' | 'win32'; //!<
 
 let _exiting = false;
 

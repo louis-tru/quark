@@ -39,7 +39,7 @@ import event, {EventNoticer, Notification, NativeNotification, Event} from './ev
 
 const _ui = __binding__('_ui');
 let _current: Application | null = null;
-type AEvent = Event<Application>; //!<
+export type AEvent = Event<Application>; //!<
 
 /**
  * System clipboard interface.
@@ -178,6 +178,8 @@ declare class NativeApplication extends Notification<AEvent> {
 		bcc?: string
 	): void;
 }
+
+export type { NativeApplication };
 
 /**
  * @class Application

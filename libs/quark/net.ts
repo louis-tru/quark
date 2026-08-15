@@ -43,8 +43,8 @@ import type {Uint,Int} from './defs';
 const _net = __binding__('_net');
 
 type Buffer = buffer.Buffer;
-type SocketEvent<T = void> = Event<Socket, T>; //!<
-type WSocketEvent<T = void> = Event<WebSocket, T>; //!<
+export type SocketEvent<T = void> = Event<Socket, T>; //!<
+export type WSocketEvent<T = void> = Event<WebSocket, T>; //!<
 
 /**
  * @class NativeSocket
@@ -68,6 +68,8 @@ declare class NativeSocket extends Notification<SocketEvent> implements Stream {
 	disableSslVerify(disable?: boolean): void; //!<
 	constructor(hostname: string, port: Uint, isSSL?: boolean); //!<
 }
+
+export type { NativeSocket };
 
 /**
  * @class Socket
@@ -399,7 +401,7 @@ namespace ws {
 			return buf;
 		}
 
-		/**
+		/*
 		 * Handles an error
 		 */
 		private error(reason: any) {

@@ -45,7 +45,7 @@ import * as view from './view';
 import pkg from './pkg';
 import {RemoveReadonly} from './types';
 
-/**
+/*
  * A special Set implementation that ignores all operations.
  * Used as a no-op placeholder when file-watching is disabled (non-dev mode).
  */
@@ -57,7 +57,7 @@ class InvalidSet<T> extends Set<T> {
 const isWatching = pkg.isWatching;
 const assertDev: typeof util.assert = util.assert;
 
-/**
+/*
  * Render Queue:
  * Holds ViewControllers that are scheduled for re-render.
  * Key: controller, Value: {missError} whether to suppress re-throwing errors.
@@ -65,13 +65,13 @@ const assertDev: typeof util.assert = util.assert;
 const RenderQueue = new Map<ViewController, {missError?: boolean}>();
 let   RenderQueueWorking = false;
 
-/**
+/*
  * Debug-only: tracks all controllers with active file-watch subscriptions.
  */
 const WatchingAllCtrForDebug = isWatching ?
 	new Set<ViewController>(): new InvalidSet<ViewController>();
 
-/**
+/*
  * Warning system: prevents duplicate warning logs.
  */
 const WarnRecord = new Set();
@@ -89,7 +89,7 @@ function warn(id: string, msg = '') {
 	}
 }
 
-/**
+/*
  * File watcher (hot reload support).
  * When a file changes, any watching controllers are re-rendered.
  */
@@ -118,7 +118,7 @@ export type Args = {
 /**
  * Constructor type for DOM elements.
  */
-interface DOMConstructor<T extends DOM = DOM> {
+export interface DOMConstructor<T extends DOM = DOM> {
 	new(...args: any[]): T;
 	readonly isViewController: boolean;
 	readonly __filename__?: string; // debugging support
@@ -171,7 +171,7 @@ export function linkAcc(target: ViewController, name: string) {
 
 link.acc = linkAcc;
 
-/**
+/*
  * Get the VirtualDOM key. Falls back to auto-index if not defined.
  * Warns if no key is provided in a DOM collection.
  */
@@ -187,7 +187,7 @@ function getkey(vdom: VirtualDOM, autoKey: number): string {
 	return key;
 }
 
-/**
+/*
  * Remove a ref reference from a controller.
  */
 function unref<T>(dom: DOM, owner: ViewController<T>) {
@@ -199,7 +199,7 @@ function unref<T>(dom: DOM, owner: ViewController<T>) {
 	}
 }
 
-/**
+/*
  * Set or update a ref reference.
  */
 function setref(dom: View | ViewController, owner: ViewController, value: string) {
@@ -219,7 +219,7 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
 // Render Queue Scheduling
 // -----------------------------
 
-/**
+/*
  * Mark a controller for re-render.
  * Added to the queue and processed on nextTick.
  */
@@ -250,7 +250,7 @@ function _markrerender<T>(ctr: ViewController<T>, missError = false) {
 	}
 }
 
-/**
+/*
  * Performs actual re-rendering of a ViewController.
  * - Runs diff algorithm between old and new VirtualDOM.
  * - Triggers lifecycle hooks.
@@ -399,7 +399,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 		}
 	}
 
-	/**
+	/*
 	 * Diff a subset of props.
 	 * @param dom Real DOM instance
 	 * @param vdomOld Previous VirtualDOM
@@ -590,13 +590,13 @@ Object.assign(VirtualDOM.prototype, {
 /* Empty VirtualDOM singleton */
 const EmptyVDom = new VirtualDOM(View, null, []);
 
-/**
+/*
  * Lightweight VirtualDOM representing text nodes.
  */
 class VirtualDOMText extends VirtualDOM<Label> {
-	readonly value: string; //!< Text content
+	readonly value: string; // Text content
 
-	/**
+	/*
 	 * Creates a VirtualDOMText from a string.
 	 * @param value Text string
 	 */
@@ -626,12 +626,12 @@ util.extend(VirtualDOMText.prototype, {
 	domC: Label, get hashProp() {return this.hash},
 });
 
-/**
+/*
  * Represents a collection of VirtualDOM nodes.
  * Handles keyed diffing and ensures no duplicate keys.
  */
 class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
-	collection: VirtualDOM[]; //!< Array of child VirtualDOMs
+	collection: VirtualDOM[]; // Array of child VirtualDOMs
 
 	constructor(collection: (VirtualDOM | null)[]) {
 		super(DOMCollection, null, []);
@@ -652,7 +652,7 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		this.collection = _collection;
 	}
 
-	/**
+	/*
 	 * Diff and apply collection props to DOMCollection.
 	 * @param dom DOMCollection instance
 	 * @param vdomOld Previous VirtualDOM
@@ -693,7 +693,7 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		}
 	}
 
-	/**
+	/*
 	 * Create a new DOMCollection from this VirtualDOMCollection.
 	 * @param owner Owning ViewController
 	 * @return New DOMCollection
@@ -714,7 +714,7 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 }
 
 /**
- * Collection of real DOM elements corresponding to VirtualDOMCollection.
+ * Collection of real DOM elements produced from a virtual DOM collection.
  */
 export class DOMCollection implements DOM {
 	readonly collection: DOM[]; //!< Child DOM elements
@@ -767,7 +767,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	readonly window: Window;
 	/** Parent controller which the current controller belongs */
 	readonly owner: ViewController;
-	// /** External children vdom */
+	/** External children vdom */
 	readonly children: (VirtualDOM | null)[];
 	/** the ViewController external incoming attributes */
 	readonly props: Readonly<P>;
@@ -1044,11 +1044,17 @@ export function createElement<T extends DOM = DOM>(
 	return new VirtualDOM(Type, props, children.map(_CVDD));
 }
 
-export type VDom<T extends DOM = DOM> = VirtualDOM<T>; //!<
+/** Typed shorthand for a VirtualDOM with a specific DOM implementation. */
+export type VDom<T extends DOM = DOM> = VirtualDOM<T>;
 export const VDom = VirtualDOM;
 
 export const _CVD = createElement;
 export const Jsx = createElement;
-export type RenderData = VirtualDOM | string; //!<
-export type RenderNode = RenderData | null | undefined | void; //!<
-export type RenderResult = RenderNode[] | RenderNode; //!<
+/** Data that can produce visible output in a virtual DOM render result. */
+export type RenderData = VirtualDOM | string;
+
+/** A renderable value or an empty value that produces no output. */
+export type RenderNode = RenderData | null | undefined | void;
+
+/** A single render node or a list of sibling render nodes. */
+export type RenderResult = RenderNode[] | RenderNode;
