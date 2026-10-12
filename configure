@@ -29,8 +29,8 @@ if [ ! "`which node`" ]; then
 fi
 
 if [ "`which tsc`" = "" ]; then
-	echo "Run: npm install typescript@5.8.2 -g"
-	$SUDO npm install typescript@5.8.2 -g;
+	echo "Run: npm install typescript@6.0.3 -g"
+	$SUDO npm install typescript@6.0.3 -g;
 fi
 
 if   [ ! -d libs/qktool ] \
